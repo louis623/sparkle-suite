@@ -1,4 +1,10 @@
+import { homepagePreloadHeader } from './homepage-preload-header'
+import {shouldUseRepRenderV2} from './rep-render-version'
+import {withLegacyStaticAssets} from './legacy-assets'
 import { readFile } from 'node:fs/promises'
+import { renderHomepageFirstPaint } from './homepage-first-paint'
+import { buildHomepageBootstrapResponse } from './homepage-bootstrap-response'
+import { bestEffortHomepage } from './homepage-render-safety'
 import { join } from 'node:path'
 
 import {
@@ -84,6 +90,7 @@ const AMETHYST_ASSETS = new Set([
   'compiled/pantry.js',
   'compiled/trade.js',
   'compiled/tweaks-panel.js',
+  'compiled/unsubscribe.js',
   'join.css',
   'Join.html',
   'join-runtime.js',
@@ -535,6 +542,10 @@ export async function renderAmethystPublicAssetResponse(
   asset: string[],
   options: RenderAmethystPublicAssetResponseOptions = {},
 ) {
+  if(asset.join('/').endsWith('.html')&&!(await shouldUseRepRenderV2(request,options))){
+    const legacy=await import('./legacy/public-asset-response')
+    return withLegacyStaticAssets(await legacy.renderAmethystPublicAssetResponse(request,asset,options))
+  }
   const filePath = resolveAmethystAsset(asset)
   if (!filePath) return new Response('Not found', { status: 404 })
 
@@ -556,16 +567,41 @@ export async function renderAmethystPublicAssetResponse(
     }
     const repId = options.repIdOverride?.trim() || resolveAmethystRequestRepId(request)
     const resolvedOptions = repId ? { ...options, repIdOverride: repId } : options
-    const loadedTemplate =
+    const loadedTemplatePromise =
       page && contentType.startsWith('text/html') && repId
-        ? await loadAmethystPreviewTemplateData({
+        ? loadAmethystPreviewTemplateData({
             repId,
             publicSiteSlug: options.publicSiteSlugOverride,
           })
-        : null
-    const templateData = loadedTemplate
+        : Promise.resolve(null)
+    const endpoint = page === 'homepage' && repId
+      ? rewriteTemplateScriptTarget(body.toString('utf8'), page, requestUrl, resolvedOptions).match(/data-template-src="([^"]+)"/)?.[1]
+      : undefined
+    const bootstrapUrl = endpoint ? new URL(endpoint.replaceAll('&amp;', '&'), requestUrl.origin) : null
+    bootstrapUrl?.searchParams.set('lineupPresentation', 'grouped-v1')
+    // Once the target is resolved, these public reads are independent. Keep
+    // every identity guard and request-local result, without serial waterfalls.
+    // Start feature reads in parallel, but start their availability deadline
+    // only once the mandatory page reads finish. Otherwise a slow settings read
+    // can exhaust the bootstrap timer while this response still has to wait for
+    // those same settings, needlessly downgrading a successful read to the
+    // slower client-only page. Handle rejection immediately while we await it.
+    const bootstrapWork = bootstrapUrl ? Promise.resolve().then(() => buildHomepageBootstrapResponse(
+      new Request(bootstrapUrl, { headers: request.headers }),
+      { templateData: loadedTemplatePromise.then(template => template!) },
+    )).then(response => response.text()).catch(() => null) : Promise.resolve(null)
+    const [indexedTemplate, ga4Tag] = await Promise.all([
+      loadedTemplatePromise.then(template => template ? indexPublicJoinTemplate(template, { repId }) : null),
+      page ? loadedTemplatePromise.then(template => resolveRepGa4TagHtml({
+        request,
+        repId,
+        shopHref: template?.homepage.streamLinks.shop,
+      })).catch(() => '') : '',
+    ])
+    const bootstrap = bootstrapUrl ? await bestEffortHomepage(() => bootstrapWork) : null
+    const templateData = indexedTemplate
       ? restrictPantryTemplateData(
-          await indexPublicJoinTemplate(loadedTemplate, { repId }),
+          indexedTemplate,
           {
             repId,
             publicSiteSlug: options.publicSiteSlugOverride,
@@ -592,11 +628,6 @@ export async function renderAmethystPublicAssetResponse(
     if (contentType.startsWith('text/html')) {
       const html = body.toString('utf8')
       if (page) {
-        const ga4Tag = await resolveRepGa4TagHtml({
-          request,
-          repId,
-          shopHref: templateData?.homepage.streamLinks.shop,
-        }).catch(() => '')
         responseBody = rewriteAmethystPublicHtml(
           html,
           page,
@@ -607,6 +638,12 @@ export async function renderAmethystPublicAssetResponse(
           { ...resolvedOptions, pantryRecipes, pantryEmpty, joinRuntimeContext },
           ga4Tag,
         )
+        if (page === 'homepage' && templateData && bootstrap) {
+          // Use the exact same public projection for the first paint and the
+          // client. Inline it once instead of fetching/compiling a second page.
+          const clientPage = responseBody
+          responseBody = await bestEffortHomepage(() => renderHomepageFirstPaint(clientPage, templateData, requestUrl, bootstrap)) ?? clientPage
+        }
       } else if (templateScriptPage) {
         responseBody = rewriteTemplateScriptTarget(
           html,

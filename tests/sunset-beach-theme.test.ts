@@ -1,3 +1,4 @@
+import { readFileSync, statSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { getAmethystAppearancePreset } from '@/lib/amethyst/appearance-presets'
 import { getCommunityAmethystSkinCards, normalizeAmethystSkinSelection } from '@/lib/amethyst/skin-cards'
@@ -25,4 +26,11 @@ describe('Sunset Beach Community package', () => {
     expect(cardQrDesignThemeOptions('rose_champagne','rose-champagne').find(x=>x.id==='sunset_beach')).toMatchObject({label:'Sunset Beach',thumb:'/card-qr-themes/sunset-beach.webp'})
     expect(resolveCardQrPalette({templateId:'match-site',appearancePreset:'sunset_beach'}).qrGradient).toEqual(['#70213e','#8e2c4c','#853d22'])
   })
+})
+
+it('keeps the approved video and audio while using a smaller phone rendition', () => {
+  const runtime = readFileSync('public/amethyst/sunset-beach.js', 'utf8')
+  expect(runtime).toContain("matchMedia('(max-width:600px)').matches ? 'hero-loop-phone.mp4' : 'hero-loop.mp4'")
+  expect(statSync('public/amethyst/skins/sunset-beach/hero-loop-phone.mp4').size).toBeLessThan(1_500_000)
+  expect(runtime).toContain('video.muted = false')
 })

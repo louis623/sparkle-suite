@@ -30,7 +30,7 @@
   text-transform: uppercase;
 }
 .bkf-hero .bkf-eyebrow::before { content: ""; width: 28px; height: 1px; background: #e7c27d; }
-.bkf-hero h1 {
+.bkf-hero #bkf-hero-title {
   margin: 16px 0 10px;
   color: #fff;
   font: 500 76px/1 "Playfair Display", Georgia, serif;
@@ -101,7 +101,7 @@
 
 @media (max-width: 1180px) {
   .bkf-hero-inner { padding: 56px 40px; gap: 36px; min-height: 0; }
-  .bkf-hero h1 { font-size: 60px; }
+  .bkf-hero #bkf-hero-title { font-size: 60px; }
   .bkf-hero .bkf-tagline { font-size: 19px; white-space: normal; }
 }
 @media (max-width: 860px) {
@@ -114,7 +114,7 @@
   .bkf-card { aspect-ratio: auto; height: 400px; border-width: 2px; border-radius: 18px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5), 0 0 0 6px rgba(201, 161, 90, 0.12); }
   .bkf-card img { object-position: 22% 50%; }
   .bkf-hero-copy { padding: 0 4px; }
-  .bkf-hero h1 { margin: 10px 0 6px; font-size: 44px; }
+  .bkf-hero #bkf-hero-title { margin: 10px 0 6px; font-size: 44px; }
   .bkf-hero .bkf-tagline { font-size: 15.5px; white-space: nowrap; }
   .bkf-hero .bkf-sub { margin: 8px 0 18px; font-size: 14px; }
   .bkf-btn { padding: 14px 18px; font-size: 14px; }
@@ -141,13 +141,13 @@
 @media (min-width: 861px) and (max-width: 1180px) {
   .bkf-hero { background: radial-gradient(ellipse at 72% 45%, #5a2788, #2a1340 70%); }
   .bkf-card { width: min(768px, calc((100svh - var(--bkf-stack) - 2 * var(--bkf-pad)) * 4 / 3), 50vw); min-width: 360px; }
-  .bkf-hero h1 { font-size: clamp(46px, 5.4vw, 60px); }
+  .bkf-hero #bkf-hero-title { font-size: clamp(46px, 5.4vw, 60px); }
 }
 
 /* Zoom / odd-window hardening (desktop only): headline always fits its column, copy keeps room, short windows still show the whole card. */
 @media (min-width: 861px) {
   .bkf-hero-copy { container-type: inline-size; }
-  .bkf-hero h1 { font-size: clamp(40px, 16.5cqi, 76px); white-space: nowrap; }
+  .bkf-hero #bkf-hero-title { font-size: clamp(40px, 16.5cqi, 76px); white-space: nowrap; }
   .bkf-card {
     width: min(768px, calc((100svh - var(--bkf-stack) - 2 * var(--bkf-pad)) * 4 / 3), 58vw, calc(100vw - 600px));
     min-width: 300px;

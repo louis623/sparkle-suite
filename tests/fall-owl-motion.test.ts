@@ -61,7 +61,7 @@ describe('Fall Owl motion lifecycle', () => {
     h.visible(true); await settle()
     expect(h.video.getAttribute('src')).toBe('/amethyst/skins/fall-owl/hero-loop.mp4')
     expect(h.poster.getAttribute('src')).toBe('/amethyst/skins/fall-owl/hero-poster.webp')
-    expect(h.video).toMatchObject({ muted: true, playsInline: true, loop: true, preload: 'none' })
+    expect(h.video).toMatchObject({ muted: false, playsInline: true, loop: true, preload: 'none' })
     expect(h.queries).toEqual(['(prefers-reduced-motion:reduce)'])
     expect(h.video.play).toHaveBeenCalledTimes(1)
     h.video.dispatchEvent(new Event('playing'))
@@ -77,7 +77,7 @@ describe('Fall Owl motion lifecycle', () => {
   })
 
   it('allows manual Play after rejected autoplay without visibility retry storms', async () => {
-    const h = harness(); h.video.play.mockRejectedValueOnce(Object.assign(new Error('Blocked'), { name: 'NotAllowedError' }))
+    const h = harness(); h.video.play.mockRejectedValueOnce(new Error('Media failed'))
     h.visible(true); await settle()
     expect(h.button.textContent).toBe('Play animation'); expect(h.button.hidden).toBe(false)
     h.visible(false); h.visible(true); expect(h.video.play).toHaveBeenCalledTimes(1)
@@ -157,6 +157,6 @@ describe('Fall Owl motion lifecycle', () => {
 })
 
 describe('Fall Owl optional natural sound', () => {
- it('starts muted and preserves explicit mute through pause, offscreen and replay', async () => { const h=harness(); h.visible(true); await settle(); expect(h.video.muted).toBe(true); h.sound.dispatchEvent(new Event('click')); expect(h.video.muted).toBe(false); h.sound.dispatchEvent(new Event('click')); h.button.dispatchEvent(new Event('click')); h.button.dispatchEvent(new Event('click')); h.visible(false); h.visible(true); await settle(); expect(h.video.muted).toBe(true); expect(h.sound.textContent).toBe('Enable autumn sounds'); });
- it('falls back to muted motion when audible playback is rejected', async () => { const h=harness(); h.visible(true); await settle(); h.button.dispatchEvent(new Event('click')); h.video.play.mockRejectedValueOnce(Object.assign(new Error('Gesture required'),{name:'NotAllowedError'})); h.sound.dispatchEvent(new Event('click')); await settle(); await settle(); expect(h.video.muted).toBe(true); expect(h.video.paused).toBe(false); expect(h.sound.textContent).toBe('Enable autumn sounds'); });
+ it('attempts sound by default and preserves explicit mute through pause, offscreen and replay', async () => { const h=harness(); h.visible(true); await settle(); expect(h.video.muted).toBe(false); h.sound.dispatchEvent(new Event('click')); expect(h.video.muted).toBe(true); h.button.dispatchEvent(new Event('click')); h.button.dispatchEvent(new Event('click')); h.visible(false); h.visible(true); await settle(); expect(h.video.muted).toBe(true); expect(h.sound.textContent).toBe('Enable autumn sounds'); });
+ it('falls back to muted motion when audible playback is rejected', async () => { const h=harness(); h.video.play.mockRejectedValueOnce(Object.assign(new Error('Gesture required'),{name:'NotAllowedError'})); h.visible(true); await settle(); await settle(); expect(h.video.muted).toBe(true); expect(h.video.paused).toBe(false); expect(h.sound.textContent).toBe('Enable autumn sounds'); });
 });

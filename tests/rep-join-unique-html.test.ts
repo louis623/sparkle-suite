@@ -235,16 +235,24 @@ describe('rep /join server HTML', () => {
     expect(glowPantry.status).toBe(404)
     expect(glowPantryHtml).toBe('Not found')
 
-    expect(field(mileHomeHtml, /<h1>(.*?)<\/h1>/)).toBe('Mile High Fizz')
-    expect(mileHomeHtml).toContain('Lindsey is the rep for Mile High Fizz.')
-    expect(mileHomeHtml).toContain(
-      'Mile High Fizz hosts live jewelry reveals on Tuesdays, Thursdays, and Saturdays.',
-    )
-    expect(mileHomeHtml).toContain('Live shows run Tuesdays, Thursdays, and Saturdays.')
-    expect(field(glowHomeHtml, /<h1>(.*?)<\/h1>/)).toBe(
-      "Bri's Glowtique in Wichita, Kansas",
-    )
-    expect(glowHomeHtml).toContain('Brianna is the rep for')
+    // Homepage now serves the actual themed DOM, retained during hydration,
+    // rather than an unstyled SEO paragraph that disappears on mount.
+    expect(mileHomeHtml).toContain('data-server-rendered="true"')
+    expect(mileHomeHtml).not.toContain('<main class="public-index">')
+    expect(headingTexts(mileHomeHtml).length).toBeGreaterThan(0)
+    expect(headingTexts(mileHomeHtml)).toEqual(['Mile High Fizz'])
+    expect(serverText(mileHomeHtml)).toContain('Lindsey is the rep for Mile High Fizz.')
+    expect(serverText(mileHomeHtml)).toContain('Mile High Fizz hosts live jewelry reveals on Tuesdays, Thursdays, and Saturdays.')
+    expect(serverText(mileHomeHtml)).toContain('Live shows run Tuesdays, Thursdays, and Saturdays.')
+    expect(headingTexts(glowHomeHtml)).toEqual(["Bri's Glowtique in Wichita, Kansas"])
+    const brandHeading = glowHomeHtml.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? ''
+    expect(brandHeading).toContain('<span class="hp-brand-location sr-only"> in Wichita, Kansas</span>')
+    expect(brandHeading.replace(/<span class="hp-brand-location sr-only">[\s\S]*?<\/span>/, '')).toBe('Bri&#x27;s Glowtique')
+    expect(serverText(glowHomeHtml)).toContain('Brianna is the rep for')
+    expect(serverText(mileHomeHtml)).toContain('Mile High Fizz')
+    expect(serverText(mileHomeHtml)).toContain('Lindsey')
+    expect(serverText(glowHomeHtml)).toContain('Glowtique')
+    expect(serverText(glowHomeHtml)).toContain('Brianna')
     expect(glowHomeHtml).toContain('a calm place to learn the business')
     expect(mileHomeHtml).not.toBe(glowHomeHtml)
 
@@ -279,7 +287,7 @@ describe('rep /join server HTML', () => {
     expect(wordCount(afterHome)).toBeGreaterThan(40)
     expect(wordCount(afterJoin)).toBeGreaterThan(wordCount(beforeJoin))
     expect(bodyWordCount(readPublicHtml('Homepage.html'))).toBe(0)
-    expect(bodyWordCount(mileHomeHtml)).toBe(33)
+    expect(bodyWordCount(mileHomeHtml)).toBeGreaterThan(33)
     expect(bodyWordCount(mileFloorHtml)).toBe(55)
   })
 
@@ -382,7 +390,7 @@ function serverText(html: string) {
   return `${title} ${description} ${body.replace(/<[^>]+>/g, ' ')}`
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&#39;|&#x27;|&apos;/g, "'")
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -395,7 +403,7 @@ function decodeText(value: string) {
   return value
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&#39;|&#x27;|&apos;/g, "'")
     .replace(/\s+/g, ' ')
     .trim()
 }

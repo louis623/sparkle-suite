@@ -1,0 +1,201 @@
+{
+  "source": "Existing Live public homepage projection, read only, rendered in loopback-only fixtures",
+  "businessName": "Fizz Festival",
+  "savedHeroMotion": "still",
+  "accountModified": false,
+  "fixturesPublished": false,
+  "cases": [
+    {
+      "theme": "amethyst",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 112,
+      "errors": []
+    },
+    {
+      "theme": "sparkle_suite_morganite",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": null,
+      "errors": []
+    },
+    {
+      "theme": "black_diamond",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": null,
+      "errors": []
+    },
+    {
+      "theme": "moonstone",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": null,
+      "errors": []
+    },
+    {
+      "theme": "alpine_opal",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": null,
+      "errors": []
+    },
+    {
+      "theme": "emerald_garden",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": null,
+      "errors": []
+    },
+    {
+      "theme": "gnome_garden",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 40,
+      "errors": []
+    },
+    {
+      "theme": "neon_butterfly",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 72,
+      "errors": []
+    },
+    {
+      "theme": "halloween_pumpkin_witch",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 40,
+      "errors": []
+    },
+    {
+      "theme": "halloween_pumpkin_cat",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 40,
+      "errors": []
+    },
+    {
+      "theme": "gilded_autumn",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 40,
+      "errors": []
+    },
+    {
+      "theme": "rose_gold",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": null,
+      "errors": []
+    },
+    {
+      "theme": "midnight_rose",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 48,
+      "errors": []
+    },
+    {
+      "theme": "fall_owl_harvest_moon",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 40,
+      "errors": []
+    },
+    {
+      "theme": "gobble_and_fizz",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 40,
+      "errors": []
+    },
+    {
+      "theme": "pie_please",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 64,
+      "errors": []
+    },
+    {
+      "theme": "pearl_rose",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 48,
+      "errors": []
+    },
+    {
+      "theme": "sunset_beach",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 48,
+      "errors": []
+    },
+    {
+      "theme": "rose_champagne",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 48,
+      "errors": []
+    },
+    {
+      "theme": "garnet",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": null,
+      "errors": []
+    },
+    {
+      "theme": "amber",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": null,
+      "errors": []
+    },
+    {
+      "theme": "velvet",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": null,
+      "errors": []
+    },
+    {
+      "theme": "rose_quartz",
+      "mode": "desktop",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": null,
+      "errors": []
+    },
+    {
+      "theme": "halloween_pumpkin_cat",
+      "mode": "phone",
+      "pass": true,
+      "progressed": true,
+      "interactionMaxMs": 48,
+      "errors": []
+    }
+  ]
+}

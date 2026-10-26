@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   currentBranch,
+  primaryWorkbench,
   currentRepository,
   evaluateBranchPolicy,
   normalizeRepository,
@@ -13,7 +14,7 @@ describe("Sparkle Suite active branch policy", () => {
       evaluateBranchPolicy({
         branch: "codex/nic-nac-trade-hardening",
         remoteRepository: "louis623/sparkle-suite",
-        worktree: "C:\\Users\\louis\\sparkle-suite-repo",
+        worktree: primaryWorkbench(),
         platform: "win32",
       }),
     ).toEqual([]);
@@ -40,7 +41,7 @@ describe("Sparkle Suite active branch policy", () => {
     const errors = evaluateBranchPolicy({
         branch: "main",
         remoteRepository: "louis623/sparkle-suite",
-        worktree: "C:\\Users\\louis\\sparkle-suite-repo",
+        worktree: primaryWorkbench(),
         platform: "win32",
       });
     expect(errors.some((error) => error.startsWith('branch "main" is not active;'))).toBe(true);

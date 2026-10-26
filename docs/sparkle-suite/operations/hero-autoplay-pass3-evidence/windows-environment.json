@@ -1,0 +1,24 @@
+{
+  "platform": "win32",
+  "node": "v24.14.1",
+  "cpu": "Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHz",
+  "logicalCpus": 8,
+  "chrome": "155.0.8059.81",
+  "gpu": "Intel Iris Plus Graphics",
+  "gpuCompositing": "enabled",
+  "phone": {
+    "width": 360,
+    "height": 800,
+    "deviceScaleFactor": 1,
+    "latencyMs": 150,
+    "downloadBytesPerSecond": 200000,
+    "uploadBytesPerSecond": 93750,
+    "cpuThrottle": 4
+  },
+  "desktop": {
+    "width": 1440,
+    "height": 900,
+    "deviceScaleFactor": 1
+  },
+  "note": "Fresh browser contexts. Other user applications were not stopped; local host contention was observed during diagnostics."
+}

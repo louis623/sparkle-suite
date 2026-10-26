@@ -26,19 +26,29 @@
     let wanted = !reduced.matches && hero.dataset.heroMotion !== 'off';
     let visible = false, disposed = false, failed = false, pending = false, finished = false;
     let soundEnabled = true, audioBlocked = false, playAttempt = 0;
+    let cancelAudioRetry = () => {};
     let showFinalPoster = !wanted;
     const canPlay = () => !disposed && wanted && visible && !document.hidden && !failed && !finished;
+    function text(node, value) {
+      if (node.textContent === value) return;
+      // A control label must not replace its child node and trigger the
+      // document-wide scene observer on every pause or sound tap.
+      if (node.firstChild?.nodeType === 3 && node.childNodes.length === 1) node.firstChild.nodeValue = value;
+      else node.textContent = value;
+    }
+    function attribute(node, name, value) { if (node.getAttribute(name) !== value) node.setAttribute(name, value); }
     function update(forcePlay = false) {
       if (disposed) return;
-      motion.textContent = finished ? 'Play again' : wanted ? 'Pause animation' : 'Play animation';
-      motion.setAttribute('aria-pressed', String(wanted && !finished));
-      sound.textContent = audioBlocked && soundEnabled ? 'Enable sound' : video.muted ? 'Sound off' : 'Mute sound';
-      sound.setAttribute('aria-label', audioBlocked && soundEnabled ? 'Enable sound' : video.muted ? 'Play with sound' : 'Mute sound');
-      sound.setAttribute('aria-pressed', String(!video.muted));
+      text(motion, finished ? 'Play again' : wanted ? 'Pause animation' : 'Play animation');
+      attribute(motion, 'aria-pressed', String(wanted && !finished));
+      text(sound, audioBlocked && soundEnabled ? 'Enable sound' : video.muted ? 'Sound off' : 'Mute sound');
+      attribute(sound, 'aria-label', audioBlocked && soundEnabled ? 'Enable sound' : video.muted ? 'Play with sound' : 'Mute sound');
+      attribute(sound, 'aria-pressed', String(!video.muted));
       controls.hidden = failed;
-      poster.src = assets + (showFinalPoster || failed ? 'hero-poster.webp' : 'opening-poster.webp');
+      // A mute/pause tap must not restart image loading or invalidate its decoded surface.
+      attribute(poster, 'src', assets + (showFinalPoster || failed ? 'hero-poster.webp' : 'opening-poster.webp'));
       if (showFinalPoster || failed) media.removeAttribute('data-video');
-      hero.setAttribute('data-unicorn-motion', canPlay() ? 'playing' : 'paused');
+      attribute(hero, 'data-unicorn-motion', canPlay() ? 'playing' : 'paused');
       if (!canPlay()) { video.pause(); return; }
       if (!video.hasAttribute('src')) video.src = assets + 'hero-motion.mp4';
       if ((pending || !video.paused) && forcePlay !== true) return;
@@ -57,6 +67,8 @@
           // a truthful gesture control without changing the visitor's intent.
           audioBlocked = soundEnabled;
           video.muted = true;
+          cancelAudioRetry();
+          cancelAudioRetry = globalThis.sparkleHeroAudioFallback?.(video, controls, canPlay, () => { audioBlocked = false; update(); }) || (() => {});
         } else if (error.name !== 'AbortError') { wanted = false; showFinalPoster = true; }
         update();
       });
@@ -66,6 +78,7 @@
     const error = () => { if (!disposed && video.hasAttribute('src')) { failed = true; update(); } };
     video.addEventListener('playing', playing); video.addEventListener('ended', ended); video.addEventListener('error', error);
     motion.addEventListener('click', () => {
+      cancelAudioRetry();
       if (finished) { video.currentTime = 0; finished = false; wanted = true; }
       else wanted = !wanted;
       if (wanted) showFinalPoster = false;
@@ -73,6 +86,7 @@
       update(true);
     });
     sound.addEventListener('click', () => {
+      cancelAudioRetry();
       soundEnabled = audioBlocked ? true : !soundEnabled;
       audioBlocked = false; video.muted = !soundEnabled;
       if (soundEnabled) {
@@ -91,7 +105,7 @@
     const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); }, {threshold:0.01});
     intersection.observe(hero); update();
     return {hero, preferenceChanged, dispose() {
-      disposed = true; video.pause(); intersection.disconnect();
+      disposed = true; cancelAudioRetry(); video.pause(); intersection.disconnect();
       reduced.removeEventListener('change', preferenceChanged); document.removeEventListener('visibilitychange', update);
       video.removeEventListener('playing', playing); video.removeEventListener('ended', ended); video.removeEventListener('error', error);
       video.removeAttribute('src'); video.load(); media.removeAttribute('data-video'); media.remove(); magic.remove(); controls.remove();

@@ -1,3 +1,15 @@
+## October 26, 2026 — Pass 3 behavior and release gate
+
+- Legacy saved Still/none is intentionally overridden for default theme autoplay without rewriting rep records. Respect browser reduced motion. The three existing audio themes try audible playback, fall back to muted motion when blocked and retry on a first gesture unless the visitor explicitly mutes/pauses.
+- Measure real rep routes, not theme previews. Preserve slow outliers alongside five-run medians. A safe SSR fallback is not proof of acceptable fallback performance.
+- Keep lab environments explicit: isolated Linux Lighthouse simulation, Windows actual-throttle filmstrips and software-rendering interaction checks are separate evidence. A passing simulated median does not erase a slow first-paint or tap observation. A DOM SSR marker read after Lighthouse's back/forward-cache navigation audit is not a reliable measured-response fallback detector; use response HTML and retained-node checks.
+- There is no implemented demo-only Live gate for this shared renderer. A global promotion is not a demo canary. Implement the gate before following Louis’s demo-first Live release rule; Rocky review and Louis’s named Live approval remain mandatory.
+
+## October 25, 2026 - Neon Rabbit Production Quality Standard and preview boundary
+
+- Louis's Production Quality Standard applies to all work. Flag quality gaps, meet speed/interaction/layout gates, preserve behavior, use production builds, protect data, and require automated plus per-theme visual checks. Every PR documents risks, proof and exact rollback. Rocky reviews Live changes; Louis approves Live by name. Release Smoke -> Louis's Live demo -> all reps, then recheck within 15 minutes and roll back first on a fault.
+- PR #156 currently stops at a protected preview for Suite, Beacon and Rocky before Smoke. No Smoke or Live deployment/promotion is authorized. See [full standard and task-specific gates](2026-10-25-hero-preview-pass2.md).
+
 ## 2026-09-23 - Trade images, MSRP, and Dance Floor presentation
 
 - Customer reveal images are optional. Accept JPEG, PNG, WebP, HEIC, HEIF, and AVIF through 25 MiB by direct private upload; show preview/attachment/failure state, allow text-only submission, and expire normalized rep images after seven days. Preserve the one-item, same-family, same-type rule and rep final decision.
@@ -3110,3 +3122,6 @@ Louis explicitly requires Live Lineup to work whenever the enabled, connected ex
 ## October 24, 2026 - New themes include QR flyers and business cards
 
 Louis requested automatic matching print deliverables for every new theme. Added sparkle-suite-qr-flyer-builder and sparkle-suite-business-card-builder; skin-builder invokes both without a separate request. Preserve approved art, use actual tool geometry, build deterministically and verify real exports. Existing narrower scope/approval rules remain. Skills validated; no app or deployment changes. Louis will personally double-check the seasonal Live designs; no further personal-session permission is pending for that release. See vault/2026-10-24-theme-print-skills.md.
+
+## October 25 — default hero behavior and release quality
+Louis requires animation and available sound on arrival; controls pause/mute. Legacy Still/none uses theme defaults without rewriting accounts. Browser reduced-motion and audio policy remain respected. The Neon Rabbit Production Quality Standard applies to all work; see PRODUCTION_STANDARD.md. Smoke only for PR #156; no Live approval. See vault/2026-10-25-hero-autoplay-smoke.md.

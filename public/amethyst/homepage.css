@@ -426,7 +426,7 @@ body.bling-kitchen {
   font-weight: 900;
 }
 
-.bk-home-hero-content h1,
+.bk-home-hero-content #bk-home-hero-title,
 .bk-home-pantry-callout h2 {
   margin: 0;
   font-family: "Playfair Display", Georgia, serif;
@@ -604,7 +604,7 @@ body.bling-kitchen .bk-home-pantry-callout p {
   color: #f5d28b;
 }
 
-body.bling-kitchen .bk-home-hero-content h1 {
+body.bling-kitchen .bk-home-hero-content #bk-home-hero-title {
   text-shadow: 0 8px 30px rgba(0, 0, 0, 0.34);
 }
 
@@ -1007,10 +1007,21 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--fg);
-  white-space: nowrap;
-  max-width: min(34vw, 360px);
+  white-space: normal;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.hp-brand-location {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
   overflow: hidden;
-  text-overflow: ellipsis;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 .hp-brand-sub {
   display: inline-flex;
@@ -1089,7 +1100,7 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   }
 
   .hp-brand-name {
-    max-width: min(58vw, 320px);
+    max-width: 100%;
   }
 
   .hp-header-link {

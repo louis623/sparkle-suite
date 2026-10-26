@@ -27,6 +27,7 @@ vi.mock('@/lib/live-lineup/service', () => ({
 }))
 
 import { GET } from '@/app/api/amethyst/homepage-template/route'
+import { buildHomepageBootstrapResponse } from '@/lib/amethyst/homepage-bootstrap-response'
 import {
   defaultAmethystHomepageTemplateData,
 } from '@/lib/amethyst/homepage-template-data'
@@ -51,6 +52,38 @@ describe('homepage Live Lineup bootstrap identity', () => {
   })
 
   afterEach(() => vi.unstubAllEnvs())
+
+  it('loads corroborated features while the same request waits for its template', async () => {
+    mocks.resolveRep.mockResolvedValue({ id: 'rep-a', email: 'a@example.test' })
+    mocks.snapshot.mockResolvedValue(null)
+    let release!: (value: Awaited<ReturnType<typeof mocks.preview>>) => void
+    const template = new Promise<Awaited<ReturnType<typeof mocks.preview>>>(resolve => { release = resolve })
+    const response = buildHomepageBootstrapResponse(new Request(
+      'https://www.yoursparklesuite.com/api/amethyst/homepage-template?c=rep-a',
+    ), { templateData: template })
+    try {
+      await vi.waitFor(() => expect(mocks.snapshot).toHaveBeenCalledWith(expect.anything(), 'rep-a'))
+      expect(mocks.listings).toHaveBeenCalledWith(expect.objectContaining({ repId: 'rep-a', targeted: true }))
+    } finally {
+      release({ appearancePreset: 'amethyst', homepage: defaultAmethystHomepageTemplateData,
+        join: defaultAmethystJoinTemplateData, trade: defaultAmethystTradeTemplateData })
+    }
+    expect((await response).status).toBe(200)
+    expect(mocks.preview).not.toHaveBeenCalled()
+  })
+
+  it('reuses public page data while still corroborating the tenant before loading lineup features', async () => {
+    mocks.resolveRep.mockResolvedValue(null)
+    await buildHomepageBootstrapResponse(new Request(
+      'https://www.yoursparklesuite.com/api/amethyst/homepage-template?c=rep-a&publicSiteSlug=slugtwo',
+    ), { templateData: {
+      appearancePreset: 'amethyst', homepage: defaultAmethystHomepageTemplateData,
+      join: defaultAmethystJoinTemplateData, trade: defaultAmethystTradeTemplateData,
+    } })
+    expect(mocks.preview).not.toHaveBeenCalled()
+    expect(mocks.resolveRep).toHaveBeenCalled()
+    expect(mocks.snapshot).not.toHaveBeenCalled()
+  })
 
   it.each([
     ['does not resolve', null],

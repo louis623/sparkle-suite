@@ -1,0 +1,12 @@
+{
+  "database": "isolated preview",
+  "readOnly": true,
+  "slug": "dudesfizzfest",
+  "business": "Fizz Festival",
+  "settings": {
+    "appearance_preset": "sunset_beach",
+    "hero_animation_type": "still",
+    "hero_headline": "Real jewelry. Live reveals. Pure sparkle."
+  },
+  "verifiedAt": "2026-10-26T13:00:26.632Z"
+}

@@ -4,7 +4,7 @@
   "locks": [
     {
       "path": "public/amethyst/homepage.css",
-      "sha256": "2089d703683ded2a456250ff349caf5d49cbb4c09d9a17316b9a055b6fd45f00"
+      "sha256": "c26d122c51c874ab408fa1a2163669d4033f4ff7c83701cc659b76b379212df0"
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
@@ -13,12 +13,12 @@
     {
       "path": "public/amethyst/homepage.jsx",
       "function": "SparkleSuiteHeaderStack",
-      "sha256": "5a12c4e3f7e2bcdcbd47f50b06201979fa81a630fdcab637947df4edb8156171"
+      "sha256": "2ea872c653317db92d54103559437a771f37f17c43bd9360eb6b2134c9d1ff5c"
     },
     {
       "path": "public/amethyst/homepage.jsx",
       "function": "Ticker",
-      "sha256": "2f6c2410641aabf0cb10e21f8c07f3ce7ae53a7bcce8f3f44fd4a8c60338fb22"
+      "sha256": "addf3ffc40bce44c14b06eb8ef014d14493c2dd19a129a5ada19846253d16f0d"
     },
     {
       "path": "public/amethyst/homepage.jsx",
@@ -61,5 +61,17 @@
     "base": "777a38bda5b2f9ec1f52894bfe34a69026ff6962",
     "approval": "Louis selected compact calendar row option 1 and asked for implementation. Only empty lineup presentation, delayed text, and calendar scrolling are authorized; queue sync and unrelated shared layout stay locked.",
     "plan": "docs/plans/2026-10-02-compact-public-lineup.md"
+  },
+  "approvedSeoChange": {
+    "date": "2026-10-26",
+    "approval": "Louis explicitly requested PR #156 pass 4 item 2: visible header contains only the shop name, with no cutoff for a 37-character name at 390px. Exactly one business/location H1 remains; its location is visually hidden sr-only text. Wrapping the shop name is authorized; unrelated header controls and layout remain locked."
+  },
+  "approvedTickerChange": {
+    "date": "2026-10-26",
+    "approval": "Louis requested removal of duplicate ticker text from server HTML in PR #156 pass 3. Render one visible accessible copy before hydration; decorative infinite-loop copies mount afterwards. Existing two-row layout and speeds remain."
+  },
+  "approvedHeroTitleChange": {
+    "date": "2026-10-26",
+    "approval": "Louis explicitly requested PR #156 pass 4 item 4: retain Bling Kitchen H2 elements and retarget their existing H1 CSS selectors to bkf-hero-title and bk-home-hero-title, restoring existing typography without other layout changes."
   }
 }

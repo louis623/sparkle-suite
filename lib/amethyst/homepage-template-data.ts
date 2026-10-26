@@ -132,6 +132,10 @@ export interface AmethystHomepageTemplateData {
   signupTitle: string
   signupSub: string
   signupConsent: string
+  /** Saved signup code. Omitted when the rep has not set one. */
+  signupDiscountCode?: string
+  /** Saved offer phrase, such as "15% off". Omitted when the rep did not set one. */
+  signupDiscountOffer?: string
   joinTeamTitle: string
   joinTeamSub: string
   joinTeamUrl: string
@@ -402,6 +406,7 @@ export function buildAmethystHomepageTweakDefaults(
   appearancePreset?: AmethystAppearancePresetId | string | null,
 ): AmethystHomepageTweakDefaults {
   const presetDefaults = applyAmethystAppearancePreset({
+    heroMotion: 'sparkle_rise',
     repName: getPublicRepName(data.repName),
     businessName: data.businessName,
     tagline: data.tagline,
@@ -411,12 +416,14 @@ export function buildAmethystHomepageTweakDefaults(
     ...lockedTweakDefaults,
   }, appearancePreset)
 
-  // Hero motion is a saved Site Settings choice. The selected skin supplies
-  // the other visual defaults, but must never overwrite a rep's saved motion
-  // while the public bootstrap is being assembled.
+  // Louis's October 25 contract: themes animate on arrival; visitors pause
+  // them with the hero control. Legacy saved Still/none values must not leave
+  // every newly selected theme stopped. Reduced motion remains browser-owned.
   return {
     ...presetDefaults,
-    heroMotion: data.heroMotion,
+    heroMotion: data.heroMotion === 'still' || data.heroMotion === 'none'
+      ? presetDefaults.heroMotion
+      : data.heroMotion,
   }
 }
 

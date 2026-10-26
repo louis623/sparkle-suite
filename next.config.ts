@@ -22,6 +22,20 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ['@resvg/resvg-js'],
   outputFileTracingIncludes: {
+    '/*': [
+      './lib/amethyst/legacy/assets/**/*',
+      './lib/amethyst/generated/homepage-server.cjs',
+      './public/amethyst/compiled/*.js',
+      './public/amethyst/live-lineup.js',
+      './public/amethyst/responsive-image.js',
+      './public/amethyst/sparkle-suite-footer-credit.js',
+      './public/amethyst/dance-floor-ticker-label.js',
+      './public/amethyst/*.css',
+      './public/amethyst/fonts/*.woff2',
+      './public/amethyst/hero-audio.js',
+      './public/amethyst/hero-delivery.js',
+      './public/amethyst/bling-kitchen/framed-hero.css',
+    ],
     // Server-rendered email shells read with readFileSync (official notice + Weekly Fizz).
     '/api/**/*': [
       './brand-assets/email/official-notices/*.html',
@@ -45,6 +59,10 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      ...['/amethyst/delivery/:path*', '/amethyst/fonts/:path*', '/amethyst/analytics-worker/:version/:path*'].map(source => ({
+        source,
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      })),
       {
         source: '/onboarding/:path*',
         headers: [

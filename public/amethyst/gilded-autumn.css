@@ -39,7 +39,7 @@ body.bg-gilded-autumn .ga-art :is(img,video) {display:block;position:absolute;in
 body.bg-gilded-autumn .ga-art::after {content:none}
 body.bg-gilded-autumn .ga-video {opacity:0}
 body.bg-gilded-autumn .ga-art[data-playing] .ga-video {opacity:1}
-body.bg-gilded-autumn :is(.hp-hero-headline,.mhf-hero-title,.bwb-hero-title,.bk-home-hero h1) {color:#fff8e9;background:none;-webkit-text-fill-color:#fff8e9;text-shadow:0 2px 4px #3c1809cc,0 2px 14px #3c180999}
+body.bg-gilded-autumn :is(.hp-hero-headline,.mhf-hero-title,.bwb-hero-title,.bk-home-hero #bk-home-hero-title) {color:#fff8e9;background:none;-webkit-text-fill-color:#fff8e9;text-shadow:0 2px 4px #3c1809cc,0 2px 14px #3c180999}
 body.bg-gilded-autumn :is(.hp-hero-sub,.mhf-hero-with,.mhf-hero-line,.mhf-hero-instruction,.bwb-hero-team,.bwb-hero-line,.bwb-hero-instruction,.bk-home-hero-content>p,.bk-home-hero-content>span) {color:#fff8ec;text-shadow:0 1px 3px #3c1809,0 1px 8px #3c1809}
 body.bg-gilded-autumn .hp-hero :is(.hp-btn-outline,.hp-btn-secondary) {color:#fff8ec;border-color:#e4c382;background:#321809cc}
 body.bg-gilded-autumn :is(.hp-btn-primary,.tp-btn-primary,.jp-btn-primary,.hp-signup-submit,.hp-unsubscribe-submit) {background:linear-gradient(120deg,#87451b,#713518);color:#fff9ef;border-color:#87451b;box-shadow:0 4px 16px #77420f20}

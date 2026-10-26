@@ -1,3 +1,17 @@
+## October 26, 2026 — PR #156 pass 3 review boundary
+
+- [x] Full isolated QR/flyer matrix completed: all 42 tests pass, including JPEG recompression decoding. This supersedes the unfinished QR note below.
+- [x] Complete the 240-sample real-route Lighthouse table and inspect all 48 Windows first-paint filmstrips. All 48 Windows server-node retention/hydration checks pass.
+- [ ] Resolve Neon phone tap latency, slow actual-throttle startup observations, earlier short-visit analytics and external TikTok playback verification. Supplemental Linux software-rendering tap failures are also documented.
+- [ ] Suite, Beacon and Rocky preview review. No Smoke or Live permission is implied.
+- [ ] Existing 50 test failures and two import failures still prevent a production-quality claim; there are no new failing assertion identities after focused rechecks.
+- [ ] Implement a real demo-only Live gate before any future Live release. See [the rollback and 15-minute recheck procedure](../docs/sparkle-suite/operations/2026-10-26-pr156-release-rollback.md). These are session notes, not a replacement for the Control Center Task List.
+
+## October 25, 2026 - PR #156 remains a preview review
+
+- [ ] Suite, Beacon and Rocky review the protected preview before any Smoke release. Live remains pinned; Louis must approve Live by name.
+- [ ] Resolve or explicitly account for existing full-suite failures, two import failures and unfinished QR/flyer verification before a production-quality claim. Separate Fontshare font-picker rights review remains open. See [evidence, limitations and rollback](2026-10-25-hero-preview-pass2.md). These vault notes are session history, not a substitute for the Control Center Task List.
+
 ## September 23, 2026 - Trade rep acceptance after upload release
 
 - [x] Customer upload, Halloween/form readability, per-card disclosure cleanup, and active MSRP retirement shipped as `1e4b8cee` / Ready `dpl_29qoZBeZ5WdfPMbH6LL9sKXW5YgK`; synthetic live JPG and HEIC request/receipt/cleanup checks passed. See [trade closeout](2026-09-23-trade-upload-closeout.md).
@@ -874,3 +888,6 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
 - [ ] Louis: do the promised FAQ accuracy and polish smoke when convenient on
   the live customer domain. The shared page is already deployed and was
   visually checked at desktop and narrow widths by Codex.
+
+## October 25 — session follow-up (not a Control Center Task List entry)
+- PR #156 remains draft: finish the customer-page speed/zero-layout-jump gate; final Sunset phone FCP 3.188s / LCP 7.256s. Preserve all-theme autoplay and browser audio fallback. No Live action without Rocky review and Louis's named approval. Evidence and rollback: vault/2026-10-25-hero-autoplay-smoke.md.

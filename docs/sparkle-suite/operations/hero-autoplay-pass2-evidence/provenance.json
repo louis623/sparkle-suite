@@ -1,0 +1,21 @@
+{
+  "applicationCommit": "fba6acda25a46e64747c01601d23066099f2eb84",
+  "baseCommit": "e78fa626c443124ba11725dc93d32e859985ffa4",
+  "preview": "https://sparkle-suite-smoke-ku4fukcnv-louis-2849s-projects.vercel.app",
+  "deployment": "dpl_2PPW1Wcf5kToQ7Pwjdmr9odVEZEY",
+  "target": "preview",
+  "liveDeployment": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+  "smokeDeployment": "dpl_FD4TYQgPLe6UB8cE1zYgqyuJsV4Z",
+  "aliasesMoved": false,
+  "themeTimingSources": [
+    "7d5874c91a244bcb4b886c5d01a49fc09dcaaa14",
+    "4d5459f472c9995ebbfcd7f4e1aacdfb380e6a6b"
+  ],
+  "subsequentChangedFiles": [
+    "lib/amethyst/homepage-bootstrap-response.ts",
+    "lib/amethyst/public-asset-response.ts",
+    "lib/amethyst/rep-ga4-tag.ts",
+    "tests/amethyst-homepage-lineup-identity.test.ts",
+    "tests/amethyst/rep-ga4-tag.test.ts"
+  ]
+}

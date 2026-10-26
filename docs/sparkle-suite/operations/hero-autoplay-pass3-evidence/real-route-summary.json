@@ -1,0 +1,1275 @@
+[
+  {
+    "slug": "qap3amethyst",
+    "theme": "amethyst",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22594,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1173.0465,
+      "clsMedian": 0,
+      "lcpMaxMs": 1180.9499999999998,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 120,
+      "functionalFcpMs": 1668,
+      "functionalLcpMs": 1668,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5465
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22593,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 539.4721999999999,
+      "clsMedian": 0.000004462348090277778,
+      "lcpMaxMs": 583.3824999999999,
+      "clsMax": 0.000004462348090277778,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 104,
+      "functionalFcpMs": 1156,
+      "functionalLcpMs": 1156,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 2889
+        }
+      ]
+    }
+  },
+  {
+    "slug": "smokelouis",
+    "theme": "sparkle_suite_morganite",
+    "fixture": false,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21666,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1401.624,
+      "clsMedian": 0,
+      "lcpMaxMs": 1411.7680000000005,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 1792,
+      "functionalLcpMs": 1792,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 4240
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21667,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 554.7840000000001,
+      "clsMedian": 0,
+      "lcpMaxMs": 555.6619999999999,
+      "clsMax": 0.0003001912434895834,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 892,
+      "functionalLcpMs": 892,
+      "functionalCls": 0.0009319137510448817,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1434
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3blackdiamond",
+    "theme": "black_diamond",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22581,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1392.4350000000002,
+      "clsMedian": 0,
+      "lcpMaxMs": 1395.496,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 1460,
+      "functionalLcpMs": 1460,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 4507
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22581,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 578.4998,
+      "clsMedian": 0,
+      "lcpMaxMs": 598.3048,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 872,
+      "functionalLcpMs": 872,
+      "functionalCls": 0.001173154829362783,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1554
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3moonstone",
+    "theme": "moonstone",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21971,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1384.5059999999999,
+      "clsMedian": 0,
+      "lcpMaxMs": 1395.239,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 1424,
+      "functionalLcpMs": 1424,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 4360
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21972,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 553.857,
+      "clsMedian": 0,
+      "lcpMaxMs": 568.2016,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 1012,
+      "functionalLcpMs": 1012,
+      "functionalCls": 0.0010621127825869128,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1620
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3alpineopal",
+    "theme": "alpine_opal",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21863,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1838.5735,
+      "clsMedian": 0,
+      "lcpMaxMs": 1849.0023,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 1684,
+      "functionalLcpMs": 1684,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5139
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21862,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 557.6990000000001,
+      "clsMedian": 0,
+      "lcpMaxMs": 582.8219999999999,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 860,
+      "functionalLcpMs": 860,
+      "functionalCls": 0.001173154829362783,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1398
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3emeraldgarden",
+    "theme": "emerald_garden",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22351,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1538.9209,
+      "clsMedian": 0,
+      "lcpMaxMs": 1546.8964,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 2084,
+      "functionalLcpMs": 2084,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 4818
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22349,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 587.3725000000001,
+      "clsMedian": 0,
+      "lcpMaxMs": 1403.5303999999999,
+      "clsMax": 0.01196243435999657,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 1184,
+      "functionalLcpMs": 1184,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1627
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3gnomegarden",
+    "theme": "gnome_garden",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23991,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1388.094,
+      "clsMedian": 0,
+      "lcpMaxMs": 1394.0310000000002,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 152,
+      "functionalFcpMs": 1720,
+      "functionalLcpMs": 1720,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5137
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23992,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 444.87300000000005,
+      "clsMedian": 0,
+      "lcpMaxMs": 474.3066,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 24,
+      "functionalFcpMs": 832,
+      "functionalLcpMs": 832,
+      "functionalCls": 0.0076144182035134825,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1222
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3neonbutterfly",
+    "theme": "neon_butterfly",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 25059,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1683.396,
+      "clsMedian": 0,
+      "lcpMaxMs": 1701.62,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": false,
+      "tapMaxMs": 208,
+      "functionalFcpMs": 1840,
+      "functionalLcpMs": 1840,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 4545
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 25059,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 555.7829999999999,
+      "clsMedian": 0,
+      "lcpMaxMs": 566.362,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 144,
+      "functionalFcpMs": 908,
+      "functionalLcpMs": 908,
+      "functionalCls": 0.005960318742498285,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1350
+        }
+      ]
+    }
+  },
+  {
+    "slug": "blingkitchen",
+    "theme": "halloween_pumpkin_witch",
+    "fixture": false,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 25917,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1398.229,
+      "clsMedian": 0,
+      "lcpMaxMs": 1482.36,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 88,
+      "functionalFcpMs": 1576,
+      "functionalLcpMs": 1576,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 4514
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 25917,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 438.1574999999999,
+      "clsMedian": 0,
+      "lcpMaxMs": 594.468,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 104,
+      "functionalFcpMs": 956,
+      "functionalLcpMs": 956,
+      "functionalCls": 0.016661375144675927,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1544
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3halloweenpumpkincat",
+    "theme": "halloween_pumpkin_cat",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22441,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1071.1216,
+      "clsMedian": 0,
+      "lcpMaxMs": 1123.4703,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 96,
+      "functionalFcpMs": 1176,
+      "functionalLcpMs": 1276,
+      "functionalCls": 0.0192796875,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 4519
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22442,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 575.619,
+      "clsMedian": 0,
+      "lcpMaxMs": 1187.4805000000001,
+      "clsMax": 0.0001232051226664309,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 40,
+      "functionalFcpMs": 852,
+      "functionalLcpMs": 852,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1585
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3gildedautumn",
+    "theme": "gilded_autumn",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23373,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1686.02,
+      "clsMedian": 0,
+      "lcpMaxMs": 1697.2230000000002,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 200,
+      "functionalFcpMs": 2220,
+      "functionalLcpMs": 2220,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5024
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23373,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 422.71099999999996,
+      "clsMedian": 0,
+      "lcpMaxMs": 557.133,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 24,
+      "functionalFcpMs": 876,
+      "functionalLcpMs": 876,
+      "functionalCls": 0.0010325013797796638,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1340
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3rosegold",
+    "theme": "rose_gold",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21817,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1391.7202,
+      "clsMedian": 0,
+      "lcpMaxMs": 1397.5670000000005,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 3660,
+      "functionalLcpMs": 3660,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 6921
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21817,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 561.586,
+      "clsMedian": 0,
+      "lcpMaxMs": 665.74,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 848,
+      "functionalLcpMs": 848,
+      "functionalCls": 0.0011789938593106996,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1336
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3midnightrose",
+    "theme": "midnight_rose",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22622,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1388.0639999999999,
+      "clsMedian": 0,
+      "lcpMaxMs": 1397.047,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 128,
+      "functionalFcpMs": 2248,
+      "functionalLcpMs": 2248,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5275
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22622,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 549.402,
+      "clsMedian": 0,
+      "lcpMaxMs": 554.0429999999999,
+      "clsMax": 0.001393413025655864,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 24,
+      "functionalFcpMs": 760,
+      "functionalLcpMs": 760,
+      "functionalCls": 0.001153047420883702,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1243
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3fallowlharvestmoon",
+    "theme": "fall_owl_harvest_moon",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23342,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1391.507,
+      "clsMedian": 0,
+      "lcpMaxMs": 1657.4519999999998,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 160,
+      "functionalFcpMs": 3080,
+      "functionalLcpMs": 3080,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 6482
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23341,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 538.832,
+      "clsMedian": 0,
+      "lcpMaxMs": 561.4526,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 104,
+      "functionalFcpMs": 1012,
+      "functionalLcpMs": 1012,
+      "functionalCls": 0.000477359950689622,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1602
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3gobbleandfizz",
+    "theme": "gobble_and_fizz",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23649,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1574.453,
+      "clsMedian": 0,
+      "lcpMaxMs": 1615.6919,
+      "clsMax": 0.0008017293972439237,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 96,
+      "functionalFcpMs": 2548,
+      "functionalLcpMs": 2548,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5883
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23649,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 397.35800000000006,
+      "clsMedian": 0,
+      "lcpMaxMs": 571.783,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 24,
+      "functionalFcpMs": 724,
+      "functionalLcpMs": 724,
+      "functionalCls": 0.0013008024071796767,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1136
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3pieplease",
+    "theme": "pie_please",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23317,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1684.203,
+      "clsMedian": 0,
+      "lcpMaxMs": 1695.9759999999999,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 144,
+      "functionalFcpMs": 2048,
+      "functionalLcpMs": 2048,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5558
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23316,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 412.34000000000003,
+      "clsMedian": 0,
+      "lcpMaxMs": 574.162,
+      "clsMax": 0.0004544367953746571,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 64,
+      "functionalFcpMs": 900,
+      "functionalLcpMs": 900,
+      "functionalCls": 0.0011929623283312971,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1357
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3pearlrose",
+    "theme": "pearl_rose",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22634,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1388.6931,
+      "clsMedian": 0,
+      "lcpMaxMs": 1394.595,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 96,
+      "functionalFcpMs": 2404,
+      "functionalLcpMs": 2404,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5198
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22633,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 408.22300000000007,
+      "clsMedian": 0,
+      "lcpMaxMs": 562.768,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 24,
+      "functionalFcpMs": 652,
+      "functionalLcpMs": 852,
+      "functionalCls": 0.001153047420883702,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1258
+        }
+      ]
+    }
+  },
+  {
+    "slug": "dudesfizzfest",
+    "theme": "sunset_beach",
+    "fixture": false,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 25682,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1389.124,
+      "clsMedian": 0,
+      "lcpMaxMs": 1395.06,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 72,
+      "functionalFcpMs": 2056,
+      "functionalLcpMs": 2056,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5700
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 25681,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 377.23199999999997,
+      "clsMedian": 0,
+      "lcpMaxMs": 553.681,
+      "clsMax": 0.01074835431134259,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 24,
+      "functionalFcpMs": 864,
+      "functionalLcpMs": 864,
+      "functionalCls": 0.0035467211478695136,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1316
+        }
+      ]
+    }
+  },
+  {
+    "slug": "smokecodex",
+    "theme": "rose_champagne",
+    "fixture": false,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23108,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1385.949,
+      "clsMedian": 0,
+      "lcpMaxMs": 1399.7680000000003,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 88,
+      "functionalFcpMs": 1964,
+      "functionalLcpMs": 1964,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5198
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23107,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 410.49,
+      "clsMedian": 0,
+      "lcpMaxMs": 570.347,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 24,
+      "functionalFcpMs": 1488,
+      "functionalLcpMs": 1488,
+      "functionalCls": 0.0009977924027724195,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1880
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3garnet",
+    "theme": "garnet",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21927,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 2296.694,
+      "clsMedian": 0,
+      "lcpMaxMs": 2303.7864,
+      "clsMax": 0.0004692626953125,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 2308,
+      "functionalLcpMs": 2308,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5617
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21926,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 613.578,
+      "clsMedian": 0.00007283321009087791,
+      "lcpMaxMs": 623.088,
+      "clsMax": 0.00007283321009087791,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 736,
+      "functionalLcpMs": 736,
+      "functionalCls": 0.0007919213565779321,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1097
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3amber",
+    "theme": "amber",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22207,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1996.7552999999998,
+      "clsMedian": 0,
+      "lcpMaxMs": 2005.8904999999993,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 2084,
+      "functionalLcpMs": 2084,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 6035
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22206,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 565.8995,
+      "clsMedian": 0,
+      "lcpMaxMs": 592.442,
+      "clsMax": 0.0002892440984278549,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 704,
+      "functionalLcpMs": 704,
+      "functionalCls": 0.0014952804502636316,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1115
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3velvet",
+    "theme": "velvet",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21811,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1385.9038,
+      "clsMedian": 0,
+      "lcpMaxMs": 1393.2836,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 2524,
+      "functionalLcpMs": 2524,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 6282
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 21811,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 598.383,
+      "clsMedian": 0,
+      "lcpMaxMs": 606.4938,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 696,
+      "functionalLcpMs": 696,
+      "functionalCls": 0.0010254019780414096,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1088
+        }
+      ]
+    }
+  },
+  {
+    "slug": "qap3rosequartz",
+    "theme": "rose_quartz",
+    "fixture": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22071,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 2143.1404999999995,
+      "clsMedian": 0,
+      "lcpMaxMs": 2152.4986999999996,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 2184,
+      "functionalLcpMs": 2184,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 5130
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 22072,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 579.4404999999999,
+      "clsMedian": 0.0004233439127604166,
+      "lcpMaxMs": 611.2135000000001,
+      "clsMax": 0.0004743539818029835,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": null,
+      "functionalFcpMs": 788,
+      "functionalLcpMs": 788,
+      "functionalCls": 0.000012201806841563786,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1192
+        }
+      ]
+    }
+  },
+  {
+    "slug": "milehighfizz",
+    "theme": "halloween_pumpkin_witch",
+    "fixture": false,
+    "extra": true,
+    "phone": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 0,
+      "documentTransferMedianBytes": 23911,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 1387.165,
+      "clsMedian": 0,
+      "lcpMaxMs": 1389.062,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 104,
+      "functionalFcpMs": 2868,
+      "functionalLcpMs": 2868,
+      "functionalCls": 0,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 6509
+        }
+      ]
+    },
+    "desktop": {
+      "runs": 5,
+      "missingPostAuditSSRMarker": 1,
+      "documentTransferMedianBytes": 23911,
+      "previewUrls": [
+        "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app"
+      ],
+      "lcpMedianMs": 554.787,
+      "clsMedian": 0,
+      "lcpMaxMs": 589.643,
+      "clsMax": 0,
+      "hydration": true,
+      "autoplayAndControls": true,
+      "tapMaxMs": 40,
+      "functionalFcpMs": 808,
+      "functionalLcpMs": 808,
+      "functionalCls": 0.0002446192611882716,
+      "analytics": [
+        {
+          "event": "page_view",
+          "afterNavigationMs": 1316
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,7316 @@
+[
+  {
+    "theme": "amethyst",
+    "slug": "qap3amethyst",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5465
+      }
+    ],
+    "status": 200,
+    "beforeFirstTap": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 3563.5,
+          "ok": true
+        }
+      ],
+      "videos": [
+        {
+          "muted": false,
+          "paused": false,
+          "ended": false
+        }
+      ]
+    },
+    "firstTapSound": true,
+    "initial": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 3563.5,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1668,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Italiana, \"italiana fallback\", \"Playfair Display\", serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1668
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1668
+        }
+      ],
+      "videos": [
+        {
+          "time": 3.040347,
+          "paused": false,
+          "muted": false,
+          "ended": false
+        }
+      ],
+      "animations": [
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        },
+        {
+          "state": "running",
+          "time": 7430.753999992833
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Mute sound",
+          "label": "Mute sound"
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 3563.5,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1668,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Italiana, \"italiana fallback\", \"Playfair Display\", serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1668
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1668
+        }
+      ],
+      "videos": [
+        {
+          "time": 3.040347,
+          "paused": false,
+          "muted": false,
+          "ended": false
+        }
+      ],
+      "animations": [
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        },
+        {
+          "state": "running",
+          "time": 9146.953999992833
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Mute sound",
+          "label": "Mute sound"
+        }
+      ],
+      "socialFrames": []
+    },
+    "soundEnabled": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 3563.5,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1668,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Italiana, \"italiana fallback\", \"Playfair Display\", serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1668
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1668
+        }
+      ],
+      "videos": [
+        {
+          "time": 3.040347,
+          "paused": false,
+          "muted": false,
+          "ended": false
+        }
+      ],
+      "animations": [
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        },
+        {
+          "state": "running",
+          "time": 9196.853999992833
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Mute sound",
+          "label": "Mute sound"
+        }
+      ],
+      "socialFrames": []
+    },
+    "muted": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 3563.5,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 13038,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1668,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Italiana, \"italiana fallback\", \"Playfair Display\", serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1668
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1668
+        }
+      ],
+      "videos": [
+        {
+          "time": 3.192943,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        },
+        {
+          "state": "running",
+          "time": 9446.753999992832
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Sound off",
+          "label": "Play with sound"
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 3563.5,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 13038,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 120,
+          "start": 12955.90000000596,
+          "inputDelay": 55.5,
+          "processing": 6,
+          "presentation": 58.5
+        },
+        {
+          "name": "pointerup",
+          "duration": 120,
+          "start": 12956,
+          "inputDelay": 63.79999999701977,
+          "processing": 0.7000000029802322,
+          "presentation": 55.5
+        },
+        {
+          "name": "click",
+          "duration": 120,
+          "start": 12956,
+          "inputDelay": 80.6000000089407,
+          "processing": 2,
+          "presentation": 37.3999999910593
+        },
+        {
+          "name": "pointerdown",
+          "duration": 112,
+          "start": 13229.29999999702,
+          "inputDelay": 43.900000005960464,
+          "processing": 1.4000000059604645,
+          "presentation": 66.69999998807907
+        },
+        {
+          "name": "pointerup",
+          "duration": 112,
+          "start": 13229.40000000596,
+          "inputDelay": 46.20000000298023,
+          "processing": 0.5,
+          "presentation": 65.29999999701977
+        },
+        {
+          "name": "click",
+          "duration": 112,
+          "start": 13229.40000000596,
+          "inputDelay": 56.599999994039536,
+          "processing": 2.4000000059604645,
+          "presentation": 53
+        }
+      ],
+      "lcp": 1668,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Italiana, \"italiana fallback\", \"Playfair Display\", serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1668
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1668
+        }
+      ],
+      "videos": [
+        {
+          "time": 3.402587,
+          "paused": true,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        },
+        {
+          "state": "paused",
+          "time": 9663.453999992833
+        }
+      ],
+      "controls": [
+        {
+          "text": "Play animation",
+          "label": null
+        },
+        {
+          "text": "Sound off",
+          "label": "Play with sound"
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 3563.5,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 13038,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 13881,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 120,
+          "start": 12955.90000000596,
+          "inputDelay": 55.5,
+          "processing": 6,
+          "presentation": 58.5
+        },
+        {
+          "name": "pointerup",
+          "duration": 120,
+          "start": 12956,
+          "inputDelay": 63.79999999701977,
+          "processing": 0.7000000029802322,
+          "presentation": 55.5
+        },
+        {
+          "name": "click",
+          "duration": 120,
+          "start": 12956,
+          "inputDelay": 80.6000000089407,
+          "processing": 2,
+          "presentation": 37.3999999910593
+        },
+        {
+          "name": "pointerdown",
+          "duration": 112,
+          "start": 13229.29999999702,
+          "inputDelay": 43.900000005960464,
+          "processing": 1.4000000059604645,
+          "presentation": 66.69999998807907
+        },
+        {
+          "name": "pointerup",
+          "duration": 112,
+          "start": 13229.40000000596,
+          "inputDelay": 46.20000000298023,
+          "processing": 0.5,
+          "presentation": 65.29999999701977
+        },
+        {
+          "name": "click",
+          "duration": 112,
+          "start": 13229.40000000596,
+          "inputDelay": 56.599999994039536,
+          "processing": 2.4000000059604645,
+          "presentation": 53
+        },
+        {
+          "name": "pointerdown",
+          "duration": 80,
+          "start": 13828.20000000298,
+          "inputDelay": 42.5,
+          "processing": 2,
+          "presentation": 35.5
+        },
+        {
+          "name": "pointerup",
+          "duration": 80,
+          "start": 13828.29999999702,
+          "inputDelay": 45.5,
+          "processing": 0.20000000298023224,
+          "presentation": 34.29999999701977
+        },
+        {
+          "name": "click",
+          "duration": 80,
+          "start": 13828.29999999702,
+          "inputDelay": 50.80000001192093,
+          "processing": 3.5,
+          "presentation": 25.69999998807907
+        }
+      ],
+      "lcp": 1668,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Italiana, \"italiana fallback\", \"Playfair Display\", serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1668
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1668
+        }
+      ],
+      "videos": [
+        {
+          "time": 4.119787,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        },
+        {
+          "state": "running",
+          "time": 10346.5059999909
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Sound off",
+          "label": "Play with sound"
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 120
+  },
+  {
+    "theme": "sparkle_suite_morganite",
+    "slug": "smokelouis",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 4240
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1792,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1792
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1792
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 6481.354999992554
+        },
+        {
+          "state": "running",
+          "time": 6481.354999992554
+        },
+        {
+          "state": "running",
+          "time": 6481.354999992554
+        },
+        {
+          "state": "running",
+          "time": 6481.354999992554
+        },
+        {
+          "state": "running",
+          "time": 6481.354999992554
+        },
+        {
+          "state": "running",
+          "time": 6481.354999992554
+        },
+        {
+          "state": "running",
+          "time": 6481.354999992554
+        },
+        {
+          "state": "running",
+          "time": 6481.354999992554
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1792,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1792
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1792
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 7730.856999992556
+        },
+        {
+          "state": "running",
+          "time": 7730.856999992556
+        },
+        {
+          "state": "running",
+          "time": 7730.856999992556
+        },
+        {
+          "state": "running",
+          "time": 7730.856999992556
+        },
+        {
+          "state": "running",
+          "time": 7730.856999992556
+        },
+        {
+          "state": "running",
+          "time": 7730.856999992556
+        },
+        {
+          "state": "running",
+          "time": 7730.856999992556
+        },
+        {
+          "state": "running",
+          "time": 7730.856999992556
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": null
+  },
+  {
+    "theme": "black_diamond",
+    "slug": "qap3blackdiamond",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 4507
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1460,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1460
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1460
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        },
+        {
+          "state": "running",
+          "time": 6431.296000007632
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1460,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1460
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1460
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        },
+        {
+          "state": "running",
+          "time": 7780.720000007632
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": null
+  },
+  {
+    "theme": "moonstone",
+    "slug": "qap3moonstone",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 4360
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1424,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1424
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1424
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 6414.719999994926
+        },
+        {
+          "state": "running",
+          "time": 6414.719999994926
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1424,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1424
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1424
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 7680.875999994926
+        },
+        {
+          "state": "running",
+          "time": 7680.875999994926
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": null
+  },
+  {
+    "theme": "alpine_opal",
+    "slug": "qap3alpineopal",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5139
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1684,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1684
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1684
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        },
+        {
+          "state": "running",
+          "time": 6497.961000009509
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1684,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1684
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1684
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        },
+        {
+          "state": "running",
+          "time": 8130.561000009509
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": null
+  },
+  {
+    "theme": "emerald_garden",
+    "slug": "qap3emeraldgarden",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 4818
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2084,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Great Vibes\", \"Playfair Display\", cursive"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2084
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2084
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 6281.121999993735
+        },
+        {
+          "state": "running",
+          "time": 6281.121999993735
+        },
+        {
+          "state": "running",
+          "time": 6281.121999993735
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2084,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Great Vibes\", \"Playfair Display\", cursive"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2084
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2084
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 7614.087999993733
+        },
+        {
+          "state": "running",
+          "time": 7614.087999993733
+        },
+        {
+          "state": "running",
+          "time": 7614.087999993733
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": null
+  },
+  {
+    "theme": "gnome_garden",
+    "slug": "qap3gnomegarden",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5137
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1720,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1720
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1720
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 6631.511000005447
+        },
+        {
+          "state": "running",
+          "time": 6631.511000005447
+        },
+        {
+          "state": "running",
+          "time": 6631.511000005447
+        },
+        {
+          "state": "running",
+          "time": 6631.511000005447
+        },
+        {
+          "state": "running",
+          "time": 6631.511000005447
+        },
+        {
+          "state": "running",
+          "time": 6631.511000005447
+        },
+        {
+          "state": "running",
+          "time": 6631.511000005447
+        },
+        {
+          "state": "running",
+          "time": 6631.511000005447
+        },
+        {
+          "state": "finished",
+          "time": 650
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1720,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1720
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1720
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 8013.975000005448
+        },
+        {
+          "state": "running",
+          "time": 8013.975000005448
+        },
+        {
+          "state": "running",
+          "time": 8013.975000005448
+        },
+        {
+          "state": "running",
+          "time": 8013.975000005448
+        },
+        {
+          "state": "running",
+          "time": 8013.975000005448
+        },
+        {
+          "state": "running",
+          "time": 8013.975000005448
+        },
+        {
+          "state": "running",
+          "time": 8013.975000005448
+        },
+        {
+          "state": "running",
+          "time": 8013.975000005448
+        },
+        {
+          "state": "finished",
+          "time": 650
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 48,
+          "start": 9797.20000000298,
+          "inputDelay": 44.5,
+          "processing": 5.799999997019768,
+          "presentation": -2.2999999970197678
+        },
+        {
+          "name": "pointerup",
+          "duration": 48,
+          "start": 9797.29999999702,
+          "inputDelay": 50.900000005960464,
+          "processing": 0.19999998807907104,
+          "presentation": -3.0999999940395355
+        },
+        {
+          "name": "click",
+          "duration": 152,
+          "start": 9797.29999999702,
+          "inputDelay": 75.40000000596046,
+          "processing": 9,
+          "presentation": 67.59999999403954
+        }
+      ],
+      "lcp": 1720,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1720
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1720
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "paused",
+          "time": 8280.475000005448
+        },
+        {
+          "state": "paused",
+          "time": 8280.475000005448
+        },
+        {
+          "state": "paused",
+          "time": 8280.475000005448
+        },
+        {
+          "state": "paused",
+          "time": 8280.475000005448
+        },
+        {
+          "state": "paused",
+          "time": 8280.475000005448
+        },
+        {
+          "state": "paused",
+          "time": 8280.475000005448
+        },
+        {
+          "state": "paused",
+          "time": 8280.475000005448
+        },
+        {
+          "state": "paused",
+          "time": 8280.475000005448
+        },
+        {
+          "state": "paused",
+          "time": 650
+        }
+      ],
+      "controls": [
+        {
+          "text": "Resume animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 48,
+          "start": 9797.20000000298,
+          "inputDelay": 44.5,
+          "processing": 5.799999997019768,
+          "presentation": -2.2999999970197678
+        },
+        {
+          "name": "pointerup",
+          "duration": 48,
+          "start": 9797.29999999702,
+          "inputDelay": 50.900000005960464,
+          "processing": 0.19999998807907104,
+          "presentation": -3.0999999940395355
+        },
+        {
+          "name": "click",
+          "duration": 152,
+          "start": 9797.29999999702,
+          "inputDelay": 75.40000000596046,
+          "processing": 9,
+          "presentation": 67.59999999403954
+        },
+        {
+          "name": "pointerdown",
+          "duration": 32,
+          "start": 10447.59999999404,
+          "inputDelay": 23.299999997019768,
+          "processing": 2.4000000059604645,
+          "presentation": 6.299999997019768
+        },
+        {
+          "name": "pointerup",
+          "duration": 32,
+          "start": 10447.59999999404,
+          "inputDelay": 27.400000005960464,
+          "processing": 0.29999999701976776,
+          "presentation": 4.299999997019768
+        },
+        {
+          "name": "click",
+          "duration": 80,
+          "start": 10447.59999999404,
+          "inputDelay": 40.29999999701977,
+          "processing": 2.9000000059604645,
+          "presentation": 36.79999999701977
+        }
+      ],
+      "lcp": 1720,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1720
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1720
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 8963.727000002746
+        },
+        {
+          "state": "running",
+          "time": 8963.727000002746
+        },
+        {
+          "state": "running",
+          "time": 8963.727000002746
+        },
+        {
+          "state": "running",
+          "time": 8963.727000002746
+        },
+        {
+          "state": "running",
+          "time": 8963.727000002746
+        },
+        {
+          "state": "running",
+          "time": 8963.727000002746
+        },
+        {
+          "state": "running",
+          "time": 8963.727000002746
+        },
+        {
+          "state": "running",
+          "time": 8963.727000002746
+        },
+        {
+          "state": "finished",
+          "time": 650
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 152
+  },
+  {
+    "theme": "neon_butterfly",
+    "slug": "qap3neonbutterfly",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 4545
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1840,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1840
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1840
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        },
+        {
+          "state": "running",
+          "time": 5964.620000001284
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1840,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1840
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1840
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        },
+        {
+          "state": "running",
+          "time": 7930.654000001285
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 208,
+          "start": 13039.90000000596,
+          "inputDelay": 61.5,
+          "processing": 7,
+          "presentation": 139.5
+        },
+        {
+          "name": "pointerup",
+          "duration": 208,
+          "start": 13040,
+          "inputDelay": 72.1000000089407,
+          "processing": 1.3999999910593033,
+          "presentation": 134.5
+        },
+        {
+          "name": "click",
+          "duration": 208,
+          "start": 13040,
+          "inputDelay": 98.30000001192093,
+          "processing": 2.3999999910593033,
+          "presentation": 107.29999999701977
+        }
+      ],
+      "lcp": 1840,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1840
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1840
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        },
+        {
+          "state": "paused",
+          "time": 8213.886000001285
+        }
+      ],
+      "controls": [
+        {
+          "text": "Resume animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 208,
+          "start": 13039.90000000596,
+          "inputDelay": 61.5,
+          "processing": 7,
+          "presentation": 139.5
+        },
+        {
+          "name": "pointerup",
+          "duration": 208,
+          "start": 13040,
+          "inputDelay": 72.1000000089407,
+          "processing": 1.3999999910593033,
+          "presentation": 134.5
+        },
+        {
+          "name": "click",
+          "duration": 208,
+          "start": 13040,
+          "inputDelay": 98.30000001192093,
+          "processing": 2.3999999910593033,
+          "presentation": 107.29999999701977
+        },
+        {
+          "name": "pointerdown",
+          "duration": 16,
+          "start": 13664,
+          "inputDelay": 9,
+          "processing": 2.300000011920929,
+          "presentation": 4.699999988079071
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 13664,
+          "inputDelay": 12.5,
+          "processing": 0.10000000894069672,
+          "presentation": 3.3999999910593033
+        },
+        {
+          "name": "click",
+          "duration": 72,
+          "start": 13664,
+          "inputDelay": 20.30000001192093,
+          "processing": 1.199999988079071,
+          "presentation": 50.5
+        }
+      ],
+      "lcp": 1840,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1840
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1840
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        },
+        {
+          "state": "running",
+          "time": 8863.78100000773
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": false,
+    "progressed": true,
+    "interactionMaxMs": 208
+  },
+  {
+    "theme": "halloween_pumpkin_witch",
+    "slug": "blingkitchen",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [
+      {
+        "url": "",
+        "inherited": true
+      },
+      {
+        "url": "",
+        "inherited": true
+      },
+      {
+        "url": "",
+        "inherited": true
+      },
+      {
+        "url": "",
+        "inherited": true
+      }
+    ],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 4514
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1576,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Serving Sparkle from the Heart of the Home",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1576
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1576
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "finished",
+          "time": 5800
+        },
+        {
+          "state": "running",
+          "time": 5947.972999996267
+        },
+        {
+          "state": "running",
+          "time": 5947.972999996267
+        },
+        {
+          "state": "running",
+          "time": 5947.972999996267
+        },
+        {
+          "state": "running",
+          "time": 5947.972999996267
+        },
+        {
+          "state": "running",
+          "time": 5947.972999996267
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": [
+        {
+          "loaded": false,
+          "top": 2251.265625
+        },
+        {
+          "loaded": false,
+          "top": 4458.90625
+        },
+        {
+          "loaded": false,
+          "top": 5175.015625
+        },
+        {
+          "loaded": false,
+          "top": 5891.125
+        }
+      ]
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1576,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Serving Sparkle from the Heart of the Home",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1576
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1576
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "finished",
+          "time": 5800
+        },
+        {
+          "state": "running",
+          "time": 7430.924999996267
+        },
+        {
+          "state": "running",
+          "time": 7430.924999996267
+        },
+        {
+          "state": "running",
+          "time": 7430.924999996267
+        },
+        {
+          "state": "running",
+          "time": 7430.924999996267
+        },
+        {
+          "state": "running",
+          "time": 7430.924999996267
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": [
+        {
+          "loaded": false,
+          "top": 2251.265625
+        },
+        {
+          "loaded": false,
+          "top": 4458.90625
+        },
+        {
+          "loaded": false,
+          "top": 5175.015625
+        },
+        {
+          "loaded": false,
+          "top": 5891.125
+        }
+      ]
+    },
+    "paused": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 12578.5,
+          "inputDelay": 26.400000005960464,
+          "processing": 6.5999999940395355,
+          "presentation": 7
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 12578.60000000894,
+          "inputDelay": 35,
+          "processing": 0.5999999940395355,
+          "presentation": 4.4000000059604645
+        },
+        {
+          "name": "click",
+          "duration": 88,
+          "start": 12578.60000000894,
+          "inputDelay": 54.70000000298023,
+          "processing": 2.2999999970197678,
+          "presentation": 31
+        }
+      ],
+      "lcp": 1576,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Serving Sparkle from the Heart of the Home",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1576
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1576
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "paused",
+          "time": 5800
+        },
+        {
+          "state": "paused",
+          "time": 7664.040999996267
+        },
+        {
+          "state": "paused",
+          "time": 7664.040999996267
+        },
+        {
+          "state": "paused",
+          "time": 7664.040999996267
+        },
+        {
+          "state": "paused",
+          "time": 7664.040999996267
+        },
+        {
+          "state": "paused",
+          "time": 7664.040999996267
+        }
+      ],
+      "controls": [
+        {
+          "text": "Resume animation",
+          "label": null
+        }
+      ],
+      "socialFrames": [
+        {
+          "loaded": false,
+          "top": 1540.265625
+        },
+        {
+          "loaded": false,
+          "top": 3747.90625
+        },
+        {
+          "loaded": false,
+          "top": 4464.015625
+        },
+        {
+          "loaded": false,
+          "top": 5180.125
+        }
+      ]
+    },
+    "resumed": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 12578.5,
+          "inputDelay": 26.400000005960464,
+          "processing": 6.5999999940395355,
+          "presentation": 7
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 12578.60000000894,
+          "inputDelay": 35,
+          "processing": 0.5999999940395355,
+          "presentation": 4.4000000059604645
+        },
+        {
+          "name": "click",
+          "duration": 88,
+          "start": 12578.60000000894,
+          "inputDelay": 54.70000000298023,
+          "processing": 2.2999999970197678,
+          "presentation": 31
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 13050.5,
+          "inputDelay": 12.600000008940697,
+          "processing": 0.20000000298023224,
+          "presentation": 3.199999988079071
+        },
+        {
+          "name": "click",
+          "duration": 56,
+          "start": 13050.5,
+          "inputDelay": 22.5,
+          "processing": 1.1000000089406967,
+          "presentation": 32.3999999910593
+        }
+      ],
+      "lcp": 1576,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Serving Sparkle from the Heart of the Home",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1576
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1576
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "finished",
+          "time": 5800
+        },
+        {
+          "state": "running",
+          "time": 8330.55799999221
+        },
+        {
+          "state": "running",
+          "time": 8330.55799999221
+        },
+        {
+          "state": "running",
+          "time": 8330.55799999221
+        },
+        {
+          "state": "running",
+          "time": 8330.55799999221
+        },
+        {
+          "state": "running",
+          "time": 8330.55799999221
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": [
+        {
+          "loaded": false,
+          "top": 1540.265625
+        },
+        {
+          "loaded": false,
+          "top": 3747.90625
+        },
+        {
+          "loaded": false,
+          "top": 4464.015625
+        },
+        {
+          "loaded": false,
+          "top": 5180.125
+        }
+      ]
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 88,
+    "socialDeferred": true,
+    "socialLoadsOnScroll": true
+  },
+  {
+    "theme": "halloween_pumpkin_cat",
+    "slug": "qap3halloweenpumpkincat",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 4519
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 3488.4000000059605,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 3684.7000000029802,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1276,
+      "cls": 0.0192796875,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Georgia, \"Times New Roman\", serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 660
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1176
+        }
+      ],
+      "videos": [
+        {
+          "time": 5.041667,
+          "paused": true,
+          "muted": true,
+          "ended": true
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 3488.4000000059605,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 3684.7000000029802,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 14727.90000000596,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1276,
+      "cls": 0.0192796875,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Georgia, \"Times New Roman\", serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 660
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1176
+        }
+      ],
+      "videos": [
+        {
+          "time": 0.214672,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 3488.4000000059605,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 3684.7000000029802,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 14727.90000000596,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 32,
+          "start": 15095,
+          "inputDelay": 23.400000005960464,
+          "processing": 5.5999999940395355,
+          "presentation": 3
+        },
+        {
+          "name": "pointerup",
+          "duration": 32,
+          "start": 15095.10000000894,
+          "inputDelay": 32.3999999910593,
+          "processing": 1.1000000089406967,
+          "presentation": -1.5
+        },
+        {
+          "name": "click",
+          "duration": 96,
+          "start": 15095.10000000894,
+          "inputDelay": 55,
+          "processing": 3.0999999940395355,
+          "presentation": 37.900000005960464
+        }
+      ],
+      "lcp": 1276,
+      "cls": 0.0192796875,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Georgia, \"Times New Roman\", serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 660
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1176
+        }
+      ],
+      "videos": [
+        {
+          "time": 0.421786,
+          "paused": true,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Play animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 3488.4000000059605,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 3684.7000000029802,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 14727.90000000596,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 15646.300000011921,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 32,
+          "start": 15095,
+          "inputDelay": 23.400000005960464,
+          "processing": 5.5999999940395355,
+          "presentation": 3
+        },
+        {
+          "name": "pointerup",
+          "duration": 32,
+          "start": 15095.10000000894,
+          "inputDelay": 32.3999999910593,
+          "processing": 1.1000000089406967,
+          "presentation": -1.5
+        },
+        {
+          "name": "click",
+          "duration": 96,
+          "start": 15095.10000000894,
+          "inputDelay": 55,
+          "processing": 3.0999999940395355,
+          "presentation": 37.900000005960464
+        },
+        {
+          "name": "pointerdown",
+          "duration": 32,
+          "start": 15605.5,
+          "inputDelay": 22.600000008940697,
+          "processing": 3.2999999970197678,
+          "presentation": 6.0999999940395355
+        },
+        {
+          "name": "pointerup",
+          "duration": 32,
+          "start": 15605.70000000298,
+          "inputDelay": 27.600000008940697,
+          "processing": 0.5999999940395355,
+          "presentation": 3.7999999970197678
+        },
+        {
+          "name": "click",
+          "duration": 80,
+          "start": 15605.70000000298,
+          "inputDelay": 39.29999999701977,
+          "processing": 2.9000000059604645,
+          "presentation": 37.79999999701977
+        }
+      ],
+      "lcp": 1276,
+      "cls": 0.0192796875,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Georgia, \"Times New Roman\", serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 660
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1176
+        }
+      ],
+      "videos": [
+        {
+          "time": 1.099986,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 96
+  },
+  {
+    "theme": "gilded_autumn",
+    "slug": "qap3gildedautumn",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5024
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5681,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2220,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2220
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2220
+        }
+      ],
+      "videos": [
+        {
+          "time": 2.421565,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5681,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2220,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2220
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2220
+        }
+      ],
+      "videos": [
+        {
+          "time": 3.495264,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5681,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 48,
+          "start": 16790.90000000596,
+          "inputDelay": 25.5,
+          "processing": 6.4000000059604645,
+          "presentation": 16.099999994039536
+        },
+        {
+          "name": "pointerup",
+          "duration": 48,
+          "start": 16791,
+          "inputDelay": 42.30000001192093,
+          "processing": 0.5,
+          "presentation": 5.199999988079071
+        },
+        {
+          "name": "click",
+          "duration": 104,
+          "start": 16791,
+          "inputDelay": 62.70000000298023,
+          "processing": 0.7000000029802322,
+          "presentation": 40.599999994039536
+        }
+      ],
+      "lcp": 2220,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2220
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2220
+        }
+      ],
+      "videos": [
+        {
+          "time": 3.515727,
+          "paused": true,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Play animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5681,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 17942.70000000298,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 48,
+          "start": 16790.90000000596,
+          "inputDelay": 25.5,
+          "processing": 6.4000000059604645,
+          "presentation": 16.099999994039536
+        },
+        {
+          "name": "pointerup",
+          "duration": 48,
+          "start": 16791,
+          "inputDelay": 42.30000001192093,
+          "processing": 0.5,
+          "presentation": 5.199999988079071
+        },
+        {
+          "name": "click",
+          "duration": 104,
+          "start": 16791,
+          "inputDelay": 62.70000000298023,
+          "processing": 0.7000000029802322,
+          "presentation": 40.599999994039536
+        },
+        {
+          "name": "pointerdown",
+          "duration": 80,
+          "start": 17823.30000001192,
+          "inputDelay": 33.69999998807907,
+          "processing": 30,
+          "presentation": 16.30000001192093
+        },
+        {
+          "name": "pointerup",
+          "duration": 80,
+          "start": 17823.5,
+          "inputDelay": 77.90000000596046,
+          "processing": 0.9000000059604645,
+          "presentation": 1.199999988079071
+        },
+        {
+          "name": "click",
+          "duration": 200,
+          "start": 17823.5,
+          "inputDelay": 117.70000000298023,
+          "processing": 14.799999997019768,
+          "presentation": 67.5
+        }
+      ],
+      "lcp": 2220,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2220
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2220
+        }
+      ],
+      "videos": [
+        {
+          "time": 4.22552,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 200
+  },
+  {
+    "theme": "rose_gold",
+    "slug": "qap3rosegold",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 6921
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 3660,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 3660
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 3660
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 6814.29699999458
+        },
+        {
+          "state": "running",
+          "time": 6814.29699999458
+        },
+        {
+          "state": "running",
+          "time": 6814.29699999458
+        },
+        {
+          "state": "running",
+          "time": 6814.29699999458
+        },
+        {
+          "state": "running",
+          "time": 6814.29699999458
+        },
+        {
+          "state": "running",
+          "time": 6814.29699999458
+        },
+        {
+          "state": "running",
+          "time": 6814.29699999458
+        },
+        {
+          "state": "running",
+          "time": 6814.29699999458
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 3660,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 3660
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 3660
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 8380.60899999458
+        },
+        {
+          "state": "running",
+          "time": 8380.60899999458
+        },
+        {
+          "state": "running",
+          "time": 8380.60899999458
+        },
+        {
+          "state": "running",
+          "time": 8380.60899999458
+        },
+        {
+          "state": "running",
+          "time": 8380.60899999458
+        },
+        {
+          "state": "running",
+          "time": 8380.60899999458
+        },
+        {
+          "state": "running",
+          "time": 8380.60899999458
+        },
+        {
+          "state": "running",
+          "time": 8380.60899999458
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": null
+  },
+  {
+    "theme": "midnight_rose",
+    "slug": "qap3midnightrose",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5275
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5893.4000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2248,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2248
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2248
+        }
+      ],
+      "videos": [
+        {
+          "time": 6.42248,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5893.4000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2248,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2248
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2248
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.21863,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5893.4000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 56,
+          "start": 15466.40000000596,
+          "inputDelay": 33.29999999701977,
+          "processing": 7.100000008940697,
+          "presentation": 15.599999994039536
+        },
+        {
+          "name": "pointerup",
+          "duration": 56,
+          "start": 15466.60000000894,
+          "inputDelay": 47.8999999910593,
+          "processing": 2.1000000089406967,
+          "presentation": 6
+        },
+        {
+          "name": "click",
+          "duration": 128,
+          "start": 15466.60000000894,
+          "inputDelay": 82.70000000298023,
+          "processing": 5.0999999940395355,
+          "presentation": 40.20000000298023
+        }
+      ],
+      "lcp": 2248,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2248
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2248
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.582134,
+          "paused": true,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Play animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5893.4000000059605,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 16169.90000000596,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 56,
+          "start": 15466.40000000596,
+          "inputDelay": 33.29999999701977,
+          "processing": 7.100000008940697,
+          "presentation": 15.599999994039536
+        },
+        {
+          "name": "pointerup",
+          "duration": 56,
+          "start": 15466.60000000894,
+          "inputDelay": 47.8999999910593,
+          "processing": 2.1000000089406967,
+          "presentation": 6
+        },
+        {
+          "name": "click",
+          "duration": 128,
+          "start": 15466.60000000894,
+          "inputDelay": 82.70000000298023,
+          "processing": 5.0999999940395355,
+          "presentation": 40.20000000298023
+        },
+        {
+          "name": "pointerdown",
+          "duration": 24,
+          "start": 16133.300000011921,
+          "inputDelay": 15.799999997019768,
+          "processing": 2.5999999940395355,
+          "presentation": 5.600000008940697
+        },
+        {
+          "name": "pointerup",
+          "duration": 24,
+          "start": 16133.40000000596,
+          "inputDelay": 20.200000002980232,
+          "processing": 0.5,
+          "presentation": 3.2999999970197678
+        },
+        {
+          "name": "click",
+          "duration": 72,
+          "start": 16133.40000000596,
+          "inputDelay": 35.099999994039536,
+          "processing": 3.5,
+          "presentation": 33.400000005960464
+        }
+      ],
+      "lcp": 2248,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2248
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2248
+        }
+      ],
+      "videos": [
+        {
+          "time": 9.276022,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 128
+  },
+  {
+    "theme": "fall_owl_harvest_moon",
+    "slug": "qap3fallowlharvestmoon",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 6482
+      }
+    ],
+    "status": 200,
+    "beforeFirstTap": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 7535.70000000298,
+          "ok": true
+        }
+      ],
+      "videos": [
+        {
+          "muted": false,
+          "paused": false,
+          "ended": false
+        }
+      ]
+    },
+    "firstTapSound": true,
+    "initial": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 7535.70000000298,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 3080,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 3080
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 3080
+        }
+      ],
+      "videos": [
+        {
+          "time": 3.431314,
+          "paused": false,
+          "muted": false,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Mute autumn sounds",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 7535.70000000298,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 3080,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 3080
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 3080
+        }
+      ],
+      "videos": [
+        {
+          "time": 5.736756,
+          "paused": false,
+          "muted": false,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Mute autumn sounds",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "soundEnabled": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 7535.70000000298,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 3080,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 3080
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 3080
+        }
+      ],
+      "videos": [
+        {
+          "time": 5.788413,
+          "paused": false,
+          "muted": false,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Mute autumn sounds",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "muted": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 7535.70000000298,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 18764.79999999702,
+          "inputDelay": 25.299999997019768,
+          "processing": 5,
+          "presentation": 9.700000002980232
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 18765,
+          "inputDelay": 34.70000000298023,
+          "processing": 2.2000000029802322,
+          "presentation": 3.0999999940395355
+        },
+        {
+          "name": "click",
+          "duration": 160,
+          "start": 18765,
+          "inputDelay": 62.5,
+          "processing": 0.9000000059604645,
+          "presentation": 96.59999999403954
+        }
+      ],
+      "lcp": 3080,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 3080
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 3080
+        }
+      ],
+      "videos": [
+        {
+          "time": 6.17554,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Enable autumn sounds",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 7535.70000000298,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 18764.79999999702,
+          "inputDelay": 25.299999997019768,
+          "processing": 5,
+          "presentation": 9.700000002980232
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 18765,
+          "inputDelay": 34.70000000298023,
+          "processing": 2.2000000029802322,
+          "presentation": 3.0999999940395355
+        },
+        {
+          "name": "click",
+          "duration": 160,
+          "start": 18765,
+          "inputDelay": 62.5,
+          "processing": 0.9000000059604645,
+          "presentation": 96.59999999403954
+        },
+        {
+          "name": "pointerdown",
+          "duration": 16,
+          "start": 19348.90000000596,
+          "inputDelay": 13.699999988079071,
+          "processing": 0.7000000029802322,
+          "presentation": 1.6000000089406967
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 19349.09999999404,
+          "inputDelay": 14.700000002980232,
+          "processing": 0,
+          "presentation": 1.2999999970197678
+        },
+        {
+          "name": "click",
+          "duration": 104,
+          "start": 19349.09999999404,
+          "inputDelay": 49.5,
+          "processing": 4.200000002980232,
+          "presentation": 50.29999999701977
+        }
+      ],
+      "lcp": 3080,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 3080
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 3080
+        }
+      ],
+      "videos": [
+        {
+          "time": 6.59411,
+          "paused": true,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Play animation",
+          "label": null
+        },
+        {
+          "text": "Enable autumn sounds",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 7535.70000000298,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 20121.59999999404,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 18764.79999999702,
+          "inputDelay": 25.299999997019768,
+          "processing": 5,
+          "presentation": 9.700000002980232
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 18765,
+          "inputDelay": 34.70000000298023,
+          "processing": 2.2000000029802322,
+          "presentation": 3.0999999940395355
+        },
+        {
+          "name": "click",
+          "duration": 160,
+          "start": 18765,
+          "inputDelay": 62.5,
+          "processing": 0.9000000059604645,
+          "presentation": 96.59999999403954
+        },
+        {
+          "name": "pointerdown",
+          "duration": 16,
+          "start": 19348.90000000596,
+          "inputDelay": 13.699999988079071,
+          "processing": 0.7000000029802322,
+          "presentation": 1.6000000089406967
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 19349.09999999404,
+          "inputDelay": 14.700000002980232,
+          "processing": 0,
+          "presentation": 1.2999999970197678
+        },
+        {
+          "name": "click",
+          "duration": 104,
+          "start": 19349.09999999404,
+          "inputDelay": 49.5,
+          "processing": 4.200000002980232,
+          "presentation": 50.29999999701977
+        },
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 20063.79999999702,
+          "inputDelay": 26.600000008940697,
+          "processing": 5.0999999940395355,
+          "presentation": 8.299999997019768
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 20063.90000000596,
+          "inputDelay": 34.3999999910593,
+          "processing": 0.6000000089406967,
+          "presentation": 5
+        },
+        {
+          "name": "click",
+          "duration": 88,
+          "start": 20063.90000000596,
+          "inputDelay": 56.5,
+          "processing": 1.7999999970197678,
+          "presentation": 29.700000002980232
+        }
+      ],
+      "lcp": 3080,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 3080
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 3080
+        }
+      ],
+      "videos": [
+        {
+          "time": 7.277929,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Enable autumn sounds",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 160
+  },
+  {
+    "theme": "gobble_and_fizz",
+    "slug": "qap3gobbleandfizz",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5883
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 6638.9000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2548,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2548
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2548
+        }
+      ],
+      "videos": [
+        {
+          "time": 6.423142,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 6638.9000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2548,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2548
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2548
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.362313,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 6638.9000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 16698.20000000298,
+          "inputDelay": 23.400000005960464,
+          "processing": 5.5999999940395355,
+          "presentation": 11
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 16698.30000001192,
+          "inputDelay": 32.8999999910593,
+          "processing": 1.2000000029802322,
+          "presentation": 5.9000000059604645
+        },
+        {
+          "name": "click",
+          "duration": 96,
+          "start": 16698.30000001192,
+          "inputDelay": 54,
+          "processing": 2.5,
+          "presentation": 39.5
+        }
+      ],
+      "lcp": 2548,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2548
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2548
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.564213,
+          "paused": true,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Play animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 6638.9000000059605,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 17259.10000000894,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 16698.20000000298,
+          "inputDelay": 23.400000005960464,
+          "processing": 5.5999999940395355,
+          "presentation": 11
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 16698.30000001192,
+          "inputDelay": 32.8999999910593,
+          "processing": 1.2000000029802322,
+          "presentation": 5.9000000059604645
+        },
+        {
+          "name": "click",
+          "duration": 96,
+          "start": 16698.30000001192,
+          "inputDelay": 54,
+          "processing": 2.5,
+          "presentation": 39.5
+        },
+        {
+          "name": "pointerdown",
+          "duration": 32,
+          "start": 17223.5,
+          "inputDelay": 23.80000001192093,
+          "processing": 2.3999999910593033,
+          "presentation": 5.799999997019768
+        },
+        {
+          "name": "pointerup",
+          "duration": 32,
+          "start": 17223.5,
+          "inputDelay": 28.100000008940697,
+          "processing": 0.5,
+          "presentation": 3.3999999910593033
+        },
+        {
+          "name": "click",
+          "duration": 80,
+          "start": 17223.5,
+          "inputDelay": 34.6000000089407,
+          "processing": 1.7000000029802322,
+          "presentation": 43.69999998807907
+        }
+      ],
+      "lcp": 2548,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2548
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2548
+        }
+      ],
+      "videos": [
+        {
+          "time": 0.244527,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 96
+  },
+  {
+    "theme": "pie_please",
+    "slug": "qap3pieplease",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5558
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 6494.0999999940395,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2048,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2048
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2048
+        }
+      ],
+      "videos": [
+        {
+          "time": 5.124901,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 6494.0999999940395,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2048,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2048
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2048
+        }
+      ],
+      "videos": [
+        {
+          "time": 7.183758,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 6494.0999999940395,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 16933,
+          "inputDelay": 27.700000002980232,
+          "processing": 6,
+          "presentation": 6.299999997019768
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 16933,
+          "inputDelay": 37.70000000298023,
+          "processing": 1.199999988079071,
+          "presentation": 1.1000000089406967
+        },
+        {
+          "name": "click",
+          "duration": 144,
+          "start": 16933,
+          "inputDelay": 65.59999999403954,
+          "processing": 4.799999997019768,
+          "presentation": 73.6000000089407
+        }
+      ],
+      "lcp": 2048,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2048
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2048
+        }
+      ],
+      "videos": [
+        {
+          "time": 7.183758,
+          "paused": true,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Play animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 6494.0999999940395,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 17523.09999999404,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 16933,
+          "inputDelay": 27.700000002980232,
+          "processing": 6,
+          "presentation": 6.299999997019768
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 16933,
+          "inputDelay": 37.70000000298023,
+          "processing": 1.199999988079071,
+          "presentation": 1.1000000089406967
+        },
+        {
+          "name": "click",
+          "duration": 144,
+          "start": 16933,
+          "inputDelay": 65.59999999403954,
+          "processing": 4.799999997019768,
+          "presentation": 73.6000000089407
+        },
+        {
+          "name": "pointerdown",
+          "duration": 16,
+          "start": 17505.29999999702,
+          "inputDelay": 8.299999997019768,
+          "processing": 1.2000000029802322,
+          "presentation": 6.5
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 17505.39999999106,
+          "inputDelay": 10.700000002980232,
+          "processing": 0.4000000059604645,
+          "presentation": 4.899999991059303
+        },
+        {
+          "name": "click",
+          "duration": 48,
+          "start": 17505.39999999106,
+          "inputDelay": 17.100000008940697,
+          "processing": 3.8999999910593033,
+          "presentation": 27
+        }
+      ],
+      "lcp": 2048,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2048
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2048
+        }
+      ],
+      "videos": [
+        {
+          "time": 7.866599,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 144
+  },
+  {
+    "theme": "pearl_rose",
+    "slug": "qap3pearlrose",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5198
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5726.4000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2404,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2404
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2404
+        }
+      ],
+      "videos": [
+        {
+          "time": 6.417947,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5726.4000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2404,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2404
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2404
+        }
+      ],
+      "videos": [
+        {
+          "time": 7.929047,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5726.4000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 15019.70000000298,
+          "inputDelay": 25,
+          "processing": 8.299999997019768,
+          "presentation": 6.700000002980232
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 15019.70000000298,
+          "inputDelay": 36.79999999701977,
+          "processing": 1.2999999970197678,
+          "presentation": 1.9000000059604645
+        },
+        {
+          "name": "click",
+          "duration": 96,
+          "start": 15019.70000000298,
+          "inputDelay": 56.20000000298023,
+          "processing": 2.8999999910593033,
+          "presentation": 36.900000005960464
+        }
+      ],
+      "lcp": 2404,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2404
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2404
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.118919,
+          "paused": true,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Play animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 5726.4000000059605,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 15621.29999999702,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 40,
+          "start": 15019.70000000298,
+          "inputDelay": 25,
+          "processing": 8.299999997019768,
+          "presentation": 6.700000002980232
+        },
+        {
+          "name": "pointerup",
+          "duration": 40,
+          "start": 15019.70000000298,
+          "inputDelay": 36.79999999701977,
+          "processing": 1.2999999970197678,
+          "presentation": 1.9000000059604645
+        },
+        {
+          "name": "click",
+          "duration": 96,
+          "start": 15019.70000000298,
+          "inputDelay": 56.20000000298023,
+          "processing": 2.8999999910593033,
+          "presentation": 36.900000005960464
+        },
+        {
+          "name": "pointerdown",
+          "duration": 16,
+          "start": 15595.70000000298,
+          "inputDelay": 6.5999999940395355,
+          "processing": 3.6000000089406967,
+          "presentation": 5.799999997019768
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 15595.79999999702,
+          "inputDelay": 12.200000002980232,
+          "processing": 0.4000000059604645,
+          "presentation": 3.3999999910593033
+        },
+        {
+          "name": "click",
+          "duration": 48,
+          "start": 15595.79999999702,
+          "inputDelay": 25,
+          "processing": 0.9000000059604645,
+          "presentation": 22.099999994039536
+        }
+      ],
+      "lcp": 2404,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2404
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2404
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.799807,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 96
+  },
+  {
+    "theme": "sunset_beach",
+    "slug": "dudesfizzfest",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5700
+      }
+    ],
+    "status": 200,
+    "beforeFirstTap": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 6895.4000000059605,
+          "ok": true
+        }
+      ],
+      "videos": [
+        {
+          "muted": false,
+          "paused": false,
+          "ended": false
+        }
+      ]
+    },
+    "firstTapSound": true,
+    "initial": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 6895.4000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2056,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2056
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2056
+        }
+      ],
+      "videos": [
+        {
+          "time": 6.447441,
+          "paused": false,
+          "muted": false,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Mute wave sound",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 6895.4000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2056,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2056
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2056
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.314562,
+          "paused": false,
+          "muted": false,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Mute wave sound",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "soundEnabled": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 6895.4000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2056,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2056
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2056
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.33841,
+          "paused": false,
+          "muted": false,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Mute wave sound",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "muted": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 6895.4000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 16,
+          "start": 16613.40000000596,
+          "inputDelay": 10.099999994039536,
+          "processing": 1.0999999940395355,
+          "presentation": 4.800000011920929
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 16613.40000000596,
+          "inputDelay": 11.899999991059303,
+          "processing": 0,
+          "presentation": 4.100000008940697
+        }
+      ],
+      "lcp": 2056,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2056
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2056
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.595206,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Enable wave sound",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 6895.4000000059605,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 16,
+          "start": 16613.40000000596,
+          "inputDelay": 10.099999994039536,
+          "processing": 1.0999999940395355,
+          "presentation": 4.800000011920929
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 16613.40000000596,
+          "inputDelay": 11.899999991059303,
+          "processing": 0,
+          "presentation": 4.100000008940697
+        },
+        {
+          "name": "click",
+          "duration": 72,
+          "start": 16613.40000000596,
+          "inputDelay": 34.19999998807907,
+          "processing": 3.7000000029802322,
+          "presentation": 34.1000000089407
+        },
+        {
+          "name": "pointerdown",
+          "duration": 16,
+          "start": 16859,
+          "inputDelay": 14.900000005960464,
+          "processing": 0.5999999940395355,
+          "presentation": 0.5
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 16859.09999999404,
+          "inputDelay": 16,
+          "processing": 0.10000000894069672,
+          "presentation": -0.10000000894069672
+        },
+        {
+          "name": "click",
+          "duration": 40,
+          "start": 16859.09999999404,
+          "inputDelay": 19.80000001192093,
+          "processing": 0.5,
+          "presentation": 19.69999998807907
+        }
+      ],
+      "lcp": 2056,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2056
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2056
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.781608,
+          "paused": true,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Play animation",
+          "label": null
+        },
+        {
+          "text": "Enable wave sound",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [
+        {
+          "muted": false,
+          "at": 6895.4000000059605,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 17374.5,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 16,
+          "start": 16613.40000000596,
+          "inputDelay": 10.099999994039536,
+          "processing": 1.0999999940395355,
+          "presentation": 4.800000011920929
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 16613.40000000596,
+          "inputDelay": 11.899999991059303,
+          "processing": 0,
+          "presentation": 4.100000008940697
+        },
+        {
+          "name": "click",
+          "duration": 72,
+          "start": 16613.40000000596,
+          "inputDelay": 34.19999998807907,
+          "processing": 3.7000000029802322,
+          "presentation": 34.1000000089407
+        },
+        {
+          "name": "pointerdown",
+          "duration": 16,
+          "start": 16859,
+          "inputDelay": 14.900000005960464,
+          "processing": 0.5999999940395355,
+          "presentation": 0.5
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 16859.09999999404,
+          "inputDelay": 16,
+          "processing": 0.10000000894069672,
+          "presentation": -0.10000000894069672
+        },
+        {
+          "name": "click",
+          "duration": 40,
+          "start": 16859.09999999404,
+          "inputDelay": 19.80000001192093,
+          "processing": 0.5,
+          "presentation": 19.69999998807907
+        },
+        {
+          "name": "pointerdown",
+          "duration": 32,
+          "start": 17333,
+          "inputDelay": 24.5,
+          "processing": 2.5999999940395355,
+          "presentation": 4.9000000059604645
+        },
+        {
+          "name": "pointerup",
+          "duration": 32,
+          "start": 17333,
+          "inputDelay": 29.200000002980232,
+          "processing": 0.20000000298023224,
+          "presentation": 2.5999999940395355
+        },
+        {
+          "name": "click",
+          "duration": 64,
+          "start": 17333,
+          "inputDelay": 41.20000000298023,
+          "processing": 1.8999999910593033,
+          "presentation": 20.900000005960464
+        }
+      ],
+      "lcp": 2056,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2056
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2056
+        }
+      ],
+      "videos": [
+        {
+          "time": 0.130657,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        },
+        {
+          "text": "Enable wave sound",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 72
+  },
+  {
+    "theme": "rose_champagne",
+    "slug": "smokecodex",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5198
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 4841,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1964,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1964
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1964
+        }
+      ],
+      "videos": [
+        {
+          "time": 6.206857,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 4841,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 1964,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1964
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1964
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.012482,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 4841,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 24,
+          "start": 14673.79999999702,
+          "inputDelay": 11.800000011920929,
+          "processing": 4.699999988079071,
+          "presentation": 7.5
+        },
+        {
+          "name": "pointerup",
+          "duration": 24,
+          "start": 14674,
+          "inputDelay": 20.700000002980232,
+          "processing": 2.2000000029802322,
+          "presentation": 1.0999999940395355
+        },
+        {
+          "name": "click",
+          "duration": 64,
+          "start": 14674,
+          "inputDelay": 43,
+          "processing": 3.2000000029802322,
+          "presentation": 17.799999997019768
+        }
+      ],
+      "lcp": 1964,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1964
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1964
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.200908,
+          "paused": true,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Play animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [
+        {
+          "muted": true,
+          "at": 4841,
+          "ok": true
+        },
+        {
+          "muted": true,
+          "at": 15513.40000000596,
+          "ok": true
+        }
+      ],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 24,
+          "start": 14673.79999999702,
+          "inputDelay": 11.800000011920929,
+          "processing": 4.699999988079071,
+          "presentation": 7.5
+        },
+        {
+          "name": "pointerup",
+          "duration": 24,
+          "start": 14674,
+          "inputDelay": 20.700000002980232,
+          "processing": 2.2000000029802322,
+          "presentation": 1.0999999940395355
+        },
+        {
+          "name": "click",
+          "duration": 64,
+          "start": 14674,
+          "inputDelay": 43,
+          "processing": 3.2000000029802322,
+          "presentation": 17.799999997019768
+        },
+        {
+          "name": "pointerdown",
+          "duration": 32,
+          "start": 15450.90000000596,
+          "inputDelay": 17.299999997019768,
+          "processing": 9.200000002980232,
+          "presentation": 5.5
+        },
+        {
+          "name": "pointerup",
+          "duration": 32,
+          "start": 15451,
+          "inputDelay": 30.299999997019768,
+          "processing": 0.7000000029802322,
+          "presentation": 1
+        },
+        {
+          "name": "click",
+          "duration": 88,
+          "start": 15451,
+          "inputDelay": 57.400000005960464,
+          "processing": 9.5,
+          "presentation": 21.099999994039536
+        }
+      ],
+      "lcp": 1964,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 1964
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 1964
+        }
+      ],
+      "videos": [
+        {
+          "time": 8.876711,
+          "paused": false,
+          "muted": true,
+          "ended": false
+        }
+      ],
+      "animations": [],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 88
+  },
+  {
+    "theme": "garnet",
+    "slug": "qap3garnet",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5617
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2308,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Boska, \"boska fallback\", \"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2308
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2308
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 6214.533000001998
+        },
+        {
+          "state": "running",
+          "time": 6214.533000001998
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2308,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Boska, \"boska fallback\", \"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2308
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2308
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 7597.615000001998
+        },
+        {
+          "state": "running",
+          "time": 7597.615000001998
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": null
+  },
+  {
+    "theme": "amber",
+    "slug": "qap3amber",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 6035
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2084,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Melodrama, \"melodrama fallback\", \"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2084
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2084
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 6731.291999991644
+        },
+        {
+          "state": "running",
+          "time": 6731.291999991644
+        },
+        {
+          "state": "running",
+          "time": 6731.291999991644
+        },
+        {
+          "state": "running",
+          "time": 6731.291999991644
+        },
+        {
+          "state": "running",
+          "time": 6731.291999991644
+        },
+        {
+          "state": "running",
+          "time": 6731.291999991644
+        },
+        {
+          "state": "running",
+          "time": 6731.291999991644
+        },
+        {
+          "state": "running",
+          "time": 6731.291999991644
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2084,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Melodrama, \"melodrama fallback\", \"Playfair Display\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2084
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2084
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 8280.643999991644
+        },
+        {
+          "state": "running",
+          "time": 8280.643999991644
+        },
+        {
+          "state": "running",
+          "time": 8280.643999991644
+        },
+        {
+          "state": "running",
+          "time": 8280.643999991644
+        },
+        {
+          "state": "running",
+          "time": 8280.643999991644
+        },
+        {
+          "state": "running",
+          "time": 8280.643999991644
+        },
+        {
+          "state": "running",
+          "time": 8280.643999991644
+        },
+        {
+          "state": "running",
+          "time": 8280.643999991644
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": null
+  },
+  {
+    "theme": "velvet",
+    "slug": "qap3velvet",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 6282
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2524,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Bitter, \"bitter fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2524
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2524
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        },
+        {
+          "state": "running",
+          "time": 6614.466999992612
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2524,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Bitter, \"bitter fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2524
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2524
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        },
+        {
+          "state": "running",
+          "time": 8663.666999992613
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": null
+  },
+  {
+    "theme": "rose_quartz",
+    "slug": "qap3rosequartz",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 5130
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2184,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Sharpie, \"sharpie fallback\", Quicksand, system-ui, sans-serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2184
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2184
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        },
+        {
+          "state": "running",
+          "time": 6381.194000000981
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2184,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Real jewelry.Live reveals.Pure sparkle.",
+        "font": "Sharpie, \"sharpie fallback\", Quicksand, system-ui, sans-serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2184
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2184
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        },
+        {
+          "state": "running",
+          "time": 8397.194000000982
+        }
+      ],
+      "controls": [],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": null
+  },
+  {
+    "theme": "halloween_pumpkin_witch",
+    "slug": "milehighfizz",
+    "mode": "phone",
+    "errors": [],
+    "frameThrottles": [],
+    "analytics": [
+      {
+        "event": "page_view",
+        "afterNavigationMs": 6509
+      }
+    ],
+    "status": 200,
+    "initial": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2868,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Mile High Fizz",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2868
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2868
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "finished",
+          "time": 5800
+        },
+        {
+          "state": "running",
+          "time": 5981.4199999961365
+        },
+        {
+          "state": "running",
+          "time": 5981.4199999961365
+        },
+        {
+          "state": "running",
+          "time": 5981.4199999961365
+        },
+        {
+          "state": "running",
+          "time": 5981.4199999961365
+        },
+        {
+          "state": "running",
+          "time": 5981.4199999961365
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "progress": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [],
+      "lcp": 2868,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Mile High Fizz",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2868
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2868
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "finished",
+          "time": 5800
+        },
+        {
+          "state": "running",
+          "time": 7497.669999996136
+        },
+        {
+          "state": "running",
+          "time": 7497.669999996136
+        },
+        {
+          "state": "running",
+          "time": 7497.669999996136
+        },
+        {
+          "state": "running",
+          "time": 7497.669999996136
+        },
+        {
+          "state": "running",
+          "time": 7497.669999996136
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "paused": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 32,
+          "start": 14803.10000000894,
+          "inputDelay": 23.299999997019768,
+          "processing": 6.4000000059604645,
+          "presentation": 2.2999999970197678
+        },
+        {
+          "name": "pointerup",
+          "duration": 32,
+          "start": 14803.20000000298,
+          "inputDelay": 31.900000005960464,
+          "processing": 0.5999999940395355,
+          "presentation": -0.5
+        },
+        {
+          "name": "click",
+          "duration": 104,
+          "start": 14803.20000000298,
+          "inputDelay": 51.29999999701977,
+          "processing": 2.2000000029802322,
+          "presentation": 50.5
+        }
+      ],
+      "lcp": 2868,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Mile High Fizz",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2868
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2868
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "paused",
+          "time": 5800
+        },
+        {
+          "state": "paused",
+          "time": 7697.425999996137
+        },
+        {
+          "state": "paused",
+          "time": 7697.425999996137
+        },
+        {
+          "state": "paused",
+          "time": 7697.425999996137
+        },
+        {
+          "state": "paused",
+          "time": 7697.425999996137
+        },
+        {
+          "state": "paused",
+          "time": 7697.425999996137
+        }
+      ],
+      "controls": [
+        {
+          "text": "Resume animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "resumed": {
+      "plays": [],
+      "unstyled": false,
+      "interactions": [
+        {
+          "name": "pointerdown",
+          "duration": 32,
+          "start": 14803.10000000894,
+          "inputDelay": 23.299999997019768,
+          "processing": 6.4000000059604645,
+          "presentation": 2.2999999970197678
+        },
+        {
+          "name": "pointerup",
+          "duration": 32,
+          "start": 14803.20000000298,
+          "inputDelay": 31.900000005960464,
+          "processing": 0.5999999940395355,
+          "presentation": -0.5
+        },
+        {
+          "name": "click",
+          "duration": 104,
+          "start": 14803.20000000298,
+          "inputDelay": 51.29999999701977,
+          "processing": 2.2000000029802322,
+          "presentation": 50.5
+        },
+        {
+          "name": "pointerdown",
+          "duration": 16,
+          "start": 15272.90000000596,
+          "inputDelay": 10.099999994039536,
+          "processing": 2.1000000089406967,
+          "presentation": 3.7999999970197678
+        },
+        {
+          "name": "pointerup",
+          "duration": 16,
+          "start": 15272.90000000596,
+          "inputDelay": 13,
+          "processing": 0.29999999701976776,
+          "presentation": 2.7000000029802322
+        },
+        {
+          "name": "click",
+          "duration": 56,
+          "start": 15272.90000000596,
+          "inputDelay": 20.900000005960464,
+          "processing": 2.199999988079071,
+          "presentation": 32.900000005960464
+        }
+      ],
+      "lcp": 2868,
+      "cls": 0,
+      "retained": true,
+      "hydrated": true,
+      "motion": "on",
+      "heading": {
+        "text": "Mile High Fizz",
+        "font": "\"Playfair Display\", \"playfair display fallback\", Georgia, serif"
+      },
+      "paint": [
+        {
+          "name": "first-paint",
+          "ms": 2868
+        },
+        {
+          "name": "first-contentful-paint",
+          "ms": 2868
+        }
+      ],
+      "videos": [],
+      "animations": [
+        {
+          "state": "finished",
+          "time": 5800
+        },
+        {
+          "state": "running",
+          "time": 8364.071000001682
+        },
+        {
+          "state": "running",
+          "time": 8364.071000001682
+        },
+        {
+          "state": "running",
+          "time": 8364.071000001682
+        },
+        {
+          "state": "running",
+          "time": 8364.071000001682
+        },
+        {
+          "state": "running",
+          "time": 8364.071000001682
+        }
+      ],
+      "controls": [
+        {
+          "text": "Pause animation",
+          "label": null
+        }
+      ],
+      "socialFrames": []
+    },
+    "productionRuntime": true,
+    "pass": true,
+    "progressed": true,
+    "interactionMaxMs": 104
+  }
+]

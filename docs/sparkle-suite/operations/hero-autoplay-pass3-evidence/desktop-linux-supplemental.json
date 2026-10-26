@@ -1,0 +1,242 @@
+[
+  {
+    "slug": "qap3amethyst",
+    "theme": "amethyst",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": false,
+    "tapMs": 488
+  },
+  {
+    "slug": "smokelouis",
+    "theme": "sparkle_suite_morganite",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": null
+  },
+  {
+    "slug": "qap3blackdiamond",
+    "theme": "black_diamond",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0.001056946705005787,
+    "errors": [],
+    "pass": true,
+    "tapMs": null
+  },
+  {
+    "slug": "qap3moonstone",
+    "theme": "moonstone",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": null
+  },
+  {
+    "slug": "qap3alpineopal",
+    "theme": "alpine_opal",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": null
+  },
+  {
+    "slug": "qap3emeraldgarden",
+    "theme": "emerald_garden",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": null
+  },
+  {
+    "slug": "qap3gnomegarden",
+    "theme": "gnome_garden",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": 64
+  },
+  {
+    "slug": "qap3neonbutterfly",
+    "theme": "neon_butterfly",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": false,
+    "tapMs": 536
+  },
+  {
+    "slug": "blingkitchen",
+    "theme": "halloween_pumpkin_witch",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": false,
+    "tapMs": 208
+  },
+  {
+    "slug": "qap3halloweenpumpkincat",
+    "theme": "halloween_pumpkin_cat",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": 80
+  },
+  {
+    "slug": "qap3gildedautumn",
+    "theme": "gilded_autumn",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": 48
+  },
+  {
+    "slug": "qap3rosegold",
+    "theme": "rose_gold",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": null
+  },
+  {
+    "slug": "qap3midnightrose",
+    "theme": "midnight_rose",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": 72
+  },
+  {
+    "slug": "qap3fallowlharvestmoon",
+    "theme": "fall_owl_harvest_moon",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": 128
+  },
+  {
+    "slug": "qap3gobbleandfizz",
+    "theme": "gobble_and_fizz",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": 88
+  },
+  {
+    "slug": "qap3pieplease",
+    "theme": "pie_please",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": 168
+  },
+  {
+    "slug": "qap3pearlrose",
+    "theme": "pearl_rose",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": 88
+  },
+  {
+    "slug": "dudesfizzfest",
+    "theme": "sunset_beach",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": 120
+  },
+  {
+    "slug": "smokecodex",
+    "theme": "rose_champagne",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": 64
+  },
+  {
+    "slug": "qap3garnet",
+    "theme": "garnet",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": null
+  },
+  {
+    "slug": "qap3amber",
+    "theme": "amber",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": null
+  },
+  {
+    "slug": "qap3velvet",
+    "theme": "velvet",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": null
+  },
+  {
+    "slug": "qap3rosequartz",
+    "theme": "rose_quartz",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0.00005101006904256688,
+    "errors": [],
+    "pass": true,
+    "tapMs": null
+  },
+  {
+    "slug": "milehighfizz",
+    "theme": "halloween_pumpkin_witch",
+    "retained": true,
+    "hydrated": true,
+    "cls": 0,
+    "errors": [],
+    "pass": true,
+    "tapMs": 152
+  }
+]

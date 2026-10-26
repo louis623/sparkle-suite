@@ -1,0 +1,42 @@
+[
+  {
+    "asset": "/marketing/demo-themes/sunset_beach.webp",
+    "status": 200,
+    "type": "image/webp",
+    "bytes": 105780,
+    "sha256": "537882b015c4ca1ec102abac1dfe7ed5d601f02ca4445a22eebf8dac061b6b35",
+    "matchesRepository": true
+  },
+  {
+    "asset": "/amethyst/compiled/homepage.js",
+    "status": 200,
+    "type": "application/javascript; charset=utf-8",
+    "bytes": 136913,
+    "sha256": "5b910b8d314dc554e8a2b80395e552a6f79852132457d543b5a42726cd0a3336",
+    "matchesRepository": true
+  },
+  {
+    "asset": "/amethyst/skins/sunset-beach/hero-approved-720-v2.webp",
+    "status": 200,
+    "type": "image/webp",
+    "bytes": 36644,
+    "sha256": "dad6fd93686acf8e6c27078b468c666da4c0c03720efc0ee0a03bd9f09b23119",
+    "matchesRepository": true
+  },
+  {
+    "asset": "/amethyst/skins/sunset-beach/hero-approved-1440.webp",
+    "status": 200,
+    "type": "image/webp",
+    "bytes": 140706,
+    "sha256": "8127a3936e1f2f70a35623246cdeb12f5052fbf21333a095788fd50b96170a30",
+    "matchesRepository": true
+  },
+  {
+    "asset": "/amethyst/skins/sunset-beach/hero-poster-720.webp",
+    "status": 200,
+    "type": "image/webp",
+    "bytes": 25798,
+    "sha256": "bbb786dce960dca35e7edb97410e0e0f9aef9b74988dbf9cd095d1c340f5c504",
+    "matchesRepository": true
+  }
+]

@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
   "repository": "louis623/sparkle-suite",
-  "primaryLocalWorktree": "C:\\Users\\louis\\sparkle-suite-repo",
+  "primaryLocalWorktree": ".",
   "activeLocalWorktrees": [
-    "C:\\Users\\louis\\sparkle-suite-repo",
-    "C:\\Users\\louis\\.codex\\worktrees\\blingkitchen-google-verification\\sparkle-suite-repo",
-    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\trade-request-completion",
-    "C:\\Users\\louis\\.codex\\visualizations\\2026\\10\\05\\01a10df3-2121-7673-8f71-c58c6d0e5ab4\\section1-workspace"
+    ".",
+    "../.codex/worktrees/blingkitchen-google-verification/sparkle-suite-repo",
+    ".codex-worktrees/trade-request-completion",
+    "../.codex/visualizations/2026/10/05/01a10df3-2121-7673-8f71-c58c6d0e5ab4/section1-workspace",
+    ".codex-worktrees/hero-autoplay-smoke"
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
@@ -39,7 +40,10 @@
     "cursor/join-server-html-26e8",
     "cursor/suite-join-ssr-rep-routes",
     "cursor/theme-carousel-site-peeks-db80",
-    "cursor/precompile-customer-pages-d6f3"
+    "cursor/precompile-customer-pages-d6f3",
+    "codex/hero-autoplay-smoke",
+    "cursor/jewelry-favorites-form-options-53eb",
+    "cursor/smoke-stack-156-157-158"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -143,6 +147,18 @@
       "environment": "preview"
     },
     "cursor/precompile-customer-pages-d6f3": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/hero-autoplay-smoke": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/jewelry-favorites-form-options-53eb": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/smoke-stack-156-157-158": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }

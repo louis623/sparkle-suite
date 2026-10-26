@@ -141,3 +141,8 @@ Required for signup, checkout, onboarding, customer-site, Nic-Nac, Live queue, T
 - Tests proving review mode is disabled in production.
 
 If a reviewer smoke path cannot be provided, state the exact blocker before calling the work ready.
+
+## Neon Rabbit Production Quality Standard — October 25, 2026
+
+Louis's newer standing rule applies to ALL work. Read PRODUCTION_STANDARD.md. It supersedes automatic all-rep release defaults: Smoke -> Louis's demo on Live -> all reps, with Rocky review and explicit Louis Live approval. Never call work ready before its quality gates pass.
+

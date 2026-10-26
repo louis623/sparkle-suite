@@ -74,6 +74,9 @@
   }
 
   function sync() {
+    // The server hero belongs to React until its first hydration effect runs.
+    // Decorating it earlier makes React discard the server-rendered subtree.
+    if (globalThis.SPARKLE_FIRST_PAINT) return;
     if (!document.body || !document.body.classList.contains(SKIN_CLASS)) {
       unmount();
       return;

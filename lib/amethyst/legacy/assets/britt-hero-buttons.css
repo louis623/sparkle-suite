@@ -1,0 +1,52 @@
+/* Brittany-only visual polish. Existing links and behavior stay unchanged. */
+body.britt-with-bling .bwb-hero-cta-stack {
+  width: min(100%, 36rem);
+  gap: 0.75rem;
+}
+
+body.britt-with-bling .bwb-hero-cta-primary-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+body.britt-with-bling .bwb-hero-ctas .bwb-cta,
+body.britt-with-bling .hp-shop-btn {
+  background: linear-gradient(90deg, var(--bwb-gold), var(--bwb-blush), var(--bwb-cyan));
+  color: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+}
+
+body.britt-with-bling .bwb-hero-ctas .bwb-cta {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0.9rem 1rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.065em;
+  text-align: center;
+}
+
+body.britt-with-bling .bwb-hero-ctas .bwb-cta:hover,
+body.britt-with-bling .hp-shop-btn:hover {
+  filter: brightness(1.06);
+}
+
+body.britt-with-bling .bwb-hero-ctas .bwb-cta:focus-visible,
+body.britt-with-bling .hp-shop-btn:focus-visible {
+  outline: 2px solid var(--bwb-gold);
+  outline-offset: 4px;
+}
+
+@media (max-width: 640px) {
+  body.britt-with-bling .bwb-hero-cta-stack {
+    width: min(100%, 320px);
+  }
+
+  body.britt-with-bling .bwb-hero-cta-primary-row {
+    grid-template-columns: 1fr;
+  }
+}

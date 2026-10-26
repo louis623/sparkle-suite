@@ -12,9 +12,9 @@
   ].join(',');
   var ASSET_ROOT = '/amethyst/skins/neon-butterfly/';
   var butterflies = [
-    { tone: 'pink', place: 'crown', duration: 17, delay: -3.4, angle: -4, asset: 'kelly-sign-pink.png' },
-    { tone: 'gold', place: 'left', duration: 21, delay: -12.1, angle: -7, asset: 'kelly-sign-gold.png' },
-    { tone: 'violet', place: 'right', duration: 19, delay: -7.6, angle: 12, asset: 'kelly-sign-violet.png' },
+    { tone: 'pink', place: 'crown', duration: 17, delay: -3.4, angle: -4, asset: 'kelly-sign-pink.webp' },
+    { tone: 'gold', place: 'left', duration: 21, delay: -12.1, angle: -7, asset: 'kelly-sign-gold.webp' },
+    { tone: 'violet', place: 'right', duration: 19, delay: -7.6, angle: 12, asset: 'kelly-sign-violet.webp' },
   ];
   var sparkles = [
     [12, 21, -2], [19, 70, -7], [28, 14, -11], [38, 79, -5],
@@ -71,13 +71,17 @@
       var paused = decoration.dataset.paused === 'true';
       decoration.dataset.paused = paused ? 'false' : 'true';
       control.setAttribute('aria-pressed', paused ? 'false' : 'true');
-      control.textContent = paused ? 'Pause animation' : 'Resume animation';
+      // Keep the text node so the scene's child-list observer need not rescan.
+      control.firstChild.nodeValue = paused ? 'Pause animation' : 'Resume animation';
     });
 
     hero.appendChild(decoration);
   }
 
   function syncSkin() {
+    // The observer can run before the deferred homepage has hydrated its SSR
+    // tree. Adding decoration then makes React discard the server first paint.
+    if (globalThis.SPARKLE_FIRST_PAINT) return;
     var enabled = document.body && document.body.classList.contains(SKIN_CLASS);
     if (!enabled) {
       removeScenes();

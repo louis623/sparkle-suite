@@ -10086,11 +10086,12 @@ export function SiteSettingsCard({
             >
               <option value="sparkle_rise">Sparkle rise</option>
               <option value="soft_glow">Soft glow</option>
-              <option value="still">Still</option>
+              <option value="still">Theme default (autoplay)</option>
             </select>
             <span className={styles.siteSettingsPreviewNote}>
-              Hero visuals stay curated by your site appearance so the page keeps
-              its polish on desktop and mobile.
+              Your theme starts automatically. Visitors can pause its animation
+              and mute sound with the hero controls. Browser sound permissions
+              and reduced-motion preferences still apply.
             </span>
           </label>
         </div>

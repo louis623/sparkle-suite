@@ -64,7 +64,7 @@ body.bg-gnome-garden .hp-hero-inner {
 }
 body.bg-gnome-garden .hp-hero { min-height: 620px; }
 body.bg-gnome-garden .hp-hero-inner > div { background: transparent; padding: 0; border: 0; box-shadow: none; backdrop-filter: none; }
-body.bg-gnome-garden :is(.hp-hero-headline, .tp-hero-title, .jp-hero-title, .mhf-hero-title, .bwb-hero-title, .bk-home-hero-content h1) {
+body.bg-gnome-garden :is(.hp-hero-headline, .tp-hero-title, .jp-hero-title, .mhf-hero-title, .bwb-hero-title, .bk-home-hero-content #bk-home-hero-title) {
   color: #fff3d6;
   background: none;
   -webkit-text-fill-color: currentColor;
@@ -75,7 +75,7 @@ body.bg-gnome-garden :is(.hp-hero-headline, .tp-hero-title, .jp-hero-title, .mhf
   letter-spacing: -.035em;
   text-wrap: balance;
 }
-body.bg-gnome-garden :is(.mhf-hero-title, .bwb-hero-title, .bk-home-hero-content h1) { max-width: 100%; font-size: clamp(40px, 5.1vw, 72px); line-height: 1.12; overflow-wrap: anywhere; }
+body.bg-gnome-garden :is(.mhf-hero-title, .bwb-hero-title, .bk-home-hero-content #bk-home-hero-title) { max-width: 100%; font-size: clamp(40px, 5.1vw, 72px); line-height: 1.12; overflow-wrap: anywhere; }
 body.bg-gnome-garden .hp-hero-headline { font-size: clamp(40px, 5.1vw, 72px); line-height: 1.12; }
 body.bg-gnome-garden :is(.hp-hero-sub, .tp-hero-sub, .jp-hero-pitch, .jp-hero-localized, .jp-hero-compliance, .mhf-hero-with, .mhf-hero-line, .mhf-hero-instruction, .bwb-hero-team, .bwb-hero-line, .bwb-hero-instruction, .bk-home-hero-content p, .bk-home-hero-content > span) {
   color: #ede5cf;
@@ -179,7 +179,7 @@ body.gg-utility .hp-hero { background: #f5edda; }
   body.bg-gnome-garden :is(.hp-hero, .tp-hero, .jp-hero, .mhf-hero, .bwb-hero, .bk-home-hero) { background-image: url('/amethyst/skins/gnome-garden/forest-mobile.webp'); }
   body.bg-gnome-garden .hp-hero-inner { width: 100%; max-width: 100%; margin-inline: auto; min-width: 0; min-height: 0; padding: 100px 26px 155px; }
   body.bg-gnome-garden :is(.mhf-hero-content, .bwb-hero-content, .bk-home-hero-content) { width: 100%; max-width: 100%; padding: 100px 26px 165px; }
-  body.bg-gnome-garden :is(.mhf-hero-title, .bwb-hero-title, .bk-home-hero-content h1) { font-size: clamp(34px, 9vw, 52px); }
+  body.bg-gnome-garden :is(.mhf-hero-title, .bwb-hero-title, .bk-home-hero-content #bk-home-hero-title) { font-size: clamp(34px, 9vw, 52px); }
   body.bg-gnome-garden .hp-hero-headline { font-size: clamp(34px, 9vw, 52px); }
   body.bg-gnome-garden .hp-hero-sub { font-size: 16px; }
   body.bg-gnome-garden .tp-hero { padding: 100px 24px 145px; }

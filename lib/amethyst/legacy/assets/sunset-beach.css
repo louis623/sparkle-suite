@@ -1,0 +1,349 @@
+/* RG-04 Rose Champagne: palette and decorative hero only. Shared Amethyst
+ * fonts, spacing, header, tickers and Live Lineup geometry stay untouched. */
+body.bg-sunset-beach {
+  --fg: #482d40;
+  --fg-muted: #715964;
+  --border: #e8c8bf;
+  --hp-bg: #fff5ee;
+  --hp-bg-elevated: #fffcf8;
+  --bg-deep: #f8e6de;
+  --hp-preview-bg: #fffcf8;
+  --hp-preview-fg: #482d40;
+  --hp-preview-muted: #715964;
+  --hp-preview-border: #e8c8bf;
+  --hp-card-fg: #482d40;
+  --hp-card-muted: #715964;
+  --hp-card-accent: #9a455f;
+  --hp-form-panel-bg: #fffcf8;
+  --hp-form-panel-fg: #482d40;
+  --hp-field-bg: #fffcf8;
+  --hp-field-fg: #482d40;
+  --hp-final-fg: #482d40;
+  --hp-final-muted: #715964;
+  --hp-final-icon-fg: #fff9f2;
+  --hp-action-fg: #fff9f2;
+  --hp-media-card-bg: #fffcf8;
+  --hp-media-card-fg: #482d40;
+  --hp-media-card-muted: #715964;
+  --hp-media-card-border: #e8c8bf;
+  --hp-media-card-header-bg: linear-gradient(135deg, #843e57, #9a455f);
+  --hp-media-card-footer-bg: #f8e6de;
+  --hp-media-card-shadow: 0 24px 64px #5c2b3314;
+  --hp-media-card-hover-shadow: 0 30px 74px #5c2b3324;
+  --hp-media-card-accent-contrast: #fff9f2;
+  --hp-media-icon-fg: #fff9f2;
+  --hp-media-cta-fg: #fff9f2;
+  background: #fff5ee;
+  color: #482d40;
+}
+
+body.bg-sunset-beach .hp-header {
+  background: #fffcf8;
+  border-color: #e8c8bf;
+}
+body.bg-sunset-beach :is(.hp-brand-name, .hp-header-link) { color: #482d40; }
+body.bg-sunset-beach .hp-brand-sub { color: #715964; }
+body.bg-sunset-beach .hp-header-link[aria-current="page"] { color: #9a455f; }
+
+body.bg-sunset-beach :is(.hp-ticker, .hp-ticker-row) {
+  background: #f3d7d0;
+  color: #482d40;
+  border-color: #e8c8bf;
+}
+body.bg-sunset-beach .hp-ticker-row.reverse { background: #f8e6de; }
+body.bg-sunset-beach :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #482d40; }
+body.bg-sunset-beach .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #482d40; }
+body.bg-sunset-beach .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #9a455f; }
+body.bg-sunset-beach .hp-ticker-row .hp-ticker-label {
+  background: #f3d7d0;
+  color: #482d40;
+}
+body.bg-sunset-beach .hp-ticker-row.reverse .hp-ticker-label {
+  background: #f8e6de;
+  color: #482d40;
+}
+body.bg-sunset-beach :is(.hp-trade-preview, .hp-lrq-strip, .hp-lrq, .hp-lineup-calendar-row) {
+  background: #fffcf8;
+  color: #482d40;
+  border-color: #e8c8bf;
+}
+body.bg-sunset-beach :is(.hp-lineup-idle-prompt, .hp-trade-preview-head, .hp-trade-preview-link, .hp-trade-preview-pill) { color: #482d40; }
+body.bg-sunset-beach :is(.hp-trade-preview-updated, .hp-trade-preview-pill .label) { color: #715964; }
+
+body.bg-sunset-beach :is(.hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .tp-card-expand-cta, .tp-sheet-submit, .jp-spot-btn, .jp-final-btn) {
+  background: #843e57;
+  color: #fff9f2;
+  border-color: #e8c8bf;
+  box-shadow: 0 9px 24px #7f344524;
+}
+
+/* The original full-bleed hero and original HTML copy/actions stay in place. */
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-media,
+body.bg-sunset-beach .jp-hero-media {
+  background: radial-gradient(ellipse 62% 70% at 50% 48%, rgba(71, 28, 39, .45), rgba(71, 28, 39, .33) 48%, transparent 100%),
+    linear-gradient(90deg, rgba(71, 28, 39, .18), rgba(71, 28, 39, .04)),
+    url('/amethyst/skins/sunset-beach/hero-approved.png') center center / cover no-repeat;
+  background-blend-mode: normal;
+}
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-headline {
+  color: #fffaf4;
+  -webkit-text-fill-color: #fffaf4;
+  background: none;
+  text-shadow: 0 2px 14px #52213288;
+}
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-sub {
+  color: #fff1e8;
+  text-shadow: 0 1px 6px #52213299;
+}
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] :is(.hp-btn-outline, .hp-btn-watch) {
+  color: #fffaf4;
+  border-color: #ffe7d8aa;
+  background: #42212e66;
+  backdrop-filter: blur(8px);
+}
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-fx-layer { display: none; }
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .rgc-media {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] :is(.rgc-poster, .rgc-video) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  pointer-events: none;
+}
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .rgc-video { opacity: 0; }
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .rgc-media[data-rgc-has-frame="true"] .rgc-video { opacity: 1; }
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .rgc-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 62% 70% at 50% 48%, rgba(71, 28, 39, .45), rgba(71, 28, 39, .33) 48%, transparent 100%),
+    linear-gradient(90deg, rgba(71, 28, 39, .18), rgba(71, 28, 39, .04));
+  pointer-events: none;
+}
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .rgc-toggle {
+  position: absolute;
+  inset-inline-end: 16px;
+  bottom: 16px;
+  z-index: 4;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #ffe7d8aa;
+  border-radius: 999px;
+  background: #42212ee8;
+  color: #fffaf4;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .rgc-toggle:focus-visible {
+  outline: 2px solid #fffaf4;
+  outline-offset: 3px;
+}
+
+/* Surface tokens serve Home, Trade, Join and their existing forms uniformly. */
+body.bg-sunset-beach :is(#events, #wibp, #about, .hp-signup, .hp-footer) {
+  background: #fff5ee;
+  color: #482d40;
+  border-color: #e8c8bf;
+}
+body.bg-sunset-beach.surface-pearl-rose :is(.hp-event-card, .hp-wibp-card, .hp-trade-card, .hp-signup-card, .tp-lrq-rail, .tp-filters, .tp-card, .tp-card-expand, .tp-sheet, .jp-hero-card, .jp-team-card, .jp-benefit-card, .jp-faq-item, .jp-final-card) {
+  background: #fffcf8;
+  color: var(--hp-card-fg);
+  border-color: #e8c8bf;
+  box-shadow: 0 15px 38px #5c2b3310;
+}
+body.bg-sunset-beach :is(.hp-section-title, .hp-event-title, .hp-about-headline, .hp-signup-title, .tp-hero-title, .jp-hero-title, .jp-section-title) {
+  color: #482d40;
+  -webkit-text-fill-color: #482d40;
+  background: none;
+}
+body.bg-sunset-beach :is(.hp-section-sub, .hp-event-desc, .hp-event-meta, .hp-about-text, .hp-footer-tagline, .tp-hero-sub, .jp-hero-pitch, .jp-hero-localized, .jp-hero-compliance, .jp-section-sub) { color: #715964; }
+body.bg-sunset-beach .jp-hero-eyebrow { color: #9a455f; }
+body.bg-sunset-beach .jp-hero-eyebrow::before,
+body.bg-sunset-beach .jp-hero-eyebrow::after { background: #e8c8bf; }
+body.bg-sunset-beach .jp-hero-compliance a { color: #9a455f; }
+body.bg-sunset-beach :is(.hp-event-tag, .hp-event-badge, .jp-hero-promo) {
+  background: #e5f0e9;
+  color: #9a455f;
+  border-color: #e8c8bf;
+}
+body.bg-sunset-beach .hp-step-num { background: #9a455f; color: #fffcf8; }
+body.bg-sunset-beach .tp-filter-chip { background: #fff5ee; color: #482d40; border-color: #e8c8bf; }
+body.bg-sunset-beach .tp-filter-chip.active { background: #843e57; color: #fff9f2; border-color: #843e57; }
+body.bg-sunset-beach .hp-footer :is(.hp-footer-brand, .hp-footer-team, .hp-footer-col a) { color: var(--hp-card-fg); }
+body.bg-sunset-beach .hp-footer :is(.hp-footer-tag, .hp-footer-coming-soon, .hp-footer-bottom, .hp-footer-bottom a) { color: var(--hp-card-muted); }
+body.bg-sunset-beach .hp-footer .hp-footer-bottom { border-color: var(--border); }
+body.bg-sunset-beach .hp-footer .hp-footer-coming-soon span {
+  background: #e5f0e9;
+  color: var(--hp-card-muted);
+  border-color: var(--border);
+}
+body.bg-sunset-beach .hp-footer .hp-footer-social {
+  background: #fffcf8;
+  color: var(--hp-card-fg);
+  border-color: var(--border);
+}
+body.bg-sunset-beach .hp-footer .hp-footer-social:hover {
+  background: #e5f0e9;
+  color: var(--hp-card-fg);
+  border-color: var(--hp-card-accent);
+}
+body.bg-sunset-beach .hp-footer :is(.hp-footer-col a, .hp-footer-bottom a):hover { color: var(--hp-card-accent); }
+body.bg-sunset-beach .hp-footer a:focus-visible { outline-color: var(--hp-card-accent); }
+
+/* Platform labels and glyphs inherit the theme rather than provider colors. */
+body.bg-sunset-beach :is(.hp-event-platform, .event-platform-btn, .hp-calendar-choice.google, .hp-calendar-choice.outlook) {
+  background: linear-gradient(105deg, #843e57, #9a455f);
+  color: #fff9f2;
+  border-color: #843e57;
+}
+body.bg-sunset-beach :is(.hp-event-platform, .event-platform-btn) .glyph {
+  background: #fff9f2;
+  color: #843e57;
+}
+body.bg-sunset-beach .hp-event-platform .glyph::after { color: #843e57; }
+body.bg-sunset-beach :is(.hp-stream-btn, .hp-watch-option, .stream-option) .glyph {
+  background: #843e57;
+  color: #fff9f2;
+}
+body.bg-sunset-beach :is(.hp-stream-btn, .hp-watch-option) { color: #fff9f2; }
+body.bg-sunset-beach .jp-team-social {
+  background: #fffcf8;
+  color: #843e57;
+  border-color: #e8c8bf;
+}
+body.bg-sunset-beach .jp-team-social:hover {
+  background: #843e57;
+  color: #fff9f2;
+  border-color: #843e57;
+}
+body.bg-sunset-beach :is(.hp-event-platform, .event-platform-btn, .jp-team-social):focus-visible {
+  outline-color: #9a455f;
+}
+
+/* Keep existing icon bubbles distinct from their own surrounding surfaces. */
+body.bg-sunset-beach .hp-customer-media-empty-icon {
+  background: #fff9f2;
+  color: #843e57;
+  border-color: #d29b82;
+}
+body.bg-sunset-beach :is(.jp-benefit-icon, .jp-final-icon, .tp-sheet-success-icon) {
+  background: #843e57;
+  color: #fff9f2;
+  border-color: #d29b82;
+}
+body.bg-sunset-beach .tp-empty-glyph { color: #843e57; opacity: 1; }
+body.bg-sunset-beach .hp-calendar-modal-close { background: #fffcf8; color: #482d40; }
+body.bg-sunset-beach .hp-calendar-modal-close:hover { background: #e5f0e9; }
+
+/* Selective champagne/copper accents on existing reveal and lineup circles. */
+body.bg-sunset-beach :is(.hp-step-num, .jp-benefit-icon, .hp-trade-preview-pill .pos, .hp-queue-modal-row .pos) {
+  background: linear-gradient(135deg, #b57955, #f0d69b 48%, #bf8560);
+  color: #30171d;
+  border-color: #a36a47;
+  box-shadow: inset 0 0 0 1px #fff0cb88;
+}
+
+/* Approved Sunset Beach palette; shared geometry and markup untouched. */
+body.bg-sunset-beach {--hp-primary:#843e57;--hp-accent:#286d68;--hp-gradient:linear-gradient(120deg,#843e57,#a14e61);}
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-media,
+body.bg-sunset-beach .jp-hero-media {background:radial-gradient(ellipse 52% 85% at 50% 48%,rgba(45,24,38,.52),rgba(45,24,38,.22) 65%,rgba(45,24,38,.04)),url('/amethyst/skins/sunset-beach/hero-approved.png') center center / cover no-repeat;}
+body.bg-sunset-beach :is(.hp-step-num,.jp-benefit-icon,.hp-trade-preview-pill .pos,.hp-queue-modal-row .pos){background:#d4e8df;color:#235b55;border-color:#9dc7b8;box-shadow:none;}
+body.bg-sunset-beach .hp-event-tag {background:#e5f0e9;color:#235b55;border-color:#a4c8bc;}
+@media(max-width:600px){
+ body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-media{background:linear-gradient(180deg,transparent 0%,transparent 13%,rgba(255,245,238,.85) 29%,#fff5ee 42%),url('/amethyst/skins/sunset-beach/hero-approved.png') center top / 100% auto no-repeat;background-color:#fff5ee;}
+ body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-headline{color:#482d40;-webkit-text-fill-color:#482d40;text-shadow:0 1px 12px #fff5ee;}
+ body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-sub{color:#482d40;text-shadow:none;}
+ body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] :is(.hp-btn-outline,.hp-btn-watch){color:#482d40;border-color:#cfa99f;background:#fffcf8;}
+}
+
+.beach-motion-layer{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity .35s}
+.beach-motion-layer[data-playing="true"]{opacity:1}
+.beach-motion-layer video{display:block;width:100%;height:100%;object-fit:cover}
+.beach-motion-layer:after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 52% 85% at 50% 48%,rgba(45,24,38,.52),rgba(45,24,38,.22) 65%,rgba(45,24,38,.04))}
+.beach-motion-controls{position:absolute;bottom:16px;right:18px;z-index:6;display:flex;gap:8px;flex-wrap:wrap}
+.beach-motion-controls button{border:1px solid #e8c8bf;border-radius:24px;padding:9px 13px;background:#fffcf8;color:#482d40;font:600 12px/1.25 system-ui;cursor:pointer;min-height:36px}
+.beach-motion-controls button:focus-visible{outline:3px solid #286d68;outline-offset:3px}
+@media(max-width:600px){.beach-motion-layer video{height:auto;aspect-ratio:16/9;object-fit:contain}.beach-motion-layer:after{background:linear-gradient(180deg,transparent 0%,transparent 13%,rgba(255,245,238,.85) 29%,#fff5ee 42%)}.beach-motion-controls{right:12px;bottom:10px;gap:6px}}
+@media(prefers-reduced-motion:reduce){.beach-motion-layer{transition:none}}
+
+/* Reference-led pink/coral/gold theme. Color only; approved hero and layout retained. */
+body.bg-sunset-beach {
+ --fg:#4f2b3c;--fg-muted:#745867;--border:#f1c4cf;
+ --hp-bg:#fff4f7;--hp-bg-elevated:#fff;--bg-deep:#fff0f4;
+ --hp-primary:#b82f59;--hp-accent:#ad472d;--hp-gradient:linear-gradient(105deg,#fa6687,#ef73b2 40%,#ffbf2e);
+ --hp-card-fg:#4f2b3c;--hp-card-muted:#745867;--hp-card-accent:#b82f59;
+ --hp-form-panel-bg:#fff7f9;--hp-form-panel-fg:#4f2b3c;--hp-field-bg:#fff;--hp-field-fg:#4f2b3c;
+ --hp-media-card-bg:#fff;--hp-media-card-fg:#4f2b3c;--hp-media-card-muted:#745867;--hp-media-card-border:#f1c4cf;
+ --hp-media-card-header-bg:linear-gradient(105deg,#fa7299,#ffa66d 65%,#ffc439);--hp-media-icon-fg:#562539;--hp-media-card-accent-contrast:#562539;
+ --hp-media-card-footer-bg:#fff2f6;--hp-final-fg:#4f2b3c;--hp-final-muted:#745867;
+ background:#fff5f8;color:var(--fg);
+}
+body.bg-sunset-beach .hp-header{background:linear-gradient(110deg,#642039,#852c49);border-color:#a94a68}
+body.bg-sunset-beach :is(.hp-brand-name,.hp-header-link){color:#fff4ed}
+body.bg-sunset-beach .hp-brand-sub{color:#f8c9d4}
+body.bg-sunset-beach .hp-header-link[aria-current="page"]{color:#ffdb98}
+body.bg-sunset-beach .hp-header-link::after{background:#ffcc78}
+body.bg-sunset-beach :is(.hp-shop-btn,.hp-signup-submit,.tp-card-expand-cta,.tp-sheet-submit,.jp-spot-btn,.jp-final-btn,.hp-event-platform,.event-platform-btn){background:linear-gradient(105deg,#ff7192,#ff9678 55%,#ffc32c);color:#572333;border-color:#ef9daf;box-shadow:0 8px 22px #b72e5920}
+body.bg-sunset-beach :is(.hp-event-platform,.event-platform-btn) .glyph{background:#fff5eb;color:#8e304e}
+body.bg-sunset-beach :is(.hp-ticker,.hp-ticker-row){background:linear-gradient(105deg,#ffd5e2,#ffe4b2);color:#642d43;border-color:#f1c4cf}
+body.bg-sunset-beach .hp-ticker-row .hp-ticker-label{background:#ffd5e2;color:#642d43}
+body.bg-sunset-beach .hp-ticker-row.reverse{background:#fff0f5}
+body.bg-sunset-beach .hp-ticker-row.reverse :is(.hp-ticker-trade,.hp-ticker-empty){color:#7d3551}
+body.bg-sunset-beach .hp-ticker-row.reverse .hp-ticker-label{background:#fff0f5;color:#7d3551}
+body.bg-sunset-beach :is(.hp-trade-preview,.hp-lrq-strip,.hp-lrq,.hp-lineup-calendar-row){background:#fff8ef;border-color:#f1c4cf}
+
+body.bg-sunset-beach #events{background:linear-gradient(120deg,#fff1f5,#fff6fa 60%,#fff9ed);color:#4f2b3c}
+body.bg-sunset-beach #wibp{--hp-bg-elevated:#fff9f0;background:#fff9f0;color:#4f2b3c}
+body.bg-sunset-beach #about{background:linear-gradient(120deg,#fff1f6,#fff6f1);color:#4f2b3c}
+body.bg-sunset-beach :is(#signup,#unsubscribe-form){background:linear-gradient(125deg,#ffe0ed,#fff0e2 65%,#fff3d1);border-color:#f1c4cf}
+body.bg-sunset-beach.surface-pearl-rose :is(.hp-event-card,.hp-wibp-card,.hp-trade-card,.hp-signup-card,.tp-lrq-rail,.tp-filters,.tp-card,.tp-card-expand,.tp-sheet,.jp-hero-card,.jp-team-card,.jp-benefit-card,.jp-faq-item,.jp-final-card){background:#fff;border-color:#f1c4cf;box-shadow:0 14px 30px #9c355817;color:var(--hp-card-fg)}
+/* Paint existing card title/meta space; no new wrapper or change in spacing. */
+body.bg-sunset-beach.surface-pearl-rose .hp-event-card{background:linear-gradient(105deg,#f88bb7,#ffa87b 65%,#ffd05c) top / 100% var(--sunset-band-height,100px) no-repeat,#fff}
+body.bg-sunset-beach .hp-event-name{color:#572333}
+body.bg-sunset-beach .hp-event-card :is(.hp-event-meta-row,.hp-event-meta-icon){color:#692c40}
+body.bg-sunset-beach .hp-event-pill{background:#943151;color:#fff5f8}
+body.bg-sunset-beach .hp-event-description{background:#fffbed;border-color:#f0dbac}
+body.bg-sunset-beach .hp-event-code-row{background:#fff0f4;border-color:#f5d1dc}
+body.bg-sunset-beach :is(.hp-section-title,.hp-about-headline,.hp-signup-title,.tp-hero-title,.jp-hero-title,.jp-section-title){color:#b72c58;background:linear-gradient(105deg,#c02a58 10%,#b93378 48%,#ad4d16 90%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+body.bg-sunset-beach :is(.hp-section-sub,.hp-event-desc,.hp-event-meta,.hp-about-text,.hp-about-body p,.tp-hero-sub,.jp-section-sub){color:#745867}
+body.bg-sunset-beach :is(.hp-section-eyebrow,.hp-wibp-eyebrow,.jp-section-eyebrow){color:#b82f59}
+body.bg-sunset-beach :is(.hp-event-tag,.hp-event-badge,.jp-hero-promo){background:#fff0f5;color:#a92e55;border-color:#f0bbc9}
+body.bg-sunset-beach :is(.hp-step-num,.jp-benefit-icon,.hp-trade-preview-pill .pos,.hp-queue-modal-row .pos){background:linear-gradient(130deg,#ffb7d0,#ffd489);color:#722e46;border-color:#ecadba;box-shadow:inset 0 0 0 1px #fff8ef99}
+body.bg-sunset-beach :is(.hp-signup-input,.hp-signup-select,.tp-sheet-input){background:#fff;color:#4f2b3c;border-color:#db9eb3}
+body.bg-sunset-beach .hp-about-copy{background:#fff;border-color:#f1c4cf}
+body.bg-sunset-beach .tp-hero{background:linear-gradient(125deg,#ffe1ec,#fff0e2 65%,#fff4d5)}
+body.bg-sunset-beach .tp-filter-chip{background:#fff5f8;color:#8c3353;border-color:#edb6c7}
+body.bg-sunset-beach .tp-filter-chip.active{background:#a93359;color:#fff;border-color:#a93359}
+body.bg-sunset-beach #team{background:#fff5f8}
+body.bg-sunset-beach .jp-why{background:linear-gradient(125deg,#ffe6f0,#fff1dd)}
+body.bg-sunset-beach #faq{background:#fff9f7}
+body.bg-sunset-beach .jp-final{background:linear-gradient(125deg,#ffdce9,#ffebc5)}
+body.bg-sunset-beach .hp-footer{background:linear-gradient(110deg,#642039,#852c49) !important;--hp-card-fg:#ffedf1;--hp-card-muted:#f1c4d1;--hp-card-accent:#ffce95;--border:#aa667d;color:#ffedf1;border-color:#aa667d}
+body.bg-sunset-beach .hp-footer-tagline{color:#f1c4d1}
+body.bg-sunset-beach .hp-footer .hp-footer-social{background:#8c3f5a;color:#ffe7c4;border-color:#c58399}
+body.bg-sunset-beach .hp-footer .hp-footer-social:hover{background:#a94e6a;color:#fff}
+.beach-motion-controls button:focus-visible{outline-color:#b82f59}
+/* One clear hero focal action; secondary links retain the approved quieter treatment. */
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-btn-primary{background:linear-gradient(105deg,#ff7192,#ff9678 55%,#ffc32c);color:#572333;border-color:#f7b4aa;box-shadow:0 9px 26px #74223d24}
+body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-btn-primary:hover{background:linear-gradient(105deg,#ff86a1,#ffa98c 55%,#ffd15a);color:#572333}
+body.bg-sunset-beach .hp-event-card .hp-event-platform{background:linear-gradient(105deg,#ff7192,#ff9678 55%,#ffc32c);color:#572333;border-color:#ef9daf}
+/* Readability polish for inherited light-card states and keyboard navigation. */
+body.bg-sunset-beach .jp-hero-card .hp-btn-outline{color:#8d2d50 !important;border-color:#b96c87 !important;background:#fff3f7}
+body.bg-sunset-beach :is(.jp-final-note,.jp-hero-compliance) a{color:#9e2b53;text-decoration:underline;text-underline-offset:3px}
+body.bg-sunset-beach .hp-footer .hp-footer-col h4{color:#ffedf1}
+body.bg-sunset-beach .hp-footer .hp-footer-coming-soon span{background:#fff0f5;color:#7b2d4b;border-color:#d78ca4}
+body.bg-sunset-beach .hp-ticker a:has(> span:only-child){color:#7d3551}
+body.bg-sunset-beach :is(input,textarea)::placeholder{color:#806371;opacity:1}
+body.bg-sunset-beach :is(a,button,input,select,textarea):focus-visible{outline:3px solid #9e2b53;outline-offset:3px}
+body.bg-sunset-beach .hp-header :is(a,button):focus-visible,body.bg-sunset-beach .hp-footer :is(a,button):focus-visible{outline-color:#ffdb98}
+@media(forced-colors:active){body.bg-sunset-beach :is(.hp-section-title,.hp-about-headline,.hp-signup-title,.tp-hero-title,.jp-hero-title,.jp-section-title){background:none;color:CanvasText;-webkit-text-fill-color:CanvasText}}

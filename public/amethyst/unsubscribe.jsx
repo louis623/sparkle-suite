@@ -397,7 +397,7 @@ function UnsubscribePage() {
               <div className="hp-signup-eyebrow">Customer preferences</div>
               <h1 className="hp-signup-title">Unsubscribe from updates</h1>
               <p className="hp-signup-sub">
-                Stop SMS updates, email updates, or both for the Amethyst preview site.
+                Stop SMS updates, email updates, or both from {BUSINESS_NAME}.
               </p>
             </div>
             <form action={withCurrentSearch("/api/amethyst/customer-audience/unsubscribe")} className="hp-signup-form" onSubmit={handleSubmit}>

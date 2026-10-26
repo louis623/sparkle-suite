@@ -1,0 +1,123 @@
+[
+  {
+    "slug": "qap3amethyst",
+    "theme": "amethyst",
+    "fixture": true
+  },
+  {
+    "slug": "smokelouis",
+    "theme": "sparkle_suite_morganite",
+    "fixture": false
+  },
+  {
+    "slug": "qap3blackdiamond",
+    "theme": "black_diamond",
+    "fixture": true
+  },
+  {
+    "slug": "qap3moonstone",
+    "theme": "moonstone",
+    "fixture": true
+  },
+  {
+    "slug": "qap3alpineopal",
+    "theme": "alpine_opal",
+    "fixture": true
+  },
+  {
+    "slug": "qap3emeraldgarden",
+    "theme": "emerald_garden",
+    "fixture": true
+  },
+  {
+    "slug": "qap3gnomegarden",
+    "theme": "gnome_garden",
+    "fixture": true
+  },
+  {
+    "slug": "qap3neonbutterfly",
+    "theme": "neon_butterfly",
+    "fixture": true
+  },
+  {
+    "slug": "blingkitchen",
+    "theme": "halloween_pumpkin_witch",
+    "fixture": false
+  },
+  {
+    "slug": "qap3halloweenpumpkincat",
+    "theme": "halloween_pumpkin_cat",
+    "fixture": true
+  },
+  {
+    "slug": "qap3gildedautumn",
+    "theme": "gilded_autumn",
+    "fixture": true
+  },
+  {
+    "slug": "qap3rosegold",
+    "theme": "rose_gold",
+    "fixture": true
+  },
+  {
+    "slug": "qap3midnightrose",
+    "theme": "midnight_rose",
+    "fixture": true
+  },
+  {
+    "slug": "qap3fallowlharvestmoon",
+    "theme": "fall_owl_harvest_moon",
+    "fixture": true
+  },
+  {
+    "slug": "qap3gobbleandfizz",
+    "theme": "gobble_and_fizz",
+    "fixture": true
+  },
+  {
+    "slug": "qap3pieplease",
+    "theme": "pie_please",
+    "fixture": true
+  },
+  {
+    "slug": "qap3pearlrose",
+    "theme": "pearl_rose",
+    "fixture": true
+  },
+  {
+    "slug": "dudesfizzfest",
+    "theme": "sunset_beach",
+    "fixture": false
+  },
+  {
+    "slug": "smokecodex",
+    "theme": "rose_champagne",
+    "fixture": false
+  },
+  {
+    "slug": "qap3garnet",
+    "theme": "garnet",
+    "fixture": true
+  },
+  {
+    "slug": "qap3amber",
+    "theme": "amber",
+    "fixture": true
+  },
+  {
+    "slug": "qap3velvet",
+    "theme": "velvet",
+    "fixture": true
+  },
+  {
+    "slug": "qap3rosequartz",
+    "theme": "rose_quartz",
+    "fixture": true
+  },
+  {
+    "slug": "milehighfizz",
+    "theme": "halloween_pumpkin_witch",
+    "fixture": false,
+    "extra": true
+  }
+]

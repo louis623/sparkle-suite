@@ -72,7 +72,7 @@ function resolveHeroLine(templateData: AmethystPreviewTemplateData) {
   return heroSub.slice(0, 320)
 }
 
-function pageFacts(templateData: AmethystPreviewTemplateData) {
+export function pageFacts(templateData: AmethystPreviewTemplateData) {
   const businessName = clean(templateData.homepage?.businessName) || 'This show'
   const repName = getPublicRepName(templateData.homepage?.repName, '')
   const location = formatPublicLocation(

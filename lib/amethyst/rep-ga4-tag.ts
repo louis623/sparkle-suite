@@ -1,4 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { partytownSnippet } from '@qwik.dev/partytown/integration'
+import analyticsWorker from '../../public/amethyst/analytics-worker/manifest.json'
 import {
   isAmethystPlatformHost,
   normalizeAmethystHost,
@@ -120,9 +122,15 @@ export function buildRepGa4Snippet(args: {
   if (!GA4_MEASUREMENT_ID_PATTERN.test(args.measurementId)) return ''
   const measurementId = args.measurementId
   const shopHref = safeShopHref(args.shopHref)
+  const workerBootstrap = partytownSnippet({ lib: analyticsWorker.lib, forward: ['dataLayer.push'] }).replace(/<\/script/gi, '<\\/script')
   return `<script id="sparkle-rep-ga4">
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
+// Keep analytics computation off the input/rendering thread on real pages.
+// Embedded/unsupported contexts retain the existing main-thread loader.
+var sparkleGaWorker = Boolean(window.SPARKLE_FIRST_PAINT) && window.top === window && typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
+if (sparkleGaWorker) { ${workerBootstrap} }
+if (!sparkleGaWorker) {
 gtag('consent', 'default', {
   ad_storage: 'denied',
   ad_user_data: 'denied',
@@ -131,6 +139,7 @@ gtag('consent', 'default', {
 });
 gtag('js', new Date());
 gtag('config', ${JSON.stringify(measurementId)});
+}
 document.addEventListener('click', function (event) {
   var node = event.target;
   var link = node && node.closest ? node.closest('a') : null;
@@ -145,8 +154,51 @@ document.addEventListener('click', function (event) {
   if (!isShop) return;
   gtag('event', 'shop_click');
 }, true);
-</script>
-<script async src="https://www.googletagmanager.com/gtag/js?id=${measurementId}"></script>`
+// Load automatically as soon as the hero paints, including short visits.
+// Never wait for a click, idle time, or a fixed multi-second delay.
+(function () {
+  if (sparkleGaWorker) return;
+  var src = 'https://www.googletagmanager.com/gtag/js?id=${measurementId}';
+  var started = false;
+  function start() {
+    if (started) return;
+    started = true;
+    var script = document.createElement('script');
+    script.async = true; script.fetchPriority = 'low'; script.src = src;
+    document.head.appendChild(script);
+  }
+  if (window.sparkleAfterHeroPaint) { window.sparkleAfterHeroPaint(start); return; }
+  var contentPainted = performance.getEntriesByName('first-contentful-paint').length > 0;
+  var posterReady = false;
+  function painted() { if (contentPainted && posterReady) requestAnimationFrame(function () { requestAnimationFrame(start); }); }
+  // A response-header preload may finish before HTML arrives. Its load event
+  // alone is not evidence that the visitor has seen the page.
+  if (!contentPainted && typeof PerformanceObserver === 'function') {
+    var observer = new PerformanceObserver(function (list) {
+      if (list.getEntries().some(function (entry) { return entry.name === 'first-contentful-paint'; })) {
+        contentPainted = true; observer.disconnect(); painted();
+      }
+    });
+    observer.observe({ type: 'paint', buffered: true });
+  } else if (!contentPainted) {
+    function documentReady() { contentPainted = true; painted(); }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', documentReady, { once: true }); else documentReady();
+  }
+  var poster = Array.from(document.querySelectorAll('link[rel="preload"][as="image"]')).find(function (link) { return !link.media || matchMedia(link.media).matches; });
+  if (document.hidden) start();
+  else if (poster) {
+    var image = new Image(); image.onload = image.onerror = function () { posterReady = true; painted(); }; image.src = poster.href;
+  } else { posterReady = true; painted(); }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) start(); });
+  window.addEventListener('pagehide', start, { once: true });
+})();
+</script><script type="text/partytown" src="https://www.googletagmanager.com/gtag/js?id=${measurementId}"></script><script type="text/partytown">
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'granted' });
+gtag('js', new Date());
+gtag('config', ${JSON.stringify(measurementId)});
+</script>`
 }
 
 export function injectRepGa4Tag(html: string, snippet: string) {

@@ -1,11 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { runInNewContext } from 'node:vm'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   GA4_SMOKE_TEST_MEASUREMENT_ID,
   GA4_SMOKE_TEST_PROPERTY_ID,
   decideRepGa4MeasurementId,
+  buildRepGa4Snippet,
   resolveRepGa4TagHtml,
   type RepGa4TagRecord,
 } from '@/lib/amethyst/rep-ga4-tag'
@@ -40,6 +42,43 @@ function requestFor(host: string, path = '/customer-site/home', query = '') {
 }
 
 describe('rep GA4 tag', () => {
+  it.each([false, true])('loads analytics after actual content paint, including an early poster preload (%s)', hasPoster => {
+    const listeners: Record<string, (...args: any[]) => void> = {}
+    const appendChild = vi.fn()
+    const frames: (() => void)[] = []
+    let paint: (list: any) => void = () => {}
+    let posterImage: any
+    const context: any = {
+      Image: class { constructor() { posterImage = this } },
+      performance: { getEntriesByName: () => [] },
+      PerformanceObserver: class { constructor(callback: any) { paint = callback } observe() {} disconnect() {} },
+      URL, requestAnimationFrame: (callback: () => void) => frames.push(callback),
+      addEventListener: (name: string, handler: (...args: any[]) => void) => { listeners[name] = handler },
+      document: {
+        readyState: 'loading', hidden: false, querySelectorAll: () => hasPoster ? [{href:'/amethyst/poster.webp'}] : [],
+        addEventListener: (name: string, handler: (...args: any[]) => void) => { listeners[name] = handler },
+        createElement: () => ({}), head: { appendChild },
+      },
+    }
+    context.window = context
+    runInNewContext(buildRepGa4Snippet({ measurementId: REP_A_MEASUREMENT, shopHref: 'https://shop.bombparty.com/bling' })
+      .match(/<script id="sparkle-rep-ga4">([\s\S]*?)<\/script>/)![1], context)
+    expect(Array.from(context.dataLayer[0]).slice(0, 2)).toEqual(['consent', 'default'])
+    expect(Array.from(context.dataLayer[2])).toEqual(['config', REP_A_MEASUREMENT])
+    listeners.click({ target: { closest: () => ({ href: 'https://shop.bombparty.com/bling' }) } })
+    expect(Array.from(context.dataLayer[3])).toEqual(['event', 'shop_click'])
+    expect(listeners.DOMContentLoaded).toBeUndefined()
+    expect(appendChild).not.toHaveBeenCalled()
+    if (hasPoster) posterImage.onload()
+    expect(frames).toHaveLength(0)
+    paint({ getEntries: () => [{ name: 'first-contentful-paint' }] })
+    frames.shift()!(); frames.shift()!();
+    expect(appendChild).toHaveBeenCalledTimes(1)
+    listeners.pagehide()
+    expect(appendChild).toHaveBeenCalledTimes(1)
+    expect(appendChild).toHaveBeenLastCalledWith(expect.objectContaining({ async: true, fetchPriority: 'low', src: `https://www.googletagmanager.com/gtag/js?id=${REP_A_MEASUREMENT}` }))
+  })
+
   it('puts rep A measurement id on rep A and never rep B', async () => {
     const html = await resolveRepGa4TagHtml({
       request: requestFor('www.theblingkitchen.com'),
