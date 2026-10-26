@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "repository": "louis623/sparkle-suite",
-  "primaryLocalWorktree": "C:\\Users\\louis\\sparkle-suite-repo",
+  "primaryLocalWorktree": ".",
   "activeLocalWorktrees": [
-    "C:\\Users\\louis\\sparkle-suite-repo",
-    "C:\\Users\\louis\\.codex\\worktrees\\blingkitchen-google-verification\\sparkle-suite-repo",
-    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\trade-request-completion",
-    "C:\\Users\\louis\\.codex\\visualizations\\2026\\10\\05\\01a10df3-2121-7673-8f71-c58c6d0e5ab4\\section1-workspace",
-    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\hero-autoplay-smoke"
+    ".",
+    "../.codex/worktrees/blingkitchen-google-verification/sparkle-suite-repo",
+    ".codex-worktrees/trade-request-completion",
+    "../.codex/visualizations/2026/10/05/01a10df3-2121-7673-8f71-c58c6d0e5ab4/section1-workspace",
+    ".codex-worktrees/hero-autoplay-smoke"
   ],
   "policy": "deny-unlisted",
   "activeBranches": [

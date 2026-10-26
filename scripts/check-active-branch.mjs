@@ -62,6 +62,10 @@ export function normalizeRepository(remoteUrl) {
     .replace(/\/+$/g, "");
 }
 
+export function primaryWorkbench() {
+  return dirname(gitDirectories().commonDirectory);
+}
+
 export function evaluateBranchPolicy({
   branch,
   remoteRepository,
@@ -97,7 +101,7 @@ export function evaluateBranchPolicy({
     !(policy.activeLocalWorktrees || [policy.primaryLocalWorktree]).some(
       (allowedWorktree) =>
         normalize(worktree).toLowerCase() ===
-        normalize(allowedWorktree).toLowerCase(),
+        normalize(resolve(primaryWorkbench(), allowedWorktree)).toLowerCase(),
     )
   ) {
     errors.push(
