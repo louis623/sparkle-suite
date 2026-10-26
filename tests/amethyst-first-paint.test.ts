@@ -36,7 +36,7 @@ describe('real themed first paint and autoplay defaults', () => {
     const result = await renderHomepageFirstPaint(html, { appearancePreset: 'amethyst', homepage: defaultAmethystHomepageTemplateData, trade: defaultAmethystTradeTemplateData, join: defaultAmethystJoinTemplateData }, new URL('https://example.com/'), bootstrap)
     expect(result).toContain('<script>window.AMETHYST_RUNTIME_CONTEXT')
     expect(result).not.toMatch(/<script\s+src=/)
-    const dependencies = [...result.matchAll(/<script defer src="([^"]+)"/g)].map(match => match[1])
+    const dependencies = [...result.matchAll(/<script defer fetchpriority="low" src="([^"]+)"/g)].map(match => match[1])
     expect(dependencies[0]).toContain('react@18.3.1/umd/react.production.min.js')
     expect(dependencies[1]).toContain('react-dom@18.3.1/umd/react-dom.production.min.js')
     expect(dependencies.findIndex(src => src.includes('compiled/tweaks-panel.js'))).toBeLessThan(dependencies.findIndex(src => src.includes('compiled/homepage.js')))

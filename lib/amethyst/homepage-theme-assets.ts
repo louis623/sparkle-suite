@@ -1,5 +1,7 @@
+import heroImages from '../../public/amethyst/hero-delivery.json'
 import fontManifest from '../../public/amethyst/fonts/manifest.json'
 import fontFallbacks from '../../public/amethyst/fonts/fallbacks.json'
+import criticalManifest from '../../public/amethyst/delivery/critical.json'
 import stylesheetManifest from '../../public/amethyst/delivery/manifest.json'
 
 const THEME_ASSETS: Record<string, string[]> = {
@@ -33,18 +35,43 @@ export function selectHomepageThemeAssets(html: string, preset: string, variant?
       return tag.replace(href, url.toString().replaceAll('&', '&amp;'))
     })
   }
-  if (preset === 'sunset_beach') result = result.replace(/<meta name="viewport"[^>]+>/, viewport => viewport + '<link rel="preload" as="image" fetchpriority="high" media="(min-width: 601px)" href="/amethyst/skins/sunset-beach/hero-approved-1440.webp"><link rel="preload" as="image" fetchpriority="high" media="(max-width: 600px)" href="/amethyst/skins/sunset-beach/hero-approved-720-v2.webp">')
+  const posters: Record<string, [string, string?]> = {
+    gilded_autumn: ['gilded-autumn/hero-poster.webp'], gobble_and_fizz: ['gobble-and-fizz/hero-poster.webp'],
+    pie_please: ['pie-please/hero-poster-v4.webp'], pearl_rose: ['pearl-rose/hero-poster.webp'],
+    fall_owl_harvest_moon: ['fall-owl/hero-poster.webp'], rose_champagne: ['rose-champagne/hero-poster.webp'],
+    midnight_rose: ['midnight-rose/hero-poster.webp'],
+    neon_butterfly: ['neon-butterfly/kelly-studio-desktop.webp', 'neon-butterfly/kelly-studio-mobile.webp'],
+    gnome_garden: ['gnome-garden/forest.webp', 'gnome-garden/forest-mobile.webp'],
+    halloween_pumpkin_witch: ['halloween-pumpkin-witch/hero-desktop.webp', 'halloween-pumpkin-witch/hero-mobile.webp'],
+  }
+  const imageMap = heroImages as Record<string, Record<string, {url:string}>>
+  let desktopPoster = '', phonePoster = ''
+  if (posters[preset]) {
+    const [desktop, phone = desktop] = posters[preset]
+    desktopPoster = imageMap['/amethyst/skins/' + desktop]['1440'].url
+    phonePoster = imageMap['/amethyst/skins/' + phone]['720'].url
+  }
+  if (preset === 'sunset_beach') { desktopPoster = '/amethyst/skins/sunset-beach/hero-approved-1440.webp'; phonePoster = '/amethyst/skins/sunset-beach/hero-approved-720-v2.webp' }
+  if (preset === 'amethyst') desktopPoster = phonePoster = '/amethyst/skins/am01-unicorn/opening-poster.webp'
+  if (desktopPoster) result = result.replace(/<meta name="viewport"[^>]+>/, viewport => viewport
+    + '<link rel="preload" as="image" fetchpriority="high" media="(min-width: 601px)" href="' + desktopPoster + '">'
+    + '<link rel="preload" as="image" fetchpriority="high" media="(max-width: 600px)" href="' + phonePoster + '">')
   // Pumpkin Cat's approved typography is entirely Georgia and Arial. Loading
   // every webfont here blocks its first paint without changing a single glyph.
   if (preset === 'halloween_pumpkin_cat') result = result.replace(/<link[^>]+href="https:\/\/(?:api\.fontshare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)[^"]*"[^>]*>/g, '')
   return result
 }
-// Full styles are hashed, compressed and cacheable. Keeping them render-blocking
-// prevents a plain-text flash; the tiny inline base sets the first canvas color.
-export async function inlineHomepageStyles(html: string, preset?: string, heading?: {family:string;weight:number}) {
+// Inline the selected above-fold layout. Load complete cacheable styles without
+// delaying its first paint; noscript retains the full accessible page.
+export async function inlineHomepageStyles(html: string, preset?: string, heading?: {family:string;weight:number}, bodyClasses: string[] = [], variant?: string) {
   const manifest = stylesheetManifest as Record<string, string>
+  const critical = criticalManifest as Record<string, {css:string;bodies:string[];presets:string[]}[]>
   html = html.replace(/<link rel="stylesheet" href="(?:\/amethyst\/)?((?:bling-kitchen\/)?[a-z0-9-]+\.css)(?:\?[^\"]*)?"\s*\/>/g,
-    (tag, name: string) => manifest[name] ? '<link rel="stylesheet" href="' + manifest[name] + '">' : tag)
+    (tag, name: string) => {
+      if (!manifest[name]) return tag
+      const css = (critical[name] ?? []).filter(rule => rule.bodies.every(c=>bodyClasses.includes(c)) && (!rule.presets.length || rule.presets.includes(preset ?? '')) && (!/\.mhf-/.test(rule.css) || variant === 'mile_high_fizz_hybrid') && (!/\.bwb-/.test(rule.css) || variant === 'britt_with_bling_hybrid') && (!/\.(?:bkf-|bk-home-)/.test(rule.css) || variant === 'bling_kitchen_hybrid')).map(rule=>rule.css).join('')
+      return '<style data-critical-stylesheet="' + name + '">' + css + '</style><link rel="stylesheet" href="' + manifest[name] + '" media="print" onload="this.media=\'all\'"><noscript><link rel="stylesheet" href="' + manifest[name] + '"></noscript>'
+    })
   html = html.replace('</head>', '<style data-critical-homepage>html{background:var(--hp-bg,#100b1c)}body{margin:0;background:var(--hp-bg,#100b1c);color:var(--hp-text,#f7f4fc)}</style></head>')
   // These two phone heroes already have a 620px minimum scene. Reserve that
   // same space in the inner grid so late button-font wrapping cannot recenter

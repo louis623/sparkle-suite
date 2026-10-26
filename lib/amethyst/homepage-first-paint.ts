@@ -59,11 +59,11 @@ async function renderFirstPaint(html: string, data: AmethystPreviewTemplateData,
   const variant = new Script('window.AMETHYST_HOMEPAGE_TEMPLATE_DATA.publicSiteVariant').runInContext(context) as string | undefined
   const fonts = [properties.get('--hp-display-font') ?? '', properties.get('--hp-body-font') ?? '']
   const heading = { family: fonts[0].split(',')[0].replaceAll('"', '').trim().toLowerCase(), weight: Number(properties.get('--hp-heading-weight')) }
-  const themedHtml = await inlineHomepageFonts(await inlineHomepageStyles(selectHomepageThemeAssets(html, preset, variant, fonts), preset, heading), fonts)
+  const themedHtml = await inlineHomepageFonts(await inlineHomepageStyles(selectHomepageThemeAssets(html, preset, variant, fonts), preset, heading, body.className.split(/\s+/), variant), fonts)
   const withBootstrap = bootstrap ? themedHtml.replace(/<script\b[^>]*data-template-src="[^"]+"[^>]*><\/script>/, () => `<script>${bootstrap.replace(/<\/script/gi, '<\\/script')}</script>`) : themedHtml
   // The complete bootstrap is already inline and independent of React. Fetch
   // classic dependencies in parallel; defer preserves their execution order.
-  const withOrderedScripts = bootstrap && options.deferExternalScripts !== false ? withBootstrap.replace(/<script\s+src=/g, '<script defer src=') : withBootstrap
+  const withOrderedScripts = bootstrap && options.deferExternalScripts !== false ? withBootstrap.replace(/<script\s+src=/g, '<script defer fetchpriority="low" src=') : withBootstrap
   return withOrderedScripts
     .replace('</head>', preloads + `<script>window.AMETHYST_PUBLIC_IDENTITY=${JSON.stringify(publicIdentity).replace(/</g, '\\u003c')};window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${attribute(style)}">`)
