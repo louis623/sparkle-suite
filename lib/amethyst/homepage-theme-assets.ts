@@ -51,7 +51,9 @@ export function selectHomepageThemeAssets(html: string, preset: string, variant?
     desktopPoster = imageMap['/amethyst/skins/' + desktop]['1440'].url
     phonePoster = imageMap['/amethyst/skins/' + phone]['720'].url
   }
-  if (preset === 'sunset_beach') { desktopPoster = '/amethyst/skins/sunset-beach/hero-approved-1440.webp'; phonePoster = '/amethyst/skins/sunset-beach/hero-approved-720-v2.webp' }
+  // The server video already paints its lightweight poster. Preload that exact
+  // image instead of downloading a second full background underneath it.
+  if (preset === 'sunset_beach') desktopPoster = phonePoster = '/amethyst/skins/sunset-beach/hero-poster-720.webp'
   if (preset === 'amethyst') desktopPoster = phonePoster = '/amethyst/skins/am01-unicorn/opening-poster.webp'
   if (desktopPoster) result = result.replace(/<meta name="viewport"[^>]+>/, viewport => viewport
     + '<link rel="preload" as="image" fetchpriority="high" media="(min-width: 601px)" href="' + desktopPoster + '">'

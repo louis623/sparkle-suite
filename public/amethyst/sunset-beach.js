@@ -25,7 +25,7 @@
     const video = layer.querySelector('video') || document.createElement('video');
     video.muted = false; video.defaultMuted = false; video.loop = true; video.playsInline = true;
     video.preload = 'none'; video.volume = .35; video.tabIndex = -1;
-    video.poster = assets + (matchMedia('(max-width:600px)').matches ? 'hero-poster-720.webp' : 'hero-poster.webp');
+    if (!video.getAttribute('poster')) video.poster = assets + (matchMedia('(max-width:600px)').matches ? 'hero-poster-720.webp' : 'hero-poster.webp');
     layer.append(video); hero.querySelector('.hp-hero-media').append(layer);
     const controls = document.createElement('div'); controls.className = 'beach-motion-controls';
     const motion = document.createElement('button'), sound = document.createElement('button');

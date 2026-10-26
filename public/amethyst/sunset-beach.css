@@ -347,3 +347,6 @@ body.bg-sunset-beach :is(input,textarea)::placeholder{color:#806371;opacity:1}
 body.bg-sunset-beach :is(a,button,input,select,textarea):focus-visible{outline:3px solid #9e2b53;outline-offset:3px}
 body.bg-sunset-beach .hp-header :is(a,button):focus-visible,body.bg-sunset-beach .hp-footer :is(a,button):focus-visible{outline-color:#ffdb98}
 @media(forced-colors:active){body.bg-sunset-beach :is(.hp-section-title,.hp-about-headline,.hp-signup-title,.tp-hero-title,.jp-hero-title,.jp-section-title){background:none;color:CanvasText;-webkit-text-fill-color:CanvasText}}
+
+/* SSR already supplies the same covered video poster before hydration. */
+body.bg-sunset-beach .hp-hero-media:has([data-first-paint-video]) { background-image: none; }
