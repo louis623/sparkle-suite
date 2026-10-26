@@ -6,9 +6,10 @@ fs.mkdirSync(output,{recursive:true});
 (async()=>{
  const results=[];let environment;
  for(let run=1;run<=8;run++){
-  const browser=await chromium.launch({channel:'chrome',headless:true,ignoreDefaultArgs:['--enable-automation'],args:['--autoplay-policy=document-user-activation-required']});
+  const browser=await chromium.launch({channel:'chrome',headless:true,ignoreDefaultArgs:['--enable-automation'],args:['--autoplay-policy=document-user-activation-required',...(process.env.QA_CONTAINER==='1'?['--no-sandbox']:[])]});
   const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:1});
   if(base.includes('.vercel.app'))await authenticatePreview(context,base);
+  if(process.env.QA_FORWARD_HOST)await context.route(new URL(base).origin+'/**',route=>route.continue({headers:{...route.request().headers(),'x-forwarded-host':process.env.QA_FORWARD_HOST,'x-forwarded-proto':'http'}}));
   // No tracking or form POST may reach the application during read-only QA.
   await context.route('**/*',r=>new URL(r.request().url()).origin===new URL(base).origin&&!['GET','HEAD','OPTIONS'].includes(r.request().method())?r.abort():r.fallback());
   const page=await context.newPage(),record={run,url:base+'/'+slug,actions:[],errors:[]};

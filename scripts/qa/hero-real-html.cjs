@@ -1,9 +1,9 @@
 /* Read-only HTTP proof on the same real rep routes as the browser matrix. */
 const fs=require('node:fs'), path=require('node:path'), zlib=require('node:zlib'), crypto=require('node:crypto');
 const [base,output]=process.argv.slice(2);
-if(!base?.includes('.vercel.app'))throw Error('Preview URL required');
+if(!base?.includes('.vercel.app')&&!(process.env.QA_LOCAL_PRODUCTION==='1'&&['127.0.0.1','localhost','host.docker.internal'].includes(new URL(base).hostname)))throw Error('Preview or explicitly enabled local production-test URL required');
 const origin=new URL(base).origin;
-async function read(url){const headers={};if(new URL(url).origin===origin&&process.env.VERCEL_OIDC_TOKEN)headers['x-vercel-trusted-oidc-idp-token']=process.env.VERCEL_OIDC_TOKEN;return fetch(url,{headers});}
+async function read(url){const headers={};if(process.env.QA_FORWARD_HOST){headers['x-forwarded-host']=process.env.QA_FORWARD_HOST;headers['x-forwarded-proto']='http'}if(new URL(url).origin===origin&&process.env.VERCEL_OIDC_TOKEN)headers['x-vercel-trusted-oidc-idp-token']=process.env.VERCEL_OIDC_TOKEN;return fetch(url,{headers});}
 const plain=s=>s.replace(/<script\b[\s\S]*?<\/script>/g,'').replace(/<style\b[\s\S]*?<\/style>/g,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 (async()=>{
  fs.mkdirSync(output,{recursive:true});const results=[];
@@ -16,7 +16,9 @@ const plain=s=>s.replace(/<script\b[\s\S]*?<\/script>/g,'').replace(/<style\b[\s
   results.push({...route,status:response.status,rawBytes:Buffer.byteLength(html),brotliEstimateBytes:zlib.brotliCompressSync(Buffer.from(html)).length,inlineStyleBytes:styles,cacheControl:response.headers.get('cache-control'),serverRendered:html.includes('data-server-rendered="true"'),h1:[...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/g)].map(m=>plain(m[1])),identity,repSentences:text.match(/[^.!?]* is the rep for [^.]+\./g),hasUTC:/\bUTC\b/.test(text),embeddedFont:html.includes('data:font/'),runtimeDev:/react(?:-dom)?\.development|babel-standalone/.test(html)});
   const result=results.at(-1);
   result.publicLocationPresent=!!identity&&(!identity.location||text.includes(identity.location));
-  result.pass=result.status===200&&result.serverRendered&&!!identity&&result.h1.includes(identity.businessName)&&text.includes(identity.identity)&&result.publicLocationPresent&&!result.hasUTC&&!result.embeddedFont&&!result.runtimeDev;
+  result.headerLocationHidden=!identity?.location||/<span class="hp-brand-location sr-only">[^<]+<\/span>/.test(html);
+  const expectedH1=identity?.businessName+(identity?.location?' in '+identity.location:'');
+  result.pass=result.status===200&&result.serverRendered&&!!identity&&result.h1.length===1&&result.h1[0]===expectedH1&&result.headerLocationHidden&&text.includes(identity.identity)&&result.publicLocationPresent&&!result.hasUTC&&!result.embeddedFont&&!result.runtimeDev;
  }
  const picture=await read(base+'/marketing/demo-themes/sunset_beach.webp');
  const pictureBytes=Buffer.from(await picture.arrayBuffer()),hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');

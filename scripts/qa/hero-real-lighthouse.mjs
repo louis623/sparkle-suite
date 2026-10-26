@@ -9,7 +9,7 @@ const {default:puppeteer}=await import(pathToFileURL(path.join(root,'puppeteer-c
 const {default:desktopConfig}=await import(pathToFileURL(path.join(root,'lighthouse/core/config/desktop-config.js')));
 const sharp=require('sharp');
 const [base,output,mode='phone',selected='',repetitions='5']=process.argv.slice(2);
-if(!base?.includes('.vercel.app'))throw Error('Preview URL required');
+if(!base?.includes('.vercel.app')&&!(process.env.QA_LOCAL_PRODUCTION==='1'&&['127.0.0.1','localhost','host.docker.internal'].includes(new URL(base).hostname)))throw Error('Preview or explicitly enabled local production-test URL required');
 fs.mkdirSync(output,{recursive:true});
 const routes=JSON.parse(fs.readFileSync(process.env.REAL_ROUTE_MANIFEST || 'scripts/qa/hero-real-routes.json','utf8')).filter(r=>!selected||selected.split(',').some(s=>s===r.theme||s===r.slug));
 const token=process.env.VERCEL_OIDC_TOKEN,origin=new URL(base).origin;
@@ -18,11 +18,11 @@ const results=process.env.QA_RESUME==='1'&&fs.existsSync(summaryPath)?JSON.parse
 const seen=new Set();for(const result of results){const key=result.slug+':'+result.run;if(result.mode!==mode||result.requestedUrl!==base+'/'+result.slug||result.diagnosticOnly||seen.has(key))throw Error('Incompatible existing measurement');seen.add(key)}
 for(const route of routes)for(let run=1;run<=Number(repetitions);run++){
  if(seen.has(route.slug+':'+run))continue;
- const browser=await puppeteer.launch({executablePath:process.env.CHROME_EXECUTABLE || 'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,defaultViewport:null,ignoreDefaultArgs:['--enable-automation'],args:['--autoplay-policy=document-user-activation-required']});
+ const browser=await puppeteer.launch({executablePath:process.env.CHROME_EXECUTABLE || 'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,defaultViewport:null,ignoreDefaultArgs:['--enable-automation'],args:['--autoplay-policy=document-user-activation-required',...(process.env.QA_CONTAINER==='1'?['--no-sandbox']:[])]});
  try{
   const page=await browser.newPage();
   await page.setRequestInterception(true);
-  page.on('request',request=>{if(process.env.QA_DIAG_BLOCK_CSS==='1' && request.url().includes('/amethyst/delivery/') && request.resourceType()==='stylesheet')return request.abort();if(process.env.QA_DIAG_BLOCK_GA==='1' && /googletagmanager|google-analytics/.test(request.url()))return request.abort();const headers={...request.headers()};if(token&&new URL(request.url()).origin===origin)headers['x-vercel-trusted-oidc-idp-token']=token;request.continue({headers}).catch(()=>{});});
+  page.on('request',request=>{if(process.env.QA_READ_ONLY==='1'&&new URL(request.url()).origin===origin&&!['GET','HEAD','OPTIONS'].includes(request.method()))return request.abort();if(process.env.QA_DIAG_BLOCK_CSS==='1' && request.url().includes('/amethyst/delivery/') && request.resourceType()==='stylesheet')return request.abort();if(process.env.QA_DIAG_BLOCK_GA==='1' && /googletagmanager|google-analytics/.test(request.url()))return request.abort();const headers={...request.headers()};if(process.env.QA_FORWARD_HOST&&new URL(request.url()).origin===origin){headers['x-forwarded-host']=process.env.QA_FORWARD_HOST;headers['x-forwarded-proto']='http'}if(token&&new URL(request.url()).origin===origin)headers['x-vercel-trusted-oidc-idp-token']=token;request.continue({headers}).catch(()=>{});});
   const config={extends:'lighthouse:default',...(mode==='desktop'?desktopConfig:{}),settings:{...(mode==='desktop'?desktopConfig.settings:{}),onlyCategories:['performance'],formFactor:mode==='phone'?'mobile':'desktop',screenEmulation:{mobile:mode==='phone',width:mode==='phone'?360:1440,height:mode==='phone'?800:900,deviceScaleFactor:1,disabled:false},disableFullPageScreenshot:true,...(process.env.QA_LH_METHOD?{throttlingMethod:process.env.QA_LH_METHOD}:{})}};
   const {lhr}=await lighthouse(base+'/'+route.slug,{logLevel:'error',output:'json'},config,page);
   // This DOM marker is only a post-audit diagnostic: Lighthouse's bf-cache

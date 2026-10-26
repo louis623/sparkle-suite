@@ -4,11 +4,11 @@ This task stops at an immutable preview for Suite, Beacon and Rocky. No Smoke or
 
 ## Demo-only Live gate
 
-Pass 4 implements the server-side `REP_RENDER_V2_SLUGS` allowlist. Empty/unset enables nobody; comma/whitespace-separated exact slugs enable only those reps; `*` enables everyone. The verified Fizz Festival demo slug is **`dudesfizzfest`**, confirmed by its public canonical URL and homepage bootstrap target on October 26, 2026. No environment variable was changed in this task.
+Pass 4 implements the server-side `REP_RENDER_V2_SLUGS` allowlist. Empty/unset enables nobody; comma/whitespace-separated exact slugs enable only those reps; `*` enables everyone. The verified Fizz Festival demo slug is **`dudesfizzfest`**, confirmed by its public canonical URL and homepage bootstrap target on October 26, 2026. Louis separately approved a deployment-only preview flag for the 24 test slugs on October 26. No project-level environment setting, Smoke/Live setting, or database is changed.
 
 The gate selects both the renderer and its assets. Non-listed reps use the frozen renderer/bootstrap and asset bytes from Live source `3f175871674e42dbc62d18419318941ea6a49935`, served through `/amethyst/render-v1/`. Shared binary files are byte-checked against the pinned manifest. This intentionally preserves the legacy client-only rendering and saved-Still behavior, including its older browser dependencies, for reps outside the canary. Merely skipping SSR while sending new controllers/styles would not preserve their existing output.
 
-Before any Live request, prove the exact demo-only allowlist and non-listed legacy behavior on the intended deployment. Rocky review and Louis's named Live approval remain required, followed by Louis's demo test and separate approval for all reps. Preview currently has this variable unset, so its default rep routes exercise legacy; test-process V2 activation is not a deployed environment change or proof that V2 is enabled on Preview.
+Before any Live request, prove the exact demo-only allowlist and non-listed legacy behavior on the intended deployment. Rocky review and Louis's named Live approval remain required, followed by Louis's demo test and separate approval for all reps. The initial pass-4 preview has the variable unset and its 24 default rep routes were verified to exercise legacy. The separately authorized preview build uses an explicit 24-slug deployment override so its actual routes can exercise V2; this does not change the default or any project environment variable. Test-process V2 activation alone is not proof that V2 is enabled on Preview.
 
 ## First-line renderer rollback
 

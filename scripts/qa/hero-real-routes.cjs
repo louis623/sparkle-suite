@@ -10,13 +10,15 @@ const themes = selected?.split(',') || ['amethyst','sparkle_suite_morganite','bl
 const audioThemes = new Set(['amethyst','fall_owl_harvest_moon','sunset_beach']);
 fs.mkdirSync(output, {recursive:true});
 (async () => {
-  const browser = await chromium.launch({channel:'chrome',headless:true,ignoreDefaultArgs:['--enable-automation'],args:['--autoplay-policy=document-user-activation-required']});
+  const browser = await chromium.launch({channel:'chrome',headless:true,ignoreDefaultArgs:['--enable-automation'],args:['--autoplay-policy=document-user-activation-required',...(process.env.QA_CONTAINER==='1'?['--no-sandbox']:[])]});
   const results = [];
   const routes=JSON.parse(fs.readFileSync(process.env.REAL_ROUTE_MANIFEST || 'scripts/qa/hero-real-routes.json','utf8'));
   for (const route of routes.filter(r=>!selected || themes.includes(r.theme) || themes.includes(r.slug))) {
     const {theme,slug}=route;
     const context = await browser.newContext({viewport:mode==='phone'?{width:360,height:800}:{width:1440,height:900},isMobile:mode==='phone',hasTouch:mode==='phone',deviceScaleFactor:1});
     await authenticatePreview(context, base);
+    if(process.env.QA_FORWARD_HOST)await context.route(new URL(base).origin+'/**',route=>route.continue({headers:{...route.request().headers(),'x-forwarded-host':process.env.QA_FORWARD_HOST,'x-forwarded-proto':'http'}}));
+    if(process.env.QA_READ_ONLY==='1')await context.route('**/*',route=>new URL(route.request().url()).origin===new URL(base).origin&&!['GET','HEAD','OPTIONS'].includes(route.request().method())?route.abort():route.fallback());
     const page = await context.newPage(), errors = [], resources = [], analytics = [];
     const frameThrottles=[], throttled=new Set();
     async function throttleFrame(frame) {
@@ -39,7 +41,7 @@ fs.mkdirSync(output, {recursive:true});
     page.on('console', msg => { if (msg.type()==='error' && /React error|hydration|hydrating|Unsafe attempt to load/i.test(msg.text())) errors.push(msg.text()); });
     page.on('request', r => { resources.push(r.url()); if (/google-analytics\.com\/g\/collect/.test(r.url())) { const u=new URL(r.url()); analytics.push({event:u.searchParams.get('en'),at:Date.now()}); } });
     await context.addInitScript(() => {
-      window.__heroQA = {plays:[],unstyled:false,interactions:[],lcp:0,cls:0};
+      window.__heroQA = {plays:[],unstyled:false,interactions:[],lcp:0,cls:0,shifts:[]};
       new MutationObserver(()=>{
         if (!window.SPARKLE_FIRST_PAINT) return;
         window.__firstServerHero ??= document.querySelector('.hp-hero');
@@ -47,7 +49,7 @@ fs.mkdirSync(output, {recursive:true});
       }).observe(document,{childList:true,subtree:true});
       new PerformanceObserver(list=>{for(const entry of list.getEntries())window.__heroQA.lcp=entry.startTime}).observe({type:'largest-contentful-paint',buffered:true});
       let session=0, start=0, last=0;
-      new PerformanceObserver(list=>{for(const entry of list.getEntries())if(!entry.hadRecentInput){session=entry.startTime-last<1000&&entry.startTime-start<5000?session+entry.value:(start=entry.startTime,entry.value);last=entry.startTime;window.__heroQA.cls=Math.max(window.__heroQA.cls,session)}}).observe({type:'layout-shift',buffered:true});
+      new PerformanceObserver(list=>{for(const entry of list.getEntries())if(!entry.hadRecentInput){session=entry.startTime-last<1000&&entry.startTime-start<5000?session+entry.value:(start=entry.startTime,entry.value);last=entry.startTime;window.__heroQA.cls=Math.max(window.__heroQA.cls,session);window.__heroQA.shifts.push({at:entry.startTime,value:entry.value,sources:entry.sources.map(source=>({node:source.node?.tagName,classes:source.node?.className,previous:source.previousRect,current:source.currentRect}))})}}).observe({type:'layout-shift',buffered:true});
       new PerformanceObserver(list=>{for(const event of list.getEntries())if(event.interactionId)window.__heroQA.interactions.push({name:event.name,duration:event.duration,start:event.startTime,inputDelay:event.processingStart-event.startTime,processing:event.processingEnd-event.processingStart,presentation:event.startTime+event.duration-event.processingEnd})}).observe({type:'event',durationThreshold:16,buffered:true});
       const original = HTMLMediaElement.prototype.play;
       HTMLMediaElement.prototype.play = function() {
@@ -91,6 +93,7 @@ fs.mkdirSync(output, {recursive:true});
         retained:!!window.__firstServerHero && window.__firstServerHero===document.querySelector('.hp-hero') && window.__firstServerHeading===document.querySelector('.hp-hero h1, .hp-hero h2'),
         hydrated:window.SPARKLE_FIRST_PAINT===null,
         motion:document.querySelector('.hp-hero').dataset.heroMotion,
+        savedMotion:window.AMETHYST_HOMEPAGE_TEMPLATE_DATA?.heroMotion,
         heading:{text:document.querySelector('.hp-hero-headline')?.textContent,font:document.querySelector('.hp-hero-headline')?getComputedStyle(document.querySelector('.hp-hero-headline')).fontFamily:null},
         paint:performance.getEntriesByType('paint').map(entry=>({name:entry.name,ms:entry.startTime})),
         videos:[...document.querySelectorAll('.hp-hero video')].map(v=>({time:v.currentTime,paused:v.paused,muted:v.muted,ended:v.ended})),
@@ -133,6 +136,8 @@ fs.mkdirSync(output, {recursive:true});
       result.pass &&= result.initial.retained && result.initial.hydrated;
       result.progressed=result.progress.videos.some((v,i)=>v.ended||v.time!==result.initial.videos[i]?.time) || result.progress.animations.some((a,i)=>a.state==='running'&&a.time!==result.initial.animations[i]?.time);
       result.pass &&= result.progressed;
+      const controlledThemes=new Set(['amethyst','gnome_garden','neon_butterfly','halloween_pumpkin_witch','halloween_pumpkin_cat','gilded_autumn','midnight_rose','fall_owl_harvest_moon','gobble_and_fizz','pie_please','pearl_rose','sunset_beach','rose_champagne']);
+      result.pass &&= !controlledThemes.has(theme)||result.initial.controls.some(control=>/Pause animation|Play animation|Play again/i.test(control.text));
       if(audioThemes.has(theme))result.pass &&= result.initial.plays.some(p=>p.muted===false) && result.soundEnabled.videos.some(v=>!v.muted&&!v.paused) && result.muted.videos.every(v=>v.muted);
       if(audioThemes.has(theme))result.pass &&= result.firstTapSound===true;
       if(result.paused?.videos.length) result.pass &&= result.paused.videos.every(v=>v.paused) && result.resumed.videos.some((v,i)=>!v.paused||(v.ended&&v.time>result.paused.videos[i].time));
