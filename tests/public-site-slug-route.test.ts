@@ -113,10 +113,10 @@ describe('public site slug route', () => {
     expect(html).toContain(
       '"@id":"https://www.yoursparklesuite.com/graciesparkleparty#webpage"',
     )
-    expect(html).toContain('data-stylesheet="tokens.css"')
-    expect(html).toContain('data-stylesheet="components.css"')
+    expect(html).toContain('data-critical-stylesheet="tokens.css"')
+    expect(html).toContain('data-critical-stylesheet="components.css"')
     expect(html).toContain(
-      'data-stylesheet="homepage.css"',
+      'data-critical-stylesheet="homepage.css"',
     )
     expect(html).toContain('src="/amethyst/compiled/tweaks-panel.js?v=')
     expect(html).toContain('src="/amethyst/live-lineup.js?v=20261002-compact-lineup"')

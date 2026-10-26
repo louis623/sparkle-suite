@@ -259,7 +259,7 @@ describe('Amethyst homepage template data wiring', () => {
         'const tradeTickerSource = isBrittDanceFloorComingSoon ? [{ name: "Digital Dance Floor coming soon", isEmpty: true }] : trades.length > 0 ? trades : [EMPTY_TRADE_TICKER_ITEM];',
       )
       expect(jsx).toContain(
-        'const tickerTrades = buildTickerLoopItems(tradeTickerSource, 15);',
+        jsx === homepage ? 'const tickerTrades = looping ? buildTickerLoopItems(tradeTickerSource, 15) : tradeTickerSource;' : 'const tickerTrades = buildTickerLoopItems(tradeTickerSource, 15);',
       )
       expect(jsx).not.toContain(
         '<span className="hp-ticker-empty">Dance Floor listings will appear here after pieces are added.</span>',
@@ -602,7 +602,9 @@ describe('Amethyst homepage template data wiring', () => {
       eventActions.indexOf('event.platforms.map'),
     )
     expect(jsx).toContain('key={`${event.id}-${platform.kind}-${platform.href}`}')
-    expect(jsx).toContain('/amethyst/media-icons.svg#')
+    expect(jsx).not.toContain('/amethyst/media-icons.svg#')
+    expect(jsx).toContain('const CUSTOMER_MEDIA_GLYPHS = {')
+    expect(jsx).toContain('{CUSTOMER_MEDIA_GLYPHS[name] || null}')
     expect(jsx).toContain('mediaUrl ? footer : null')
     expect(jsx).toContain('Portrait photo coming soon')
     expect(buildAmethystHomepageBootstrapScript(defaultAmethystHomepageTemplateData)).toContain(
