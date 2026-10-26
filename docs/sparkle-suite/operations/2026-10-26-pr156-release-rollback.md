@@ -4,7 +4,17 @@ This task stops at an immutable preview for Suite, Beacon and Rocky. No Smoke or
 
 ## Demo-only Live gate
 
-**There is no implemented demo-only Live gate for this change.** The shared rep renderer and static assets would change for every rep if this branch were promoted. Opening Louis's demo after a global promotion is not a demo-only release. Before any Live release, implement and verify a rep-scoped gate that serves the new renderer/assets only to the exact owner demo identity while other reps retain the known-good release. That is additional release work, not authorization granted by this preview task. Rocky review and Louis's explicit Live approval remain required, followed by Louis's demo test and separate approval for all reps.
+Pass 4 implements the server-side `REP_RENDER_V2_SLUGS` allowlist. Empty/unset enables nobody; comma/whitespace-separated exact slugs enable only those reps; `*` enables everyone. The verified Fizz Festival demo slug is **`dudesfizzfest`**, confirmed by its public canonical URL and homepage bootstrap target on October 26, 2026. No environment variable was changed in this task.
+
+The gate selects both the renderer and its assets. Non-listed reps use the frozen renderer/bootstrap and asset bytes from Live source `3f175871674e42dbc62d18419318941ea6a49935`, served through `/amethyst/render-v1/`. Shared binary files are byte-checked against the pinned manifest. This intentionally preserves the legacy client-only rendering and saved-Still behavior, including its older browser dependencies, for reps outside the canary. Merely skipping SSR while sending new controllers/styles would not preserve their existing output.
+
+Before any Live request, prove the exact demo-only allowlist and non-listed legacy behavior on the intended deployment. Rocky review and Louis's named Live approval remain required, followed by Louis's demo test and separate approval for all reps. Preview currently has this variable unset, so its default rep routes exercise legacy; test-process V2 activation is not a deployed environment change or proof that V2 is enabled on Preview.
+
+## First-line renderer rollback
+
+After a **future authorized** canary, clear/remove `REP_RENDER_V2_SLUGS` in the verified Live project's production environment and redeploy the same approved code with the empty allowlist. This returns every rep to the preserved legacy renderer and assets without a database change. Existing deployment environment snapshots do not change when a project variable is removed; the redeploy is required. Verify the exact served deployment and the demo plus non-listed routes immediately. No environment change or redeploy is performed by this document.
+
+If that rollback is insufficient, use the preserved full deployment promotion below. Do not use `*` as a demo-only rollout value.
 
 ## Preview rollback
 

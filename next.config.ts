@@ -23,6 +23,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@resvg/resvg-js'],
   outputFileTracingIncludes: {
     '/*': [
+      './lib/amethyst/legacy/assets/**/*',
       './lib/amethyst/generated/homepage-server.cjs',
       './public/amethyst/compiled/*.js',
       './public/amethyst/live-lineup.js',

@@ -1,0 +1,1661 @@
+/* ============================================================
+   Join Team page — uses tokens + homepage chrome
+   ============================================================ */
+
+body.joinpage {
+  background: var(--hp-bg);
+  color: var(--fg);
+  font-family: var(--hp-body-font);
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* ---------- Saturation wrap (shared with homepage) ---------- */
+body.joinpage .hp-saturate {
+  filter: saturate(var(--hp-saturation, 1));
+}
+
+/* ============================================================
+   Hero (with overlay content)
+   ============================================================ */
+.jp-hero {
+  position: relative;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: 80px 0;
+}
+.jp-hero-media {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(72, 13, 223, 0.55), rgba(210, 9, 227, 0.45)),
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.18), transparent 50%),
+    linear-gradient(180deg, #2A1450 0%, #1A0F2E 100%);
+  z-index: 0;
+}
+.jp-hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 18% 32%, rgba(255,255,255,0.08) 0, transparent 28%),
+    radial-gradient(circle at 78% 60%, rgba(255,255,255,0.06) 0, transparent 30%);
+}
+.jp-hero-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.jp-hero-card {
+  max-width: 720px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--r-2xl, 24px);
+  padding: 36px 40px;
+  color: white;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  margin: 0 auto;
+  text-align: center;
+}
+.jp-hero-eyebrow {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+  margin: 0 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+.jp-hero-eyebrow::before,
+.jp-hero-eyebrow::after {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: rgba(255,255,255,0.6);
+}
+.jp-hero-title {
+  font-family: var(--hp-display-font);
+  font-weight: var(--hp-heading-weight, 600);
+  font-size: clamp(40px, 5.5vw, 68px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  padding-block: 0.04em 0.12em;
+  text-wrap: balance;
+  overflow: visible;
+}
+.jp-hero-pitch {
+  font-size: 17px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 auto 26px;
+  max-width: 56ch;
+}
+.jp-hero-localized {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+  margin: -8px auto 22px;
+  max-width: 50ch;
+}
+.jp-hero-ctas {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+.jp-hero-compliance {
+  margin: 16px auto 0;
+  max-width: 58ch;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.72);
+}
+.jp-hero-compliance a {
+  color: white;
+  text-underline-offset: 2px;
+}
+.jp-hero-promo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.06);
+  border: 1px dashed rgba(255,255,255,0.2);
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+  justify-content: center;
+}
+.jp-hero-promo .pip {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--hp-accent);
+  box-shadow: 0 0 10px var(--hp-accent);
+}
+
+@media (max-width: 640px) {
+  .jp-hero {
+    padding: 64px 0;
+  }
+
+  .jp-hero-inner {
+    width: 100vw;
+    max-width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    padding: 0 18px;
+  }
+
+  .jp-hero-card {
+    box-sizing: border-box;
+    width: calc(100vw - 48px);
+    max-width: 340px;
+    padding: 30px 20px;
+  }
+
+  .jp-hero-title {
+    font-size: clamp(32px, 9.6vw, 44px);
+    line-height: 1.12;
+    width: 100%;
+    max-width: 10ch;
+    margin-inline: auto;
+    overflow-wrap: anywhere;
+  }
+
+  .jp-hero-promo {
+    box-sizing: border-box;
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .jp-hero-pitch {
+    max-width: 24ch;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ============================================================
+   Team grid
+   ============================================================ */
+.jp-section {
+  padding: 80px 0;
+}
+.jp-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.jp-section-head {
+  text-align: center;
+  margin: 0 auto 48px;
+  max-width: 720px;
+}
+.jp-section-eyebrow {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--hp-primary);
+  margin: 0 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.jp-section-eyebrow::before,
+.jp-section-eyebrow::after {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: var(--hp-primary);
+}
+.jp-section-title {
+  font-family: var(--hp-display-font);
+  font-weight: var(--hp-heading-weight, 600);
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  padding-block: 0.03em 0.09em;
+  text-wrap: balance;
+  background: linear-gradient(90deg, var(--hp-primary), var(--hp-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  overflow: visible;
+}
+.jp-section-sub {
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--fg-muted);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.jp-team-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+@media (max-width: 1100px) {
+  .jp-team-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 800px) {
+  .jp-team-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+}
+@media (max-width: 520px) {
+  .jp-team-grid { grid-template-columns: 1fr; gap: 14px; }
+}
+
+.jp-team-card {
+  background: var(--hp-bg-elevated);
+  color: var(--hp-card-fg, var(--fg));
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl, 18px);
+  padding: 0;
+  min-width: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease);
+}
+.jp-team-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--hp-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--hp-primary) 48%, transparent);
+}
+.jp-team-card.is-leader {
+  border-color: color-mix(in srgb, var(--hp-primary) 48%, transparent);
+}
+.jp-team-leader-label {
+  position: absolute;
+  top: 14px;
+  left: 12px;
+  z-index: 1;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--hp-card-fg, var(--fg));
+  background: var(--hp-bg-elevated);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+.jp-team-avatar {
+  width: 100%;
+  aspect-ratio: 8 / 7;
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--hp-primary) 18%, var(--hp-bg-elevated)), color-mix(in srgb, var(--hp-accent) 22%, var(--hp-bg-elevated)));
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hp-card-fg, var(--fg));
+  font-family: var(--hp-display-font);
+  font-weight: 600;
+  font-size: clamp(48px, 6vw, 80px);
+  letter-spacing: -0.02em;
+  border: 0;
+  flex-shrink: 0;
+}
+.jp-team-body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.jp-team-initials {
+  padding: 20px;
+}
+.jp-team-business {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 4px;
+  color: var(--hp-card-accent, var(--hp-primary));
+}
+.jp-team-name {
+  font-family: var(--hp-display-font);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0 0 10px;
+  color: var(--hp-card-fg, var(--fg));
+}
+.jp-team-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--hp-card-muted, var(--fg-muted));
+  margin: 0 0 18px;
+}
+.jp-team-connect {
+  margin-top: auto;
+  width: 100%;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.jp-team-connect-label {
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--hp-card-muted, var(--fg-muted));
+  margin: 0 0 10px;
+}
+.jp-team-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.jp-team-social {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid rgba(20, 12, 34, 0.22);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #140c22;
+  text-decoration: none;
+  transition: all var(--dur-fast) var(--ease);
+}
+.jp-team-social:hover {
+  background: var(--hp-card-accent);
+  color: var(--hp-action-fg);
+  border-color: var(--hp-card-accent);
+  transform: translateY(-2px);
+}
+.jp-team-social:focus-visible {
+  outline: 2px solid var(--hp-primary, #480DDF);
+  outline-offset: 3px;
+}
+.jp-team-social-logo {
+  width: 20px;
+  height: 20px;
+  display: block;
+  fill: currentColor;
+}
+.jp-team-social-logo-stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* "This is Your Spot" CTA card */
+.jp-team-card.is-spot {
+  background: var(--hp-bg-elevated);
+  border: 1px solid var(--border);
+}
+.jp-team-card .jp-spot-art {
+  color: var(--hp-card-accent, var(--hp-primary));
+  background:
+    radial-gradient(ellipse at 15% 20%, color-mix(in srgb, var(--hp-accent) 45%, transparent), transparent 45%),
+    radial-gradient(ellipse at 90% 85%, color-mix(in srgb, var(--hp-primary) 45%, transparent), transparent 55%),
+    var(--hp-bg-elevated);
+}
+.jp-spot-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  background-image: radial-gradient(circle, currentColor 1px, transparent 2px);
+  background-size: 29px 31px;
+  mask-image: linear-gradient(160deg, black, transparent 55%, black);
+}
+.jp-spot-heart {
+  width: 44%;
+  height: auto;
+  position: relative;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--hp-accent) 60%, transparent));
+}
+.jp-spot-title {
+  font-family: var(--hp-display-font);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.25;
+  margin: 0 0 8px;
+  color: var(--hp-card-fg, var(--fg));
+  text-wrap: balance;
+}
+.jp-spot-sub {
+  font-size: 13px;
+  color: var(--hp-card-muted, var(--fg-muted));
+  margin: 0 0 18px;
+  line-height: 1.5;
+}
+.jp-spot-btn {
+  background: var(--hp-card-accent);
+  color: var(--hp-action-fg);
+  border: 0;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  margin-top: auto;
+}
+.jp-spot-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(72,13,223,0.3);
+}
+
+/* ============================================================
+   Why Join — six benefit cards
+   ============================================================ */
+.jp-why {
+  background: var(--hp-bg-elevated);
+  scroll-margin-top: 220px;
+}
+.jp-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+@media (max-width: 900px) {
+  .jp-benefits { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .jp-benefits { grid-template-columns: 1fr; }
+}
+.jp-benefit-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl, 18px);
+  padding: 30px 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease);
+}
+.jp-benefit-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 40px rgba(72,13,223,0.08);
+}
+.jp-benefit-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--hp-card-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  color: var(--hp-action-fg);
+  margin-bottom: 18px;
+  box-shadow: 0 12px 24px rgba(72,13,223,0.2);
+}
+.jp-benefit-icon svg {
+  width: 26px;
+  height: 26px;
+}
+.jp-benefit-title {
+  font-family: var(--hp-display-font);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin: 0 0 8px;
+  color: var(--fg);
+}
+.jp-benefit-desc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg-muted);
+  margin: 0;
+}
+
+.jp-why--personal .jp-section-sub {
+  max-width: 720px;
+}
+.jp-why--personal .jp-benefits {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.jp-why-actions {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.jp-why-btn {
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.jp-why-btn:hover {
+  transform: translateY(-2px);
+}
+.jp-why-btn--primary {
+  color: var(--hp-action-fg);
+  background: var(--hp-card-accent);
+  border: 1px solid transparent;
+  box-shadow: 0 12px 28px rgba(72, 13, 223, 0.24);
+}
+.jp-why-btn--secondary {
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--border);
+}
+.jp-why-text-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.jp-why-text-links a {
+  color: var(--hp-primary);
+  font-size: 14px;
+  font-weight: 700;
+  text-underline-offset: 4px;
+}
+@media (max-width: 900px) {
+  .jp-why--personal .jp-benefits { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .jp-why-actions { align-items: stretch; flex-direction: column; }
+  .jp-why-btn { width: 100%; box-sizing: border-box; }
+  .jp-why-text-links { padding: 10px 4px 0; flex-direction: column; gap: 12px; text-align: center; }
+}
+
+/* ============================================================
+   FAQ accordion (mirrors trade FAQ but standalone here)
+   ============================================================ */
+.jp-faq-wrap {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.jp-faq-list {
+  margin-top: 8px;
+}
+.jp-faq-item {
+  border-top: 1px solid var(--border);
+  padding: 18px 0;
+}
+.jp-faq-item:last-child {
+  border-bottom: 1px solid var(--border);
+}
+.jp-faq-q {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  line-height: inherit;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  cursor: pointer;
+  font-family: var(--hp-display-font);
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  user-select: none;
+}
+.jp-faq-q .chev {
+  font-size: 22px;
+  color: var(--fg-muted);
+  transition: transform var(--dur-base) var(--ease);
+  flex-shrink: 0;
+  line-height: 1;
+}
+.jp-faq-item.open .chev { transform: rotate(45deg); color: var(--hp-primary); }
+.jp-faq-a {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--dur-base) var(--ease);
+}
+.jp-faq-item.open .jp-faq-a { max-height: 500px; }
+.jp-faq-a-inner {
+  padding-top: 14px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--fg-muted);
+}
+.jp-faq-note {
+  margin-top: 22px;
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: rgba(72, 13, 223, 0.06);
+  border: 1px solid rgba(72, 13, 223, 0.14);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg-muted);
+}
+.jp-faq-note a {
+  color: var(--hp-primary);
+  font-weight: 600;
+  text-underline-offset: 2px;
+}
+.jp-faq-link {
+  text-align: center;
+  margin-top: 36px;
+}
+.jp-faq-link a {
+  color: var(--hp-primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+}
+
+/* ============================================================
+   Final CTA card
+   ============================================================ */
+.jp-final {
+  padding: 40px 0 100px;
+}
+.jp-final-card {
+  max-width: 880px;
+  margin: 0 auto;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.18), transparent 50%),
+    linear-gradient(135deg, var(--hp-primary), var(--hp-accent));
+  color: white;
+  color: var(--hp-final-fg);
+  border-radius: var(--r-2xl, 24px);
+  padding: 56px 48px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(72,13,223,0.3);
+}
+.jp-final-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.jp-final-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--hp-card-accent);
+  border: 1px solid rgba(255,255,255,0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 22px;
+  position: relative;
+  z-index: 1;
+  color: var(--hp-final-icon-fg);
+}
+#faq {
+  scroll-margin-top: 220px;
+}
+.jp-final-title {
+  font-family: var(--hp-display-font);
+  font-weight: var(--hp-heading-weight, 600);
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px;
+  padding-block: 0.03em 0.09em;
+  text-wrap: balance;
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+  color: var(--hp-final-fg);
+}
+.jp-final-sub {
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--hp-final-muted);
+  margin: 0 auto 28px;
+  max-width: 56ch;
+  position: relative;
+  z-index: 1;
+}
+.jp-final-note {
+  margin: -6px auto 22px;
+  max-width: 56ch;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--hp-final-muted);
+  position: relative;
+  z-index: 1;
+}
+.jp-final-note a {
+  color: white;
+  text-underline-offset: 2px;
+}
+.jp-final-btn {
+  background: var(--hp-card-accent);
+  color: var(--hp-action-fg);
+  border: 0;
+  padding: 16px 32px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  position: relative;
+  z-index: 1;
+}
+.jp-final-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.2);
+}
+
+/* ============================================================
+   Sharp / soft radius respects
+   ============================================================ */
+body.shape-sharp .jp-team-card,
+body.shape-sharp .jp-benefit-card,
+body.shape-sharp .jp-hero-card,
+body.shape-sharp .jp-final-card { border-radius: 4px; }
+body.shape-soft .jp-team-card,
+body.shape-soft .jp-benefit-card,
+body.shape-soft .jp-hero-card,
+body.shape-soft .jp-final-card { border-radius: 28px; }
+
+body.density-compact .jp-section { padding: 56px 0; }
+body.density-spacious .jp-section { padding: 110px 0; }
+
+/* ---------- Mile High Fizz hybrid join page ---------- */
+body.mile-high-fizz-join {
+  --mhf-primary: var(--hp-primary);
+  --mhf-accent: var(--hp-accent);
+  --mhf-bg: var(--hp-bg);
+  --mhf-bg-elevated: var(--hp-bg-elevated);
+  --mhf-bg-deep: var(--bg-deep);
+  --mhf-ink: var(--fg, #1f2937);
+  --mhf-muted: var(--fg-muted, #6b5d6c);
+  --mhf-purple: color-mix(in srgb, var(--mhf-primary) 58%, var(--mhf-accent));
+  --mhf-gradient: linear-gradient(90deg, var(--mhf-primary), var(--mhf-purple), var(--mhf-accent));
+  --mhf-soft-gradient: linear-gradient(135deg, var(--mhf-bg) 0%, var(--mhf-bg-elevated) 48%, var(--mhf-bg-deep) 100%);
+  --fg: var(--mhf-ink);
+  --fg-muted: var(--mhf-muted);
+  --border: color-mix(in srgb, var(--mhf-primary) 18%, transparent);
+  --hp-radius-card: 26px;
+  --hp-heading-tracking: 0;
+  background:
+    radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--mhf-primary) 18%, transparent), transparent 30%),
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--mhf-accent) 18%, transparent), transparent 30%),
+    var(--mhf-soft-gradient);
+  color: var(--hp-card-fg);
+}
+
+body.mile-high-fizz-join::before {
+  opacity: 0.22;
+  mix-blend-mode: normal;
+}
+
+.mhf-join-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 8% 18%, color-mix(in srgb, var(--mhf-primary) 20%, transparent), transparent 26%),
+    radial-gradient(circle at 92% 10%, color-mix(in srgb, var(--mhf-accent) 18%, transparent), transparent 28%),
+    var(--mhf-soft-gradient);
+}
+
+.mhf-join-shell {
+  min-height: 100vh;
+  padding-bottom: 1px;
+  background:
+    radial-gradient(circle at 14% 20%, color-mix(in srgb, var(--mhf-primary) 20%, transparent), transparent 30%),
+    radial-gradient(circle at 84% 2%, color-mix(in srgb, var(--mhf-purple) 18%, transparent), transparent 30%),
+    radial-gradient(circle at 78% 76%, color-mix(in srgb, var(--mhf-accent) 14%, transparent), transparent 34%),
+    var(--mhf-soft-gradient);
+  position: relative;
+  overflow: hidden;
+}
+
+.mhf-join-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.7px),
+    radial-gradient(circle, rgba(236, 72, 153, 0.22) 0 1px, transparent 1.8px);
+  background-position: 0 0, 48px 36px;
+  background-size: 120px 120px, 160px 160px;
+  opacity: 0.28;
+}
+
+.mhf-join-content {
+  position: relative;
+  z-index: 1;
+  color: var(--hp-final-icon-fg);
+}
+
+body.mile-high-fizz-join .hp-sticky-stack {
+  background: #050505;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 36px rgba(31, 41, 55, 0.12);
+}
+
+body.mile-high-fizz-join .hp-header {
+  background: #050505;
+  color: var(--hp-action-fg);
+}
+
+body.mile-high-fizz-join .hp-brand-name {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 800;
+  background: var(--mhf-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.mile-high-fizz-join .hp-brand-sub {
+  color: #f472b6;
+}
+
+body.mile-high-fizz-join .hp-header-link {
+  color: rgba(255, 255, 255, 0.82);
+  letter-spacing: 0.08em;
+}
+
+body.mile-high-fizz-join .hp-header-link[aria-current="page"],
+body.mile-high-fizz-join .hp-header-link:hover {
+  color: var(--hp-action-fg);
+}
+
+body.mile-high-fizz-join .hp-header-link::after {
+  background: var(--mhf-gradient);
+}
+
+body.mile-high-fizz-join .hp-shop-btn {
+  background: linear-gradient(90deg, #facc15, #f9a8d4, #9333ea);
+  color: #111827;
+  border-color: rgba(255, 255, 255, 0.42);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.42),
+    0 16px 34px rgba(147, 51, 234, 0.32);
+}
+
+body.mile-high-fizz-join .hp-ticker {
+  background: #280d48;
+  color: var(--hp-final-fg);
+  border: 0;
+}
+
+body.mile-high-fizz-join .hp-ticker-row {
+  background: linear-gradient(90deg, #2b0d45, #42136b, #2b0d45);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--hp-action-fg);
+}
+
+body.mile-high-fizz-join .hp-ticker-row.reverse {
+  background: linear-gradient(90deg, #38bdf8, #60a5fa, #ec4899);
+  color: var(--hp-action-fg);
+}
+
+body.mile-high-fizz-join .hp-ticker-label {
+  background: #2b0d45;
+  color: #fce7f3;
+}
+
+body.mile-high-fizz-join .hp-ticker-row.reverse .hp-ticker-label {
+  background: #38bdf8;
+  color: var(--hp-final-fg);
+}
+
+body.mile-high-fizz-join .hp-ticker-item,
+body.mile-high-fizz-join .hp-ticker-trade,
+body.mile-high-fizz-join .hp-ticker-row.reverse .hp-ticker-trade {
+  color: white;
+  text-shadow: 0 1px 10px rgba(15, 23, 42, 0.22);
+}
+
+body.mile-high-fizz-join .hp-ticker-item .dot,
+body.mile-high-fizz-join .hp-ticker-trade .pip {
+  background: #facc15;
+}
+
+body.mile-high-fizz-join .hp-trade-preview {
+  background: rgba(5, 5, 5, 0.86);
+  color: rgba(255, 255, 255, 0.86);
+  border-color: rgba(236, 72, 153, 0.22);
+}
+
+body.mile-high-fizz-join .hp-trade-preview-link {
+  color: #fecdd3;
+}
+
+body.mile-high-fizz-join .jp-hero {
+  min-height: 620px;
+  padding: 92px 0;
+}
+
+body.mile-high-fizz-join .jp-hero-media {
+  background:
+    linear-gradient(180deg, rgba(5, 5, 5, 0.32), rgba(20, 10, 34, 0.58)),
+    radial-gradient(circle at 50% 12%, rgba(236, 72, 153, 0.44), transparent 36%),
+    linear-gradient(135deg, #1f1140 0%, #4c1d95 48%, #0f172a 100%);
+}
+
+body.mile-high-fizz-join .jp-hero-media::before {
+  background:
+    linear-gradient(160deg, transparent 0 58%, rgba(15, 23, 42, 0.62) 58% 64%, transparent 64%),
+    linear-gradient(200deg, transparent 0 52%, rgba(255, 255, 255, 0.18) 52% 56%, transparent 56%),
+    radial-gradient(circle at 26% 18%, rgba(255, 255, 255, 0.4) 0 1px, transparent 2px),
+    radial-gradient(circle at 76% 28%, rgba(255, 255, 255, 0.36) 0 1px, transparent 2px);
+  background-size: 100% 100%, 100% 100%, 180px 180px, 220px 220px;
+}
+
+body.mile-high-fizz-join .jp-hero-card {
+  max-width: 780px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 2px solid rgba(244, 114, 182, 0.6);
+  border-radius: 30px;
+  box-shadow:
+    0 0 40px rgba(244, 114, 182, 0.36),
+    0 0 80px rgba(147, 51, 234, 0.22),
+    inset 0 1px 1px rgba(255, 255, 255, 0.28);
+}
+
+body.mile-high-fizz-join .jp-hero-eyebrow,
+body.mile-high-fizz-join .jp-hero-compliance {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+body.mile-high-fizz-join .jp-hero-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(42px, 5.8vw, 72px);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  background: linear-gradient(90deg, #f9a8d4, #c4b5fd, #7dd3fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.mile-high-fizz-join .jp-hero-pitch {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+body.mile-high-fizz-join .jp-hero-promo {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(244, 114, 182, 0.52);
+  color: white;
+}
+
+body.mile-high-fizz-join .jp-hero-promo .pip {
+  background: #facc15;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.76);
+}
+
+body.mile-high-fizz-join .jp-hero-localized {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+body.mile-high-fizz-join .jp-hero .hp-btn-primary {
+  background: #a855f7;
+  color: white;
+  box-shadow: 0 0 26px rgba(168, 85, 247, 0.48);
+}
+
+body.mile-high-fizz-join .jp-section {
+  background: transparent;
+}
+
+body.mile-high-fizz-join .jp-why {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+body.mile-high-fizz-join .jp-section-title,
+body.mile-high-fizz-join .jp-team-business {
+  background: var(--mhf-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.mile-high-fizz-join .jp-section-eyebrow {
+  color: #ec4899;
+}
+
+body.mile-high-fizz-join .jp-section-eyebrow::before,
+body.mile-high-fizz-join .jp-section-eyebrow::after {
+  background: var(--mhf-gradient);
+}
+
+body.mile-high-fizz-join .jp-team-card,
+body.mile-high-fizz-join .jp-benefit-card,
+body.mile-high-fizz-join .jp-faq-note {
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(236, 72, 153, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 24px 54px rgba(31, 41, 55, 0.1);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+body.mile-high-fizz-join .jp-team-card:hover,
+body.mile-high-fizz-join .jp-benefit-card:hover {
+  border-color: rgba(147, 51, 234, 0.3);
+  box-shadow: 0 28px 70px rgba(147, 51, 234, 0.16);
+}
+
+body.mile-high-fizz-join .jp-team-card.is-leader {
+  background:
+    linear-gradient(180deg, rgba(236, 72, 153, 0.1), rgba(59, 130, 246, 0.08)),
+    rgba(255, 255, 255, 0.9);
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+body.mile-high-fizz-join .jp-team-card.is-leader::before {
+  color: #9333ea;
+  border-color: rgba(236, 72, 153, 0.24);
+}
+
+body.mile-high-fizz-join .jp-team-avatar,
+body.mile-high-fizz-join .jp-benefit-icon,
+body.mile-high-fizz-join .jp-final-icon,
+body.mile-high-fizz-join .jp-spot-btn {
+  background: var(--mhf-gradient);
+  box-shadow: 0 14px 30px rgba(147, 51, 234, 0.24);
+}
+
+body.mile-high-fizz-join .jp-team-card.is-spot {
+  background:
+    linear-gradient(135deg, rgba(253, 242, 248, 0.82), rgba(239, 246, 255, 0.86)),
+    rgba(255, 255, 255, 0.82);
+  border: 2px dashed rgba(236, 72, 153, 0.42);
+}
+
+body.mile-high-fizz-join .jp-spot-glyph {
+  color: #9333ea;
+  border-color: rgba(147, 51, 234, 0.34);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+body.mile-high-fizz-join .jp-faq-wrap {
+  max-width: 980px;
+  padding: 36px 28px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(236, 72, 153, 0.18);
+  border-radius: 28px;
+  box-shadow: 0 24px 54px rgba(31, 41, 55, 0.1);
+}
+
+body.mile-high-fizz-join .jp-faq-item {
+  border-color: rgba(236, 72, 153, 0.18);
+}
+
+body.mile-high-fizz-join .jp-faq-q,
+body.mile-high-fizz-join .jp-team-name,
+body.mile-high-fizz-join .jp-benefit-title,
+body.mile-high-fizz-join .jp-spot-title {
+  color: #1f2937;
+}
+
+body.mile-high-fizz-join .jp-faq-a-inner,
+body.mile-high-fizz-join .jp-section-sub,
+body.mile-high-fizz-join .jp-benefit-desc,
+body.mile-high-fizz-join .jp-team-location,
+body.mile-high-fizz-join .jp-spot-sub {
+  color: #6b5d6c;
+}
+
+body.mile-high-fizz-join .jp-faq-link a,
+body.mile-high-fizz-join .jp-faq-note a {
+  color: #9333ea;
+}
+
+body.mile-high-fizz-join .jp-final {
+  padding-top: 64px;
+}
+
+body.mile-high-fizz-join .jp-final-card {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.2), transparent 50%),
+    linear-gradient(135deg, #ec4899, #9333ea, #3b82f6);
+  border-radius: 30px;
+  box-shadow: 0 30px 80px rgba(147, 51, 234, 0.28);
+}
+
+body.mile-high-fizz-join .jp-final-btn {
+  color: #9333ea;
+}
+
+body.mile-high-fizz-join .hp-footer {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(236, 72, 153, 0.24), transparent 32%),
+    linear-gradient(135deg, #111827 0%, #2e1065 52%, #0f172a 100%);
+  color: rgba(255, 255, 255, 0.74);
+}
+
+body.mile-high-fizz-join .hp-footer-brand {
+  background: linear-gradient(90deg, #ec4899, #9333ea, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.mile-high-fizz-join .hp-footer a,
+body.mile-high-fizz-join .hp-footer-col a {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+body.mile-high-fizz-join .hp-footer a:hover,
+body.mile-high-fizz-join .hp-footer-col a:hover {
+  color: white;
+}
+
+@media (max-width: 720px) {
+  body.mile-high-fizz-join .jp-hero {
+    min-height: 560px;
+    padding: 64px 0;
+  }
+
+  body.mile-high-fizz-join .jp-hero-card {
+    width: calc(100vw - 32px);
+    max-width: 360px;
+    padding: 28px 20px;
+  }
+
+  body.mile-high-fizz-join .jp-hero-title {
+    font-size: clamp(30px, 9vw, 42px);
+    max-width: 100%;
+  }
+
+  body.mile-high-fizz-join .jp-hero-pitch {
+    font-size: 15px;
+    max-width: 28ch;
+  }
+
+  body.mile-high-fizz-join .jp-faq-wrap {
+    padding: 28px 18px;
+    border-radius: 22px;
+  }
+}
+
+.jp-team-avatar-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: var(--jp-team-photo-fit, cover);
+  border-radius: 0;
+  /*
+   * Rectangular team portraits use stored Smart Frame metadata (or generous
+   * head-and-shoulders defaults). Do not apply leftover object-left /
+   * object-top / rotate-left presentation hacks — those shipped off-center
+   * and tilted faces.
+   */
+  object-position: var(--jp-team-photo-focus-x, 50%) var(--jp-team-photo-focus-y, 38%);
+  transform: rotate(var(--jp-team-photo-rotation, 0deg)) scale(var(--jp-team-photo-zoom, 1));
+  transform-origin: var(--jp-team-photo-focus-x, 50%) var(--jp-team-photo-focus-y, 38%);
+}
+
+.jp-team-bio {
+  margin: 0 0 16px;
+  color: var(--hp-card-muted, var(--fg-muted));
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+body.britt-with-bling-join {
+  --bwb-black: var(--hp-bg);
+  --bwb-panel: var(--hp-bg-elevated);
+  --bwb-gold: var(--hp-primary);
+  --bwb-blush: color-mix(in srgb, var(--hp-primary) 36%, white 64%);
+  --bwb-cyan: var(--hp-accent);
+  overflow-x: clip;
+  background: var(--hp-bg);
+  color: #fff;
+}
+
+body.britt-with-bling-join::before {
+  display: none;
+}
+
+.bwb-join-page {
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--hp-bg);
+}
+
+.bwb-join-shell {
+  position: relative;
+  background: var(--hp-bg);
+}
+
+.bwb-join-content {
+  width: min(1240px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+body.britt-with-bling-join .hp-sticky-stack,
+body.britt-with-bling-join .hp-header {
+  background: rgba(10, 10, 10, 0.92);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.22);
+  backdrop-filter: blur(16px);
+}
+
+body.britt-with-bling-join .hp-brand-name {
+  background: linear-gradient(90deg, var(--bwb-gold), var(--bwb-blush), var(--bwb-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 2.45rem);
+  font-weight: 900;
+}
+
+body.britt-with-bling-join .hp-brand-sub,
+body.britt-with-bling-join .hp-header-link {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+body.britt-with-bling-join .hp-header-link[aria-current="page"],
+body.britt-with-bling-join .hp-header-link:hover {
+  color: var(--bwb-cyan);
+}
+
+body.britt-with-bling-join .hp-shop-btn {
+  background: linear-gradient(90deg, var(--bwb-gold), var(--bwb-blush));
+  color: #0a0a0a;
+}
+
+body.britt-with-bling-join .hp-ticker {
+  border-top: 1px solid rgba(212, 175, 55, 0.3);
+  border-bottom: 1px solid rgba(0, 217, 255, 0.25);
+  background: #0a0a0a;
+}
+
+body.britt-with-bling-join .hp-ticker-row {
+  background: linear-gradient(90deg, #0a0a0a, #1a1a1a, #0a0a0a);
+}
+
+body.britt-with-bling-join .hp-ticker-label {
+  background: var(--bwb-blush);
+  color: #0a0a0a;
+}
+
+body.britt-with-bling-join .hp-ticker-row.reverse .hp-ticker-label {
+  background: var(--bwb-cyan);
+  color: #0a0a0a;
+}
+
+body.britt-with-bling-join .hp-ticker-item,
+body.britt-with-bling-join .hp-ticker-trade {
+  color: var(--bwb-gold);
+}
+
+body.britt-with-bling-join .hp-ticker-row.reverse .hp-ticker-track:has(.hp-ticker-empty) {
+  animation: none;
+  transform: none;
+}
+
+body.britt-with-bling-join .hp-trade-preview {
+  background: transparent;
+}
+
+body.britt-with-bling-join .jp-hero {
+  min-height: 720px;
+  background: var(--hp-bg);
+}
+
+body.britt-with-bling-join .jp-hero-media {
+  background-image:
+    linear-gradient(180deg, rgba(10, 10, 10, 0.28), rgba(10, 10, 10, 0.84)),
+    url("/britt-with-bling/join-hero.jpeg");
+  background-position: center;
+  background-size: cover;
+}
+
+body.britt-with-bling-join .jp-hero-card {
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(10, 10, 10, 0.64);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+}
+
+body.britt-with-bling-join .jp-hero-eyebrow,
+body.britt-with-bling-join .jp-hero-compliance {
+  color: var(--bwb-cyan);
+}
+
+body.britt-with-bling-join .jp-hero-title {
+  background: linear-gradient(90deg, var(--bwb-gold), var(--bwb-blush), var(--bwb-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(3.2rem, 7vw, 7rem);
+}
+
+body.britt-with-bling-join .jp-hero-pitch,
+body.britt-with-bling-join .jp-hero-localized,
+body.britt-with-bling-join .jp-section-sub {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+body.britt-with-bling-join .jp-hero-promo {
+  border-color: rgba(244, 194, 194, 0.35);
+  background: rgba(244, 194, 194, 0.12);
+  color: #fff;
+}
+
+body.britt-with-bling-join .jp-hero .hp-btn-primary,
+body.britt-with-bling-join .jp-final-btn,
+body.britt-with-bling-join .jp-spot-btn {
+  background: var(--bwb-cyan);
+  color: #0a0a0a;
+  box-shadow: 0 18px 44px rgba(0, 217, 255, 0.22);
+}
+
+body.britt-with-bling-join .jp-section {
+  background: var(--bwb-black);
+}
+
+body.britt-with-bling-join .jp-why {
+  background: #111;
+}
+
+body.britt-with-bling-join .jp-section-title,
+body.britt-with-bling-join .jp-team-business {
+  background: linear-gradient(90deg, var(--bwb-gold), var(--bwb-blush), var(--bwb-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.britt-with-bling-join .jp-section-eyebrow {
+  color: var(--bwb-cyan);
+}
+
+body.britt-with-bling-join .jp-team-card,
+body.britt-with-bling-join .jp-benefit-card,
+body.britt-with-bling-join .jp-faq-note,
+body.britt-with-bling-join .jp-faq-item,
+body.britt-with-bling-join .jp-final-card {
+  border: 1px solid rgba(212, 175, 55, 0.26);
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.96), rgba(10, 10, 10, 0.98));
+  color: #fff;
+  box-shadow: 0 22px 64px rgba(0, 0, 0, 0.42);
+}
+
+body.britt-with-bling-join .jp-team-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(90deg, var(--bwb-gold), var(--bwb-blush), var(--bwb-cyan));
+}
+
+body.britt-with-bling-join .jp-team-avatar,
+body.britt-with-bling-join .jp-benefit-icon,
+body.britt-with-bling-join .jp-final-icon,
+body.britt-with-bling-join .jp-spot-glyph {
+  border: 2px solid rgba(212, 175, 55, 0.35);
+  background: #0a0a0a;
+  color: var(--bwb-gold);
+}
+
+body.britt-with-bling-join .jp-team-name,
+body.britt-with-bling-join .jp-benefit-title,
+body.britt-with-bling-join .jp-faq-q,
+body.britt-with-bling-join .jp-spot-title {
+  color: #fff;
+}
+
+body.britt-with-bling-join .jp-team-location,
+body.britt-with-bling-join .jp-benefit-desc,
+body.britt-with-bling-join .jp-faq-a-inner,
+body.britt-with-bling-join .jp-spot-sub,
+body.britt-with-bling-join .jp-team-bio {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+body.britt-with-bling-join .jp-team-social {
+  background: #061820;
+  border-color: #00d9ff;
+  color: #f4feff;
+  box-shadow: 0 0 0 1px rgba(0, 217, 255, 0.35);
+}
+
+body.britt-with-bling-join .jp-team-social:hover {
+  background: #00d9ff;
+  color: #041018;
+  border-color: #00d9ff;
+}
+
+body.britt-with-bling-join .jp-final {
+  background: linear-gradient(90deg, var(--bwb-gold), var(--bwb-blush), var(--bwb-cyan));
+}
+
+body.britt-with-bling-join .hp-footer {
+  border-top: 1px solid rgba(212, 175, 55, 0.22);
+  background: var(--bwb-black);
+}
+
+body.britt-with-bling-join .hp-footer-brand {
+  background: linear-gradient(90deg, var(--bwb-gold), var(--bwb-blush), var(--bwb-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (max-width: 720px) {
+  body.britt-with-bling-join .hp-header-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: min(100% - 20px, 1180px);
+    max-width: 100%;
+  }
+
+  body.britt-with-bling-join .hp-brand {
+    min-width: 0;
+  }
+
+  body.britt-with-bling-join .hp-brand-name {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  body.britt-with-bling-join .hp-header-nav {
+    grid-column: 1 / -1;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  body.britt-with-bling-join .hp-shop-btn {
+    max-width: min(34vw, 132px);
+    padding-inline: 16px;
+  }
+}
+
+body.bling-kitchen-join {
+  --bk-ink: #20172b;
+  --bk-plum: #6f2da8;
+  --bk-violet: #9b5de5;
+  background: linear-gradient(180deg, #fff9f1 0%, #f8eef8 52%, #fff 100%);
+}
+
+.bk-join-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 64px;
+}
+
+body.bling-kitchen-join .hp-sticky-stack,
+body.bling-kitchen-join .jp-hero,
+body.bling-kitchen-join .jp-section,
+body.bling-kitchen-join .jp-final-card,
+body.bling-kitchen-join .hp-footer {
+  border-radius: 8px;
+  border-color: rgba(32, 23, 43, 0.13);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 45px rgba(58, 29, 82, 0.13);
+}
+
+body.bling-kitchen-join .jp-hero-title,
+body.bling-kitchen-join .jp-section-title,
+body.bling-kitchen-join .hp-footer-brand {
+  font-family: "Playfair Display", Georgia, serif;
+  color: var(--bk-ink);
+}
+
+body.bling-kitchen-join .jp-hero-eyebrow,
+body.bling-kitchen-join .jp-card-kicker,
+body.bling-kitchen-join .jp-faq-item button {
+  color: var(--bk-plum);
+}
+
+body.bling-kitchen-join {
+  --bk-muted: #6d5f73;
+  --bk-sage: #5f7461;
+  --bk-gold: #b5843f;
+  background:
+    linear-gradient(180deg, #fff8ee 0%, #f7eef5 48%, #fdfaf4 100%);
+}
+
+body.bling-kitchen-join .jp-hero,
+body.bling-kitchen-join .jp-section,
+body.bling-kitchen-join .jp-final-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(95, 42, 131, 0.14);
+}
+
+body.bling-kitchen-join .jp-hero-title,
+body.bling-kitchen-join .jp-section-title {
+  color: var(--bk-ink);
+}
+
+body.bling-kitchen-join .jp-hero-sub,
+body.bling-kitchen-join .jp-section-copy,
+body.bling-kitchen-join .jp-benefit-card p,
+body.bling-kitchen-join .jp-team-card p,
+body.bling-kitchen-join .jp-faq-item p {
+  color: var(--bk-muted);
+}
+
+body.bling-kitchen-join .jp-spot-btn,
+body.bling-kitchen-join .jp-final-card a {
+  border-radius: 999px;
+  background: linear-gradient(135deg, #5f7461, #5f2a83);
+  color: #fff8ee;
+}
+
+body.bling-kitchen-join .hp-footer {
+  background: #2b1a33;
+  color: rgba(255, 248, 238, 0.78);
+  box-shadow: none;
+}
+
+body.bling-kitchen-join .hp-footer-brand,
+body.bling-kitchen-join .hp-footer a {
+  color: #fff8ee;
+}
+
+body.bling-kitchen-join .hp-footer-tag,
+body.bling-kitchen-join .hp-footer-bottom,
+body.bling-kitchen-join .hp-footer-bottom p {
+  color: rgba(255, 248, 238, 0.78);
+}
+
+/* Emerald Garden join-page continuation */
+body.bg-emerald-garden #team,
+body.bg-emerald-garden #faq {
+  background:
+    radial-gradient(ellipse at 8% 14%, rgba(202, 218, 196, 0.44), transparent 21rem),
+    radial-gradient(ellipse at 94% 88%, rgba(229, 211, 179, 0.28), transparent 22rem),
+    #ffffff;
+}
+
+body.bg-emerald-garden .jp-why,
+body.bg-emerald-garden .jp-final {
+  background:
+    radial-gradient(circle at 104% -10%, rgba(255, 255, 255, 0.2), transparent 26rem),
+    radial-gradient(circle at -8% 108%, rgba(4, 120, 87, 0.4), transparent 27rem),
+    linear-gradient(160deg, #059669 0%, #10b981 50%, #047857 100%);
+}
+
+body.bg-emerald-garden .jp-section-title {
+  font-family: "Great Vibes", "Playfair Display", cursive;
+  font-weight: 400;
+}
+
+body.bg-emerald-garden #team .jp-section-title,
+body.bg-emerald-garden #faq .jp-section-title {
+  background: linear-gradient(90deg, #064e3b, #059669, #34d399);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.bg-emerald-garden .jp-why .jp-section-title,
+body.bg-emerald-garden .jp-why .jp-section-eyebrow,
+body.bg-emerald-garden .jp-why .jp-section-sub {
+  color: #ffffff;
+}
+
+body.bg-emerald-garden .jp-benefit-card,
+body.bg-emerald-garden .jp-final-card {
+  border-color: rgba(229, 211, 179, 0.94);
+}
+
+body.bg-emerald-garden .jp-final-title {
+  font-family: "Great Vibes", "Playfair Display", cursive;
+  font-weight: 400;
+}

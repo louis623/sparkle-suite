@@ -1,4 +1,6 @@
 import { homepagePreloadHeader } from './homepage-preload-header'
+import {shouldUseRepRenderV2} from './rep-render-version'
+import {withLegacyStaticAssets} from './legacy-assets'
 import { readFile } from 'node:fs/promises'
 import { renderHomepageFirstPaint } from './homepage-first-paint'
 import { buildHomepageBootstrapResponse } from './homepage-bootstrap-response'
@@ -540,6 +542,10 @@ export async function renderAmethystPublicAssetResponse(
   asset: string[],
   options: RenderAmethystPublicAssetResponseOptions = {},
 ) {
+  if(asset.join('/').endsWith('.html')&&!(await shouldUseRepRenderV2(request,options))){
+    const legacy=await import('./legacy/public-asset-response')
+    return withLegacyStaticAssets(await legacy.renderAmethystPublicAssetResponse(request,asset,options))
+  }
   const filePath = resolveAmethystAsset(asset)
   if (!filePath) return new Response('Not found', { status: 404 })
 
