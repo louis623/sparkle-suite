@@ -18,7 +18,7 @@
     {
       "path": "public/amethyst/homepage.jsx",
       "function": "Ticker",
-      "sha256": "2f6c2410641aabf0cb10e21f8c07f3ce7ae53a7bcce8f3f44fd4a8c60338fb22"
+      "sha256": "addf3ffc40bce44c14b06eb8ef014d14493c2dd19a129a5ada19846253d16f0d"
     },
     {
       "path": "public/amethyst/homepage.jsx",
@@ -65,5 +65,9 @@
   "approvedSeoChange": {
     "date": "2026-10-26",
     "approval": "Louis requested PR #156 pass 3: restore business H1 with public location. Header business name gains H1 semantics; hero marketing headings become H2. No header controls or placement change."
+  },
+  "approvedTickerChange": {
+    "date": "2026-10-26",
+    "approval": "Louis requested removal of duplicate ticker text from server HTML in PR #156 pass 3. Render one visible accessible copy before hydration; decorative infinite-loop copies mount afterwards. Existing two-row layout and speeds remain."
   }
 }

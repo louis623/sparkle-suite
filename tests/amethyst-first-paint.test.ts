@@ -56,3 +56,11 @@ describe('saved show timezone in server HTML', () => {
     expect(body).not.toContain(' UTC')
   })
 })
+
+it('ships a single accessible announcement before hydration', async () => {
+  const homepage = { ...defaultAmethystHomepageTemplateData, tickerTopText: 'One announcement proof' }
+  const result = await renderHomepageFirstPaint(html, { appearancePreset: 'amethyst', homepage, trade: defaultAmethystTradeTemplateData, join: defaultAmethystJoinTemplateData }, new URL('https://example.com/rep'))
+  const body = result.split('<body')[1].replace(/<script[\s\S]*?<\/script>/g, '')
+  expect(body.match(/One announcement proof/g)).toHaveLength(1)
+  expect(body).not.toContain('class="hp-ticker-sr"')
+})

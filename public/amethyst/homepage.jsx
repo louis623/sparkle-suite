@@ -1509,6 +1509,9 @@ function parseAnnouncementTickerItems(topText) {
 }
 
 function Ticker({ topText }) {
+  // One copy in server HTML; add only the decorative loop after hydration.
+  const [looping, setLooping] = useState(false);
+  useEffect(() => { setLooping(true); }, []);
   const lineup = React.useContext(LiveLineupContext);
   useDynamicTickerMotion();
   const items = parseAnnouncementTickerItems(topText);
@@ -1529,24 +1532,24 @@ function Ticker({ topText }) {
     { name: "Estate Sapphire Cluster", type: "Ring", collection: "Sterling Club" },
   ];
   const trades = contentTrades.length > 0 || RUNTIME_CONTEXT.targeted ? contentTrades : fallbackTrades;
-  const announcementTickerItems = buildTickerLoopItems(items, 6);
+  const announcementTickerItems = looping ? buildTickerLoopItems(items, 6) : items;
   const announcementSegmentLength = announcementTickerItems.length / 2;
   const tradeTickerSource = isBrittDanceFloorComingSoon ? [{ name: "Digital Dance Floor coming soon", isEmpty: true }] : trades.length > 0 ? trades : [EMPTY_TRADE_TICKER_ITEM];
-  const tickerTrades = buildTickerLoopItems(tradeTickerSource, 15);
+  const tickerTrades = looping ? buildTickerLoopItems(tradeTickerSource, 15) : tradeTickerSource;
   const tradeSegmentLength = tickerTrades.length / 2;
   return (
     <div className="hp-ticker" id="trade-board" aria-label="Customer site updates">
-      <div className="hp-ticker-sr">
+      {looping && <div className="hp-ticker-sr">
         <p>Announcements: {items.map((item) => item.text).join("; ")}</p>
         {items.flatMap((item) => item.parts.filter((part) => part.href)).map((part, index) => (
           <a key={`${part.href}-${index}`} {...linkProps(part.href)}>{part.text}</a>
         ))}
         <p>{lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup opens when the show starts.")}</p>
         <a {...linkProps(getTradeBoardHref())}>{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Browse current dance floor highlights"}</a>
-      </div>
+      </div>}
       <div className="hp-ticker-row">
         <span className="hp-ticker-label">Announcements</span>
-        <div className="hp-ticker-track" data-ticker-pps={ANNOUNCEMENT_TICKER_SPEED_PPS} aria-hidden="true">
+        <div className="hp-ticker-track" data-ticker-pps={ANNOUNCEMENT_TICKER_SPEED_PPS} aria-hidden={looping ? "true" : undefined}>
           {announcementTickerItems.map((item, i) => (
             <span key={i} className="hp-ticker-item" data-ticker-segment-start={i === 0 ? "true" : undefined} data-ticker-segment-repeat-start={i === announcementSegmentLength ? "true" : undefined}>
               <span className="dot" />
@@ -1559,7 +1562,7 @@ function Ticker({ topText }) {
       </div>
       <div className="hp-ticker-row reverse">
         <span className="hp-ticker-label">Dance Floor</span>
-        <div className="hp-ticker-track" data-ticker-pps={TRADE_TICKER_SPEED_PPS} aria-hidden="true">
+        <div className="hp-ticker-track" data-ticker-pps={TRADE_TICKER_SPEED_PPS} aria-hidden={looping ? "true" : undefined}>
           {tickerTrades.map((tr, i) => tr.isEmpty ? (
             <span
               key={i}
