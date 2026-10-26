@@ -566,9 +566,28 @@ export async function renderAmethystPublicAssetResponse(
             publicSiteSlug: options.publicSiteSlugOverride,
           })
         : null
-    const templateData = loadedTemplate
+    const endpoint = page === 'homepage' && loadedTemplate
+      ? rewriteTemplateScriptTarget(body.toString('utf8'), page, requestUrl, resolvedOptions).match(/data-template-src="([^"]+)"/)?.[1]
+      : undefined
+    const bootstrapUrl = endpoint ? new URL(endpoint.replaceAll('&amp;', '&'), requestUrl.origin) : null
+    bootstrapUrl?.searchParams.set('lineupPresentation', 'grouped-v1')
+    // Once the target is resolved, these public reads are independent. Keep
+    // every identity guard and request-local result, without serial waterfalls.
+    const [indexedTemplate, bootstrap, ga4Tag] = await Promise.all([
+      loadedTemplate ? indexPublicJoinTemplate(loadedTemplate, { repId }) : null,
+      bootstrapUrl ? buildHomepageBootstrapResponse(
+        new Request(bootstrapUrl, { headers: request.headers }),
+        { templateData: loadedTemplate! },
+      ).then(response => response.text()) : null,
+      page ? resolveRepGa4TagHtml({
+        request,
+        repId,
+        shopHref: loadedTemplate?.homepage.streamLinks.shop,
+      }).catch(() => '') : '',
+    ])
+    const templateData = indexedTemplate
       ? restrictPantryTemplateData(
-          await indexPublicJoinTemplate(loadedTemplate, { repId }),
+          indexedTemplate,
           {
             repId,
             publicSiteSlug: options.publicSiteSlugOverride,
@@ -595,24 +614,6 @@ export async function renderAmethystPublicAssetResponse(
     if (contentType.startsWith('text/html')) {
       const html = body.toString('utf8')
       if (page) {
-        const endpoint = page === 'homepage' && templateData
-          ? rewriteTemplateScriptTarget(html, page, requestUrl, resolvedOptions).match(/data-template-src="([^"]+)"/)?.[1]
-          : undefined
-        const bootstrapUrl = endpoint ? new URL(endpoint.replaceAll('&amp;', '&'), requestUrl.origin) : null
-        bootstrapUrl?.searchParams.set('lineupPresentation', 'grouped-v1')
-        // Analytics configuration and public content are independent reads.
-        // Keep both identity guards while avoiding another serial round trip.
-        const [ga4Tag, bootstrap] = await Promise.all([
-          resolveRepGa4TagHtml({
-            request,
-            repId,
-            shopHref: templateData?.homepage.streamLinks.shop,
-          }).catch(() => ''),
-          bootstrapUrl ? buildHomepageBootstrapResponse(
-            new Request(bootstrapUrl, { headers: request.headers }),
-            { templateData: loadedTemplate! },
-          ).then(response => response.text()) : null,
-        ])
         responseBody = rewriteAmethystPublicHtml(
           html,
           page,
