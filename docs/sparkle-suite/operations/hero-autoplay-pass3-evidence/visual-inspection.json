@@ -1,0 +1,152 @@
+{
+  "application": "c42b6c8683ad1bc0f6c7c16d05f48033d32e6148",
+  "inspectedAt": "2026-10-26T17:12:34.709Z",
+  "method": "All 48 final Windows filmstrips viewed in 12 contact sheets; themed initial content and subsequent states inspected.",
+  "routes": [
+    {
+      "slug": "qap3amethyst",
+      "theme": "amethyst",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "smokelouis",
+      "theme": "sparkle_suite_morganite",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3blackdiamond",
+      "theme": "black_diamond",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3moonstone",
+      "theme": "moonstone",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3alpineopal",
+      "theme": "alpine_opal",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3emeraldgarden",
+      "theme": "emerald_garden",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3gnomegarden",
+      "theme": "gnome_garden",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3neonbutterfly",
+      "theme": "neon_butterfly",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "blingkitchen",
+      "theme": "halloween_pumpkin_witch",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3halloweenpumpkincat",
+      "theme": "halloween_pumpkin_cat",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3gildedautumn",
+      "theme": "gilded_autumn",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3rosegold",
+      "theme": "rose_gold",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3midnightrose",
+      "theme": "midnight_rose",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3fallowlharvestmoon",
+      "theme": "fall_owl_harvest_moon",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3gobbleandfizz",
+      "theme": "gobble_and_fizz",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3pieplease",
+      "theme": "pie_please",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3pearlrose",
+      "theme": "pearl_rose",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "dudesfizzfest",
+      "theme": "sunset_beach",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "smokecodex",
+      "theme": "rose_champagne",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3garnet",
+      "theme": "garnet",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3amber",
+      "theme": "amber",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3velvet",
+      "theme": "velvet",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "qap3rosequartz",
+      "theme": "rose_quartz",
+      "phone": "inspected",
+      "desktop": "inspected"
+    },
+    {
+      "slug": "milehighfizz",
+      "theme": "halloween_pumpkin_witch",
+      "phone": "inspected",
+      "desktop": "inspected"
+    }
+  ],
+  "finding": "No plain-text flash after styled content or disappearing page observed. Initial blank time remains; Windows phone FCP reached 3.660s. Artwork/fonts sometimes finish after the first styled frame. This is not a zero-blank-time claim."
+}

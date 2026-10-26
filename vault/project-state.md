@@ -1,3 +1,8 @@
+## October 26, 2026 — PR #156 pass 3, real-route verification
+
+- Pass 2 theme-preview timing is superseded for acceptance. Pass 3 uses real rep slug routes, saved Still settings, Lighthouse median-of-five measurements and retained-server-node checks. The current candidate is preview-only; no Smoke or Live alias has moved. See [pass 3 evidence and remaining gates](../docs/sparkle-suite/operations/2026-10-26-hero-autoplay-pass3.md).
+- Application `c42b6c86` is on immutable preview `dpl_4Grf4F7z1FhFRTKXpy8eWVFgkupy`. All 240 Lighthouse samples are recorded; all 23 themes pass median LCP/CLS gates. All 48 Windows route/profile checks retain server nodes without hydration errors. **Not production-ready:** Neon phone tap 208ms, Windows first-paint outliers to 3.660s, short-visit GA delivery, external TikTok playback, 50 existing test failures/two import errors and the missing demo-only Live gate remain. See the report for additional software-rendering tap failures. Do not substitute isolated lab medians for those unresolved observations.
+
 ## October 25, 2026 - PR #156 preview-only quality pass
 
 - Preview application fba6acda passes the 23-theme five-run performance gates and the real preview rep-route median gate. Full-suite baseline failures and QR verification remain open; do not call it production-ready. Live and Smoke aliases are unchanged. See [current evidence and release boundary](2026-10-25-hero-preview-pass2.md).

@@ -1,0 +1,107 @@
+{
+  "checkedAt": "2026-10-26T16:51:46.263Z",
+  "aliases": [
+    {
+      "alias": "yoursparklesuite.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": "www.yoursparklesuite.com"
+    },
+    {
+      "alias": "www.yoursparklesuite.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "sparklybutterflies.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "www.sparklybutterflies.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "brisglowtique.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "www.brisglowtique.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "milehighfizz.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "www.milehighfizz.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "blingwithkrissig.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "www.blingwithkrissig.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "goforthebling.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "theblingkitchen.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "www.theblingkitchen.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "brittwithbling.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "www.brittwithbling.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "sparkle-suite.vercel.app",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
+      "redirect": null
+    },
+    {
+      "alias": "sparkle-suite-smoke.vercel.app",
+      "deploymentId": "dpl_FD4TYQgPLe6UB8cE1zYgqyuJsV4Z",
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "redirect": null
+    }
+  ]
+}

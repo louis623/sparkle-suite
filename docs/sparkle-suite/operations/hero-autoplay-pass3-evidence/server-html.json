@@ -1,0 +1,826 @@
+{
+  "base": "https://sparkle-suite-smoke-heuiayc2a-louis-2849s-projects.vercel.app",
+  "checkedAt": "2026-10-26T17:06:43.994Z",
+  "routes": [
+    {
+      "slug": "qap3amethyst",
+      "theme": "amethyst",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 89512,
+      "brotliEstimateBytes": 17785,
+      "inlineStyleBytes": 47457,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview amethyst"
+      ],
+      "identity": {
+        "businessName": "QA Preview amethyst",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview amethyst hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview amethyst.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview amethyst Preview theme verification Preview is the rep for QA Preview amethyst."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "smokelouis",
+      "theme": "sparkle_suite_morganite",
+      "fixture": false,
+      "status": 200,
+      "rawBytes": 85768,
+      "brotliEstimateBytes": 16984,
+      "inlineStyleBytes": 43631,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "Louis Smoke Studio"
+      ],
+      "identity": {
+        "businessName": "Louis Smoke Studio",
+        "repName": "Louis",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "Louis Smoke Studio hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Louis is the rep for Louis Smoke Studio.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → Louis Smoke Studio Louis Smoke test storefront Louis is the rep for Louis Smoke Studio."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3blackdiamond",
+      "theme": "black_diamond",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 91649,
+      "brotliEstimateBytes": 17751,
+      "inlineStyleBytes": 47102,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview black diamond"
+      ],
+      "identity": {
+        "businessName": "QA Preview black diamond",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview black diamond hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview black diamond.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview black diamond Preview theme verification Preview is the rep for QA Preview black diamond."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3moonstone",
+      "theme": "moonstone",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 87305,
+      "brotliEstimateBytes": 17273,
+      "inlineStyleBytes": 46045,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview moonstone"
+      ],
+      "identity": {
+        "businessName": "QA Preview moonstone",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview moonstone hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview moonstone.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview moonstone Preview theme verification Preview is the rep for QA Preview moonstone."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3alpineopal",
+      "theme": "alpine_opal",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 88358,
+      "brotliEstimateBytes": 17161,
+      "inlineStyleBytes": 43913,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview alpine opal"
+      ],
+      "identity": {
+        "businessName": "QA Preview alpine opal",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview alpine opal hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview alpine opal.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview alpine opal Preview theme verification Preview is the rep for QA Preview alpine opal."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3emeraldgarden",
+      "theme": "emerald_garden",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 89057,
+      "brotliEstimateBytes": 17552,
+      "inlineStyleBytes": 47456,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview emerald garden"
+      ],
+      "identity": {
+        "businessName": "QA Preview emerald garden",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview emerald garden hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview emerald garden.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview emerald garden Preview theme verification Preview is the rep for QA Preview emerald garden."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3gnomegarden",
+      "theme": "gnome_garden",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 96995,
+      "brotliEstimateBytes": 18842,
+      "inlineStyleBytes": 52452,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview gnome garden"
+      ],
+      "identity": {
+        "businessName": "QA Preview gnome garden",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview gnome garden hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview gnome garden.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview gnome garden Preview theme verification Preview is the rep for QA Preview gnome garden."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3neonbutterfly",
+      "theme": "neon_butterfly",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 100498,
+      "brotliEstimateBytes": 19707,
+      "inlineStyleBytes": 57898,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview neon butterfly"
+      ],
+      "identity": {
+        "businessName": "QA Preview neon butterfly",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview neon butterfly hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview neon butterfly.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview neon butterfly Preview theme verification Preview is the rep for QA Preview neon butterfly."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "blingkitchen",
+      "theme": "halloween_pumpkin_witch",
+      "fixture": false,
+      "status": 200,
+      "rawBytes": 110546,
+      "brotliEstimateBytes": 20370,
+      "inlineStyleBytes": 54122,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "BlingKitchen"
+      ],
+      "identity": {
+        "businessName": "BlingKitchen",
+        "repName": "Heather",
+        "location": "",
+        "place": "",
+        "showSchedule": "Mondays, Wednesdays, and Fridays at 7:00 PM EST",
+        "intro": "A Registered Nurse for 25 years with 15 years in surgery, Heather knows that the \"right tool for the right job\" makes all the difference. Coming from a long line of Italian cooks and bakers, Heather believes food is the family's love language. Introduced to Bomb Party by Heather's daughter Mara (@bootsandbling) in 2024, Heather fell in love with the community and the surprise. Heather built a TikTok following from 183 to over 1,000 in just 3 months by sharing a passion for cooking live. Married for 35 years, proud Nonna to 3 grandchildren, and devoted dog mom to Enzo, a mini golden doodle — Heather shares a love of food and family while revealing beautiful jewelry and building a legacy.",
+        "heroLine": "",
+        "identity": "Heather is the rep for BlingKitchen.",
+        "customHeadline": "Serving Sparkle from the Heart of the Home"
+      },
+      "repSentences": [
+        " First name Last name Email Continue → BlingKitchen Serving Sparkle from the Heart of the Home Heather is the rep for BlingKitchen."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3halloweenpumpkincat",
+      "theme": "halloween_pumpkin_cat",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 90899,
+      "brotliEstimateBytes": 17624,
+      "inlineStyleBytes": 48198,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview halloween pumpkin cat"
+      ],
+      "identity": {
+        "businessName": "QA Preview halloween pumpkin cat",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview halloween pumpkin cat hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview halloween pumpkin cat.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview halloween pumpkin cat Preview theme verification Preview is the rep for QA Preview halloween pumpkin cat."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3gildedautumn",
+      "theme": "gilded_autumn",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 93394,
+      "brotliEstimateBytes": 18376,
+      "inlineStyleBytes": 50748,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview gilded autumn"
+      ],
+      "identity": {
+        "businessName": "QA Preview gilded autumn",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview gilded autumn hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview gilded autumn.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview gilded autumn Preview theme verification Preview is the rep for QA Preview gilded autumn."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3rosegold",
+      "theme": "rose_gold",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 86369,
+      "brotliEstimateBytes": 17120,
+      "inlineStyleBytes": 44102,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview rose gold"
+      ],
+      "identity": {
+        "businessName": "QA Preview rose gold",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview rose gold hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview rose gold.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview rose gold Preview theme verification Preview is the rep for QA Preview rose gold."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3midnightrose",
+      "theme": "midnight_rose",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 91236,
+      "brotliEstimateBytes": 17791,
+      "inlineStyleBytes": 48003,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview midnight rose"
+      ],
+      "identity": {
+        "businessName": "QA Preview midnight rose",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview midnight rose hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview midnight rose.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview midnight rose Preview theme verification Preview is the rep for QA Preview midnight rose."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3fallowlharvestmoon",
+      "theme": "fall_owl_harvest_moon",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 95697,
+      "brotliEstimateBytes": 18332,
+      "inlineStyleBytes": 52209,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview fall owl harvest moon"
+      ],
+      "identity": {
+        "businessName": "QA Preview fall owl harvest moon",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview fall owl harvest moon hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview fall owl harvest moon.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview fall owl harvest moon Preview theme verification Preview is the rep for QA Preview fall owl harvest moon."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3gobbleandfizz",
+      "theme": "gobble_and_fizz",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 98196,
+      "brotliEstimateBytes": 18500,
+      "inlineStyleBytes": 54810,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview gobble and fizz"
+      ],
+      "identity": {
+        "businessName": "QA Preview gobble and fizz",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview gobble and fizz hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview gobble and fizz.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview gobble and fizz Preview theme verification Preview is the rep for QA Preview gobble and fizz."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3pieplease",
+      "theme": "pie_please",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 95604,
+      "brotliEstimateBytes": 18301,
+      "inlineStyleBytes": 52477,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview pie please"
+      ],
+      "identity": {
+        "businessName": "QA Preview pie please",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview pie please hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview pie please.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview pie please Preview theme verification Preview is the rep for QA Preview pie please."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3pearlrose",
+      "theme": "pearl_rose",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 90816,
+      "brotliEstimateBytes": 17734,
+      "inlineStyleBytes": 47748,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview pearl rose"
+      ],
+      "identity": {
+        "businessName": "QA Preview pearl rose",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview pearl rose hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview pearl rose.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview pearl rose Preview theme verification Preview is the rep for QA Preview pearl rose."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "dudesfizzfest",
+      "theme": "sunset_beach",
+      "fixture": false,
+      "status": 200,
+      "rawBytes": 106948,
+      "brotliEstimateBytes": 20251,
+      "inlineStyleBytes": 55079,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "Fizz Festival"
+      ],
+      "identity": {
+        "businessName": "Fizz Festival",
+        "repName": "Louis",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "Fizz Festival hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Louis is the rep for Fizz Festival.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → Fizz Festival A polished place to shop for the Greatest Fizz Proud member of the Team Gem Jam team Louis is the rep for Fizz Festival."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "smokecodex",
+      "theme": "rose_champagne",
+      "fixture": false,
+      "status": 200,
+      "rawBytes": 92694,
+      "brotliEstimateBytes": 18186,
+      "inlineStyleBytes": 49691,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "Codex Smoke Studio"
+      ],
+      "identity": {
+        "businessName": "Codex Smoke Studio",
+        "repName": "Codex",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "Codex Smoke Studio hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Codex is the rep for Codex Smoke Studio.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → Codex Smoke Studio Codex Smoke test storefront Codex is the rep for Codex Smoke Studio."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3garnet",
+      "theme": "garnet",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 85717,
+      "brotliEstimateBytes": 17152,
+      "inlineStyleBytes": 44332,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview garnet"
+      ],
+      "identity": {
+        "businessName": "QA Preview garnet",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview garnet hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview garnet.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview garnet Preview theme verification Preview is the rep for QA Preview garnet."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3amber",
+      "theme": "amber",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 86887,
+      "brotliEstimateBytes": 17396,
+      "inlineStyleBytes": 44625,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview amber"
+      ],
+      "identity": {
+        "businessName": "QA Preview amber",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview amber hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview amber.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview amber Preview theme verification Preview is the rep for QA Preview amber."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3velvet",
+      "theme": "velvet",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 88173,
+      "brotliEstimateBytes": 17140,
+      "inlineStyleBytes": 43955,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview velvet"
+      ],
+      "identity": {
+        "businessName": "QA Preview velvet",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview velvet hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview velvet.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview velvet Preview theme verification Preview is the rep for QA Preview velvet."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "qap3rosequartz",
+      "theme": "rose_quartz",
+      "fixture": true,
+      "status": 200,
+      "rawBytes": 88347,
+      "brotliEstimateBytes": 17246,
+      "inlineStyleBytes": 43665,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "QA Preview rose quartz"
+      ],
+      "identity": {
+        "businessName": "QA Preview rose quartz",
+        "repName": "Preview",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "QA Preview rose quartz hosts live jewelry reveals.",
+        "heroLine": "",
+        "identity": "Preview is the rep for QA Preview rose quartz.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " First name Last name Email Continue → QA Preview rose quartz Preview theme verification Preview is the rep for QA Preview rose quartz."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    },
+    {
+      "slug": "milehighfizz",
+      "theme": "halloween_pumpkin_witch",
+      "fixture": false,
+      "extra": true,
+      "status": 200,
+      "rawBytes": 99692,
+      "brotliEstimateBytes": 18807,
+      "inlineStyleBytes": 54122,
+      "cacheControl": "no-store",
+      "serverRendered": true,
+      "h1": [
+        "Mile High Fizz"
+      ],
+      "identity": {
+        "businessName": "Mile High Fizz",
+        "repName": "Lindsey",
+        "location": "",
+        "place": "",
+        "showSchedule": "",
+        "intro": "Mile High Fizz hosts live jewelry reveals.",
+        "heroLine": "Revealing something magical together.",
+        "identity": "Lindsey is the rep for Mile High Fizz.",
+        "customHeadline": ""
+      },
+      "repSentences": [
+        " Proud member of the The Virtuous Fizzers team Lindsey is the rep for Mile High Fizz."
+      ],
+      "hasUTC": false,
+      "embeddedFont": false,
+      "runtimeDev": false,
+      "publicLocationPresent": true,
+      "pass": true
+    }
+  ],
+  "cacheableAssets": [
+    {
+      "path": "/amethyst/delivery/tokens.b0f338f6fae4de5b.css",
+      "status": 200,
+      "type": "text/css; charset=utf-8",
+      "cacheControl": "public, max-age=31536000, immutable"
+    },
+    {
+      "path": "/amethyst/skins/sunset-beach/hero-first-paint.avif",
+      "status": 200,
+      "type": "image/avif",
+      "cacheControl": "public, max-age=0, must-revalidate"
+    },
+    {
+      "path": "/amethyst/fonts/5a621c5598a31392.woff2",
+      "status": 200,
+      "type": "font/woff2",
+      "cacheControl": "public, max-age=31536000, immutable"
+    }
+  ],
+  "landingPicture": {
+    "status": 200,
+    "type": "image/webp",
+    "bytes": 105780,
+    "matchesRepository": true
+  },
+  "pass": true
+}

@@ -1,3 +1,10 @@
+## October 26, 2026 — Pass 3 behavior and release gate
+
+- Legacy saved Still/none is intentionally overridden for default theme autoplay without rewriting rep records. Respect browser reduced motion. The three existing audio themes try audible playback, fall back to muted motion when blocked and retry on a first gesture unless the visitor explicitly mutes/pauses.
+- Measure real rep routes, not theme previews. Preserve slow outliers alongside five-run medians. A safe SSR fallback is not proof of acceptable fallback performance.
+- Keep lab environments explicit: isolated Linux Lighthouse simulation, Windows actual-throttle filmstrips and software-rendering interaction checks are separate evidence. A passing simulated median does not erase a slow first-paint or tap observation. A DOM SSR marker read after Lighthouse's back/forward-cache navigation audit is not a reliable measured-response fallback detector; use response HTML and retained-node checks.
+- There is no implemented demo-only Live gate for this shared renderer. A global promotion is not a demo canary. Implement the gate before following Louis’s demo-first Live release rule; Rocky review and Louis’s named Live approval remain mandatory.
+
 ## October 25, 2026 - Neon Rabbit Production Quality Standard and preview boundary
 
 - Louis's Production Quality Standard applies to all work. Flag quality gaps, meet speed/interaction/layout gates, preserve behavior, use production builds, protect data, and require automated plus per-theme visual checks. Every PR documents risks, proof and exact rollback. Rocky reviews Live changes; Louis approves Live by name. Release Smoke -> Louis's Live demo -> all reps, then recheck within 15 minutes and roll back first on a fault.

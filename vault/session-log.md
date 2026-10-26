@@ -1,3 +1,8 @@
+## October 26, 2026 — Hero autoplay pass 3
+
+- Continued PR #156 on the same branch, with separate commits for each correction. Restored server SEO assertions, isolated SSR failures to a 200 client fallback, fixed Witch hydration/ticker timezone/delivery, and found real-route social-embed and Gnome image costs missed by theme previews. Current proof and limitations are recorded in [the pass 3 report](../docs/sparkle-suite/operations/2026-10-26-hero-autoplay-pass3.md). Preview review only.
+- Completed 240 Lighthouse measurements, 48 Windows browser checks and 48 supplemental Linux checks on the immutable preview; visually inspected all 48 Windows filmstrips. Phone/desktop Lighthouse median LCP ranges are 1.071–2.297s / 0.377–0.614s. Windows hydration passes 48/48; combined controls/tap passes 47/48 (Neon phone 208ms). Full-suite comparison is 5,674 passed/50 existing failed/four skipped versus base 5,579/65/four with one unfinished; no new failing assertion identities, but both have two import errors. Focused 217 and isolated QR 42/42 pass. Evidence explicitly preserves slow startup and tap failures, GA timing, unverified TikTok playback and the missing demo Live gate. All temporary test VMs stopped after evidence downloads. All Live/Smoke aliases read back unchanged. Actual Open Brain capture of this handoff succeeded; this vault entry is the complementary local record.
+
 ## October 25, 2026 - Hero autoplay second quality pass
 
 - Continued PR #156 on its existing branch; optimized responsive art/fonts, hydration, and real rep-route loading. Preview only, no alias changes. Five-run timing evidence covers all 23 themes; real Fizz Festival saved-Still fixtures pass. See [session evidence and limitations](2026-10-25-hero-preview-pass2.md).

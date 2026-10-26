@@ -1,3 +1,12 @@
+## October 26, 2026 — PR #156 pass 3 review boundary
+
+- [x] Full isolated QR/flyer matrix completed: all 42 tests pass, including JPEG recompression decoding. This supersedes the unfinished QR note below.
+- [x] Complete the 240-sample real-route Lighthouse table and inspect all 48 Windows first-paint filmstrips. All 48 Windows server-node retention/hydration checks pass.
+- [ ] Resolve Neon phone tap latency, slow actual-throttle startup observations, earlier short-visit analytics and external TikTok playback verification. Supplemental Linux software-rendering tap failures are also documented.
+- [ ] Suite, Beacon and Rocky preview review. No Smoke or Live permission is implied.
+- [ ] Existing 50 test failures and two import failures still prevent a production-quality claim; there are no new failing assertion identities after focused rechecks.
+- [ ] Implement a real demo-only Live gate before any future Live release. See [the rollback and 15-minute recheck procedure](../docs/sparkle-suite/operations/2026-10-26-pr156-release-rollback.md). These are session notes, not a replacement for the Control Center Task List.
+
 ## October 25, 2026 - PR #156 remains a preview review
 
 - [ ] Suite, Beacon and Rocky review the protected preview before any Smoke release. Live remains pinned; Louis must approve Live by name.
