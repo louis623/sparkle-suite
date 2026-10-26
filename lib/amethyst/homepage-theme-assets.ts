@@ -101,12 +101,23 @@ export async function inlineHomepageFonts(html: string, stacks: string[], headin
   const manifest = fontManifest as Record<string, {css: string; file: string; inline: boolean}[]>
   type Fallback = {fallbackFont:string;ascentOverride:string;descentOverride:string;lineGapOverride:string;sizeAdjust:string;weight?:number}
   const fallbacks = fontFallbacks as Record<string, Fallback | Fallback[]>
-  const selected = families.flatMap(family => manifest[family] ?? [])
+  // Provider CSS can contain companion families. Keep only the requested family
+  // so its preload cannot accidentally choose a companion at the same weight.
+  const familyFaces = (family: string) => (manifest[family] ?? []).filter(face =>
+    face.css.match(/font-family:\s*['"]?([^;'"\n]+)/i)?.[1].trim().toLowerCase() === family)
+  const selected = families.flatMap(familyFaces)
   const faces = selected.map(face => face.css).join('\n')
   const hostedFaces = families.flatMap((family, index) => {
     const weight = index === 0 ? headingWeight : 400
-    const candidates = (manifest[family] ?? []).filter(face => !face.file).map(face => ({face, weight: Number(face.css.match(/font-weight:\s*(\d+)/)?.[1])}))
-    const selected = candidates.sort((a,b) => Math.abs(a.weight-weight)-Math.abs(b.weight-weight))[0]?.face
+    const candidates = familyFaces(family).filter(face => !face.file && !/font-style:\s*italic/.test(face.css)).map(face => ({face, weight: Number(face.css.match(/font-weight:\s*(\d+)/)?.[1])}))
+    // CSS matching prefers heavier faces for a request above 500 (600 -> 700,
+    // not 500). Absolute-distance sorting selects the wrong file at a tie.
+    const rank = (candidate: number) => weight > 500
+      ? candidate >= weight ? candidate - weight : 1000 + weight - candidate
+      : weight >= 400
+        ? candidate >= weight && candidate <= 500 ? candidate - weight : candidate < weight ? 1000 + weight - candidate : 2000 + candidate - 500
+        : candidate <= weight ? weight - candidate : 1000 + candidate - weight
+    const selected = candidates.sort((a,b) => rank(a.weight)-rank(b.weight))[0]?.face
     return selected?.css.match(/https:\/\/cdn\.fontshare\.com\/[^'" )]+/)?.[0] ?? []
   })
   const preloadUrls = [...new Set([...selected.filter(face => face.inline).map(face => '/amethyst/fonts/' + face.file), ...hostedFaces])]
