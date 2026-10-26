@@ -57,12 +57,12 @@ export function signupDiscountCopyFeedback(outcome: SignupDiscountCopyOutcome) {
 }
 
 type DiscountDocument = {
-  createRange?: () => { selectNodeContents: (node: unknown) => void }
+  createRange?: () => Range
 }
 
 type DiscountSelection = {
   removeAllRanges: () => void
-  addRange: (range: unknown) => void
+  addRange: (range: Range) => void
 }
 
 type DiscountView = {
@@ -78,7 +78,7 @@ export function selectSignupDiscountCode(
   const selection = view?.getSelection?.()
   if (!selection) return false
   const range = doc.createRange()
-  range.selectNodeContents(codeElement)
+  range.selectNodeContents(codeElement as Node)
   selection.removeAllRanges()
   selection.addRange(range)
   const focusable = codeElement as { focus?: (options?: { preventScroll?: boolean }) => void }
