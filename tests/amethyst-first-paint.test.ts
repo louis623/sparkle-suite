@@ -64,3 +64,12 @@ it('ships a single accessible announcement before hydration', async () => {
   expect(body.match(/One announcement proof/g)).toHaveLength(1)
   expect(body).not.toContain('class="hp-ticker-sr"')
 })
+
+it('keeps font binaries and full CSS in cacheable hashed files', async () => {
+  const result = await renderHomepageFirstPaint(html, { appearancePreset: 'sunset_beach', homepage: defaultAmethystHomepageTemplateData, trade: defaultAmethystTradeTemplateData, join: defaultAmethystJoinTemplateData }, new URL('https://example.com/rep'))
+  expect(result).not.toContain('data:font/woff2;base64')
+  expect(result).not.toContain('data-stylesheet=')
+  expect(result).toMatch(/href="\/amethyst\/delivery\/homepage\.[a-f0-9]{16}\.css"/)
+  expect(result).toContain('data-critical-homepage')
+  expect(Buffer.byteLength(result)).toBeLessThan(100_000)
+})

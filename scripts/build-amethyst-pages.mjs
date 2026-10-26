@@ -1,3 +1,4 @@
+import './build-homepage-styles.mjs';
 import { buildSync } from 'esbuild';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
