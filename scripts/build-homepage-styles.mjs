@@ -17,8 +17,8 @@ for (const name of names) {
     const variable = `--ss-hero-image-${index}`;
     css = css.replace(pattern, `var(${variable})`);
     desktop += `${variable}:url('${sizes['1440'].url}');`;
-    phone += `${variable}:url('${sizes['720'].url}');`;
-    if(sizes['360']) narrowPhone += `${variable}:image-set(url('${sizes['360'].url}') 1x,url('${sizes['720'].url}') 2x);`;
+    phone += sizes['360'] ? `${variable}:image-set(url('${sizes['720'].url}') 1x,url('${sizes['1440'].url}') 2x);` : `${variable}:url('${sizes['720'].url}');`;
+    if(sizes['360']) narrowPhone += `${variable}:image-set(url('${sizes['360'].url}') 1x,url('${sizes['720'].url}') 2x,url('${sizes['1440'].url}') 3x);`;
   }
   css += `:root{${desktop}}@media(max-width:600px){:root{${phone}}}`;
   if(narrowPhone) css += `@media(max-width:400px){:root{${narrowPhone}}}`;

@@ -885,7 +885,7 @@ function HeroFirstPaintArt({ preset }) {
           srcSet: [720,1200,1672].map(w => '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-' + w + '.webp ' + w + 'w').join(', '),
           sizes: '(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw',
         } : preset === 'gilded_autumn' ? {
-          srcSet: '/amethyst/skins/gilded-autumn/hero-poster-delivery-720.webp 720w, /amethyst/skins/gilded-autumn/hero-poster-delivery-1440.webp 1440w', sizes: '100vw',
+          srcSet: '/amethyst/skins/gilded-autumn/hero-poster-delivery-360.webp 360w, /amethyst/skins/gilded-autumn/hero-poster-delivery-720.webp 720w, /amethyst/skins/gilded-autumn/hero-poster-delivery-1440.webp 1440w', sizes: '(max-width:400px) 360px, 100vw',
         } : {})} decoding="async" fetchpriority="high" />
     </div>
   </>;

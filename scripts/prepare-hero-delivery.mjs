@@ -13,7 +13,7 @@ for(const source of sources){
   const sourcePath='public/amethyst/skins/'+source;
   const stem=source.replace('.webp','');
   const sizes={};
-  for(const width of source.startsWith('gnome-garden/') ? [360,720,1440] : [720,1440]){
+  for(const width of [360,720,1440]){
     const target=stem+`-delivery-${width}.webp`;
     const result=await sharp(sourcePath).resize({width,withoutEnlargement:true}).webp({quality:width===360?68:width===720?64:72}).toFile('public/amethyst/skins/'+target);
     sizes[width]={url:'/amethyst/skins/'+target,bytes:result.size};
@@ -21,4 +21,4 @@ for(const source of sources){
   manifest['/amethyst/skins/'+source]=sizes;
 }
 await writeFile('public/amethyst/hero-delivery.json',JSON.stringify(manifest,null,2)+'\n');
-await writeFile('public/amethyst/hero-delivery.js', `// Generated from approved scene art by prepare-hero-delivery.mjs.\n(function(){const images=${JSON.stringify(manifest)};window.sparkleHeroPoster=function(image,source){const sizes=images[source];if(sizes){image.srcset=sizes[720].url+' 720w, '+sizes[1440].url+' 1440w';image.sizes='100vw';image.src=sizes[1440].url;}else image.src=source;};})();\n`);
+await writeFile('public/amethyst/hero-delivery.js', `// Generated from approved scene art by prepare-hero-delivery.mjs.\n(function(){const images=${JSON.stringify(manifest)};window.sparkleHeroPoster=function(image,source){const sizes=images[source];if(sizes){image.srcset=(sizes[360]?sizes[360].url+' 360w, ':'')+sizes[720].url+' 720w, '+sizes[1440].url+' 1440w';image.sizes=sizes[360]?'(max-width:400px) 360px, 100vw':'100vw';image.src=sizes[1440].url;}else image.src=source;};})();\n`);
