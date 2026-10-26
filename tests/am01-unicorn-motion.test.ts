@@ -61,6 +61,14 @@ describe('AM-01 visitor motion and sound controls', () => {
     h.motion.dispatchEvent(new Event('click'));await settle()
     expect(h.video.currentTime).toBe(0);expect(h.video.paused).toBe(false)
   })
+  it('does not reload the poster on mute or pause taps', async () => {
+    const h=harness();h.visible(true);await settle()
+    const writes=vi.spyOn(h.poster, 'setAttribute')
+    h.sound.dispatchEvent(new Event('click'));await settle()
+    h.motion.dispatchEvent(new Event('click'));await settle()
+    expect(writes).not.toHaveBeenCalled()
+    expect(h.video).toMatchObject({muted:true,paused:true})
+  })
   it('mutes immediately, preserves mute through replay and re-enables sound with its fade', async () => {
     const h=harness();h.visible(true);await settle();h.video.currentTime=8
     expect(h.sound.getAttribute('aria-label')).toBe('Mute sound')

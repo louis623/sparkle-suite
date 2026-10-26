@@ -29,17 +29,20 @@
     let cancelAudioRetry = () => {};
     let showFinalPoster = !wanted;
     const canPlay = () => !disposed && wanted && visible && !document.hidden && !failed && !finished;
+    function text(node, value) { if (node.textContent !== value) node.textContent = value; }
+    function attribute(node, name, value) { if (node.getAttribute(name) !== value) node.setAttribute(name, value); }
     function update(forcePlay = false) {
       if (disposed) return;
-      motion.textContent = finished ? 'Play again' : wanted ? 'Pause animation' : 'Play animation';
-      motion.setAttribute('aria-pressed', String(wanted && !finished));
-      sound.textContent = audioBlocked && soundEnabled ? 'Enable sound' : video.muted ? 'Sound off' : 'Mute sound';
-      sound.setAttribute('aria-label', audioBlocked && soundEnabled ? 'Enable sound' : video.muted ? 'Play with sound' : 'Mute sound');
-      sound.setAttribute('aria-pressed', String(!video.muted));
+      text(motion, finished ? 'Play again' : wanted ? 'Pause animation' : 'Play animation');
+      attribute(motion, 'aria-pressed', String(wanted && !finished));
+      text(sound, audioBlocked && soundEnabled ? 'Enable sound' : video.muted ? 'Sound off' : 'Mute sound');
+      attribute(sound, 'aria-label', audioBlocked && soundEnabled ? 'Enable sound' : video.muted ? 'Play with sound' : 'Mute sound');
+      attribute(sound, 'aria-pressed', String(!video.muted));
       controls.hidden = failed;
-      poster.src = assets + (showFinalPoster || failed ? 'hero-poster.webp' : 'opening-poster.webp');
+      // A mute/pause tap must not restart image loading or invalidate its decoded surface.
+      attribute(poster, 'src', assets + (showFinalPoster || failed ? 'hero-poster.webp' : 'opening-poster.webp'));
       if (showFinalPoster || failed) media.removeAttribute('data-video');
-      hero.setAttribute('data-unicorn-motion', canPlay() ? 'playing' : 'paused');
+      attribute(hero, 'data-unicorn-motion', canPlay() ? 'playing' : 'paused');
       if (!canPlay()) { video.pause(); return; }
       if (!video.hasAttribute('src')) video.src = assets + 'hero-motion.mp4';
       if ((pending || !video.paused) && forcePlay !== true) return;
