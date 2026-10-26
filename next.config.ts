@@ -59,7 +59,7 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      ...['/amethyst/delivery/:path*', '/amethyst/fonts/:path*'].map(source => ({
+      ...['/amethyst/delivery/:path*', '/amethyst/fonts/:path*', '/amethyst/analytics-worker/:version/:path*'].map(source => ({
         source,
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       })),

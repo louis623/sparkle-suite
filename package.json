@@ -80,6 +80,7 @@
     "@ai-sdk/openai": "^3.0.106",
     "@ai-sdk/react": "^3.0.170",
     "@modelcontextprotocol/server": "^2.0.0",
+    "@qwik.dev/partytown": "1.0.2",
     "@resvg/resvg-js": "^2.6.2",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.100.1",

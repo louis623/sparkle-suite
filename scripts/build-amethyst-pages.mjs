@@ -1,4 +1,5 @@
 import './build-homepage-styles.mjs';
+import './build-amethyst-analytics.mjs';
 import { buildSync } from 'esbuild';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';

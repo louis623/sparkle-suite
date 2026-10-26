@@ -62,7 +62,7 @@ describe('rep GA4 tag', () => {
     }
     context.window = context
     runInNewContext(buildRepGa4Snippet({ measurementId: REP_A_MEASUREMENT, shopHref: 'https://shop.bombparty.com/bling' })
-      .replace(/^<script[^>]*>/, '').replace(/<\/script>$/, ''), context)
+      .match(/<script id="sparkle-rep-ga4">([\s\S]*?)<\/script>/)![1], context)
     expect(Array.from(context.dataLayer[0]).slice(0, 2)).toEqual(['consent', 'default'])
     expect(Array.from(context.dataLayer[2])).toEqual(['config', REP_A_MEASUREMENT])
     listeners.click({ target: { closest: () => ({ href: 'https://shop.bombparty.com/bling' }) } })

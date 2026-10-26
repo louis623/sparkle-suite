@@ -1,4 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { partytownSnippet } from '@qwik.dev/partytown/integration'
+import analyticsWorker from '../../public/amethyst/analytics-worker/manifest.json'
 import {
   isAmethystPlatformHost,
   normalizeAmethystHost,
@@ -120,9 +122,15 @@ export function buildRepGa4Snippet(args: {
   if (!GA4_MEASUREMENT_ID_PATTERN.test(args.measurementId)) return ''
   const measurementId = args.measurementId
   const shopHref = safeShopHref(args.shopHref)
+  const workerBootstrap = partytownSnippet({ lib: analyticsWorker.lib, forward: ['dataLayer.push'] }).replace(/<\/script/gi, '<\\/script')
   return `<script id="sparkle-rep-ga4">
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
+// Keep analytics computation off the input/rendering thread on real pages.
+// Embedded/unsupported contexts retain the existing main-thread loader.
+var sparkleGaWorker = window.top === window && typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
+if (sparkleGaWorker) { ${workerBootstrap} }
+if (!sparkleGaWorker) {
 gtag('consent', 'default', {
   ad_storage: 'denied',
   ad_user_data: 'denied',
@@ -131,6 +139,7 @@ gtag('consent', 'default', {
 });
 gtag('js', new Date());
 gtag('config', ${JSON.stringify(measurementId)});
+}
 document.addEventListener('click', function (event) {
   var node = event.target;
   var link = node && node.closest ? node.closest('a') : null;
@@ -148,6 +157,7 @@ document.addEventListener('click', function (event) {
 // Load automatically as soon as the hero paints, including short visits.
 // Never wait for a click, idle time, or a fixed multi-second delay.
 (function () {
+  if (sparkleGaWorker) return;
   var src = 'https://www.googletagmanager.com/gtag/js?id=${measurementId}';
   var started = false;
   function start() {
@@ -182,6 +192,12 @@ document.addEventListener('click', function (event) {
   document.addEventListener('visibilitychange', function () { if (document.hidden) start(); });
   window.addEventListener('pagehide', start, { once: true });
 })();
+</script><script type="text/partytown" src="https://www.googletagmanager.com/gtag/js?id=${measurementId}"></script><script type="text/partytown">
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'granted' });
+gtag('js', new Date());
+gtag('config', ${JSON.stringify(measurementId)});
 </script>`
 }
 
