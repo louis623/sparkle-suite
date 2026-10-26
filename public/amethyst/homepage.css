@@ -426,7 +426,7 @@ body.bling-kitchen {
   font-weight: 900;
 }
 
-.bk-home-hero-content h1,
+.bk-home-hero-content #bk-home-hero-title,
 .bk-home-pantry-callout h2 {
   margin: 0;
   font-family: "Playfair Display", Georgia, serif;
@@ -604,7 +604,7 @@ body.bling-kitchen .bk-home-pantry-callout p {
   color: #f5d28b;
 }
 
-body.bling-kitchen .bk-home-hero-content h1 {
+body.bling-kitchen .bk-home-hero-content #bk-home-hero-title {
   text-shadow: 0 8px 30px rgba(0, 0, 0, 0.34);
 }
 

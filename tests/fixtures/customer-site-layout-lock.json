@@ -4,7 +4,7 @@
   "locks": [
     {
       "path": "public/amethyst/homepage.css",
-      "sha256": "2682b450b9fb7112a9b9ed5c8a14241d9a3361a759d0f463b9a78e56e3903b30"
+      "sha256": "c26d122c51c874ab408fa1a2163669d4033f4ff7c83701cc659b76b379212df0"
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
@@ -69,5 +69,9 @@
   "approvedTickerChange": {
     "date": "2026-10-26",
     "approval": "Louis requested removal of duplicate ticker text from server HTML in PR #156 pass 3. Render one visible accessible copy before hydration; decorative infinite-loop copies mount afterwards. Existing two-row layout and speeds remain."
+  },
+  "approvedHeroTitleChange": {
+    "date": "2026-10-26",
+    "approval": "Louis explicitly requested PR #156 pass 4 item 4: retain Bling Kitchen H2 elements and retarget their existing H1 CSS selectors to bkf-hero-title and bk-home-hero-title, restoring existing typography without other layout changes."
   }
 }
