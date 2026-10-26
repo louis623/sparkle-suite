@@ -9,7 +9,7 @@
     const host=hero.querySelector('.hp-hero-media');if(!host)return null;
     const previousHidden=host.getAttribute('aria-hidden');host.removeAttribute('aria-hidden');
     const media=document.createElement('div');media.className='tg-media';media.setAttribute('aria-hidden','true');
-    const poster=document.createElement('img');poster.className='tg-poster';if(window.sparkleHeroPoster)window.sparkleHeroPoster(poster,assets+'hero-poster'+revision+'.webp');else poster.src=assets+'hero-poster'+revision+'.webp';poster.alt='';
+    const poster=document.createElement('img');poster.className='tg-poster';if(globalThis.sparkleHeroPoster)globalThis.sparkleHeroPoster(poster,assets+'hero-poster'+revision+'.webp');else poster.src=assets+'hero-poster'+revision+'.webp';poster.alt='';
     const video=document.createElement('video');video.className='tg-video';video.muted=true;video.playsInline=true;video.loop=true;video.preload='none';video.tabIndex=-1;video.setAttribute('aria-hidden','true');
     media.append(poster,video);host.prepend(media);
     const control=document.createElement('button');control.type='button';control.className='tg-toggle';host.append(control);

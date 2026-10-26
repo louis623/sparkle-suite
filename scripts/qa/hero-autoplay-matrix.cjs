@@ -65,6 +65,15 @@ fs.mkdirSync(output, {recursive:true});
         const videos=[...document.querySelectorAll('.hp-hero video')];
         return videos.length ? videos.some(v=>v.currentTime>.4 || v.ended) : document.getAnimations().some(a=>a.playState==='running' && a.effect?.target?.closest?.('.hp-hero'));
       },null,{timeout:45000});
+      if(audioThemes.has(theme)) {
+        result.beforeFirstTap=await frame.evaluate(()=>({plays:window.__heroQA.plays,videos:[...document.querySelectorAll('.hp-hero video')].map(v=>({muted:v.muted,paused:v.paused,ended:v.ended}))}));
+        if(result.beforeFirstTap.videos.some(v=>v.muted&&!v.paused&&!v.ended)) {
+          const heading=frame.locator('.hp-hero h1').first();
+          if(mode==='phone')await heading.tap();else await heading.click();
+          await frame.waitForFunction(()=>[...document.querySelectorAll('.hp-hero video')].some(v=>!v.muted&&!v.paused),null,{timeout:5000});
+          result.firstTapSound=true;
+        } else result.firstTapSound=result.beforeFirstTap.videos.some(v=>!v.muted&&!v.paused);
+      }
       // Let first-paint artwork/fonts settle before interaction ends LCP collection.
       await page.waitForTimeout(mode==='phone'?6000:1500);
       const sample = () => frame.evaluate(() => ({
@@ -105,6 +114,7 @@ fs.mkdirSync(output, {recursive:true});
       result.progressed=result.progress.videos.some((v,i)=>v.ended||v.time!==result.initial.videos[i]?.time) || result.progress.animations.some((a,i)=>a.state==='running'&&a.time!==result.initial.animations[i]?.time);
       result.pass &&= result.progressed;
       if(audioThemes.has(theme))result.pass &&= result.initial.plays.some(p=>p.muted===false) && result.soundEnabled.videos.some(v=>!v.muted&&!v.paused) && result.muted.videos.every(v=>v.muted);
+      if(audioThemes.has(theme))result.pass &&= result.firstTapSound===true;
       if(result.paused?.videos.length) result.pass &&= result.paused.videos.every(v=>v.paused) && result.resumed.videos.some((v,i)=>!v.paused||(v.ended&&v.time>result.paused.videos[i].time));
       if(result.paused && !result.paused.videos.length) result.pass &&= result.paused.animations.every(a=>a.state!=='running') && result.resumed.animations.some(a=>a.state==='running');
       const interactions=(result.resumed||result.muted||result.progress).interactions;

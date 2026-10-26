@@ -59,7 +59,7 @@
           audioBlocked = soundEnabled;
           video.muted = true;
           cancelAudioRetry();
-          cancelAudioRetry = window.sparkleHeroAudioFallback?.(video, controls, canPlay, () => { audioBlocked = false; update(); }) || (() => {});
+          cancelAudioRetry = globalThis.sparkleHeroAudioFallback?.(video, controls, canPlay, () => { audioBlocked = false; update(); }) || (() => {});
         } else if (error.name !== 'AbortError') { wanted = false; showFinalPoster = true; }
         update();
       });

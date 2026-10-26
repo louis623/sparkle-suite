@@ -31,7 +31,7 @@ describe('Amethyst homepage template data wiring', () => {
       expect(source).not.toContain('Update delayed')
       expect(source).toContain('className="hp-trade-preview-updated"')
       expect(source).toContain('Updating · Last update ')
-      expect(source).toContain('new Date(updatedAt).toLocaleTimeString')
+      expect(source).toMatch(/homepageDateLabel\(updatedAt, \{ hour:|new Date\(updatedAt\)\.toLocaleTimeString/)
       expect(source).toMatch(
         /className="hp-trade-preview-items"[\s\S]*?className="hp-trade-preview-link"[\s\S]*?<LiveLineupUpdatedAt lineup=\{lineup\} \/>/,
       )
@@ -1006,7 +1006,8 @@ describe('Amethyst homepage template data wiring', () => {
     )
 
     expect(jsx).toContain('function SparkleFx({ level, motion })')
-    expect(jsx).toContain('<div className="hp-hero-media" aria-hidden="true" />')
+    expect(jsx).toContain('<div className="hp-hero-media" aria-hidden="true">')
+    expect(jsx).toContain('data-first-paint-video="true" style={{ opacity: 1 }}')
     expect(jsx).not.toContain('className="hp-hero-eyebrow"')
     expect(jsx).not.toContain('Live schedule coming soon')
     expect(jsx).not.toContain('data-slot="hero photo"')
@@ -1225,7 +1226,7 @@ describe('Amethyst homepage template data wiring', () => {
 
     expect(jsx).toContain('window.AMETHYST_HOMEPAGE_EVENTS')
     expect(jsx).toContain('Intl.DateTimeFormat')
-    expect(jsx).toContain('Intl.DateTimeFormat(undefined')
+    expect(jsx).toContain('Intl.DateTimeFormat(seed?.locale')
     expect(jsx).toContain('timeZoneName: "short"')
     expect(jsx).not.toContain('timeZone: "UTC"')
     expect(jsx).toContain('downloadCalendarEvent')

@@ -32,6 +32,7 @@ fs.mkdirSync(output,{recursive:true});
       await frame.locator('.hp-hero').waitFor({timeout:30000});
       await page.waitForTimeout(10000);
       const outerOrigin=await page.evaluate(()=>performance.timeOrigin);
+      result.navigation=await page.evaluate(()=>performance.getEntriesByType('navigation')[0]?.toJSON());
       Object.assign(result,await frame.evaluate(()=>({...window.__perf,timeOrigin:performance.timeOrigin,paint:performance.getEntriesByType('paint').map(e=>({name:e.name,at:e.startTime})),motion:document.querySelector('.hp-hero')?.dataset.heroMotion,videos:[...document.querySelectorAll('.hp-hero video')].map(v=>({time:v.currentTime,paused:v.paused,ended:v.ended,ready:v.readyState,muted:v.muted})),animations:document.getAnimations().filter(a=>a.effect?.target?.closest?.('.hp-hero')).map(a=>({state:a.playState,time:a.currentTime})),resources:performance.getEntriesByType('resource').map(e=>({url:e.name,bytes:e.transferSize,start:e.startTime,duration:e.duration}))})));
       result.navigationOffset=result.timeOrigin-outerOrigin;result.lcpNavigation=result.lcp+result.navigationOffset;
       result.productionRuntime=!resources.some(u=>/babel(?:\.min)?\.js|babel-standalone|react(?:-dom)?\.development/.test(u));

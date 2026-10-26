@@ -6,7 +6,7 @@
     const media = document.createElement('div');
     media.className = 'ga-art'; media.setAttribute('aria-hidden', 'true');
     const poster = document.createElement('img');
-    if (window.sparkleHeroPoster) window.sparkleHeroPoster(poster, assets + 'hero-poster.webp'); else poster.src = assets + 'hero-poster.webp'; poster.alt = ''; poster.width = 1204; poster.height = 764;
+    if (globalThis.sparkleHeroPoster) globalThis.sparkleHeroPoster(poster, assets + 'hero-poster.webp'); else poster.src = assets + 'hero-poster.webp'; poster.alt = ''; poster.width = 1204; poster.height = 764;
     const video = document.createElement('video');
     video.className = 'ga-video'; video.muted = true; video.playsInline = true; video.loop = true;
     video.preload = 'none'; video.tabIndex = -1; video.setAttribute('aria-hidden', 'true');

@@ -9,7 +9,7 @@
     const media = document.createElement('div');
     media.className = 'fow-media'; media.setAttribute('aria-hidden', 'true');
     const poster = document.createElement('img');
-    poster.className = 'fow-poster'; if (window.sparkleHeroPoster) window.sparkleHeroPoster(poster, assets + 'hero-poster.webp'); else poster.src = assets + 'hero-poster.webp';
+    poster.className = 'fow-poster'; if (globalThis.sparkleHeroPoster) globalThis.sparkleHeroPoster(poster, assets + 'hero-poster.webp'); else poster.src = assets + 'hero-poster.webp';
     poster.alt = ''; poster.width = 1280; poster.height = 720;
     const video = document.createElement('video');
     video.className = 'fow-video'; video.muted = false; video.playsInline = true; video.loop = true;
@@ -58,7 +58,7 @@
         if (error?.name === 'NotAllowedError' && !muted) {
           muted = true;
           cancelAudioRetry();
-          cancelAudioRetry = window.sparkleHeroAudioFallback?.(video, controls, shouldPlay, () => { muted = false; update(); }) || (() => {});
+          cancelAudioRetry = globalThis.sparkleHeroAudioFallback?.(video, controls, shouldPlay, () => { muted = false; update(); }) || (() => {});
           update(); return;
         }
         if (error?.name !== 'AbortError' || !interrupted) wanted = false;

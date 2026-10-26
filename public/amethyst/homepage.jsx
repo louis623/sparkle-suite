@@ -902,7 +902,7 @@ function Hero({ t, isLive, liveShow }) {
       <HeroFirstPaintArt preset={t.preset} />
       {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
       <div className="hp-hero-media" aria-hidden="true">
-        {t.preset === "sunset_beach" && <div className="beach-motion-layer" data-first-paint-video="true">
+        {t.preset === "sunset_beach" && <div className="beach-motion-layer" data-first-paint-video="true" style={{ opacity: 1 }}>
           <video poster="/amethyst/skins/sunset-beach/hero-poster-720.webp" width="1280" height="720" preload="none" playsInline tabIndex={-1} />
         </div>}
       </div>

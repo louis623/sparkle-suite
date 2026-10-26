@@ -7,7 +7,7 @@
     const media = document.createElement('div');
     media.className = 'rgc-media'; media.setAttribute('aria-hidden', 'true');
     const poster = document.createElement('img');
-    poster.className = 'rgc-poster'; if (window.sparkleHeroPoster) window.sparkleHeroPoster(poster, assets + 'hero-poster.webp'); else poster.src = assets + 'hero-poster.webp';
+    poster.className = 'rgc-poster'; if (globalThis.sparkleHeroPoster) globalThis.sparkleHeroPoster(poster, assets + 'hero-poster.webp'); else poster.src = assets + 'hero-poster.webp';
     poster.alt = ''; poster.width = 1280; poster.height = 720;
     const video = document.createElement('video');
     video.className = 'rgc-video'; video.muted = true; video.playsInline = true; video.loop = true;

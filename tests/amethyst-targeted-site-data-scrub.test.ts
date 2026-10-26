@@ -358,7 +358,8 @@ describe('targeted Amethyst customer sites', () => {
     )
     const html = await response.text()
 
-    expect(html).toContain('/api/amethyst/homepage-template?c=rep-clean')
+    expect(html).toContain('window.AMETHYST_HOMEPAGE_TEMPLATE_DATA =')
+    expect(html).toContain('data-server-rendered="true"')
     expect(html).toContain('Clean Smoke Sparkle | Live jewelry reveals and Dance Floor in Austin, Texas')
     expect(html).not.toContain("Jane's Sparkle Party")
     expect(html).not.toContain('repName":"Jane')

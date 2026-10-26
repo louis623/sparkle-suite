@@ -437,6 +437,7 @@ export const SKIN_PREVIEW_GUARDS = `
     });
   }
   function inlineMediaIcons() {
+    if (window.SPARKLE_FIRST_PAINT) return;
     // An opaque sandbox cannot use the external same-origin SVG sprite. Clone
     // repository-owned glyph paths into each existing SVG, preserving its box.
     if (!document.getElementById('rgc-preview-media-symbols')) return;
@@ -454,6 +455,7 @@ export const SKIN_PREVIEW_GUARDS = `
     });
   }
   if (typeof MutationObserver !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', inlineMediaIcons, { once: true });
     new MutationObserver(function () { disableUploads(); inlineMediaIcons(); if (pendingFragment) scrollToFragment(pendingFragment); }).observe(document.getElementById('root'), { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
     disableUploads(); inlineMediaIcons();
   }
@@ -528,6 +530,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
     homepage: defaultAmethystHomepageTemplateData, trade: defaultAmethystTradeTemplateData,
     join: defaultAmethystJoinTemplateData, appearancePreset: skin,
   }, new URL(origin), bootstrap, { deferExternalScripts: false })
+  if (mediaSymbols) document = document.replace(/<use href="\/amethyst\/media-icons\.svg#([a-z][a-z0-9-]*)"><\/use>/g, '<use data-preview-icon="$1"></use>')
   return document.replaceAll('Sparkle by Sasha', profile.businessName)
 }
 

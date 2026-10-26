@@ -60,7 +60,7 @@
         if (error?.name === 'NotAllowedError' && !video.muted) {
           video.muted = true;
           cancelAudioRetry();
-          cancelAudioRetry = window.sparkleHeroAudioFallback?.(video, controls, shouldPlay, labels) || (() => {});
+          cancelAudioRetry = globalThis.sparkleHeroAudioFallback?.(video, controls, shouldPlay, labels) || (() => {});
           try { if (shouldPlay()) await video.play(); } catch { wanted = false; }
         } else if (error?.name !== 'AbortError') wanted = false;
       } finally { pending = false; }
