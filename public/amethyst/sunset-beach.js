@@ -20,16 +20,18 @@
     });
   }
   function mount(hero) {
-    const layer = document.createElement('div');
+    const layer = hero.querySelector('[data-first-paint-video]') || document.createElement('div');
     layer.className = 'beach-motion-layer'; layer.setAttribute('aria-hidden', 'true');
-    const video = document.createElement('video');
+    const video = layer.querySelector('video') || document.createElement('video');
     video.muted = false; video.defaultMuted = false; video.loop = true; video.playsInline = true;
-    video.preload = 'none'; video.volume = .35; video.tabIndex = -1; video.poster = assets + 'hero-poster.webp';
+    video.preload = 'none'; video.volume = .35; video.tabIndex = -1;
+    video.poster = assets + (matchMedia('(max-width:600px)').matches ? 'hero-poster-720.webp' : 'hero-poster.webp');
     layer.append(video); hero.querySelector('.hp-hero-media').append(layer);
     const controls = document.createElement('div'); controls.className = 'beach-motion-controls';
     const motion = document.createElement('button'), sound = document.createElement('button');
     motion.type = sound.type = 'button'; controls.append(motion, sound); hero.append(controls);
     let wanted = !reduced.matches, visible = false, failed = false, disposed = false, pending = false;
+    let cancelAudioRetry = () => {};
     const allowed = () => !disposed && !failed && hero.dataset.heroMotion !== 'off';
     const shouldPlay = () => allowed() && wanted && visible && !document.hidden;
     function labels() {
@@ -57,14 +59,16 @@
         if (disposed) return;
         if (error?.name === 'NotAllowedError' && !video.muted) {
           video.muted = true;
+          cancelAudioRetry();
+          cancelAudioRetry = window.sparkleHeroAudioFallback?.(video, controls, shouldPlay, labels) || (() => {});
           try { if (shouldPlay()) await video.play(); } catch { wanted = false; }
         } else if (error?.name !== 'AbortError') wanted = false;
       } finally { pending = false; }
       if (!shouldPlay()) video.pause();
       labels();
     }
-    function toggle() { wanted = !wanted; sync(); }
-    function toggleSound() { video.muted = !video.muted; if (!video.muted) wanted = true; sync(); labels(); }
+    function toggle() { cancelAudioRetry(); wanted = !wanted; sync(); }
+    function toggleSound() { cancelAudioRetry(); video.muted = !video.muted; if (!video.muted) wanted = true; sync(); labels(); }
     function playing() { if (!shouldPlay()) video.pause(); else layer.dataset.playing = 'true'; labels(); }
     function error() { if (!video.hasAttribute('src') || disposed) return; failed = true; sync(); }
     function preference() { wanted = !reduced.matches; if (!wanted) release(); sync(); }
@@ -74,7 +78,7 @@
     const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; sync(); }, { threshold: .05 });
     intersection.observe(hero); labels();
     return { hero, sync, dispose() {
-      disposed = true; release(); intersection.disconnect();
+      disposed = true; cancelAudioRetry(); release(); intersection.disconnect();
       document.removeEventListener('visibilitychange', sync); reduced.removeEventListener('change', preference);
       motion.removeEventListener('click', toggle); sound.removeEventListener('click', toggleSound);
       video.removeEventListener('playing', playing); video.removeEventListener('pause', labels); video.removeEventListener('error', error);

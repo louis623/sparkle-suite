@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
       './public/amethyst/sparkle-suite-footer-credit.js',
       './public/amethyst/dance-floor-ticker-label.js',
       './public/amethyst/*.css',
+      './public/amethyst/fonts/*.woff2',
+      './public/amethyst/hero-audio.js',
+      './public/amethyst/hero-delivery.js',
       './public/amethyst/bling-kitchen/framed-hero.css',
     ],
     // Server-rendered email shells read with readFileSync (official notice + Weekly Fizz).

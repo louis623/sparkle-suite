@@ -1,5 +1,6 @@
 import { AMETHYST_APPEARANCE_PRESET_IDS, AMETHYST_APPEARANCE_PRESETS } from './appearance-presets'
 import { renderHomepageFirstPaint } from './homepage-first-paint'
+import { selectHomepageThemeAssets } from './homepage-theme-assets'
 import { buildLineupCalendar } from './lineup-calendar'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -477,10 +478,13 @@ export function skinPreviewMediaSource(skin: SkinPreviewSkin, origin: string) {
 export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string, review: LineupReviewState | null = null, bootstrapOverride?: string) {
   const root = join(process.cwd(), 'public', 'amethyst')
   let document = await readFile(join(root, FILES[page]), 'utf8')
+  // Filter while scripts are still external tags; inlining first used to send
+  // and execute every unrelated hero controller in each theme preview.
+  if (page === 'homepage') document = selectHomepageThemeAssets(document, skin)
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
   // Inline only allowlisted repository runtime files. The sandbox cannot fetch them.
   // Every customer page uses production React and precompiled classic scripts.
-  const runtimeNames = ['compiled/tweaks-panel.js', 'tweaks-panel.jsx', 'responsive-image.js', 'dance-floor-ticker-label.js', 'compiled/homepage.js', 'compiled/trade.js', 'compiled/unsubscribe.js', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'sunset-beach.js', 'rose-champagne.js', 'midnight-rose.js', 'fall-owl.js', 'thanksgiving-motion.js', 'pearl-rose.js', 'sparkle-suite-footer-credit.js']
+  const runtimeNames = ['hero-delivery.js', 'hero-audio.js', 'compiled/tweaks-panel.js', 'tweaks-panel.jsx', 'responsive-image.js', 'dance-floor-ticker-label.js', 'compiled/homepage.js', 'compiled/trade.js', 'compiled/unsubscribe.js', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'sunset-beach.js', 'rose-champagne.js', 'midnight-rose.js', 'fall-owl.js', 'thanksgiving-motion.js', 'pearl-rose.js', 'sparkle-suite-footer-credit.js']
   for (const name of runtimeNames) {
     const escaped = name.replace(/\./g, '\\.')
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')

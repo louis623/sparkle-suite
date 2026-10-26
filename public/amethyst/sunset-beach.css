@@ -82,7 +82,7 @@ body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-me
 body.bg-sunset-beach .jp-hero-media {
   background: radial-gradient(ellipse 62% 70% at 50% 48%, rgba(71, 28, 39, .45), rgba(71, 28, 39, .33) 48%, transparent 100%),
     linear-gradient(90deg, rgba(71, 28, 39, .18), rgba(71, 28, 39, .04)),
-    url('/amethyst/skins/sunset-beach/hero-approved.webp') center center / cover no-repeat;
+    url('/amethyst/skins/sunset-beach/hero-approved-1440.webp') center center / cover no-repeat;
   background-blend-mode: normal;
 }
 body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-headline {
@@ -256,17 +256,17 @@ body.bg-sunset-beach :is(.hp-step-num, .jp-benefit-icon, .hp-trade-preview-pill 
 /* Approved Sunset Beach palette; shared geometry and markup untouched. */
 body.bg-sunset-beach {--hp-primary:#843e57;--hp-accent:#286d68;--hp-gradient:linear-gradient(120deg,#843e57,#a14e61);}
 body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-media,
-body.bg-sunset-beach .jp-hero-media {background:radial-gradient(ellipse 52% 85% at 50% 48%,rgba(45,24,38,.52),rgba(45,24,38,.22) 65%,rgba(45,24,38,.04)),url('/amethyst/skins/sunset-beach/hero-approved.webp') center center / cover no-repeat;}
+body.bg-sunset-beach .jp-hero-media {background:radial-gradient(ellipse 52% 85% at 50% 48%,rgba(45,24,38,.52),rgba(45,24,38,.22) 65%,rgba(45,24,38,.04)),url('/amethyst/skins/sunset-beach/hero-approved-1440.webp') center center / cover no-repeat;}
 body.bg-sunset-beach :is(.hp-step-num,.jp-benefit-icon,.hp-trade-preview-pill .pos,.hp-queue-modal-row .pos){background:#d4e8df;color:#235b55;border-color:#9dc7b8;box-shadow:none;}
 body.bg-sunset-beach .hp-event-tag {background:#e5f0e9;color:#235b55;border-color:#a4c8bc;}
 @media(max-width:600px){
- body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-media{background:linear-gradient(180deg,transparent 0%,transparent 13%,rgba(255,245,238,.85) 29%,#fff5ee 42%),url('/amethyst/skins/sunset-beach/hero-approved-720.webp') center top / 100% auto no-repeat;background-color:#fff5ee;}
+ body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-media{background:linear-gradient(180deg,transparent 0%,transparent 13%,rgba(255,245,238,.85) 29%,#fff5ee 42%),url('/amethyst/skins/sunset-beach/hero-approved-720-v2.webp') center top / 100% auto no-repeat;background-color:#fff5ee;}
  body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-headline{color:#482d40;-webkit-text-fill-color:#482d40;text-shadow:0 1px 12px #fff5ee;}
  body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-sub{color:#482d40;text-shadow:none;}
  body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] :is(.hp-btn-outline,.hp-btn-watch){color:#482d40;border-color:#cfa99f;background:#fffcf8;}
 }
 
-.beach-motion-layer{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity .35s}
+.beach-motion-layer{position:absolute;inset:0;overflow:hidden;opacity:1}
 .beach-motion-layer[data-playing="true"]{opacity:1}
 .beach-motion-layer video{display:block;width:100%;height:100%;object-fit:cover}
 .beach-motion-layer:after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 52% 85% at 50% 48%,rgba(45,24,38,.52),rgba(45,24,38,.22) 65%,rgba(45,24,38,.04))}

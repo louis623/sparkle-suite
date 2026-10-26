@@ -5,7 +5,7 @@ import { createRequire } from 'node:module'
 import type * as ReactTypes from 'react'
 import type { AmethystPreviewTemplateData } from './preview-template-data'
 import { buildAmethystHomepageBootstrapScript } from './homepage-template-data'
-import { selectHomepageThemeAssets, inlineHomepageStyles } from './homepage-theme-assets'
+import { selectHomepageThemeAssets, inlineHomepageStyles, inlineHomepageFonts } from './homepage-theme-assets'
 
 const { React, renderToString } = createRequire(join(process.cwd(), 'package.json'))('./lib/amethyst/generated/homepage-server.cjs') as {
   React: typeof ReactTypes
@@ -37,17 +37,23 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   })
   new Script(bootstrap ?? buildAmethystHomepageBootstrapScript(data.homepage, [], data.appearancePreset, { targeted: true })).runInContext(context, { timeout: 1000 })
   for (const script of await runtimeScripts()) script.runInContext(context, { timeout: 1000 })
-  const markup = renderToString(element)
+  // React's server renderer emits resource hints ahead of the tree. Keep them
+  // in <head>, outside the node hydrated by the classic browser React runtime.
+  const rendered = renderToString(element)
+  const preloads = [...rendered.matchAll(/<link\b[^>]*rel="preload"[^>]*\/>/g)].map(match => match[0]).join('')
+  const markup = rendered.replace(/<link\b[^>]*rel="preload"[^>]*\/>/g, '')
   new Script('applyHomepageTheme(window.HOMEPAGE_TWEAK_DEFAULTS, document)').runInContext(context, { timeout: 1000 })
   const style = Array.from(properties, ([key, value]) => `${key}:${value}`).join(';')
   const preset = new Script('window.HOMEPAGE_TWEAK_DEFAULTS.preset').runInContext(context) as string
   const variant = new Script('window.AMETHYST_HOMEPAGE_TEMPLATE_DATA.publicSiteVariant').runInContext(context) as string | undefined
-  const themedHtml = await inlineHomepageStyles(selectHomepageThemeAssets(html, preset, variant, [properties.get('--hp-display-font') ?? '', properties.get('--hp-body-font') ?? '']))
+  const fonts = [properties.get('--hp-display-font') ?? '', properties.get('--hp-body-font') ?? '']
+  const themedHtml = await inlineHomepageFonts(await inlineHomepageStyles(selectHomepageThemeAssets(html, preset, variant, fonts)), fonts)
   const withBootstrap = bootstrap ? themedHtml.replace(/<script\b[^>]*data-template-src="[^"]+"[^>]*><\/script>/, () => `<script>${bootstrap.replace(/<\/script/gi, '<\\/script')}</script>`) : themedHtml
   // The complete bootstrap is already inline and independent of React. Fetch
   // classic dependencies in parallel; defer preserves their execution order.
   const withOrderedScripts = bootstrap && options.deferExternalScripts !== false ? withBootstrap.replace(/<script\s+src=/g, '<script defer src=') : withBootstrap
   return withOrderedScripts
+    .replace('</head>', preloads + '</head>')
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${attribute(style)}">`)
     .replace('<body class="homepage">', () => `<body class="${attribute(body.className)}">`)
     .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div>`)

@@ -1,0 +1,132 @@
+{
+  "/amethyst/skins/gilded-autumn/hero-poster.webp": {
+    "720": {
+      "url": "/amethyst/skins/gilded-autumn/hero-poster-delivery-720.webp",
+      "bytes": 32738
+    },
+    "1440": {
+      "url": "/amethyst/skins/gilded-autumn/hero-poster-delivery-1440.webp",
+      "bytes": 70298
+    }
+  },
+  "/amethyst/skins/gobble-and-fizz/hero-poster.webp": {
+    "720": {
+      "url": "/amethyst/skins/gobble-and-fizz/hero-poster-delivery-720.webp",
+      "bytes": 31626
+    },
+    "1440": {
+      "url": "/amethyst/skins/gobble-and-fizz/hero-poster-delivery-1440.webp",
+      "bytes": 74098
+    }
+  },
+  "/amethyst/skins/pie-please/hero-poster-v4.webp": {
+    "720": {
+      "url": "/amethyst/skins/pie-please/hero-poster-v4-delivery-720.webp",
+      "bytes": 29882
+    },
+    "1440": {
+      "url": "/amethyst/skins/pie-please/hero-poster-v4-delivery-1440.webp",
+      "bytes": 70438
+    }
+  },
+  "/amethyst/skins/pearl-rose/hero-poster.webp": {
+    "720": {
+      "url": "/amethyst/skins/pearl-rose/hero-poster-delivery-720.webp",
+      "bytes": 21154
+    },
+    "1440": {
+      "url": "/amethyst/skins/pearl-rose/hero-poster-delivery-1440.webp",
+      "bytes": 50450
+    }
+  },
+  "/amethyst/skins/fall-owl/hero-poster.webp": {
+    "720": {
+      "url": "/amethyst/skins/fall-owl/hero-poster-delivery-720.webp",
+      "bytes": 23532
+    },
+    "1440": {
+      "url": "/amethyst/skins/fall-owl/hero-poster-delivery-1440.webp",
+      "bytes": 55404
+    }
+  },
+  "/amethyst/skins/rose-champagne/hero-poster.webp": {
+    "720": {
+      "url": "/amethyst/skins/rose-champagne/hero-poster-delivery-720.webp",
+      "bytes": 17588
+    },
+    "1440": {
+      "url": "/amethyst/skins/rose-champagne/hero-poster-delivery-1440.webp",
+      "bytes": 40618
+    }
+  },
+  "/amethyst/skins/midnight-rose/hero-poster.webp": {
+    "720": {
+      "url": "/amethyst/skins/midnight-rose/hero-poster-delivery-720.webp",
+      "bytes": 16030
+    },
+    "1440": {
+      "url": "/amethyst/skins/midnight-rose/hero-poster-delivery-1440.webp",
+      "bytes": 38590
+    }
+  },
+  "/amethyst/skins/neon-butterfly/kelly-studio-desktop.webp": {
+    "720": {
+      "url": "/amethyst/skins/neon-butterfly/kelly-studio-desktop-delivery-720.webp",
+      "bytes": 25542
+    },
+    "1440": {
+      "url": "/amethyst/skins/neon-butterfly/kelly-studio-desktop-delivery-1440.webp",
+      "bytes": 70052
+    }
+  },
+  "/amethyst/skins/neon-butterfly/kelly-studio-mobile.webp": {
+    "720": {
+      "url": "/amethyst/skins/neon-butterfly/kelly-studio-mobile-delivery-720.webp",
+      "bytes": 46044
+    },
+    "1440": {
+      "url": "/amethyst/skins/neon-butterfly/kelly-studio-mobile-delivery-1440.webp",
+      "bytes": 72660
+    }
+  },
+  "/amethyst/skins/gnome-garden/forest.webp": {
+    "720": {
+      "url": "/amethyst/skins/gnome-garden/forest-delivery-720.webp",
+      "bytes": 33118
+    },
+    "1440": {
+      "url": "/amethyst/skins/gnome-garden/forest-delivery-1440.webp",
+      "bytes": 98740
+    }
+  },
+  "/amethyst/skins/gnome-garden/forest-mobile.webp": {
+    "720": {
+      "url": "/amethyst/skins/gnome-garden/forest-mobile-delivery-720.webp",
+      "bytes": 28214
+    },
+    "1440": {
+      "url": "/amethyst/skins/gnome-garden/forest-mobile-delivery-1440.webp",
+      "bytes": 44420
+    }
+  },
+  "/amethyst/skins/halloween-pumpkin-witch/hero-desktop.webp": {
+    "720": {
+      "url": "/amethyst/skins/halloween-pumpkin-witch/hero-desktop-delivery-720.webp",
+      "bytes": 22898
+    },
+    "1440": {
+      "url": "/amethyst/skins/halloween-pumpkin-witch/hero-desktop-delivery-1440.webp",
+      "bytes": 70926
+    }
+  },
+  "/amethyst/skins/halloween-pumpkin-witch/hero-mobile.webp": {
+    "720": {
+      "url": "/amethyst/skins/halloween-pumpkin-witch/hero-mobile-delivery-720.webp",
+      "bytes": 20506
+    },
+    "1440": {
+      "url": "/amethyst/skins/halloween-pumpkin-witch/hero-mobile-delivery-1440.webp",
+      "bytes": 33642
+    }
+  }
+}

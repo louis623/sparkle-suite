@@ -1,5 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import fontManifest from '../../public/amethyst/fonts/manifest.json'
+import fontFallbacks from '../../public/amethyst/fonts/fallbacks.json'
+import heroImages from '../../public/amethyst/hero-delivery.json'
 
 const THEME_ASSETS: Record<string, string[]> = {
   amethyst: ['am01-unicorn'], gnome_garden: ['gnome-garden'],
@@ -32,7 +35,7 @@ export function selectHomepageThemeAssets(html: string, preset: string, variant?
       return tag.replace(href, url.toString().replaceAll('&', '&amp;'))
     })
   }
-  if (preset === 'sunset_beach') result = result.replace(/<meta name="viewport"[^>]+>/, viewport => viewport + '<link rel="preload" as="image" fetchpriority="high" media="(min-width: 601px)" href="/amethyst/skins/sunset-beach/hero-approved.webp"><link rel="preload" as="image" fetchpriority="high" media="(max-width: 600px)" href="/amethyst/skins/sunset-beach/hero-approved-720.webp">')
+  if (preset === 'sunset_beach') result = result.replace(/<meta name="viewport"[^>]+>/, viewport => viewport + '<link rel="preload" as="image" fetchpriority="high" media="(min-width: 601px)" href="/amethyst/skins/sunset-beach/hero-approved-1440.webp"><link rel="preload" as="image" fetchpriority="high" media="(max-width: 600px)" href="/amethyst/skins/sunset-beach/hero-approved-720-v2.webp">')
   // Pumpkin Cat's approved typography is entirely Georgia and Arial. Loading
   // every webfont here blocks its first paint without changing a single glyph.
   if (preset === 'halloween_pumpkin_cat') result = result.replace(/<link[^>]+href="https:\/\/(?:api\.fontshare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)[^"]*"[^>]*>/g, '')
@@ -46,8 +49,44 @@ export async function inlineHomepageStyles(html: string) {
   const replacements = await Promise.all(matches.map(async match => {
     const name = match[1]
     if (!styles.has(name)) styles.set(name, readFile(join(process.cwd(), 'public/amethyst', name), 'utf8'))
-    return [match[0], `<style data-stylesheet="${name}">${(await styles.get(name))!.replace(/<\/style/gi, '<\\/style')}</style>`] as const
+    let css = (await styles.get(name))!
+    let desktop = '', phone = ''
+    for (const [index, [source, sizes]] of Object.entries(heroImages).entries()) {
+      const pattern = new RegExp(`url\\(['"]?${source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\?[^)'" ]*)?['"]?\\)`, 'g')
+      if (!pattern.test(css)) continue
+      pattern.lastIndex = 0
+      const variable = `--ss-hero-image-${index}`
+      css = css.replace(pattern, `var(${variable})`)
+      desktop += `${variable}:url('${sizes['1440'].url}');`
+      phone += `${variable}:url('${sizes['720'].url}');`
+    }
+    css += `:root{${desktop}}@media(max-width:600px){:root{${phone}}}`
+    return [match[0], `<style data-stylesheet="${name}">${css.replace(/<\/style/gi, '<\\/style')}</style>`] as const
   }))
   for (const [link, style] of replacements) html = html.replace(link, () => style)
   return html
+}
+
+const fontFiles = new Map<string, Promise<string>>()
+/** Embed only the two selected Latin faces. Text and its final metrics arrive
+ * together, avoiding the stylesheet -> font waterfall and late font swaps.
+ * Other character subsets remain self-hosted and load only when needed. */
+export async function inlineHomepageFonts(html: string, stacks: string[]) {
+  const families = [...new Set(stacks.map(stack => stack.split(',')[0].trim().replaceAll('"', '').toLowerCase()))]
+  const manifest = fontManifest as Record<string, {css: string; file: string; inline: boolean}[]>
+  const fallbacks = fontFallbacks as Record<string, {fallbackFont:string;ascentOverride:string;descentOverride:string;lineGapOverride:string;sizeAdjust:string}>
+  const faces = (await Promise.all(families.flatMap(family => (manifest[family] ?? []).map(async face => {
+    if (!face.inline) return face.css
+    if (!fontFiles.has(face.file)) fontFiles.set(face.file, readFile(join(process.cwd(), 'public/amethyst/fonts', face.file)).then(bytes => bytes.toString('base64')))
+    return face.css.replace(/url\([^)]*\)/, `url(data:font/woff2;base64,${await fontFiles.get(face.file)})`)
+  })))).join('\n')
+  // A custom site's fonts are not replaced unless every requested external
+  // family is in the checked-in manifest. System fonts need no download.
+  if (families.some(f => !manifest[f]?.length && !['georgia','arial','inter','system-ui'].includes(f))) return html
+  const metrics = families.map(family => {
+    const m = fallbacks[family]
+    return m ? `@font-face{font-family:"${family} fallback";src:local("${m.fallbackFont}");size-adjust:${m.sizeAdjust};ascent-override:${m.ascentOverride};descent-override:${m.descentOverride};line-gap-override:${m.lineGapOverride}}` : ''
+  }).join('')
+  return html.replace(/<link[^>]+href="https:\/\/(?:api\.fontshare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)[^"]*"[^>]*>/g, '')
+    .replace('</head>', `<style data-homepage-fonts>${faces}${metrics}</style></head>`)
 }

@@ -756,6 +756,10 @@ const FONTS = {
   bubbly: '"Quicksand", "Nunito", system-ui, sans-serif',
   chunky: '"Archivo Black", "Inter", sans-serif',
 };
+// Match fallback metrics while the embedded face is decoded on slower CPUs.
+for (const key of Object.keys(FONTS)) {
+  FONTS[key] = FONTS[key].replace(/^"([^"]+)"/, (match, family) => `${match}, "${family.toLowerCase()} fallback"`);
+}
 
 // ============================================================
 // LRQ rail
@@ -870,6 +874,8 @@ function HeroFirstPaintArt({ preset }) {
         {...(preset === 'halloween_pumpkin_cat' ? {
           srcSet: [720,1200,1672].map(w => '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-' + w + '.webp ' + w + 'w').join(', '),
           sizes: '(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw',
+        } : preset === 'gilded_autumn' ? {
+          srcSet: '/amethyst/skins/gilded-autumn/hero-poster-delivery-720.webp 720w, /amethyst/skins/gilded-autumn/hero-poster-delivery-1440.webp 1440w', sizes: '100vw',
         } : {})} decoding="async" fetchpriority="high" />
     </div>
   </>;
@@ -885,7 +891,11 @@ function Hero({ t, isLive, liveShow }) {
     <section className="hp-hero" data-appearance-preset={t.preset} data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
       <HeroFirstPaintArt preset={t.preset} />
       {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-      <div className="hp-hero-media" aria-hidden="true" />
+      <div className="hp-hero-media" aria-hidden="true">
+        {t.preset === "sunset_beach" && <div className="beach-motion-layer" data-first-paint-video="true">
+          <video poster="/amethyst/skins/sunset-beach/hero-poster-720.webp" width="1280" height="720" preload="none" playsInline tabIndex={-1} />
+        </div>}
+      </div>
       {t.preset !== "halloween_pumpkin_cat" && t.preset !== "amethyst" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
       <div className="hp-hero-inner">
         <div>
@@ -3105,10 +3115,10 @@ function SparkleFx({ level, motion }) {
   const n = counts[level] || 0;
   const sparkles = useMemo(() => {
     return Array.from({ length: n }, (_, i) => ({
-      left: Math.random() * 100,
-      delay: Math.random() * 4,
-      duration: 3 + Math.random() * 3,
-      size: 0.5 + Math.random() * 1.2,
+      left: ((i * 61 + 17) % 100),
+      delay: ((i * 37 + 11) % 40) / 10,
+      duration: 3 + ((i * 13 + 7) % 30) / 10,
+      size: 0.5 + ((i * 19 + 3) % 12) / 10,
     }));
   }, [n]);
 
@@ -3907,4 +3917,11 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+const homepageRoot = document.getElementById("root");
+if (homepageRoot.dataset?.serverRendered === "true" && ReactDOM.hydrateRoot) {
+  // Commit hydration before the independent theme controllers attach media.
+  // Replacing the server tree would discard loaded posters and move content.
+  ReactDOM.flushSync(() => ReactDOM.hydrateRoot(homepageRoot, <App />));
+} else {
+  ReactDOM.createRoot(homepageRoot).render(<App />);
+}

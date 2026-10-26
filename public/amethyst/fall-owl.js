@@ -9,7 +9,7 @@
     const media = document.createElement('div');
     media.className = 'fow-media'; media.setAttribute('aria-hidden', 'true');
     const poster = document.createElement('img');
-    poster.className = 'fow-poster'; poster.src = assets + 'hero-poster.webp';
+    poster.className = 'fow-poster'; if (window.sparkleHeroPoster) window.sparkleHeroPoster(poster, assets + 'hero-poster.webp'); else poster.src = assets + 'hero-poster.webp';
     poster.alt = ''; poster.width = 1280; poster.height = 720;
     const video = document.createElement('video');
     video.className = 'fow-video'; video.muted = false; video.playsInline = true; video.loop = true;
@@ -22,6 +22,7 @@
     controls.append(control, sound); host.append(controls);
     let wanted = true, muted = false, visible = false, disposed = false, failed = false;
     let pending = false, interrupted = false;
+    let cancelAudioRetry = () => {};
     const allowed = () => !disposed && !failed && !reduced.matches && hero.dataset.heroMotion !== 'off';
     const shouldPlay = () => allowed() && wanted && visible && !document.hidden;
     function pause() {
@@ -54,7 +55,12 @@
         pending = false;
         if (disposed) return;
         // A rejected audible play falls back to muted video with an honest sound control.
-        if (error?.name === 'NotAllowedError' && !muted) { muted = true; update(); return; }
+        if (error?.name === 'NotAllowedError' && !muted) {
+          muted = true;
+          cancelAudioRetry();
+          cancelAudioRetry = window.sparkleHeroAudioFallback?.(video, controls, shouldPlay, () => { muted = false; update(); }) || (() => {});
+          update(); return;
+        }
         if (error?.name !== 'AbortError' || !interrupted) wanted = false;
         update();
       });
@@ -64,15 +70,15 @@
       media.setAttribute('data-fow-has-frame', 'true'); media.setAttribute('data-fow-playing', 'true');
     }
     function error() { if (video.hasAttribute('src') && !disposed) { failed = true; update(); } }
-    function toggle() { if (allowed()) { wanted = !wanted; update(); } }
-    function toggleSound() { if (allowed()) { muted = !muted; if (!muted) wanted = true; update(); } }
+    function toggle() { cancelAudioRetry(); if (allowed()) { wanted = !wanted; update(); } }
+    function toggleSound() { cancelAudioRetry(); if (allowed()) { muted = !muted; if (!muted) wanted = true; update(); } }
     video.addEventListener('playing', playing); video.addEventListener('error', error);
     control.addEventListener('click', toggle); sound.addEventListener('click', toggleSound);
     reduced.addEventListener('change', update); document.addEventListener('visibilitychange', update);
     const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); }, { threshold: 0.01 });
     intersection.observe(hero); update();
     return { hero, preferenceChanged: update, dispose() {
-      disposed = true; release(); intersection.disconnect();
+      disposed = true; cancelAudioRetry(); release(); intersection.disconnect();
       reduced.removeEventListener('change', update); document.removeEventListener('visibilitychange', update);
       video.removeEventListener('playing', playing); video.removeEventListener('error', error);
       control.removeEventListener('click', toggle); sound.removeEventListener('click', toggleSound);
