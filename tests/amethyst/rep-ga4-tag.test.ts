@@ -42,7 +42,7 @@ function requestFor(host: string, path = '/customer-site/home', query = '') {
 }
 
 describe('rep GA4 tag', () => {
-  it('fetches analytics immediately and executes after paint without needing interaction', () => {
+  it('loads analytics immediately after paint without needing interaction', () => {
     const listeners: Record<string, (...args: any[]) => void> = {}
     const appendChild = vi.fn()
     const frames: (() => void)[] = []
@@ -63,12 +63,11 @@ describe('rep GA4 tag', () => {
     listeners.click({ target: { closest: () => ({ href: 'https://shop.bombparty.com/bling' }) } })
     expect(Array.from(context.dataLayer[3])).toEqual(['event', 'shop_click'])
     expect(listeners.DOMContentLoaded).toBeUndefined()
-    expect(appendChild).toHaveBeenCalledTimes(1)
-    expect(appendChild).toHaveBeenCalledWith(expect.objectContaining({ rel: 'preload', as: 'script', fetchPriority: 'low' }))
+    expect(appendChild).not.toHaveBeenCalled()
     frames.shift()!(); frames.shift()!();
-    expect(appendChild).toHaveBeenCalledTimes(2)
+    expect(appendChild).toHaveBeenCalledTimes(1)
     listeners.pagehide()
-    expect(appendChild).toHaveBeenCalledTimes(2)
+    expect(appendChild).toHaveBeenCalledTimes(1)
     expect(appendChild).toHaveBeenLastCalledWith(expect.objectContaining({ async: true, fetchPriority: 'low', src: `https://www.googletagmanager.com/gtag/js?id=${REP_A_MEASUREMENT}` }))
   })
 

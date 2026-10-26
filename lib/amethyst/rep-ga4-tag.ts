@@ -145,13 +145,10 @@ document.addEventListener('click', function (event) {
   if (!isShop) return;
   gtag('event', 'shop_click');
 }, true);
-// Fetch immediately for short visits, then execute after the hero can paint.
+// Load automatically as soon as the hero paints, including short visits.
 // Never wait for a click, idle time, or a fixed multi-second delay.
 (function () {
   var src = 'https://www.googletagmanager.com/gtag/js?id=${measurementId}';
-  var preload = document.createElement('link');
-  preload.rel = 'preload'; preload.as = 'script'; preload.href = src; preload.fetchPriority = 'low';
-  document.head.appendChild(preload);
   var started = false;
   function start() {
     if (started) return;
