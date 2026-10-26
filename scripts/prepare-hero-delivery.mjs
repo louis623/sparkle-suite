@@ -13,9 +13,14 @@ for(const source of sources){
   const sourcePath='public/amethyst/skins/'+source;
   const stem=source.replace('.webp','');
   const sizes={};
-  for(const width of [360,720,1440]){
-    const target=stem+`-delivery-${width}.webp`;
-    const result=await sharp(sourcePath).resize({width,withoutEnlargement:true}).webp({quality:width===360?68:width===720?64:72}).toFile('public/amethyst/skins/'+target);
+  // Tall phone heroes need enough intrinsic poster pixels to cover the movie.
+  // A 360px landscape poster is upscaled and lets the later video become LCP.
+  const videoPoster = ['gilded-autumn/hero-poster.webp','pearl-rose/hero-poster.webp'].includes(source);
+  for(const width of videoPoster ? [720,1440] : [360,720,1440]){
+    const avif = videoPoster && width === 720;
+    const target=stem+`-delivery-${width}.${avif?'avif':'webp'}`;
+    const resized=sharp(sourcePath).resize({width,withoutEnlargement:true});
+    const result=await (avif ? resized.avif({quality:45,effort:6}) : resized.webp({quality:width===360?68:width===720?64:72})).toFile('public/amethyst/skins/'+target);
     sizes[width]={url:'/amethyst/skins/'+target,bytes:result.size};
   }
   manifest['/amethyst/skins/'+source]=sizes;

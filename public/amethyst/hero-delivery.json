@@ -1,12 +1,8 @@
 {
   "/amethyst/skins/gilded-autumn/hero-poster.webp": {
-    "360": {
-      "url": "/amethyst/skins/gilded-autumn/hero-poster-delivery-360.webp",
-      "bytes": 13146
-    },
     "720": {
-      "url": "/amethyst/skins/gilded-autumn/hero-poster-delivery-720.webp",
-      "bytes": 32738
+      "url": "/amethyst/skins/gilded-autumn/hero-poster-delivery-720.avif",
+      "bytes": 24089
     },
     "1440": {
       "url": "/amethyst/skins/gilded-autumn/hero-poster-delivery-1440.webp",
@@ -42,13 +38,9 @@
     }
   },
   "/amethyst/skins/pearl-rose/hero-poster.webp": {
-    "360": {
-      "url": "/amethyst/skins/pearl-rose/hero-poster-delivery-360.webp",
-      "bytes": 8146
-    },
     "720": {
-      "url": "/amethyst/skins/pearl-rose/hero-poster-delivery-720.webp",
-      "bytes": 21154
+      "url": "/amethyst/skins/pearl-rose/hero-poster-delivery-720.avif",
+      "bytes": 13154
     },
     "1440": {
       "url": "/amethyst/skins/pearl-rose/hero-poster-delivery-1440.webp",
