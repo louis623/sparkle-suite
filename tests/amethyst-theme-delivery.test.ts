@@ -27,7 +27,7 @@ describe('customer homepage delivery budget', () => {
   })
   it('selects the smaller scene plate on phone without fetching an art master', async () => {
     const result = await inlineHomepageStyles(selectHomepageThemeAssets(html, 'fall_owl_harvest_moon'))
-    expect(result).toContain('hero-poster-delivery-720.webp')
+    expect(result).toContain('hero-poster-delivery-720.avif')
     expect(result).toContain('@media(max-width:600px)')
     expect(result).not.toContain("url('/amethyst/skins/fall-owl/hero-poster.webp')")
   })

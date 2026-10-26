@@ -15,7 +15,7 @@ for(const source of sources){
   const sizes={};
   // Tall phone heroes need enough intrinsic poster pixels to cover the movie.
   // A 360px landscape poster is upscaled and lets the later video become LCP.
-  const videoPoster = ['gilded-autumn/hero-poster.webp','pearl-rose/hero-poster.webp'].includes(source);
+  const videoPoster = /^(?:gilded-autumn|pearl-rose|midnight-rose|rose-champagne|fall-owl|gobble-and-fizz|pie-please)\//.test(source);
   for(const width of videoPoster ? [720,1440] : [360,720,1440]){
     const avif = videoPoster && width === 720;
     const target=stem+`-delivery-${width}.${avif?'avif':'webp'}`;

@@ -10,13 +10,9 @@
     }
   },
   "/amethyst/skins/gobble-and-fizz/hero-poster.webp": {
-    "360": {
-      "url": "/amethyst/skins/gobble-and-fizz/hero-poster-delivery-360.webp",
-      "bytes": 12650
-    },
     "720": {
-      "url": "/amethyst/skins/gobble-and-fizz/hero-poster-delivery-720.webp",
-      "bytes": 31626
+      "url": "/amethyst/skins/gobble-and-fizz/hero-poster-delivery-720.avif",
+      "bytes": 21829
     },
     "1440": {
       "url": "/amethyst/skins/gobble-and-fizz/hero-poster-delivery-1440.webp",
@@ -24,13 +20,9 @@
     }
   },
   "/amethyst/skins/pie-please/hero-poster-v4.webp": {
-    "360": {
-      "url": "/amethyst/skins/pie-please/hero-poster-v4-delivery-360.webp",
-      "bytes": 12308
-    },
     "720": {
-      "url": "/amethyst/skins/pie-please/hero-poster-v4-delivery-720.webp",
-      "bytes": 29882
+      "url": "/amethyst/skins/pie-please/hero-poster-v4-delivery-720.avif",
+      "bytes": 20644
     },
     "1440": {
       "url": "/amethyst/skins/pie-please/hero-poster-v4-delivery-1440.webp",
@@ -48,13 +40,9 @@
     }
   },
   "/amethyst/skins/fall-owl/hero-poster.webp": {
-    "360": {
-      "url": "/amethyst/skins/fall-owl/hero-poster-delivery-360.webp",
-      "bytes": 9832
-    },
     "720": {
-      "url": "/amethyst/skins/fall-owl/hero-poster-delivery-720.webp",
-      "bytes": 23532
+      "url": "/amethyst/skins/fall-owl/hero-poster-delivery-720.avif",
+      "bytes": 16256
     },
     "1440": {
       "url": "/amethyst/skins/fall-owl/hero-poster-delivery-1440.webp",
@@ -62,13 +50,9 @@
     }
   },
   "/amethyst/skins/rose-champagne/hero-poster.webp": {
-    "360": {
-      "url": "/amethyst/skins/rose-champagne/hero-poster-delivery-360.webp",
-      "bytes": 7404
-    },
     "720": {
-      "url": "/amethyst/skins/rose-champagne/hero-poster-delivery-720.webp",
-      "bytes": 17588
+      "url": "/amethyst/skins/rose-champagne/hero-poster-delivery-720.avif",
+      "bytes": 11417
     },
     "1440": {
       "url": "/amethyst/skins/rose-champagne/hero-poster-delivery-1440.webp",
@@ -76,13 +60,9 @@
     }
   },
   "/amethyst/skins/midnight-rose/hero-poster.webp": {
-    "360": {
-      "url": "/amethyst/skins/midnight-rose/hero-poster-delivery-360.webp",
-      "bytes": 6360
-    },
     "720": {
-      "url": "/amethyst/skins/midnight-rose/hero-poster-delivery-720.webp",
-      "bytes": 16030
+      "url": "/amethyst/skins/midnight-rose/hero-poster-delivery-720.avif",
+      "bytes": 10552
     },
     "1440": {
       "url": "/amethyst/skins/midnight-rose/hero-poster-delivery-1440.webp",
