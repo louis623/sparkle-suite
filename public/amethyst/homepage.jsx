@@ -3,12 +3,31 @@ const { useState, useEffect, useMemo, useRef } = React;
 
 // Match initial timestamps across hydration. Show dates always use the
 // event timezone, never the rendering server timezone.
+const homepageDateFormatters = new Map();
+const homepageEventTimeZones = new Map();
 function homepageDateLabel(value, options) {
   const seed = window.SPARKLE_FIRST_PAINT;
-  return new Intl.DateTimeFormat(seed?.locale, {
+  const resolvedOptions = {
     ...options,
     ...(seed && !options.timeZone ? { timeZone: seed.timeZone } : {}),
-  }).format(new Date(value));
+  };
+  const key = JSON.stringify([seed?.locale, resolvedOptions]);
+  let formatter = homepageDateFormatters.get(key);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(seed?.locale, resolvedOptions);
+    homepageDateFormatters.set(key, formatter);
+  }
+  return formatter.format(new Date(value));
+}
+
+function homepageEventTimeZone(value) {
+  const requested = value || "America/New_York";
+  if (homepageEventTimeZones.has(requested)) return homepageEventTimeZones.get(requested);
+  let timeZone = requested;
+  try { new Intl.DateTimeFormat("en-US", { timeZone }); }
+  catch { timeZone = "America/New_York"; }
+  homepageEventTimeZones.set(requested, timeZone);
+  return timeZone;
 }
 
 // Read tweaks panel components from the global scope (loaded from tweaks-panel.jsx)
@@ -1967,9 +1986,7 @@ function CalendarChooser({ event, onClose }) {
 function normalizeHomepageEvent(event) {
   const title = event.title || event.name || "Upcoming live reveal";
   const eventTime = event.eventTime || null;
-  let timeZone = event.timeZone || "America/New_York";
-  try { new Intl.DateTimeFormat("en-US", { timeZone }); }
-  catch { timeZone = "America/New_York"; }
+  const timeZone = homepageEventTimeZone(event.timeZone);
   const when = event.when || (eventTime
     ? `${formatEventDateLabel(eventTime, timeZone)} - ${formatEventTimeLabel(eventTime, timeZone)}`
     : "Date TBD - Time TBD");
@@ -3871,7 +3888,11 @@ function App() {
 
   // Targeted pages keep the server title and description.
 
-  useEffect(() => { applyHomepageTheme(t, document); }, [t]);
+  useEffect(() => {
+    // SSR already applied these exact defaults. Rebuilding the body classes
+    // here invalidates the entire themed page while initial input is pending.
+    if (!window.SPARKLE_FIRST_PAINT) applyHomepageTheme(t, document);
+  }, [t]);
 
   useEffect(() => {
     window.AMETHYST_APPLY_HOMEPAGE_TEMPLATE?.(t);
@@ -3879,6 +3900,7 @@ function App() {
 
   useEffect(() => {
     window.SPARKLE_FIRST_PAINT = null;
+    window.dispatchEvent(new Event("sparkle:homepage-hydrated"));
     setNow(Date.now());
     const timer = window.setInterval(() => setNow(Date.now()), 60_000);
     return () => window.clearInterval(timer);
@@ -4212,9 +4234,9 @@ function App() {
 
 const homepageRoot = document.getElementById("root");
 if (homepageRoot.dataset?.serverRendered === "true" && ReactDOM.hydrateRoot) {
-  // Commit hydration before the independent theme controllers attach media.
-  // Replacing the server tree would discard loaded posters and move content.
-  ReactDOM.flushSync(() => ReactDOM.hydrateRoot(homepageRoot, <App />));
+  // Hydration may yield to input. Controllers start only after the commit
+  // event above, preserving the server tree without a blocking flushSync.
+  ReactDOM.hydrateRoot(homepageRoot, <App />);
 } else {
   ReactDOM.createRoot(homepageRoot).render(<App />);
 }
