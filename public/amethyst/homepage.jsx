@@ -3324,6 +3324,10 @@ function Signup({ repName, businessName }) {
 // Footer
 // ============================================================
 function Footer({ businessName }) {
+  const publicIdentity = window.AMETHYST_PUBLIC_IDENTITY;
+  // The public intro can already contain the identity sentence. Its dedicated
+  // paragraph is shared by server render and hydration; keep that copy once.
+  const publicIntro = publicIdentity?.intro?.split(publicIdentity.identity).join("").trim();
   const joinTeamHref = CONTENT.footerLinks?.joinTeam || "";
   const footerSocials = (Array.isArray(CONTENT.socialLinks)
     ? CONTENT.socialLinks
@@ -3345,10 +3349,10 @@ function Footer({ businessName }) {
           {CONTENT.memberTeamName ? (
             <p className="hp-footer-team">Proud member of the {CONTENT.memberTeamName} team</p>
           ) : null}
-          {window.AMETHYST_PUBLIC_IDENTITY && <div className="hp-footer-identity">
-            <p>{window.AMETHYST_PUBLIC_IDENTITY.identity}</p>
-            <p>{window.AMETHYST_PUBLIC_IDENTITY.intro}</p>
-            {window.AMETHYST_PUBLIC_IDENTITY.showSchedule && <p>{`Live shows run ${window.AMETHYST_PUBLIC_IDENTITY.showSchedule}.`}</p>}
+          {publicIdentity && <div className="hp-footer-identity">
+            <p>{publicIdentity.identity}</p>
+            {publicIntro && <p>{publicIntro}</p>}
+            {publicIdentity.showSchedule && <p>{`Live shows run ${publicIdentity.showSchedule}.`}</p>}
           </div>}
           <div className="hp-footer-socials">
             {footerSocials.map((social) => (
