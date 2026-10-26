@@ -32,17 +32,14 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
 }
 
 async function renderFirstPaint(html: string, data: AmethystPreviewTemplateData, requestUrl: URL, bootstrap?: string, options: { deferExternalScripts?: boolean } = {}) {
-  // Identical public identity for server and hydration; location has already
-  // passed the public-location visibility projection.
-  bootstrap = (bootstrap ?? buildAmethystHomepageBootstrapScript(data.homepage, [], data.appearancePreset, { targeted: true }))
-    + '\nwindow.AMETHYST_HOMEPAGE_TEMPLATE_DATA.publicIdentity=' + JSON.stringify(pageFacts(data)).replace(/</g, '\\u003c') + ';'
+  const publicIdentity = pageFacts(data)
   const properties = new Map<string, string>()
   const body = { className: 'homepage', classList: { add(...names: string[]) { body.className += ' ' + names.join(' ') } } }
   const document = { body, documentElement: { style: { setProperty(name: string, value: unknown) { properties.set(name, String(value)) } } }, getElementById: () => ({}) }
   let element: ReactTypes.ReactNode
   const { locale, timeZone } = new Intl.DateTimeFormat().resolvedOptions()
   const firstPaint = { locale, timeZone, now: Date.now() }
-  const window = { React, SPARKLE_FIRST_PAINT: firstPaint, location: { search: requestUrl.search, origin: requestUrl.origin, hostname: requestUrl.hostname } }
+  const window = { React, AMETHYST_PUBLIC_IDENTITY: publicIdentity, SPARKLE_FIRST_PAINT: firstPaint, location: { search: requestUrl.search, origin: requestUrl.origin, hostname: requestUrl.hostname } }
   const context = createContext({
     window, document, React, URL, URLSearchParams, Intl, console,
     ReactDOM: { createRoot: () => ({ render(node: ReactTypes.ReactNode) { element = node } }) },
@@ -68,7 +65,7 @@ async function renderFirstPaint(html: string, data: AmethystPreviewTemplateData,
   // classic dependencies in parallel; defer preserves their execution order.
   const withOrderedScripts = bootstrap && options.deferExternalScripts !== false ? withBootstrap.replace(/<script\s+src=/g, '<script defer src=') : withBootstrap
   return withOrderedScripts
-    .replace('</head>', preloads + `<script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
+    .replace('</head>', preloads + `<script>window.AMETHYST_PUBLIC_IDENTITY=${JSON.stringify(publicIdentity).replace(/</g, '\\u003c')};window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${attribute(style)}">`)
     .replace('<body class="homepage">', () => `<body class="${attribute(body.className)}">`)
     .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div>`)

@@ -18,6 +18,8 @@ describe('real themed first paint and autoplay defaults', () => {
       expect(result).toContain(`data-appearance-preset="${preset}"`)
       expect(result).toContain('First-paint shop &lt;safe&gt;')
       expect(result).toContain('--hp-primary:')
+      expect(result).not.toContain('href="/amethyst/media-icons.svg#')
+      expect(result).toContain('hp-customer-media-icon-svg')
       expect(result).not.toContain('old unstyled copy')
       expect(result).not.toContain('data-hero-motion="off"')
       expect(buildAmethystHomepageTweakDefaults(homepage, preset).heroMotion).not.toBe('still')
