@@ -68,12 +68,15 @@ export function selectHomepageThemeAssets(html: string, preset: string, variant?
 export async function inlineHomepageStyles(html: string, preset?: string, heading?: {family:string;weight:number}, bodyClasses: string[] = [], variant?: string) {
   const manifest = stylesheetManifest as Record<string, string>
   const critical = criticalManifest as Record<string, {css:string;bodies:string[];presets:string[];variants:string[]}[]>
+  let stylesheetCount = 0
   html = html.replace(/<link rel="stylesheet" href="(?:\/amethyst\/)?((?:bling-kitchen\/)?[a-z0-9-]+\.css)(?:\?[^\"]*)?"\s*\/>/g,
     (tag, name: string) => {
       if (!manifest[name]) return tag
+      stylesheetCount++
       const css = (critical[name] ?? []).filter(rule => rule.bodies.every(c=>bodyClasses.includes(c)) && (!rule.presets.length || rule.presets.includes(preset ?? '')) && (!rule.variants.length || rule.variants.includes(variant ?? ''))).map(rule=>rule.css).join('')
-      return '<style data-critical-stylesheet="' + name + '">' + css + '</style><link rel="stylesheet" href="' + manifest[name] + '" media="print" onload="this.media=\'all\'"><noscript><link rel="stylesheet" href="' + manifest[name] + '"></noscript>'
+      return '<style data-critical-stylesheet="' + name + '">' + css + '</style><link rel="stylesheet" href="' + manifest[name] + '" media="print" data-homepage-styles onload="sparkleHomepageStylesLoaded()" onerror="sparkleHomepageStylesLoaded()"><noscript><link rel="stylesheet" href="' + manifest[name] + '"></noscript>'
     })
+  if (stylesheetCount) html = html.replace('<head>', '<head><script>(function(){var remaining=' + stylesheetCount + ';window.sparkleHomepageStylesLoaded=function(){if(--remaining)return;function apply(){document.querySelectorAll("link[data-homepage-styles]").forEach(function(link){link.media="all"})}if(document.hidden)apply();else requestAnimationFrame(function(){setTimeout(apply,0)})}})();</script>')
   html = html.replace('</head>', '<style data-critical-homepage>html{background:var(--hp-bg,#100b1c)}body{margin:0;background:var(--hp-bg,#100b1c);color:var(--hp-text,#f7f4fc)}</style></head>')
   // These two phone heroes already have a 620px minimum scene. Reserve that
   // same space in the inner grid so late button-font wrapping cannot recenter

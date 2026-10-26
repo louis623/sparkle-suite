@@ -56,6 +56,8 @@ describe('customer homepage delivery budget', () => {
   it('delivers selected repository styles in the first response without fetching external CSS on the server', async () => {
     const result = await inlineHomepageStyles(selectHomepageThemeAssets(html, 'sunset_beach'))
     expect(result).toContain('<style data-critical-stylesheet="homepage.css">')
+    expect(result).toContain('data-homepage-styles onload="sparkleHomepageStylesLoaded()"')
+    expect(result).toContain('if(--remaining)return')
     expect(result).toContain('<style data-critical-stylesheet="sunset-beach.css">')
     expect(result).not.toMatch(/<link rel="stylesheet" href="(?:\/amethyst\/)?homepage\.css/)
     expect(result).toContain('https://fonts.googleapis.com')
