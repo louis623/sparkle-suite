@@ -40,7 +40,7 @@ describe('customer homepage delivery budget', () => {
     expect(selected).toContain('family=Playfair+Display')
     expect(selected).toContain('family=DM+Sans')
     expect(selected).not.toContain('family=Archivo')
-    expect(selected).toContain('media="(max-width: 600px)" href="/amethyst/skins/sunset-beach/hero-poster-720.webp"')
+    expect(selected).toContain('media="(max-width: 600px)" href="/amethyst/skins/sunset-beach/hero-first-paint.avif"')
     // Mobile media queries must see the real viewport before preloads start.
     expect(selected.indexOf('name="viewport"')).toBeLessThan(selected.indexOf('rel="preload"'))
   })
@@ -62,7 +62,7 @@ describe('customer homepage delivery budget', () => {
     expect(result).toContain('<style data-critical-stylesheet="sunset-beach.css">')
     expect(result).not.toMatch(/<link rel="stylesheet" href="(?:\/amethyst\/)?homepage\.css/)
     expect(result).toContain('https://fonts.googleapis.com')
-    expect(result).toContain('/amethyst/skins/sunset-beach/hero-poster-720.webp')
+    expect(result).toContain('/amethyst/skins/sunset-beach/hero-first-paint.avif')
     expect(result).not.toContain('<style data-critical-stylesheet="fall-owl.css">')
   })
 })

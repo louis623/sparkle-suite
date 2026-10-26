@@ -903,7 +903,7 @@ function Hero({ t, isLive, liveShow }) {
       {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
       <div className="hp-hero-media" aria-hidden="true">
         {t.preset === "sunset_beach" && <div className="beach-motion-layer" data-first-paint-video="true" style={{ opacity: 1 }}>
-          <video poster="/amethyst/skins/sunset-beach/hero-poster-720.webp" width="1280" height="720" preload="none" playsInline tabIndex={-1} />
+          <video poster="/amethyst/skins/sunset-beach/hero-first-paint.avif" width="1280" height="720" preload="none" playsInline tabIndex={-1} />
         </div>}
       </div>
       {t.preset !== "halloween_pumpkin_cat" && t.preset !== "amethyst" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
