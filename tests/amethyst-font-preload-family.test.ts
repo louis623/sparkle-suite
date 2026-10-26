@@ -18,3 +18,10 @@ it('matches a 600 Sharpie request to its available 700 face', async () => {
   const expected=manifest.sharpie.find(face=>/font-family:\s*'Sharpie'/.test(face.css)&&/font-weight:\s*700/.test(face.css))!.css.match(/https:\/\/cdn\.fontshare\.com\/[^'" )]+/)![0]
   expect(html.match(/<link rel="preload"[^>]+href="([^"]+)"/)![1]).toBe(expected)
 })
+
+it('keeps metric-adjusted fallbacks available when Windows fonts are absent', async () => {
+  const html = await inlineHomepageFonts('<head></head>', ['"Playfair Display", serif', '"DM Sans", sans-serif'], 600)
+  expect(html).toContain('src:local("Times New Roman"),local("Liberation Serif"),local("Tinos")')
+  expect(html).toContain('src:local("Arial"),local("Liberation Sans"),local("Arimo")')
+  expect(html).toMatch(/font-family:"playfair display fallback";src:[^;]+;size-adjust:111\.26%;ascent-override:97\.25%/)
+})

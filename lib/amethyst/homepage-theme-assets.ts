@@ -127,7 +127,12 @@ export async function inlineHomepageFonts(html: string, stacks: string[], headin
   if (families.some(f => !manifest[f]?.length && !['georgia','arial','inter','system-ui'].includes(f))) return html
   const metrics = families.map(family => {
     const m = fallbacks[family]
-    return m ? (Array.isArray(m) ? m : [m]).map(face => `@font-face{font-family:"${family} fallback";src:local("${face.fallbackFont}");${face.weight ? `font-weight:${face.weight};` : ''}size-adjust:${face.sizeAdjust};ascent-override:${face.ascentOverride};descent-override:${face.descentOverride};line-gap-override:${face.lineGapOverride}}`).join('') : ''
+    // Chrome's local() lookup requires an installed face. Linux does not ship
+    // Arial/Times New Roman; use their metric-compatible substitutes before
+    // falling through to an unadjusted generic font during a webfont swap.
+    const localFaces = (name: string) => [name, ...(({ Arial: ['Liberation Sans', 'Arimo'], 'Times New Roman': ['Liberation Serif', 'Tinos'] } as Record<string, string[]>)[name] ?? [])]
+      .map(font => `local("${font}")`).join(',')
+    return m ? (Array.isArray(m) ? m : [m]).map(face => `@font-face{font-family:"${family} fallback";src:${localFaces(face.fallbackFont)};${face.weight ? `font-weight:${face.weight};` : ''}size-adjust:${face.sizeAdjust};ascent-override:${face.ascentOverride};descent-override:${face.descentOverride};line-gap-override:${face.lineGapOverride}}`).join('') : ''
   }).join('')
   return html.replace(/<link[^>]+href="https:\/\/(?:api\.fontshare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)[^"]*"[^>]*>/g, '')
     .replace('</head>', `${preloads}<style data-homepage-fonts>${faces}${metrics}</style></head>`)
