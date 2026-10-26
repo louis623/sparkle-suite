@@ -46,11 +46,13 @@ export function selectHomepageThemeAssets(html: string, preset: string, variant?
     halloween_pumpkin_witch: ['halloween-pumpkin-witch/hero-desktop.webp', 'halloween-pumpkin-witch/hero-mobile.webp'],
   }
   const imageMap = heroImages as Record<string, Record<string, {url:string}>>
-  let desktopPoster = '', phonePoster = ''
+  let desktopPoster = '', phonePoster = '', phoneResponsive = ''
   if (posters[preset]) {
     const [desktop, phone = desktop] = posters[preset]
     desktopPoster = imageMap['/amethyst/skins/' + desktop]['1440'].url
     phonePoster = imageMap['/amethyst/skins/' + phone]['720'].url
+    const sizes = imageMap['/amethyst/skins/' + phone]
+    if (sizes['360']) phoneResponsive = ` imagesrcset="${sizes['360'].url} 360w, ${sizes['720'].url} 720w, ${sizes['1440'].url} 1440w" imagesizes="(max-width: 400px) 360px, 720px"`
   }
   // The server video already paints its lightweight poster. Preload that exact
   // image instead of downloading a second full background underneath it.
@@ -58,7 +60,7 @@ export function selectHomepageThemeAssets(html: string, preset: string, variant?
   if (preset === 'amethyst') desktopPoster = phonePoster = '/amethyst/skins/am01-unicorn/opening-poster.webp'
   if (desktopPoster) result = result.replace(/<meta name="viewport"[^>]+>/, viewport => viewport
     + '<link rel="preload" as="image" fetchpriority="high" media="(min-width: 601px)" href="' + desktopPoster + '">'
-    + '<link rel="preload" as="image" fetchpriority="high" media="(max-width: 600px)" href="' + phonePoster + '">')
+    + '<link rel="preload" as="image" fetchpriority="high" media="(max-width: 600px)" href="' + phonePoster + '"' + phoneResponsive + '>')
   // Pumpkin Cat's approved typography is entirely Georgia and Arial. Loading
   // every webfont here blocks its first paint without changing a single glyph.
   if (preset === 'halloween_pumpkin_cat') result = result.replace(/<link[^>]+href="https:\/\/(?:api\.fontshare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)[^"]*"[^>]*>/g, '')

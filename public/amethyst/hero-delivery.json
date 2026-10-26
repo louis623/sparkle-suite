@@ -90,6 +90,10 @@
     }
   },
   "/amethyst/skins/gnome-garden/forest.webp": {
+    "360": {
+      "url": "/amethyst/skins/gnome-garden/forest-delivery-360.webp",
+      "bytes": 10852
+    },
     "720": {
       "url": "/amethyst/skins/gnome-garden/forest-delivery-720.webp",
       "bytes": 33118
@@ -100,6 +104,10 @@
     }
   },
   "/amethyst/skins/gnome-garden/forest-mobile.webp": {
+    "360": {
+      "url": "/amethyst/skins/gnome-garden/forest-mobile-delivery-360.webp",
+      "bytes": 10330
+    },
     "720": {
       "url": "/amethyst/skins/gnome-garden/forest-mobile-delivery-720.webp",
       "bytes": 28214

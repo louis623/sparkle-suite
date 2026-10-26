@@ -13,9 +13,9 @@ for(const source of sources){
   const sourcePath='public/amethyst/skins/'+source;
   const stem=source.replace('.webp','');
   const sizes={};
-  for(const width of [720,1440]){
+  for(const width of source.startsWith('gnome-garden/') ? [360,720,1440] : [720,1440]){
     const target=stem+`-delivery-${width}.webp`;
-    const result=await sharp(sourcePath).resize({width,withoutEnlargement:true}).webp({quality:width===720?64:72}).toFile('public/amethyst/skins/'+target);
+    const result=await sharp(sourcePath).resize({width,withoutEnlargement:true}).webp({quality:width===360?68:width===720?64:72}).toFile('public/amethyst/skins/'+target);
     sizes[width]={url:'/amethyst/skins/'+target,bytes:result.size};
   }
   manifest['/amethyst/skins/'+source]=sizes;

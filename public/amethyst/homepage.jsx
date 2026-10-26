@@ -857,15 +857,15 @@ function GnomeGardenScene() {
   return (
     <div className="gg-scene" aria-hidden="true" style={{ pointerEvents: "none" }}>
       <span className="gg-lantern gg-lantern-left">
-        <img src="/amethyst/skins/gnome-garden/lantern.webp" alt="" width="157" height="400" decoding="async" />
+        <img src="/amethyst/skins/gnome-garden/lantern.webp" srcSet="/amethyst/skins/gnome-garden/lantern-delivery-48.webp 48w, /amethyst/skins/gnome-garden/lantern-delivery-96.webp 96w, /amethyst/skins/gnome-garden/lantern.webp 157w" sizes="(max-width: 767px) 48px, 100px" alt="" width="157" height="400" decoding="async" />
       </span>
       <span className="gg-lantern gg-lantern-right">
-        <img src="/amethyst/skins/gnome-garden/lantern.webp" alt="" width="157" height="400" decoding="async" />
+        <img src="/amethyst/skins/gnome-garden/lantern.webp" srcSet="/amethyst/skins/gnome-garden/lantern-delivery-48.webp 48w, /amethyst/skins/gnome-garden/lantern-delivery-96.webp 96w, /amethyst/skins/gnome-garden/lantern.webp 157w" sizes="(max-width: 767px) 48px, 100px" alt="" width="157" height="400" decoding="async" />
       </span>
       {Array.from({ length: 8 }, (_, index) => (
         <span className="gg-firefly" data-firefly-index={index + 1} key={index} />
       ))}
-      <img className="gg-gnome" src="/amethyst/skins/gnome-garden/gnome.webp" alt="" width="347" height="640" decoding="async" />
+      <img className="gg-gnome" src="/amethyst/skins/gnome-garden/gnome.webp" srcSet="/amethyst/skins/gnome-garden/gnome-delivery-96.webp 96w, /amethyst/skins/gnome-garden/gnome-delivery-192.webp 192w, /amethyst/skins/gnome-garden/gnome.webp 347w" sizes="(max-width: 767px) 82px, 180px" alt="" width="347" height="640" decoding="async" />
     </div>
   );
 }

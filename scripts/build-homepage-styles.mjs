@@ -9,7 +9,7 @@ const names = [...new Set([...html.matchAll(/href="(?:\/amethyst\/)?((?:bling-ki
 mkdirSync(root + 'delivery', { recursive: true });
 const manifest = {}, critical = {};
 for (const name of names) {
-  let css = readFileSync(root + name, 'utf8'), desktop = '', phone = '';
+  let css = readFileSync(root + name, 'utf8'), desktop = '', phone = '', narrowPhone = '';
   for (const [index, [source, sizes]] of Object.entries(images).entries()) {
     const pattern = new RegExp(`url\\(['"]?${source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\?[^)'" ]*)?['"]?\\)`, 'g');
     if (!pattern.test(css)) continue;
@@ -18,8 +18,10 @@ for (const name of names) {
     css = css.replace(pattern, `var(${variable})`);
     desktop += `${variable}:url('${sizes['1440'].url}');`;
     phone += `${variable}:url('${sizes['720'].url}');`;
+    if(sizes['360']) narrowPhone += `${variable}:image-set(url('${sizes['360'].url}') 1x,url('${sizes['720'].url}') 2x);`;
   }
   css += `:root{${desktop}}@media(max-width:600px){:root{${phone}}}`;
+  if(narrowPhone) css += `@media(max-width:400px){:root{${narrowPhone}}}`;
   const records = [];
   const aboveFold = /(?:^|[ .#])(?:hp-(?:sticky|header|brand|shop|ticker|trade-preview|live|lineup|calendar|hero|btn|container|saturate|fx|customer-media-icon)|slot|live-dot|watch-|gg-|beach-|mhf-|bwb-|bkf-|bk-home-|au-|nb-|hpw-|hpc-|sb-|rgc-|rg-|pr-|fo-|ga-|tg-)/;
   const tree = postcss.parse(css);
