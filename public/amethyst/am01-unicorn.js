@@ -29,7 +29,13 @@
     let cancelAudioRetry = () => {};
     let showFinalPoster = !wanted;
     const canPlay = () => !disposed && wanted && visible && !document.hidden && !failed && !finished;
-    function text(node, value) { if (node.textContent !== value) node.textContent = value; }
+    function text(node, value) {
+      if (node.textContent === value) return;
+      // A control label must not replace its child node and trigger the
+      // document-wide scene observer on every pause or sound tap.
+      if (node.firstChild?.nodeType === 3 && node.childNodes.length === 1) node.firstChild.nodeValue = value;
+      else node.textContent = value;
+    }
     function attribute(node, name, value) { if (node.getAttribute(name) !== value) node.setAttribute(name, value); }
     function update(forcePlay = false) {
       if (disposed) return;

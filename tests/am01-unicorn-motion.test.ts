@@ -41,6 +41,22 @@ function harness({reduced = false, still = false, selected = true} = {}) {
     switchSkin:() => {selected=false;mutate()},
   }
 }
+
+it('updates pause and sound labels without replacing their existing text nodes', () => {
+  const h=harness();h.visible(true)
+  const labels=[h.motion,h.sound].map(control=>{
+    const label={nodeType:3,nodeValue:control.textContent}
+    Object.defineProperty(control,'firstChild',{value:label})
+    Object.defineProperty(control,'childNodes',{value:[label]})
+    Object.defineProperty(control,'textContent',{get:()=>label.nodeValue,set:()=>{throw Error('Label replacement triggers a scene rescan')}})
+    return label
+  })
+  h.motion.dispatchEvent(new Event('click'))
+  h.sound.dispatchEvent(new Event('click'))
+  expect(labels.map(label=>label.nodeValue)).toEqual(['Play animation','Sound off'])
+  expect(h.video.paused).toBe(true)
+  expect(h.video.muted).toBe(true)
+})
 const settle = async () => {await Promise.resolve();await Promise.resolve()}
 describe('AM-01 visitor motion and sound controls', () => {
   it('does not mount or download unicorn media for another skin', () => {
