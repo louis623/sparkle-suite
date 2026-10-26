@@ -6,6 +6,7 @@ import type * as ReactTypes from 'react'
 import type { AmethystPreviewTemplateData } from './preview-template-data'
 import { buildAmethystHomepageBootstrapScript } from './homepage-template-data'
 import { selectHomepageThemeAssets, inlineHomepageStyles, inlineHomepageFonts } from './homepage-theme-assets'
+import { pageFacts } from './public-page-index-html'
 import { bestEffortHomepage } from './homepage-render-safety'
 
 const { React, renderToString } = createRequire(join(process.cwd(), 'package.json'))('./lib/amethyst/generated/homepage-server.cjs') as {
@@ -31,6 +32,10 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
 }
 
 async function renderFirstPaint(html: string, data: AmethystPreviewTemplateData, requestUrl: URL, bootstrap?: string, options: { deferExternalScripts?: boolean } = {}) {
+  // Identical public identity for server and hydration; location has already
+  // passed the public-location visibility projection.
+  bootstrap = (bootstrap ?? buildAmethystHomepageBootstrapScript(data.homepage, [], data.appearancePreset, { targeted: true }))
+    + '\nwindow.AMETHYST_HOMEPAGE_TEMPLATE_DATA.publicIdentity=' + JSON.stringify(pageFacts(data)).replace(/</g, '\\u003c') + ';'
   const properties = new Map<string, string>()
   const body = { className: 'homepage', classList: { add(...names: string[]) { body.className += ' ' + names.join(' ') } } }
   const document = { body, documentElement: { style: { setProperty(name: string, value: unknown) { properties.set(name, String(value)) } } }, getElementById: () => ({}) }

@@ -912,11 +912,11 @@ function Hero({ t, isLive, liveShow }) {
           {isMileHighFizzHybrid && (
             <div className="hp-mhf-hero-kicker">{mileHighFizzKicker}</div>
           )}
-          <h1 className="hp-hero-headline slot" data-slot="hero headline">
+          <h2 className="hp-hero-headline slot" data-slot="hero headline">
             {t.heroHeadline.split(/(?<=[.!?])\s+/).map((line, i) => (
               <span key={i} style={{ display: 'block' }}>{line}</span>
             ))}
-          </h1>
+          </h2>
           <p className="hp-hero-sub slot" data-slot="hero sub">{t.heroSub}</p>
           <div className="hp-hero-ctas">
             {isMileHighFizzHybrid ? (
@@ -3073,6 +3073,11 @@ function Footer({ businessName }) {
           {CONTENT.memberTeamName ? (
             <p className="hp-footer-team">Proud member of the {CONTENT.memberTeamName} team</p>
           ) : null}
+          {CONTENT.publicIdentity && <div className="hp-footer-identity">
+            <p>{CONTENT.publicIdentity.identity}</p>
+            <p>{CONTENT.publicIdentity.intro}</p>
+            {CONTENT.publicIdentity.showSchedule && <p>{`Live shows run ${CONTENT.publicIdentity.showSchedule}.`}</p>}
+          </div>}
           <div className="hp-footer-socials">
             {footerSocials.map((social) => (
               <a
@@ -3160,7 +3165,7 @@ function SparkleSuiteHeaderStack({ t, scheduleIsLive, effectiveLrqState, onOpenQ
       <header className="hp-header">
         <div className="hp-header-inner">
           <div className="hp-brand">
-            <div className="hp-brand-name slot" data-slot="business name">{t.businessName}</div>
+            <h1 className="hp-brand-name slot" style={{ margin: 0 }} data-slot="business name">{t.businessName}{CONTENT.publicIdentity?.place || ""}</h1>
             <div className="hp-brand-sub">
               {scheduleIsLive && <span className="hp-live-dot" aria-hidden="true"></span>}
               {scheduleIsLive ? "Live now" : "Jewelry reveals"}
@@ -3205,9 +3210,9 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
         </video>}
         <div className="mhf-hero-shade" aria-hidden="true" />
         <div className="mhf-hero-content">
-          <h1 id="mhf-hero-title" className="mhf-hero-title mhf-logo-gradient">
+          <h2 id="mhf-hero-title" className="mhf-hero-title mhf-logo-gradient">
             {CONTENT.heroHeadline || businessName}
-          </h1>
+          </h2>
           <p className="mhf-hero-with">WITH {repName.toUpperCase()}</p>
           <p className="mhf-hero-line">{CONTENT.heroSub || "REVEALING SOMETHING MAGICAL TOGETHER"}</p>
           <p className="mhf-hero-instruction">PLACE YOUR ORDER AND RETURN TO THE LIVE PARTY TO WATCH YOUR REVEAL</p>
@@ -3331,9 +3336,9 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
         <div className="bwb-hero-shade" aria-hidden="true" />
         <div className="bwb-hero-content">
           <p className="bwb-hero-team">{CONTENT.heroEyebrow || "The Virtuous Fizzers"}</p>
-          <h1 id="bwb-hero-title" className="bwb-hero-title">
+          <h2 id="bwb-hero-title" className="bwb-hero-title">
             {CONTENT.heroHeadline || businessName}
-          </h1>
+          </h2>
           <p className="bwb-hero-line">{CONTENT.heroSub || "Where Faith Meets Fizz & Every Reveal is a VIP Experience"}</p>
           <p className="bwb-hero-instruction">PLACE YOUR ORDER AND RETURN TO THE LIVE PARTY TO WATCH YOUR REVEAL</p>
           <div className="bwb-hero-ctas">
@@ -3388,7 +3393,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
         <div className="bkf-hero-inner">
           <div className="bkf-hero-copy">
             <p className="bkf-eyebrow">{CONTENT.heroEyebrow || "With Heather"}</p>
-            <h1 id="bkf-hero-title">{CONTENT.heroHeadline || businessName}</h1>
+            <h2 id="bkf-hero-title">{CONTENT.heroHeadline || businessName}</h2>
             <p className="bkf-tagline">{CONTENT.tagline || "Serving Sparkle from the Heart of the Home"}</p>
             <p className="bkf-sub">Live jewelry reveals from my Ohio kitchen.</p>
             <div className="bkf-ctas">
@@ -3414,7 +3419,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
         {heroImageUrl && <img className="bk-home-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "BlingKitchen", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />}
         <div className="bk-home-hero-content">
           <p>{CONTENT.heroEyebrow || "With Heather"}</p>
-          <h1 id="bk-home-hero-title">{businessName}</h1>
+          <h2 id="bk-home-hero-title">{businessName}</h2>
           <span>{CONTENT.heroSub || t.heroSub}</span>
           <div className="bk-home-hero-ctas">
             <div className="bk-home-hero-cta-stack">

@@ -240,6 +240,12 @@ describe('rep /join server HTML', () => {
     expect(mileHomeHtml).toContain('data-server-rendered="true"')
     expect(mileHomeHtml).not.toContain('<main class="public-index">')
     expect(headingTexts(mileHomeHtml).length).toBeGreaterThan(0)
+    expect(headingTexts(mileHomeHtml)).toEqual(['Mile High Fizz'])
+    expect(serverText(mileHomeHtml)).toContain('Lindsey is the rep for Mile High Fizz.')
+    expect(serverText(mileHomeHtml)).toContain('Mile High Fizz hosts live jewelry reveals on Tuesdays, Thursdays, and Saturdays.')
+    expect(serverText(mileHomeHtml)).toContain('Live shows run Tuesdays, Thursdays, and Saturdays.')
+    expect(headingTexts(glowHomeHtml)).toEqual(["Bri's Glowtique in Wichita, Kansas"])
+    expect(serverText(glowHomeHtml)).toContain('Brianna is the rep for')
     expect(serverText(mileHomeHtml)).toContain('Mile High Fizz')
     expect(serverText(mileHomeHtml)).toContain('Lindsey')
     expect(serverText(glowHomeHtml)).toContain('Glowtique')
@@ -381,7 +387,7 @@ function serverText(html: string) {
   return `${title} ${description} ${body.replace(/<[^>]+>/g, ' ')}`
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&#39;|&#x27;|&apos;/g, "'")
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -394,7 +400,7 @@ function decodeText(value: string) {
   return value
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&#39;|&#x27;|&apos;/g, "'")
     .replace(/\s+/g, ' ')
     .trim()
 }
