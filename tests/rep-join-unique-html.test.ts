@@ -245,6 +245,9 @@ describe('rep /join server HTML', () => {
     expect(serverText(mileHomeHtml)).toContain('Mile High Fizz hosts live jewelry reveals on Tuesdays, Thursdays, and Saturdays.')
     expect(serverText(mileHomeHtml)).toContain('Live shows run Tuesdays, Thursdays, and Saturdays.')
     expect(headingTexts(glowHomeHtml)).toEqual(["Bri's Glowtique in Wichita, Kansas"])
+    const brandHeading = glowHomeHtml.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? ''
+    expect(brandHeading).toContain('<span class="hp-brand-location sr-only"> in Wichita, Kansas</span>')
+    expect(brandHeading.replace(/<span class="hp-brand-location sr-only">[\s\S]*?<\/span>/, '')).toBe('Bri&#x27;s Glowtique')
     expect(serverText(glowHomeHtml)).toContain('Brianna is the rep for')
     expect(serverText(mileHomeHtml)).toContain('Mile High Fizz')
     expect(serverText(mileHomeHtml)).toContain('Lindsey')

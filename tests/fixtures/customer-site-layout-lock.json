@@ -4,7 +4,7 @@
   "locks": [
     {
       "path": "public/amethyst/homepage.css",
-      "sha256": "2089d703683ded2a456250ff349caf5d49cbb4c09d9a17316b9a055b6fd45f00"
+      "sha256": "2682b450b9fb7112a9b9ed5c8a14241d9a3361a759d0f463b9a78e56e3903b30"
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
@@ -13,7 +13,7 @@
     {
       "path": "public/amethyst/homepage.jsx",
       "function": "SparkleSuiteHeaderStack",
-      "sha256": "09dfcffa1ff686d6acdeac28ac98bfae1e48dc1da3b74c3a9f4c6b562ec6c445"
+      "sha256": "2ea872c653317db92d54103559437a771f37f17c43bd9360eb6b2134c9d1ff5c"
     },
     {
       "path": "public/amethyst/homepage.jsx",
@@ -64,7 +64,7 @@
   },
   "approvedSeoChange": {
     "date": "2026-10-26",
-    "approval": "Louis requested PR #156 pass 3: restore business H1 with public location. Header business name gains H1 semantics; hero marketing headings become H2. No header controls or placement change."
+    "approval": "Louis explicitly requested PR #156 pass 4 item 2: visible header contains only the shop name, with no cutoff for a 37-character name at 390px. Exactly one business/location H1 remains; its location is visually hidden sr-only text. Wrapping the shop name is authorized; unrelated header controls and layout remain locked."
   },
   "approvedTickerChange": {
     "date": "2026-10-26",

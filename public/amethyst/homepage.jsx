@@ -3434,7 +3434,7 @@ function SparkleSuiteHeaderStack({ t, scheduleIsLive, effectiveLrqState, onOpenQ
       <header className="hp-header">
         <div className="hp-header-inner">
           <div className="hp-brand">
-            <h1 className="hp-brand-name slot" style={{ margin: 0 }} data-slot="business name">{t.businessName}{window.AMETHYST_PUBLIC_IDENTITY?.place || ""}</h1>
+            <h1 className="hp-brand-name slot" style={{ margin: 0 }} data-slot="business name">{t.businessName}{window.AMETHYST_PUBLIC_IDENTITY?.place && <span className="hp-brand-location sr-only">{window.AMETHYST_PUBLIC_IDENTITY.place}</span>}</h1>
             <div className="hp-brand-sub">
               {scheduleIsLive && <span className="hp-live-dot" aria-hidden="true"></span>}
               {scheduleIsLive ? "Live now" : "Jewelry reveals"}
