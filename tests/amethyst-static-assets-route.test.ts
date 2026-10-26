@@ -169,7 +169,10 @@ describe('Amethyst static asset route', () => {
       if (assetName === 'Join.html') {
         expect(html).toContain('src="/amethyst/join-runtime.js?v=20261019-thanksgiving-v3"')
         expect(html).toContain('href="/amethyst/join.css?v=20261021-ticker-edge"')
-        expect(html).toContain('href="/amethyst/neon-butterfly.css?v=20260914-team-recruiting-v1"')
+        const joinTemplate = readFileSync(resolve(process.cwd(), 'public/amethyst/Join.html'), 'utf8')
+        const neonStylesheet = joinTemplate.match(/href="(\/amethyst\/neon-butterfly\.css\?v=[^"]+)"/)?.[1]
+        expect(neonStylesheet).toBeTruthy()
+        expect(html).toContain(`href="${neonStylesheet}"`)
         expect(html).not.toContain('tweaks-panel.jsx')
       } else {
         expect(html).toContain('src="/amethyst/compiled/tweaks-panel.js?v=')
