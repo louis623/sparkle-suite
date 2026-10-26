@@ -75,3 +75,15 @@ it('keeps font binaries and full CSS in cacheable hashed files', async () => {
   expect(result).toContain('data-critical-homepage')
   expect(Buffer.byteLength(result)).toBeLessThan(100_000)
 })
+
+// Full styles are intentionally asynchronous: these rules must be present in
+// the initial response, otherwise default heading margins and scene art move.
+it('keeps heading resets and positioned scene layers in critical CSS', async () => {
+  for (const preset of ['halloween_pumpkin_witch', 'gnome_garden', 'sunset_beach'] as const) {
+    const result = await renderHomepageFirstPaint(html, { appearancePreset: preset, homepage: defaultAmethystHomepageTemplateData, trade: defaultAmethystTradeTemplateData, join: defaultAmethystJoinTemplateData }, new URL('https://example.com/rep'))
+    expect(result).toMatch(/h2[^{}]*\{[^}]*margin:0/)
+    expect(result).toContain('.hp-fx-layer{')
+    if (preset === 'gnome_garden') expect(result).toContain('.gg-scene{position:absolute')
+    if (preset === 'sunset_beach') expect(result).toContain('.beach-motion-layer{')
+  }
+})

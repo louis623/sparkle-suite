@@ -65,11 +65,11 @@ export function selectHomepageThemeAssets(html: string, preset: string, variant?
 // delaying its first paint; noscript retains the full accessible page.
 export async function inlineHomepageStyles(html: string, preset?: string, heading?: {family:string;weight:number}, bodyClasses: string[] = [], variant?: string) {
   const manifest = stylesheetManifest as Record<string, string>
-  const critical = criticalManifest as Record<string, {css:string;bodies:string[];presets:string[]}[]>
+  const critical = criticalManifest as Record<string, {css:string;bodies:string[];presets:string[];variants:string[]}[]>
   html = html.replace(/<link rel="stylesheet" href="(?:\/amethyst\/)?((?:bling-kitchen\/)?[a-z0-9-]+\.css)(?:\?[^\"]*)?"\s*\/>/g,
     (tag, name: string) => {
       if (!manifest[name]) return tag
-      const css = (critical[name] ?? []).filter(rule => rule.bodies.every(c=>bodyClasses.includes(c)) && (!rule.presets.length || rule.presets.includes(preset ?? '')) && (!/\.mhf-/.test(rule.css) || variant === 'mile_high_fizz_hybrid') && (!/\.bwb-/.test(rule.css) || variant === 'britt_with_bling_hybrid') && (!/\.(?:bkf-|bk-home-)/.test(rule.css) || variant === 'bling_kitchen_hybrid')).map(rule=>rule.css).join('')
+      const css = (critical[name] ?? []).filter(rule => rule.bodies.every(c=>bodyClasses.includes(c)) && (!rule.presets.length || rule.presets.includes(preset ?? '')) && (!rule.variants.length || rule.variants.includes(variant ?? ''))).map(rule=>rule.css).join('')
       return '<style data-critical-stylesheet="' + name + '">' + css + '</style><link rel="stylesheet" href="' + manifest[name] + '" media="print" onload="this.media=\'all\'"><noscript><link rel="stylesheet" href="' + manifest[name] + '"></noscript>'
     })
   html = html.replace('</head>', '<style data-critical-homepage>html{background:var(--hp-bg,#100b1c)}body{margin:0;background:var(--hp-bg,#100b1c);color:var(--hp-text,#f7f4fc)}</style></head>')
