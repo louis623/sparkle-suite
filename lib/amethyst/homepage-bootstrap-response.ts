@@ -25,6 +25,7 @@ import {
 } from '@/lib/bling-kitchen/pantry-access'
 import { applyBlingKitchenHomepage } from '@/lib/bling-kitchen/profile'
 import { getEffectiveLiveQueueSnapshot } from '@/lib/live-lineup/service'
+import { applySavedSignupDiscount, loadSavedSignupDiscount } from '@/lib/public-site/signup-discount-settings'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { LiveQueueSnapshot } from '@/lib/services/types'
 
@@ -105,9 +106,20 @@ export async function buildHomepageBootstrapResponse(request: Request, prefetche
           limit: 8,
         }),
         loadHomepageLiveQueueSnapshot(featureRepId),
-      ]))
-    : Promise.resolve<[Awaited<ReturnType<typeof loadAmethystTradeBoardPreviewListings>>, LiveQueueSnapshot | null]>([[], null])
-  const [events, templateData, [tradeBoardListings, liveQueueSnapshot]] = await Promise.all([
+        featureRepId ? loadSavedSignupDiscount(featureRepId) : Promise.resolve(null),
+      ]).then(([tradeBoardListings, liveQueueSnapshot, savedDiscount]) => ({
+        featureRepId,
+        tradeBoardListings,
+        liveQueueSnapshot,
+        savedDiscount,
+      })))
+    : Promise.resolve({
+        featureRepId: null as string | null,
+        tradeBoardListings: [] as Awaited<ReturnType<typeof loadAmethystTradeBoardPreviewListings>>,
+        liveQueueSnapshot: null as LiveQueueSnapshot | null,
+        savedDiscount: null,
+      })
+  const [events, templateData, { featureRepId, tradeBoardListings, liveQueueSnapshot, savedDiscount }] = await Promise.all([
     loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }),
     prefetched?.templateData ?? loadAmethystPreviewTemplateData(lookupTarget),
     features,
@@ -139,16 +151,22 @@ export async function buildHomepageBootstrapResponse(request: Request, prefetche
     requestCustomDomain,
   )
 
+  const homepage = await applySavedSignupDiscount(
+    {
+      ...enrichAmethystHomepageFeatureData(customerTemplateData.homepage, {
+        liveQueueSnapshot,
+        lineupPresentation: requestedLineupPresentation(request),
+        tradeBoardListings,
+      }),
+      ...buildLineupCalendar(customerTemplateData.homepage, linkedEvents),
+    },
+    featureRepId,
+    async () => savedDiscount,
+  )
+
   return new NextResponse(
     buildAmethystHomepageBootstrapScript(
-      {
-        ...enrichAmethystHomepageFeatureData(customerTemplateData.homepage, {
-          liveQueueSnapshot,
-          lineupPresentation: requestedLineupPresentation(request),
-          tradeBoardListings,
-        }),
-        ...buildLineupCalendar(customerTemplateData.homepage, linkedEvents),
-      },
+      homepage,
       linkedEvents,
       customerTemplateData.appearancePreset,
       { publicSiteSlug, repId, targeted },

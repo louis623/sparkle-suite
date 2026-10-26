@@ -2304,6 +2304,12 @@ const SIGNUP_PREFERENCE_STYLES = `
   text-align: center;
   box-sizing: border-box;
 }
+.hp-signup-discount { display: grid; gap: 10px; width: 100%; max-width: 100%; margin: 20px auto 0; justify-items: center; box-sizing: border-box; }
+.hp-signup-discount-label { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.4; color: var(--hp-card-fg); }
+.hp-signup-discount-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+.hp-signup-discount-code { display: inline-block; box-sizing: border-box; max-width: 100%; margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--hp-field-bg); color: var(--hp-field-fg); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 16px; font-weight: 700; letter-spacing: 0.04em; line-height: 1.3; user-select: text; -webkit-user-select: text; overflow-wrap: anywhere; }
+.hp-signup-discount-copy { box-sizing: border-box; min-height: 44px; min-width: 44px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--hp-card-accent); background: var(--hp-card-accent); color: var(--hp-action-fg); font: inherit; font-size: 16px; font-weight: 700; line-height: 1.2; cursor: pointer; touch-action: manipulation; }
+.hp-signup-discount-copy:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 3px; }
 @media (max-width: 600px) {
   #signup .hp-signup-card.is-success { padding: 36px 24px 32px; }
   #signup .hp-signup-card:not(.is-success) {
@@ -2322,6 +2328,8 @@ const SIGNUP_PREFERENCE_STYLES = `
     margin: 0;
     box-sizing: border-box;
   }
+  .hp-signup-discount-row { align-items: stretch; }
+  .hp-signup-discount-copy { flex: 1 1 100%; }
 }
 `;
 
@@ -2424,6 +2432,160 @@ function SignupPreferencePicker({ legend, fieldName, options, selected, onChange
         {atMax ? "You've picked 3. Unpick one to choose another." : ""}
       </p>
     </fieldset>
+  );
+}
+
+const SIGNUP_DISCOUNT_COPIED_MS = 2000;
+const SIGNUP_DISCOUNT_CLIPBOARD_TIMEOUT_MS = 2500;
+const SIGNUP_DISCOUNT_CODE_PATTERN = /^[A-Za-z0-9-]{1,40}$/;
+const SIGNUP_DISCOUNT_OFFER_MAX = 40;
+
+function normalizeSignupDiscountCode(value) {
+  if (typeof value !== "string") return null;
+  const code = value.trim();
+  if (!SIGNUP_DISCOUNT_CODE_PATTERN.test(code)) return null;
+  return code;
+}
+
+function normalizeSignupDiscountOffer(value) {
+  if (typeof value !== "string") return null;
+  const offer = value.replace(/[\u0000-\u001F\u007F]/g, " ").replace(/\s+/g, " ").trim();
+  if (!offer || offer.length > SIGNUP_DISCOUNT_OFFER_MAX) return null;
+  if (/[<>]/.test(offer)) return null;
+  return offer;
+}
+
+function presentSignupDiscount(content) {
+  const code = normalizeSignupDiscountCode(content && content.signupDiscountCode);
+  if (!code) return null;
+  const offer = normalizeSignupDiscountOffer(content && content.signupDiscountOffer);
+  return { code, label: offer ? `Your ${offer} code` : "Your discount code" };
+}
+
+function signupDiscountCopyName(code, copied) {
+  return copied ? `Copied ${code}` : `Copy ${code}`;
+}
+
+function signupDiscountCopyFeedback(outcome) {
+  if (outcome === "failed") return null;
+  return { text: "Copied!", clearAfterMs: SIGNUP_DISCOUNT_COPIED_MS };
+}
+
+function selectSignupDiscountCode(codeElement, doc, view) {
+  const documentRef = doc === undefined ? (typeof document !== "undefined" ? document : null) : doc;
+  const viewRef = view === undefined ? (typeof window !== "undefined" ? window : null) : view;
+  if (!documentRef || codeElement == null || typeof documentRef.createRange !== "function") return false;
+  const selection = viewRef && typeof viewRef.getSelection === "function" ? viewRef.getSelection() : null;
+  if (!selection || typeof selection.removeAllRanges !== "function" || typeof selection.addRange !== "function") return false;
+  const range = documentRef.createRange();
+  range.selectNodeContents(codeElement);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  if (typeof codeElement.focus === "function") {
+    try { codeElement.focus({ preventScroll: true }); }
+    catch { codeElement.focus(); }
+  }
+  return true;
+}
+
+function defaultSignupDiscountWriteText() {
+  if (typeof navigator === "undefined" || !navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+    return null;
+  }
+  return function writeSignupDiscount(value) {
+    return navigator.clipboard.writeText(value);
+  };
+}
+
+function copySignupDiscountCode(code, codeElement, deps) {
+  const options = deps || {};
+  const writeText = Object.prototype.hasOwnProperty.call(options, "writeText")
+    ? options.writeText
+    : defaultSignupDiscountWriteText();
+  const selectContents = options.selectContents || function selectContents(element) {
+    return selectSignupDiscountCode(element);
+  };
+  const timeoutMs = options.timeoutMs == null ? SIGNUP_DISCOUNT_CLIPBOARD_TIMEOUT_MS : options.timeoutMs;
+  let timer;
+  const finish = function finish(outcome) {
+    if (timer) clearTimeout(timer);
+    return outcome;
+  };
+
+  if (!writeText) {
+    return Promise.resolve(selectContents(codeElement) ? "selected" : "failed");
+  }
+
+  return new Promise(function (resolve) {
+    let settled = false;
+    const settle = function settle(outcome) {
+      if (settled) return;
+      settled = true;
+      resolve(finish(outcome));
+    };
+    timer = setTimeout(function () { settle("timeout"); }, timeoutMs);
+    Promise.resolve()
+      .then(function () { return writeText(code); })
+      .then(function () { settle("clipboard"); })
+      .catch(function () { settle("blocked"); });
+  }).then(function (outcome) {
+    if (outcome === "clipboard") return "clipboard";
+    return selectContents(codeElement) ? "selected" : "failed";
+  });
+}
+
+function SignupDiscountConfirmation({ content }) {
+  const discount = presentSignupDiscount(content);
+  const [copied, setCopied] = React.useState(false);
+  const codeRef = React.useRef(null);
+  const timerRef = React.useRef(0);
+  const copyingRef = React.useRef(false);
+  React.useEffect(function () {
+    return function () {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+  }, []);
+  if (!discount) return null;
+
+  async function onCopy() {
+    if (copyingRef.current) return;
+    copyingRef.current = true;
+    try {
+      const outcome = await copySignupDiscountCode(discount.code, codeRef.current);
+      const feedback = signupDiscountCopyFeedback(outcome);
+      if (!feedback) return;
+      setCopied(true);
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(function () { setCopied(false); }, feedback.clearAfterMs);
+    } finally {
+      copyingRef.current = false;
+    }
+  }
+
+  return (
+    <div className="hp-signup-discount" role="group" aria-label={discount.label}>
+      <p className="hp-signup-discount-label">{discount.label}</p>
+      <div className="hp-signup-discount-row">
+        <code
+          ref={codeRef}
+          className="hp-signup-discount-code"
+          tabIndex={0}
+          style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" }}
+        >
+          {discount.code}
+        </code>
+        <button
+          type="button"
+          className="hp-signup-discount-copy"
+          style={{ minHeight: 44, minWidth: 44 }}
+          onClick={onCopy}
+          aria-label={signupDiscountCopyName(discount.code, copied)}
+        >
+          {copied ? "Copied!" : "Copy"}
+        </button>
+      </div>
+      <p className="hp-signup-live" aria-live="polite">{copied ? "Copied!" : ""}</p>
+    </div>
   );
 }
 
@@ -2814,6 +2976,9 @@ function Signup({ repName, businessName }) {
               >
                 {submitState.message}
               </p>
+            ) : null}
+            {submitState.status === "success" ? (
+              <SignupDiscountConfirmation content={CONTENT} />
             ) : null}
           </div>
           {submitState.status === "success" ? null : (
