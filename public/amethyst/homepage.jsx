@@ -1257,6 +1257,24 @@ function getFacebookVideoEmbedUrl(value) {
   }
 }
 
+// Native iframe lazy loading can fetch several screens ahead on fast networks.
+// Keep below-fold social players out of the hero's bandwidth and CPU budget.
+function DeferredVideoFrame({ frameRef, src, ...props }) {
+  const ownRef = useRef(null);
+  const ref = frameRef || ownRef;
+  const [nearViewport, setNearViewport] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return undefined;
+    if (typeof IntersectionObserver !== "function") { setNearViewport(true); return undefined; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setNearViewport(true); observer.disconnect(); }
+    }, { rootMargin: "200px" });
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [ref]);
+  return <iframe {...props} ref={ref} src={nearViewport ? src : undefined} />;
+}
+
 function TikTokEmbed({ className = "", videoUrl, title, children, dataSlot }) {
   const frameRef = useRef(null);
   const videoId = getTikTokVideoId(videoUrl);
@@ -1325,8 +1343,8 @@ function TikTokEmbed({ className = "", videoUrl, title, children, dataSlot }) {
 
   return (
     <div className={`ss-tiktok-embed ${className}`} data-slot={dataSlot} data-tiktok-embed="true">
-      <iframe
-        ref={frameRef}
+      <DeferredVideoFrame
+        frameRef={frameRef}
         allow="autoplay; fullscreen"
         allowFullScreen
         className="ss-tiktok-embed-frame"
@@ -1398,7 +1416,7 @@ function CustomerVideoEmbed({ className = "", videoUrl, title, children, dataSlo
 
   return (
     <div className={`ss-customer-video-embed ss-customer-video-embed-${provider} ${className}`} data-slot={dataSlot} data-video-provider={provider}>
-      <iframe
+      <DeferredVideoFrame
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share"
         allowFullScreen
         className="ss-customer-video-frame"
