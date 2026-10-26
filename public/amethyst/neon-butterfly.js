@@ -78,6 +78,9 @@
   }
 
   function syncSkin() {
+    // The observer can run before the deferred homepage has hydrated its SSR
+    // tree. Adding decoration then makes React discard the server first paint.
+    if (globalThis.SPARKLE_FIRST_PAINT) return;
     var enabled = document.body && document.body.classList.contains(SKIN_CLASS);
     if (!enabled) {
       removeScenes();

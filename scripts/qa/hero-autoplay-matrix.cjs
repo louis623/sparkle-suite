@@ -107,6 +107,10 @@ fs.mkdirSync(output, {recursive:true});
         await page.screenshot({path:path.join(output,`${mode}-${theme}-paused.png`)});
         const resume=frame.getByRole('button',{name:/^(Play animation|Resume animation)$/}).first();
         await interact(resume);await page.waitForTimeout(650);result.resumed=await sample();
+        if(theme==='halloween_pumpkin_cat' && result.resumed.videos.every(v=>v.paused)) {
+          await frame.waitForFunction(()=>[...document.querySelectorAll('.hp-hero video')].some(v=>!v.paused&&v.currentTime>.2),null,{timeout:6000});
+          result.resumed=await sample();
+        }
       }
       result.productionRuntime=!resources.some(u=>/babel(?:\.min)?\.js|babel-standalone|react(?:-dom)?\.development/.test(u));
       result.pass=result.status===200 && result.initial.motion==='on' && !result.initial.unstyled && result.productionRuntime && !errors.length;
