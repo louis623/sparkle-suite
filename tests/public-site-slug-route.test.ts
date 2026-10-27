@@ -118,17 +118,14 @@ describe('public site slug route', () => {
     expect(html).toContain(
       'href="/amethyst/homepage.css?v=20261021-ticker-edge"',
     )
-    expect(html).toContain('src="/amethyst/compiled/tweaks-panel.js?v=')
+    expect(html).toContain('src="/amethyst/tweaks-panel.jsx?v=20260725-emerald-garden"')
     expect(html).toContain('src="/amethyst/live-lineup.js?v=20261002-compact-lineup"')
-    expect(html).toContain('src="/amethyst/compiled/homepage.js?v=')
-    expect(html).not.toContain('text/babel')
-    expect(html).not.toContain('react.development')
+    expect(html).toContain('src="/amethyst/homepage.jsx?v=20261022-signup-step-error"')
     expect(html).toContain(
       '/api/amethyst/homepage-template?c=rep-gracie&amp;publicSiteSlug=graciesparkleparty',
     )
     expect(html).not.toContain('href="tokens.css"')
     expect(html).not.toContain('src="homepage.jsx"')
-    expect(html).not.toContain('homepage.jsx?v=')
     expect(html).not.toContain('?c=graciesparkleparty')
   })
 

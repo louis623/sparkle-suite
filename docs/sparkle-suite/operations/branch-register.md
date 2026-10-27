@@ -22,10 +22,6 @@ guard is `scripts/check-active-branch.mjs`. The primary workbench remains the
 general-purpose Windows workspace. The isolated Google verification worktree
 below is limited to its approved scope.
 
-## October 25 precompiled customer pages
-
-Louis approved precompiling the homepage, Dance Floor, and pantry for Smoke review only. `cursor/precompile-customer-pages-d6f3` is allowlisted for that preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change. Do not merge or deploy it from this change.
-
 ## October 23 theme carousel site peeks
 
 `cursor/theme-carousel-site-peeks-db80` is allowlisted for review of the portfolio and home theme peeks. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. The production branch, GitHub default branch, and Live domains stay `codex/nic-nac-trade-hardening`. This change is not a Live release.

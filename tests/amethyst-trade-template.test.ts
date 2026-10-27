@@ -488,7 +488,7 @@ describe('Amethyst trade page template wiring', () => {
       '<script src="template-loader.js?v=20260928-lineup-always-on" data-lineup-presentation="grouped-v1" data-template-src="/api/amethyst/trade-template"></script>',
     )
     expect(html.indexOf('template-loader.js')).toBeLessThan(
-      html.indexOf('/amethyst/compiled/trade.js'),
+      html.indexOf('trade.jsx'),
     )
   })
 

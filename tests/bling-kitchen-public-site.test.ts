@@ -259,9 +259,7 @@ describe('BlingKitchen hybrid public site contract', () => {
     expect(pantryJsx).toContain('type: nextMuted ? "mute" : "unMute"')
     expect(pantryHtml).toContain('class="bk-pantry-page"')
     expect(pantryHtml).toContain('data-template-src="/api/amethyst/pantry-template"')
-    expect(pantryHtml).toContain('/amethyst/compiled/pantry.js?v=')
-    expect(pantryHtml).not.toContain('text/babel')
-    expect(pantryHtml).not.toContain('react.development')
+    expect(pantryHtml).toContain('pantry.jsx?v=20261018-responsive-images')
     expect(pantryHtml).toContain(
       'pantry.css?v=20260817-recipe-card-footer-alignment',
     )

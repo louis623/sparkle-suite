@@ -31,7 +31,7 @@ describe('community theme site previews', () => {
     expect(html).toContain('sparkle-landing-ready')
     expect(html).toContain('dataset.previewReady')
     expect(html).toContain("connect-src 'none'")
-    expect(html).not.toContain('SparkleLiveLineup.start(')
+    expect(html).not.toContain("return window.SparkleLiveLineup.start({ url:")
     expect(html).not.toContain('Theme preview · Sample content')
     expect(html).not.toContain('The Dudes Fizzfest')
     expect(html).not.toContain('Smoke mirror')

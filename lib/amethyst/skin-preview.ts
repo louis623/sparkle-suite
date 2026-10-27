@@ -476,22 +476,18 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   const root = join(process.cwd(), 'public', 'amethyst')
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
-  // Inline only allowlisted repository runtime files. The sandbox cannot fetch them.
-  // Unsubscribe still ships Babel source, so the preview CSP keeps unsafe-eval.
-  const runtimeNames = ['compiled/tweaks-panel.js', 'tweaks-panel.jsx', 'responsive-image.js', 'dance-floor-ticker-label.js', 'compiled/homepage.js', 'compiled/trade.js', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'sunset-beach.js', 'rose-champagne.js', 'midnight-rose.js', 'fall-owl.js', 'thanksgiving-motion.js', 'pearl-rose.js', 'sparkle-suite-footer-credit.js']
+  // Inline only allowlisted repository runtime files. Inline Babel input does not need network XHR.
+  const runtimeNames = ['tweaks-panel.jsx', 'responsive-image.js', 'dance-floor-ticker-label.js', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'sunset-beach.js', 'rose-champagne.js', 'midnight-rose.js', 'fall-owl.js', 'thanksgiving-motion.js', 'pearl-rose.js', 'sparkle-suite-footer-credit.js']
   for (const name of runtimeNames) {
-    const escaped = name.replace(/\./g, '\\.')
+    const escaped = name.replace('.', '\\.')
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')
     if (!pattern.test(document)) continue
     pattern.lastIndex = 0
     let source = await readFile(join(root, name), 'utf8')
-    if ((skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') && page === 'homepage' && name === 'compiled/homepage.js') {
-      // The precompiled classic transform keeps the external sprite URL.
-      // Point that <use> at the inlined symbols before the first paint.
-      source = source.replace(
-        /React\.createElement\("use",\{href:`\/amethyst\/media-icons\.svg#\$\{([A-Za-z_$][\w$]*)\}`\}\)/g,
-        'React.createElement("use",{"data-preview-icon":$1})',
-      )
+    if ((skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') && page === 'homepage' && name === 'homepage.jsx') {
+      // Avoid even an initial blocked external-sprite request before the
+      // preview observer fills this placeholder with the real glyph paths.
+      source = source.replace('<use href={`/amethyst/media-icons.svg#${name}`} />', '<use data-preview-icon={name} />')
     }
     source = inlineScript(source)
     document = document.replace(pattern, (_match, before, after) => `<script${before}${after}>${source}</script>`)

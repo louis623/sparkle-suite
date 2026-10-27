@@ -89,7 +89,7 @@ describe('public landing theme boundary', () => {
     expect(html).toContain('sparkle-marketing-motion')
     expect(html).toContain('event.source!==parent')
     expect(html).toContain('v.muted=true')
-    expect(html).not.toContain('SparkleLiveLineup.start(')
+    expect(html).not.toContain("return window.SparkleLiveLineup.start({ url:")
   })
   it('shows an isolated sample lineup without a demo-account lookup', async () => {
     const response = await lineupPreview(new Request('https://smoke.example/api/public/landing-lineup-preview'))
@@ -101,6 +101,6 @@ describe('public landing theme boundary', () => {
     expect(html).toContain('Sample Harper')
     expect(html).toContain('View full lineup')
     expect(html).toContain('showNicNac:false,showSignup:false')
-    expect(html).not.toContain('SparkleLiveLineup.start(')
+    expect(html).not.toContain("return window.SparkleLiveLineup.start({ url:")
   })
 })
