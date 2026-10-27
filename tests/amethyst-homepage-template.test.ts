@@ -31,7 +31,7 @@ describe('Amethyst homepage template data wiring', () => {
       expect(source).not.toContain('Update delayed')
       expect(source).toContain('className="hp-trade-preview-updated"')
       expect(source).toContain('Updating · Last update ')
-      expect(source).toContain('new Date(updatedAt).toLocaleTimeString')
+      expect(source).toMatch(/new Date\(updatedAt\)\.toLocaleTimeString|homepageDateLabel\(updatedAt/)
       expect(source).toMatch(
         /className="hp-trade-preview-items"[\s\S]*?className="hp-trade-preview-link"[\s\S]*?<LiveLineupUpdatedAt lineup=\{lineup\} \/>/,
       )
@@ -1225,7 +1225,7 @@ describe('Amethyst homepage template data wiring', () => {
 
     expect(jsx).toContain('window.AMETHYST_HOMEPAGE_EVENTS')
     expect(jsx).toContain('Intl.DateTimeFormat')
-    expect(jsx).toContain('Intl.DateTimeFormat(undefined')
+    expect(jsx).toContain('Intl.DateTimeFormat(homepageRenderLocale')
     expect(jsx).toContain('timeZoneName: "short"')
     expect(jsx).not.toContain('timeZone: "UTC"')
     expect(jsx).toContain('downloadCalendarEvent')

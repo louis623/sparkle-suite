@@ -3110,3 +3110,6 @@ Louis explicitly requires Live Lineup to work whenever the enabled, connected ex
 ## October 24, 2026 - New themes include QR flyers and business cards
 
 Louis requested automatic matching print deliverables for every new theme. Added sparkle-suite-qr-flyer-builder and sparkle-suite-business-card-builder; skin-builder invokes both without a separate request. Preserve approved art, use actual tool geometry, build deterministically and verify real exports. Existing narrower scope/approval rules remain. Skills validated; no app or deployment changes. Louis will personally double-check the seasonal Live designs; no further personal-session permission is pending for that release. See vault/2026-10-24-theme-print-skills.md.
+
+## October 26 — isolated SSR Chunk 1
+See [SSR Chunk 1 checkpoint](2026-10-26-ssr-chunk1-fizzfest.md). One public preview approved; no Live/Smoke/settings/alias changes. Local TypeScript and 75 tests pass; one deployed measurement round pending. #156 remains reference-only.

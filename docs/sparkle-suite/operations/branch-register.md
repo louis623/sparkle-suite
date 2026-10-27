@@ -223,3 +223,7 @@ Louis authorized pushing `codex/faq-articles` and opening draft PR #81 for revie
 ## 2026-10-06 — section-1 Smoke review
 
 `codex/smoke-landing-hero`: owner-authorized isolated hero/header PR, based on verified `ba09eb2` plus approved logo PR #76. Disposable workspace: C:\Users\louis\.codex\visualizations\2026\10\05\01a10df3-2121-7673-8f71-c58c6d0e5ab4\section1-workspace. Smoke project only; no Live release, default-branch change, or production alias change authorized. Added to the existing guard allowlist for this requested review.
+
+## SSR Chunk 1 — October 26, 2026
+
+Louis explicitly authorized `codex/ssr-chunk1-fizzfest-home`, fresh from production e78fa626, for one private preview only. Checkout `.codex-worktrees/ssr-chunk1-fizzfest-home`. No Smoke, Live, aliases, production branch or project environment changes. PR #154 reverted separately; #156 is reference-only.

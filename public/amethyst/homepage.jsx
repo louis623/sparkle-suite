@@ -1,6 +1,25 @@
 /* global React, ReactDOM */
 const { useState, useEffect, useMemo, useRef } = React;
 
+const homepageDateFormatters = new Map();
+const homepageEventTimeZones = new Map();
+const homepageRenderLocale = window.SPARKLE_FIRST_PAINT?.locale;
+const homepageRenderTimeZone = window.SPARKLE_FIRST_PAINT?.timeZone;
+function homepageDateLabel(value, options) {
+  const resolvedOptions = {
+    ...options,
+    ...(homepageRenderTimeZone && !options.timeZone ? { timeZone: homepageRenderTimeZone } : {}),
+  };
+  const key = JSON.stringify([homepageRenderLocale, resolvedOptions]);
+  let formatter = homepageDateFormatters.get(key);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(homepageRenderLocale, resolvedOptions);
+    homepageDateFormatters.set(key, formatter);
+  }
+  return formatter.format(new Date(value));
+}
+
+
 // Read tweaks panel components from the global scope (loaded from tweaks-panel.jsx)
 const {
   TweaksPanel, useTweaks,
@@ -461,7 +480,7 @@ function LiveLineupStatus() {
   const updated = Date.parse(lineup.liveQueueLastUpdated);
   if (!Number.isFinite(updated)) return null;
   return <p className="hp-lineup-status">
-    Updated {new Date(updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+    Updated {homepageDateLabel(updated, { hour: 'numeric', minute: '2-digit' })}
   </p>;
 }
 
@@ -472,9 +491,9 @@ function LiveLineupUpdatedAt({ lineup }) {
     <time
       className="hp-trade-preview-updated"
       dateTime={new Date(updatedAt).toISOString()}
-      title={new Date(updatedAt).toLocaleString()}
+      title={homepageDateLabel(updatedAt, { dateStyle: "short", timeStyle: "medium" })}
     >
-      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{homepageDateLabel(updatedAt, { hour: "numeric", minute: "2-digit" })}
     </time>
   );
 }
@@ -856,6 +875,39 @@ function GnomeGardenScene() {
   );
 }
 
+// Same approved Pumpkin Cat art and control, now present in the server tree.
+function PumpkinCatScene() {
+  const [wanted, setWanted] = useState(() => window.sparkleEarlyMotion?.() ?? true);
+  const videoRef = useRef(null);
+  const mediaRef = useRef(null);
+  useEffect(() => {
+    const video = videoRef.current, media = mediaRef.current;
+    if (!video) return;
+    let timer, resting = false;
+    const reduced = matchMedia('(prefers-reduced-motion:reduce)');
+    let visible = true;
+    function update() {
+      if (!wanted || reduced.matches || document.hidden || !visible) { video.pause(); return; }
+      if (!resting) video.play().catch(() => {});
+    }
+    const playing = () => media.setAttribute('data-playing', 'true');
+    const ended = () => { resting = true; timer = setTimeout(() => { resting = false; video.currentTime = 0; update(); }, 4000); };
+    video.addEventListener('playing', playing); video.addEventListener('ended', ended);
+    if (!video.paused) playing();
+    document.addEventListener('visibilitychange', update); reduced.addEventListener('change', update);
+    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); }, { threshold: 0.05 }); observer.observe(video);
+    update();
+    return () => { clearTimeout(timer); observer.disconnect(); video.removeEventListener('playing', playing); video.removeEventListener('ended', ended); document.removeEventListener('visibilitychange', update); reduced.removeEventListener('change', update); };
+  }, [wanted]);
+  return <>
+    <div className="hpc-art" ref={mediaRef}>
+      <picture className="hpc-poster" aria-hidden="true"><img src="/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp" srcSet="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-720.webp 720w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp 1200w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1672.webp 1672w" sizes="(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw" alt="" width="1672" height="941" /></picture>
+      <video ref={videoRef} className="hpc-video" muted playsInline preload="none" src="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4" aria-hidden="true" tabIndex={-1} />
+    </div>
+    <button type="button" className="hpc-motion-control" aria-pressed={wanted} onClick={() => setWanted(value => !value)}>{wanted ? 'Pause animation' : 'Play animation'}</button>
+  </>;
+}
+
 function Hero({ t, isLive, liveShow }) {
   const joinTeamHref = CONTENT.footerLinks?.joinTeam || "";
   const mileHighFizzKicker = t.heroEyebrow || CONTENT.heroEyebrow || "With Lindsey";
@@ -864,6 +916,7 @@ function Hero({ t, isLive, liveShow }) {
   return (
     <>
     <section className="hp-hero" data-appearance-preset={t.preset} data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
+      {t.preset === "halloween_pumpkin_cat" && window.SPARKLE_FIRST_PAINT !== undefined && <PumpkinCatScene />}
       {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
       <div className="hp-hero-media" aria-hidden="true" />
       {t.preset !== "halloween_pumpkin_cat" && t.preset !== "amethyst" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
@@ -1661,7 +1714,8 @@ function formatEventDateLabel(eventTime) {
   const parsed = new Date(eventTime);
   if (Number.isNaN(parsed.getTime())) return eventTime;
 
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(homepageRenderLocale, {
+    timeZone: homepageRenderTimeZone,
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -1672,7 +1726,8 @@ function formatEventTimeLabel(eventTime) {
   const parsed = new Date(eventTime);
   if (Number.isNaN(parsed.getTime())) return eventTime;
 
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(homepageRenderLocale, {
+    timeZone: homepageRenderTimeZone,
     hour: "numeric",
     minute: "2-digit",
     timeZoneName: "short",
@@ -3085,10 +3140,10 @@ function SparkleFx({ level, motion }) {
   const n = counts[level] || 0;
   const sparkles = useMemo(() => {
     return Array.from({ length: n }, (_, i) => ({
-      left: Math.random() * 100,
-      delay: Math.random() * 4,
-      duration: 3 + Math.random() * 3,
-      size: 0.5 + Math.random() * 1.2,
+      left: ((i * 61 + 17) % 100),
+      delay: ((i * 37 + 11) % 40) / 10,
+      duration: 3 + ((i * 13 + 7) % 30) / 10,
+      size: 0.5 + ((i * 19 + 3) % 12) / 10,
     }));
   }, [n]);
 
@@ -3419,26 +3474,8 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
 // ============================================================
 // Main App
 // ============================================================
-function App() {
-  const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
-  window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
-  useEffect(() => {
-    if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
-    return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });
-  }, []);
-  const [t, setTweak] = useTweaks(DEFAULTS);
-  const [queueOpen, setQueueOpen] = useState(false);
-  const repName = publicRepName(t.repName);
-  const [now, setNow] = useState(() => Date.now());
-  const activeLiveShow = useMemo(() => getActiveLiveShow(now), [now]);
-  const scheduleIsLive = Boolean(activeLiveShow);
-  const contentLiveQueueState = lineup?.liveQueueState || getContentLiveQueueState();
-  const effectiveLrqState = contentLiveQueueState || (scheduleIsLive ? t.lrqState : "offline");
+function applyHomepageTheme(t, document) {
 
-  // Targeted pages keep the server title and description.
-
-  // Apply tokens to root
-  useEffect(() => {
     const root = document.documentElement;
     const tone = TONES[t.bgTone] || TONES.lavender;
     root.style.setProperty("--hp-primary", t.primaryColor);
@@ -3453,10 +3490,10 @@ function App() {
     root.style.setProperty("--hp-heading-weight", t.headingWeight);
     root.style.setProperty("--hp-saturation", (t.saturation || 100) / 100);
     root.style.setProperty("--ticker-speed", t.tickerSpeed);
-  }, [t]);
+
 
   // Apply body classes
-  useEffect(() => {
+
     const body = document.body;
     body.className = "homepage";
     if (isMileHighFizzHybrid) body.classList.add("mile-high-fizz");
@@ -3551,13 +3588,37 @@ function App() {
     if (t.density === "spacious") body.classList.add("density-spacious");
     if (t.shapeRadius === "sharp") body.classList.add("shape-sharp");
     if (t.shapeRadius === "soft") body.classList.add("shape-soft");
-  }, [t]);
+
+
+}
+
+function App() {
+  const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
+  window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
+  useEffect(() => {
+    if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
+    return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });
+  }, []);
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  const [queueOpen, setQueueOpen] = useState(false);
+  const repName = publicRepName(t.repName);
+  const [now, setNow] = useState(() => window.SPARKLE_FIRST_PAINT?.now ?? Date.now());
+  const activeLiveShow = useMemo(() => getActiveLiveShow(now), [now]);
+  const scheduleIsLive = Boolean(activeLiveShow);
+  const contentLiveQueueState = lineup?.liveQueueState || getContentLiveQueueState();
+  const effectiveLrqState = contentLiveQueueState || (scheduleIsLive ? t.lrqState : "offline");
+
+  // Targeted pages keep the server title and description.
+
+  useEffect(() => { applyHomepageTheme(t, document); }, [t]);
 
   useEffect(() => {
     window.AMETHYST_APPLY_HOMEPAGE_TEMPLATE?.(t);
   }, [t]);
 
   useEffect(() => {
+    window.SPARKLE_FIRST_PAINT = null;
+    window.dispatchEvent(new Event("sparkle:homepage-hydrated"));
     const timer = window.setInterval(() => setNow(Date.now()), 60_000);
     return () => window.clearInterval(timer);
   }, []);
@@ -3888,4 +3949,9 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+const homepageRoot = document.getElementById("root");
+if (homepageRoot.dataset?.serverRendered === "true") {
+  ReactDOM.hydrateRoot(homepageRoot, <App />);
+} else {
+  ReactDOM.createRoot(homepageRoot).render(<App />);
+}

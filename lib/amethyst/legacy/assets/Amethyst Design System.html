@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sparkle Suite — Amethyst Design System</title>
+
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=vend-sans@400,500,600&display=swap" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="components.css" />
+</head>
+<body>
+
+<header class="system-header">
+  <div class="system-header-inner">
+    <div class="system-mark">
+      <span class="system-mark-glyph"></span>
+      Sparkle Suite — Amethyst
+    </div>
+    <nav class="system-nav">
+      <a href="#tokens">Tokens</a>
+      <a href="#header">Chrome</a>
+      <a href="#buttons">Buttons</a>
+      <a href="#hero">Hero</a>
+      <a href="#trade">Trade</a>
+      <a href="#events">Events</a>
+      <a href="#wibp">Explainer</a>
+      <a href="#signup">Signup</a>
+      <a href="#nicnac">Nic-Nac</a>
+      <a href="#slots">Slots</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ============================================================
+       INTRO
+       ============================================================ -->
+  <section class="ds-section" id="intro" style="padding-top: 64px;">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">00 / Overview</div>
+        <div>
+          <h2 class="ds-section-title">Amethyst — the sleek, geometric kit</h2>
+          <p class="ds-section-desc">
+            Amethyst is one of five visual themes a Sparkle Suite rep can choose for their
+            site. Confident, structured, polished — high-end fashion editorial crossed with
+            a modern SaaS landing page. Locks: <strong>B6 Sparkle Burst</strong> · <strong>HE2 Full-bleed</strong> · <strong>TC2 Lift &amp; reveal</strong> · <strong>T3 Dual ticker</strong> · <strong>I2 Rounded</strong> · <strong>TH3 Square + sparkle</strong> (Nic-Nac, ships off at launch). Other variations remain in the doc as reference.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TOKENS
+       ============================================================ -->
+  <section class="ds-section" id="tokens">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">01 / Tokens</div>
+        <div>
+          <h2 class="ds-section-title">Color, type, spacing</h2>
+          <p class="ds-section-desc">
+            Six-color palette, locked. Vend Sans across the board, three weights only.
+            All values live in <code>tokens.css</code> — switching kits replaces the file,
+            keeps the structure.
+          </p>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 16px; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted);">Palette</h3>
+      <div class="swatch-grid" style="margin-bottom: 64px;">
+        <div class="swatch">
+          <div class="swatch-color" style="background: #E8DFF5;"></div>
+          <div class="swatch-meta">
+            <div class="swatch-role">Background</div>
+            <div class="swatch-name">Lavender Mist</div>
+            <div class="swatch-hex">#E8DFF5</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #2A1F40;"></div>
+          <div class="swatch-meta">
+            <div class="swatch-role">Foreground</div>
+            <div class="swatch-name">Deep Plum</div>
+            <div class="swatch-hex">#2A1F40</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #5C576A;"></div>
+          <div class="swatch-meta">
+            <div class="swatch-role">Foreground Muted</div>
+            <div class="swatch-name">Smoke</div>
+            <div class="swatch-hex">#5C576A</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #D209E3;"></div>
+          <div class="swatch-meta">
+            <div class="swatch-role">Primary</div>
+            <div class="swatch-name">Magenta</div>
+            <div class="swatch-hex">#D209E3</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #480DDF;"></div>
+          <div class="swatch-meta">
+            <div class="swatch-role">Accent</div>
+            <div class="swatch-name">Iris</div>
+            <div class="swatch-hex">#480DDF</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: #C4C1CE;"></div>
+          <div class="swatch-meta">
+            <div class="swatch-role">Border</div>
+            <div class="swatch-name">Pewter</div>
+            <div class="swatch-hex">#C4C1CE</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 16px; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted);">Type — Vend Sans</h3>
+      <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 32px;">
+        <div class="type-row">
+          <div class="type-meta">Hero · 64 · 600</div>
+          <div style="font-size: 64px; font-weight: 600; letter-spacing: -0.02em; line-height: 1;">Live the sparkle</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta">H1 · 36 · 600</div>
+          <div style="font-size: 36px; font-weight: 600; letter-spacing: -0.01em;">Live Lineup is loading</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta">H2 · 28 · 500</div>
+          <div style="font-size: 28px; font-weight: 500;">Dance Floor, live now</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta">H3 · 22 · 500</div>
+          <div style="font-size: 22px; font-weight: 500;">About me — the real story</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta">Body · 16 · 400</div>
+          <div style="font-size: 16px; max-width: 60ch; line-height: 1.65;">I started Bomb Party because I wanted real friendships and real income on my own terms. Three years later I'm still showing up live every week and trading jewelry that means something.</div>
+        </div>
+        <div class="type-row">
+          <div class="type-meta">Caption · 13 · 500 · CAPS</div>
+          <div style="font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted);">Watch me live · Tuesdays 8pm CST</div>
+        </div>
+      </div>
+
+      <h3 style="margin: 64px 0 16px; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted);">Spacing scale</h3>
+      <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 32px; display: flex; gap: 12px; align-items: flex-end; overflow-x: auto;">
+        <div style="text-align: center;"><div style="height: 4px; width: 4px; background: var(--primary);"></div><div class="spec" style="margin-top: 8px;">4</div></div>
+        <div style="text-align: center;"><div style="height: 8px; width: 8px; background: var(--primary);"></div><div class="spec" style="margin-top: 8px;">8</div></div>
+        <div style="text-align: center;"><div style="height: 12px; width: 12px; background: var(--primary);"></div><div class="spec" style="margin-top: 8px;">12</div></div>
+        <div style="text-align: center;"><div style="height: 16px; width: 16px; background: var(--primary);"></div><div class="spec" style="margin-top: 8px;">16</div></div>
+        <div style="text-align: center;"><div style="height: 24px; width: 24px; background: var(--primary);"></div><div class="spec" style="margin-top: 8px;">24</div></div>
+        <div style="text-align: center;"><div style="height: 32px; width: 32px; background: var(--primary);"></div><div class="spec" style="margin-top: 8px;">32</div></div>
+        <div style="text-align: center;"><div style="height: 48px; width: 48px; background: var(--primary);"></div><div class="spec" style="margin-top: 8px;">48</div></div>
+        <div style="text-align: center;"><div style="height: 64px; width: 64px; background: var(--primary);"></div><div class="spec" style="margin-top: 8px;">64</div></div>
+        <div style="text-align: center;"><div style="height: 96px; width: 96px; background: var(--primary);"></div><div class="spec" style="margin-top: 8px;">96</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SITE CHROME — header + announcement + ticker
+       ============================================================ -->
+  <section class="ds-section" id="header">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">02 / Site chrome</div>
+        <div>
+          <h2 class="ds-section-title">Header, banner, ticker</h2>
+          <p class="ds-section-desc">
+            Header is locked dark per your call. Announcement banner is bold-strip per spec.
+            The ticker has four candidates — pick what fits Amethyst's confident energy.
+          </p>
+        </div>
+      </div>
+
+      <div class="variant-title">Header — locked dark</div>
+      <div class="variant-desc">Deep plum (#1A1230) with white nav. The signature gem-glyph mark sits left, three internal nav items + one external link sit right.</div>
+      <div style="border: 1px solid var(--border); border-radius: var(--r-xl); overflow: hidden; margin-bottom: 24px;">
+        <div class="announce">
+          <strong>Live tonight</strong> Tuesday 8pm CST — Unicorn Magic reveal at the top of the show
+          <button class="announce-close" aria-label="Dismiss">×</button>
+        </div>
+        <header class="site-header">
+          <div class="site-header-inner">
+            <div class="site-brand">
+              <span class="site-brand-glyph"></span>
+              <span class="slot" data-slot="rep name">Sparkle by Sasha</span>
+            </div>
+            <nav class="site-nav">
+              <a href="#" class="active">Home</a>
+              <a href="#">Dance Floor</a>
+              <a href="#">Join Team</a>
+              <a href="#" class="external">Bomb Party 101</a>
+            </nav>
+          </div>
+        </header>
+      </div>
+
+      <h3 style="margin: 56px 0 16px; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted);">Ticker variations</h3>
+      <div class="variant-grid">
+        <div class="variant">
+          <div class="variant-label"><span>T1 — Classic horizontal</span><span class="variant-tag">DEFAULT</span></div>
+          <div class="variant-stage" style="padding: 0; min-height: 0;">
+            <div class="ticker">
+              <div class="ticker-track">
+                <span class="ticker-item"><span class="dot"></span>New dance floor drop tonight</span>
+                <span class="ticker-item"><span class="dot"></span>Diamond Territory · 3 left</span>
+                <span class="ticker-item"><span class="dot"></span>Free shipping over $75</span>
+                <span class="ticker-item"><span class="dot"></span>New dance floor drop tonight</span>
+                <span class="ticker-item"><span class="dot"></span>Diamond Territory · 3 left</span>
+                <span class="ticker-item"><span class="dot"></span>Free shipping over $75</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>T2 — Diagonal skew</span><span class="variant-tag">EDITORIAL</span></div>
+          <div class="variant-stage" style="padding: 32px 0; overflow: hidden;">
+            <div class="ticker ticker-skew">
+              <div class="ticker-track">
+                <span class="ticker-item"><span class="dot"></span>Live tonight</span>
+                <span class="ticker-item"><span class="dot"></span>Dance Floor open</span>
+                <span class="ticker-item"><span class="dot"></span>Limited drops</span>
+                <span class="ticker-item"><span class="dot"></span>Live tonight</span>
+                <span class="ticker-item"><span class="dot"></span>Dance Floor open</span>
+                <span class="ticker-item"><span class="dot"></span>Limited drops</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant" style="grid-column: 1 / -1;">
+          <div class="variant-label"><span>T3 — Dual counter-scroll</span><span class="variant-tag" style="background: var(--primary); color: white;">LOCKED</span></div>
+          <div class="variant-title">Top row: rep promos. Bottom row: live trade-board listings (clickable).</div>
+          <div class="variant-desc">Top scrolls right, bottom scrolls left. Each trade-board pill is a clickable link straight to that piece. When the rep has zero listings, the bottom row collapses entirely — single-row mode.</div>
+          <div class="variant-stage" style="padding: 0; min-height: 0;">
+            <div class="ticker ticker-dual">
+              <div class="ticker-row rep-row" style="position: relative;">
+                <span class="row-label">Rep</span>
+                <div class="ticker-track" style="padding-left: 80px;">
+                  <span class="ticker-item"><span class="dot"></span>Live tonight · 8pm CST</span>
+                  <span class="ticker-item"><span class="dot"></span>Use code AMETHYST15</span>
+                  <span class="ticker-item"><span class="dot"></span>Pre-orders close Friday</span>
+                  <span class="ticker-item"><span class="dot"></span>Live tonight · 8pm CST</span>
+                  <span class="ticker-item"><span class="dot"></span>Use code AMETHYST15</span>
+                  <span class="ticker-item"><span class="dot"></span>Pre-orders close Friday</span>
+                </div>
+              </div>
+              <div class="ticker-row trade-row reverse" style="position: relative;">
+                <span class="row-label">Trade</span>
+                <div class="ticker-track" style="padding-left: 80px;">
+                  <a href="#trade" class="ticker-trade-link"><span class="tier-pip unicorn"></span>Citrine Sun Pendant · $148</a>
+                  <a href="#trade" class="ticker-trade-link"><span class="tier-pip diamond"></span>Rose Quartz Band · $98</a>
+                  <a href="#trade" class="ticker-trade-link"><span class="tier-pip"></span>Amethyst Halo Ring · $118</a>
+                  <a href="#trade" class="ticker-trade-link"><span class="tier-pip"></span>Pearl Drop Studs · $48</a>
+                  <a href="#trade" class="ticker-trade-link"><span class="tier-pip unicorn"></span>Citrine Sun Pendant · $148</a>
+                  <a href="#trade" class="ticker-trade-link"><span class="tier-pip diamond"></span>Rose Quartz Band · $98</a>
+                  <a href="#trade" class="ticker-trade-link"><span class="tier-pip"></span>Amethyst Halo Ring · $118</a>
+                  <a href="#trade" class="ticker-trade-link"><span class="tier-pip"></span>Pearl Drop Studs · $48</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>T4 — Vertical rotator</span><span class="variant-tag">QUIET</span></div>
+          <div class="variant-stage" style="padding: 0; min-height: 0;">
+            <div class="ticker-rotator">
+              <div class="rotator-stack">
+                <span>New dance floor drop tonight</span>
+                <span>Diamond Territory · 3 left</span>
+                <span>Free shipping over $75</span>
+                <span>Pre-orders close Friday</span>
+                <span>New dance floor drop tonight</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       BUTTONS
+       ============================================================ -->
+  <section class="ds-section" id="buttons">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">03 / Buttons</div>
+        <div>
+          <h2 class="ds-section-title">Six button personalities</h2>
+          <p class="ds-section-desc">
+            Hover each to see its idle → active behavior. Amethyst gets one signature style;
+            we'll lock the winner and use it everywhere a CTA appears.
+          </p>
+        </div>
+      </div>
+
+      <div class="variant-grid">
+
+        <div class="variant">
+          <div class="variant-label"><span>B1 — Gradient Glow</span><span class="variant-tag">#9 CANDIDATE</span></div>
+          <div class="variant-title">Magenta → Iris fill, lifts on hover</div>
+          <div class="variant-desc">Universal CTA from your library. Highest energy of the set — confident but slightly maximalist.</div>
+          <div class="variant-stage">
+            <button class="btn btn-gradient">Browse my dance floor</button>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>B2 — Sharp Edge</span><span class="variant-tag">SLEEK</span></div>
+          <div class="variant-title">Plum fill, hairline outline expands on hover</div>
+          <div class="variant-desc">Most "fashion editorial" of the set. 4px radius, tight, precise. Recommended for Amethyst's geometric brief.</div>
+          <div class="variant-stage">
+            <button class="btn btn-sharp">Watch me live</button>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>B3 — Outline-to-fill</span><span class="variant-tag">EDITORIAL</span></div>
+          <div class="variant-title">Outlined idle, fills left-to-right on hover</div>
+          <div class="variant-desc">Refined, deliberate, matches the "expand/reveal" motion vocabulary in your spec.</div>
+          <div class="variant-stage">
+            <button class="btn btn-outline">Reserve this piece</button>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>B4 — Dual-layer</span><span class="variant-tag">GEOMETRIC</span></div>
+          <div class="variant-title">Two stacked rectangles align on hover</div>
+          <div class="variant-desc">The most overtly "geometric" option. Resting state shows a primary-colored ghost shifted 5px.</div>
+          <div class="variant-stage">
+            <button class="btn btn-dual">Join the team</button>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>B5 — Magnetic underline</span><span class="variant-tag">QUIET</span></div>
+          <div class="variant-title">Text + animated underline, no box</div>
+          <div class="variant-desc">For secondary actions and inline CTAs. Sweep animation on hover.</div>
+          <div class="variant-stage">
+            <button class="btn btn-underline">Read full story</button>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>B6 — Sparkle Burst</span><span class="variant-tag" style="background: var(--primary); color: white;">LOCKED</span></div>
+          <div class="variant-title">Clean magenta fill, sparkles pop on hover</div>
+          <div class="variant-desc">Playful nod to the brand category. Hover the button to see the sparks.</div>
+          <div class="variant-stage">
+            <button class="btn btn-sparkle">
+              Reserve now
+              <span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="margin-top: 32px; padding: 24px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--r-xl);">
+        <div class="spec" style="margin-bottom: 12px;">Size variants — all six styles support these</div>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <button class="btn btn-sharp btn-sm">Small</button>
+          <button class="btn btn-sharp">Default</button>
+          <button class="btn btn-sharp btn-lg">Large</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       HERO
+       ============================================================ -->
+  <section class="ds-section" id="hero">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">04 / Hero</div>
+        <div>
+          <h2 class="ds-section-title">Five hero compositions</h2>
+          <p class="ds-section-desc">
+            The first impression. Each variation slots the same content (rep name, tagline,
+            two CTAs, hero photo) into a different layout. Photo is rep-customizable; the
+            structure is locked once chosen.
+          </p>
+        </div>
+      </div>
+
+      <div class="variant-grid" style="grid-template-columns: 1fr;">
+
+        <div class="variant" style="padding: 0; overflow: hidden;">
+          <div style="padding: 24px 24px 0;"><div class="variant-label"><span>HE1 — Split editorial</span><span class="variant-tag">CLASSIC</span></div></div>
+          <div class="hero-mini hero-split" style="border-radius: 0; border: 0;">
+            <div class="hero-copy">
+              <div class="hero-eyebrow slot" data-slot="business name">Sparkle by Sasha</div>
+              <div class="hero-name slot" data-slot="rep name">Sasha Lin</div>
+              <div class="hero-tagline slot" data-slot="tagline">Live reveals, real friendships, jewelry that actually means something.</div>
+              <div class="hero-ctas">
+                <button class="btn btn-sharp">Browse dance floor</button>
+                <button class="btn btn-outline btn-sm">Watch me live</button>
+              </div>
+            </div>
+            <div class="hero-image">
+              <div class="img-placeholder slot" data-slot="hero photo" style="height: 100%;">Rep hero photo</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant" style="padding: 0; overflow: hidden;">
+          <div style="padding: 24px 24px 0;"><div class="variant-label"><span>HE2 — Full-bleed cover</span><span class="variant-tag" style="background: var(--primary); color: white;">LOCKED</span></div></div>
+          <div class="hero-mini hero-full" style="border-radius: 0; border: 0; min-height: 360px;">
+            <div class="hero-image">
+              <div class="img-placeholder slot" data-slot="hero photo" style="height: 100%;">Rep hero photo · full bleed</div>
+            </div>
+            <div class="hero-overlay"></div>
+            <div class="hero-copy">
+              <div class="hero-eyebrow slot" data-slot="business name">Sparkle by Sasha</div>
+              <div class="hero-name slot" data-slot="rep name">Sasha Lin</div>
+              <div class="hero-tagline slot" data-slot="tagline">Live reveals, real friendships, jewelry that actually means something.</div>
+              <div class="hero-ctas">
+                <button class="btn btn-sparkle" style="background: white; color: var(--fg);">Browse dance floor<span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span></button>
+                <div class="hero-cta-stream-group">
+                  <button class="btn btn-outline btn-sm" style="color: white; border-color: white;">Watch me live</button>
+                  <div class="stream-options">
+                    <button class="stream-option"><span class="glyph" style="background: #25F4EE;"></span>TikTok</button>
+                    <button class="stream-option"><span class="glyph" style="background: #1877F2;"></span>Facebook Live</button>
+                  </div>
+                </div>
+                <a href="#" class="btn btn-outline btn-sm" style="color: white; border-color: white; text-decoration: none;">Shop Bomb Party ↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant" style="padding: 0; overflow: hidden;">
+          <div style="padding: 24px 24px 0;"><div class="variant-label"><span>HE3 — Asymmetric</span><span class="variant-tag">EDITORIAL</span></div></div>
+          <div class="hero-mini hero-asym" style="border-radius: 0; border: 0;">
+            <div class="hero-image">
+              <div class="img-placeholder slot" data-slot="hero photo" style="height: 100%;">Rep hero photo · oversized</div>
+            </div>
+            <div class="hero-copy">
+              <div class="hero-eyebrow slot" data-slot="business name">Sparkle by Sasha</div>
+              <div class="hero-name slot" data-slot="rep name">Sasha Lin</div>
+              <div class="hero-tagline slot" data-slot="tagline">Live reveals, real friendships, jewelry that actually means something.</div>
+              <div class="hero-ctas">
+                <button class="btn btn-sharp">Browse dance floor</button>
+                <button class="btn btn-underline btn-sm">Watch live</button>
+              </div>
+            </div>
+            <div class="hero-marker">EST 2022 — AMETHYST KIT</div>
+          </div>
+        </div>
+
+        <div class="variant" style="padding: 0; overflow: hidden;">
+          <div style="padding: 24px 24px 0;"><div class="variant-label"><span>HE4 — Magazine cover</span><span class="variant-tag">BOLD</span></div></div>
+          <div class="hero-mini hero-mag" style="border-radius: 0; border: 0; min-height: 380px;">
+            <div class="hero-image">
+              <div class="img-placeholder slot" data-slot="hero photo" style="height: 100%; background: repeating-linear-gradient(45deg, #2A1F40 0 8px, #480DDF 8px 16px); border: 0; color: rgba(255,255,255,0.5);">Rep hero photo · backdrop</div>
+            </div>
+            <h1 class="mag-title slot" data-slot="rep name">SASHA<br/>LIN</h1>
+            <div class="mag-meta">
+              <span>Vol. III — Amethyst</span>
+              <span>Live · Tuesdays · 8pm CST</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant" style="padding: 0; overflow: hidden;">
+          <div style="padding: 24px 24px 0;"><div class="variant-label"><span>HE5 — Geometric collage</span><span class="variant-tag">STRUCTURED</span></div></div>
+          <div class="hero-mini hero-collage" style="border-radius: 0; border: 0;">
+            <div class="hero-copy">
+              <div class="hero-eyebrow slot" data-slot="business name">Sparkle by Sasha</div>
+              <div class="hero-name slot" data-slot="rep name">Sasha Lin</div>
+              <div class="hero-tagline slot" data-slot="tagline">Live reveals, real friendships, jewelry that actually means something.</div>
+              <div class="hero-ctas">
+                <button class="btn btn-sharp">Browse dance floor</button>
+                <button class="btn btn-outline btn-sm">Watch me live</button>
+              </div>
+            </div>
+            <div class="collage-stack">
+              <div class="collage-shape-1"></div>
+              <div class="collage-image">
+                <div class="img-placeholder slot" data-slot="hero photo" style="height: 100%; border: 0;">Rep hero photo</div>
+              </div>
+              <div class="collage-shape-2"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TRADE CARD
+       ============================================================ -->
+  <section class="ds-section" id="trade">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">05 / Trade card</div>
+        <div>
+          <h2 class="ds-section-title">Four expand behaviors</h2>
+          <p class="ds-section-desc">
+            Hover each card to see its expand interaction. The two-card stack (TC1) is the
+            doc-spec'd default; the others explore how the same content could reveal differently.
+            Tier color comes from the data: Everyday Sparkle, Diamond Territory, Unicorn Magic.
+          </p>
+        </div>
+      </div>
+
+      <div class="variant-grid">
+
+        <div class="variant">
+          <div class="variant-label"><span>TC1 — Slide-down stack</span><span class="variant-tag">SPEC DEFAULT</span></div>
+          <div class="variant-desc">Compact card on top (130px), detail card slides down beneath on hover. 0.4s ease-in-out per spec.</div>
+          <div class="variant-stage" style="padding: 24px; min-height: 320px; align-items: flex-start;">
+            <div class="tc-slide">
+              <div class="tc-slide-top">
+                <div class="tc-photo"><div class="img-placeholder">Item</div></div>
+                <div class="tc-info">
+                  <div class="tc-tier unicorn">Unicorn Magic</div>
+                  <div class="tc-name">Citrine Sun Pendant</div>
+                  <div class="tc-type">OG · Pendant</div>
+                  <div class="tc-status"><span class="pip"></span>Available</div>
+                </div>
+              </div>
+              <div class="tc-slide-bottom">
+                <div class="tc-detail-title">From the box</div>
+                <div class="tc-detail-text">14k gold-fill chain · genuine citrine cushion cut · estate-style bezel set with sun ray detailing.</div>
+                <button class="btn btn-sharp btn-sm" style="width: 100%;">Reserve / Trade</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>TC2 — Lift &amp; reveal</span><span class="variant-tag" style="background: var(--primary); color: white;">LOCKED</span></div>
+          <div class="variant-desc">Top card lifts up with shadow; detail card fades in beneath. Highest perceived "depth."</div>
+          <div class="variant-stage" style="padding: 24px; min-height: 320px; align-items: flex-start;">
+            <div class="tc-lift">
+              <div class="tc-lift-bottom">
+                <div class="tc-detail-title">From the box</div>
+                <div class="tc-detail-text">Hand-set rose quartz · sterling silver · estate filigree band, size adjustable.</div>
+                <button class="btn btn-sharp btn-sm" style="width: 100%;">Reserve / Trade</button>
+              </div>
+              <div class="tc-lift-top">
+                <div class="tc-photo" style="width: 100%; flex: none; height: 120px;"><div class="img-placeholder">Item</div></div>
+                <div class="tc-info">
+                  <div class="tc-tier">Diamond Territory</div>
+                  <div class="tc-name">Rose Quartz Band</div>
+                  <div class="tc-type">OG · Ring</div>
+                  <div class="tc-status"><span class="pip"></span>Available</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>TC3 — Flip</span><span class="variant-tag">CLASSIC</span></div>
+          <div class="variant-desc">Front shows photo + tier + name; back shows full description and CTA. 700ms 3D flip.</div>
+          <div class="variant-stage" style="padding: 24px; min-height: 360px;">
+            <div class="tc-flip">
+              <div class="tc-flip-inner">
+                <div class="tc-flip-face">
+                  <div class="tc-photo" style="width: 100%; flex: none; height: 200px;"><div class="img-placeholder">Item</div></div>
+                  <div class="tc-info">
+                    <div class="tc-tier everyday">Everyday Sparkle</div>
+                    <div class="tc-name">Pearl Drop Studs</div>
+                    <div class="tc-type">OG · Earrings</div>
+                    <div class="tc-status"><span class="pip"></span>Available</div>
+                  </div>
+                </div>
+                <div class="tc-flip-face tc-flip-back">
+                  <div>
+                    <div class="tc-detail-title">From the box</div>
+                    <div class="tc-detail-text">Freshwater pearl · 14k gold-fill posts · classic 8mm drop, stays put all day.</div>
+                  </div>
+                  <button class="btn btn-sharp btn-sm" style="width: 100%;">Reserve / Trade</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>TC4 — Side peel</span><span class="variant-tag">DRAWER</span></div>
+          <div class="variant-desc">Detail panel peels out to the right when you hover. Feels like opening an envelope.</div>
+          <div class="variant-stage" style="padding: 24px; min-height: 360px; overflow: hidden;">
+            <div class="tc-peel">
+              <div class="tc-peel-back">
+                <div class="tc-detail-title">From the box</div>
+                <div class="tc-detail-text">Sterling silver · genuine amethyst · hexagonal cut with stepped halo.</div>
+                <button class="btn btn-sharp btn-sm" style="width: 100%; margin-top: 12px;">Reserve</button>
+              </div>
+              <div class="tc-peel-front">
+                <div class="tc-photo" style="width: 100%; flex: none; height: 220px;"><div class="img-placeholder">Item</div></div>
+                <div class="tc-info">
+                  <div class="tc-tier">Diamond Territory</div>
+                  <div class="tc-name">Amethyst Halo Ring</div>
+                  <div class="tc-type">OG · Ring</div>
+                  <div class="tc-status reserved"><span class="pip"></span>Reserved</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       LRQ
+       ============================================================ -->
+  <section class="ds-section" id="lrq">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">06 / Live Lineup</div>
+        <div>
+          <h2 class="ds-section-title">Three queue states</h2>
+          <p class="ds-section-desc">
+            The Live Lineup. #1 is "Currently Unboxing", #2 is "On Deck", the rest are
+            numbered. Empty state shows "Ready to Reveal!", loading state shows a spinner.
+          </p>
+        </div>
+      </div>
+
+      <div class="variant-grid">
+
+        <div class="variant">
+          <div class="variant-label"><span>State — Live</span><span class="variant-tag">SHOW IS RUNNING</span></div>
+          <div class="variant-stage" style="padding: 24px; align-items: flex-start;">
+            <div class="lrq">
+              <div class="lrq-header">
+                <div class="lrq-title">Live Lineup</div>
+                <div class="lrq-status">Live</div>
+              </div>
+              <div class="lrq-list">
+                <div class="lrq-item current">
+                  <div class="lrq-num">1</div>
+                  <div>
+                    <div class="lrq-label">Currently Unboxing</div>
+                    <div class="lrq-name">Marisol R.</div>
+                  </div>
+                </div>
+                <div class="lrq-item next">
+                  <div class="lrq-num">2</div>
+                  <div>
+                    <div class="lrq-label">On Deck</div>
+                    <div class="lrq-name">Devyn T.</div>
+                  </div>
+                </div>
+                <div class="lrq-item">
+                  <div class="lrq-num">3</div>
+                  <div class="lrq-name">Hannah K.</div>
+                </div>
+                <div class="lrq-item">
+                  <div class="lrq-num">4</div>
+                  <div class="lrq-name">Priya M.</div>
+                </div>
+                <div class="lrq-item">
+                  <div class="lrq-num">5</div>
+                  <div class="lrq-name">Jess W.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>State — Offline</span><span class="variant-tag">PRE-ORDERS / EDU</span></div>
+          <div class="variant-stage" style="padding: 24px; align-items: flex-start;">
+            <div class="lrq">
+              <div class="lrq-header">
+                <div class="lrq-title">Live Lineup</div>
+                <div class="lrq-status" style="color: var(--fg-muted);"><span style="background: var(--fg-muted); animation: none; box-shadow: none; width: 6px; height: 6px; border-radius: 50%; display: inline-block;"></span>Offline</div>
+              </div>
+              <div class="lrq-empty">
+                <div class="ribbon">Ready to Reveal!</div>
+                <div style="font-size: 13px; line-height: var(--lh-loose);">
+                  Next live show: <strong style="color: var(--fg);">Tuesday 8pm CST</strong><br/>
+                  Pre-orders open until showtime.
+                </div>
+                <button class="btn btn-sharp btn-sm" style="margin-top: 16px;">Pre-order now</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant">
+          <div class="variant-label"><span>State — Loading</span><span class="variant-tag">DATA FETCH</span></div>
+          <div class="variant-stage" style="padding: 24px; align-items: flex-start;">
+            <div class="lrq">
+              <div class="lrq-header">
+                <div class="lrq-title">Live Lineup</div>
+                <div class="lrq-status" style="color: var(--fg-muted);"><span style="background: var(--fg-muted); animation: none; box-shadow: none; width: 6px; height: 6px; border-radius: 50%; display: inline-block;"></span>Connecting</div>
+              </div>
+              <div class="lrq-loading">
+                <div class="lrq-spinner"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       EVENT CALENDAR (new)
+       ============================================================ -->
+  <section class="ds-section" id="events">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">06b / Upcoming Shows</div>
+        <div>
+          <h2 class="ds-section-title">Event calendar — next 2 shows</h2>
+          <p class="ds-section-desc">
+            Two cards. Times auto-convert to the visitor's local timezone. New shows slide in,
+            furthest-future drops off. Codes copy to clipboard on tap. Managed by the rep via Nic-Nac.
+          </p>
+        </div>
+      </div>
+
+      <div class="event-grid">
+        <div class="event-card">
+          <div class="event-header">
+            <div>
+              <div class="event-when">Next show<strong class="slot" data-slot="event date">Tue, Nov 12 · 8:00 PM</strong></div>
+              <div class="event-tz"><span style="color: var(--accent);">◆</span> Your time · EST</div>
+            </div>
+            <div class="lrq-status">Live soon</div>
+          </div>
+          <div class="event-name slot" data-slot="event name">Unicorn Magic Drop · November</div>
+          <div class="event-msg slot" data-slot="rep message">First Tuesday of the month is always Unicorn night — every box is a chance at the rare ones. Pre-order before 7pm to lock your spot.</div>
+
+          <div>
+            <div class="event-collection-label">Promo codes</div>
+            <div class="event-codes">
+              <button class="event-code" title="Tap to copy">UNICORN15<span class="copy">⧉</span></button>
+              <button class="event-code" title="Tap to copy">FREESHIP75<span class="copy">⧉</span></button>
+            </div>
+          </div>
+
+          <div class="event-collections">
+            <div class="event-collection-label">Featured collections</div>
+            <a href="#" class="event-collection"><span>Citrine Sun Series</span><span class="arrow">→</span></a>
+            <a href="#" class="event-collection"><span>Estate Halo Drop</span><span class="arrow">→</span></a>
+          </div>
+
+          <div class="event-actions">
+            <button class="event-platform-btn tiktok"><span class="glyph"></span>Watch on TikTok</button>
+            <button class="event-platform-btn facebook"><span class="glyph"></span>Facebook Live</button>
+            <button class="event-add-cal">+ Add to calendar</button>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <div class="event-header">
+            <div>
+              <div class="event-when">Following<strong class="slot" data-slot="event date">Sat, Nov 16 · 1:00 PM</strong></div>
+              <div class="event-tz"><span style="color: var(--accent);">◆</span> Your time · EST</div>
+            </div>
+          </div>
+          <div class="event-name slot" data-slot="event name">Saturday Sparkle Brunch</div>
+          <div class="event-msg slot" data-slot="rep message">Casual brunch show with mimosa vibes. New Diamond Territory pieces and a couple Everyday Sparkles for the gift list.</div>
+
+          <div>
+            <div class="event-collection-label">Promo codes</div>
+            <div class="event-codes">
+              <button class="event-code" title="Tap to copy">BRUNCH10<span class="copy">⧉</span></button>
+            </div>
+          </div>
+
+          <div class="event-collections">
+            <div class="event-collection-label">Featured collections</div>
+            <a href="#" class="event-collection"><span>Holiday Gift Guide</span><span class="arrow">→</span></a>
+          </div>
+
+          <div class="event-actions">
+            <button class="event-platform-btn tiktok"><span class="glyph"></span>Watch on TikTok</button>
+            <button class="event-add-cal">+ Add to calendar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       WHAT IS A BOMB PARTY (new)
+       ============================================================ -->
+  <section class="ds-section" id="wibp">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">06c / Explainer</div>
+        <div>
+          <h2 class="ds-section-title">What is a Bomb Party? + showcase video</h2>
+          <p class="ds-section-desc">
+            Two-card layout. Left: locked educational copy with rep name swapped in + 3-step visual.
+            Right: one looping TikTok showcase clip the rep picks via Nic-Nac. Loops to prevent
+            TikTok from suggesting competitor reps.
+          </p>
+        </div>
+      </div>
+
+      <div class="wibp-grid">
+        <div class="wibp-card">
+          <div class="wibp-eyebrow">First time here?</div>
+          <h3 class="wibp-title">It's a live jewelry reveal show — with <span class="slot" data-slot="rep name">Sasha</span></h3>
+          <p class="wibp-body">
+            You order a sealed box, then watch <span class="slot" data-slot="rep name">Sasha</span> open it live on TikTok or Facebook.
+            Every box has real jewelry inside — some Everyday Sparkle, some Diamond Territory, and a few rare
+            Unicorn Magic pieces hidden throughout the show. After the reveal, your jewelry ships straight
+            to your door from Bomb Party.
+          </p>
+          <div class="steps-row">
+            <div class="step">
+              <div class="step-icon">1</div>
+              <div class="step-label">Order</div>
+              <div class="step-desc">Pick a box, place pre-order before showtime.</div>
+            </div>
+            <div class="step">
+              <div class="step-icon">2</div>
+              <div class="step-label">Watch Live</div>
+              <div class="step-desc">Join the reveal on TikTok or Facebook.</div>
+            </div>
+            <div class="step">
+              <div class="step-icon">3</div>
+              <div class="step-label">Receive</div>
+              <div class="step-desc">Real jewelry ships to your door.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wibp-card embed-card">
+          <div class="tiktok-embed slot" data-slot="showcase video">
+            <div class="media-badge tiktok"><span class="pip"></span>TikTok · Loops</div>
+            <div class="img-placeholder">Showcase TikTok clip<br/>(rep-swappable via Nic-Nac)</div>
+            <div class="media-play">
+              <div class="media-play-btn">▶</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SIGNUP (new)
+       ============================================================ -->
+  <section class="ds-section" id="signup">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">06d / Subscribe</div>
+        <div>
+          <h2 class="ds-section-title">Never miss a show — email + SMS</h2>
+          <p class="ds-section-desc">
+            Single centered card. Email required, phone optional. Data flows to the rep's owned
+            audience list — independent of any platform. Consent copy is placeholder pending legal review.
+          </p>
+        </div>
+      </div>
+
+      <div class="signup-card">
+        <div class="signup-eyebrow">Stay in the loop</div>
+        <h2 class="signup-title">Never miss a show!</h2>
+        <p class="signup-sub">Get a heads-up when <span class="slot" data-slot="rep name">Sasha</span> goes live, plus first dibs on new drops.</p>
+        <form class="signup-form" onsubmit="event.preventDefault();">
+          <div class="signup-field">
+            <label for="signup-email">Email <span style="color: var(--primary);">*</span></label>
+            <input id="signup-email" type="email" class="signup-input" placeholder="you@example.com" required />
+          </div>
+          <div class="signup-field">
+            <label for="signup-phone">Phone <span class="opt">(optional, for SMS)</span></label>
+            <input id="signup-phone" type="tel" class="signup-input" placeholder="(555) 555-5555" />
+          </div>
+          <p class="signup-consent slot" data-slot="consent text — placeholder, pending legal review">
+            By submitting, you agree to receive email and (if provided) SMS messages from <span class="slot" data-slot="business name">Sparkle by Sasha</span>.
+            Message and data rates may apply. Reply STOP to unsubscribe at any time. View our <a href="#">privacy policy</a>.
+          </p>
+          <div class="signup-submit-row">
+            <button type="submit" class="btn btn-sparkle">
+              Sign me up
+              <span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       JOIN TEAM elements
+       ============================================================ -->
+  <section class="ds-section" id="join">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">07 / Join Team</div>
+        <div>
+          <h2 class="ds-section-title">Benefits, FAQ, team roster</h2>
+          <p class="ds-section-desc">
+            Six locked benefits in a 3×2 grid. FAQ uses native accordion. Team cards
+            display the rep-managed roster.
+          </p>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 16px; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted);">Why join — 6 benefits (locked content)</h3>
+      <div class="benefit-grid" style="margin-bottom: 64px;">
+        <div class="benefit-card">
+          <div class="benefit-icon">01</div>
+          <div class="benefit-title">Supportive Community</div>
+          <div class="benefit-desc">Real friendships with reps who actually want you to win. Daily group chats, weekly trainings, monthly retreats.</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">02</div>
+          <div class="benefit-title">Flexible Income</div>
+          <div class="benefit-desc">Work the hours that fit your life. Earn from product sales, team building, and live show bonuses.</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">03</div>
+          <div class="benefit-title">Training &amp; Mentorship</div>
+          <div class="benefit-desc">Onboarding curriculum, 1:1 mentorship, and a library of recorded sessions from top earners.</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">04</div>
+          <div class="benefit-title">Amazing Products</div>
+          <div class="benefit-desc">Real jewelry that customers love and return to. Easy to talk about, easy to share, easy to sell.</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">05</div>
+          <div class="benefit-title">Work From Anywhere</div>
+          <div class="benefit-desc">All you need is a phone and a ring light. Run your business from home, the road, or the school pickup line.</div>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">06</div>
+          <div class="benefit-title">Growth Opportunities</div>
+          <div class="benefit-desc">Build your own team, earn leadership ranks, attend exclusive events. The ceiling is what you decide it is.</div>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 16px; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted);">FAQ — questions locked, answers customizable</h3>
+      <div class="faq-list" style="margin-bottom: 64px;">
+        <details class="faq-item" open>
+          <summary class="faq-q">How much does it cost to start?</summary>
+          <div class="faq-a slot" data-slot="rep answer">The starter kit is $99 and includes everything you need for your first three live shows — product, marketing materials, training access, and one-on-one onboarding with me.</div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">How much time do I need each week?</summary>
+          <div class="faq-a slot" data-slot="rep answer">Most reps on my team go live 2–3 times a week for an hour each. You can absolutely do this part-time around a 9-to-5 or kids.</div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-q">Do I have to recruit to make money?</summary>
+          <div class="faq-a slot" data-slot="rep answer">Nope. Plenty of reps on my team make great income just from product sales and live shows.</div>
+        </details>
+      </div>
+
+      <h3 style="margin-bottom: 16px; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted);">Team roster — rep-managed (revised)</h3>
+      <div class="team-grid-v2">
+        <div class="team-card-v2">
+          <div class="team-photo-v2">
+            <div class="img-placeholder slot" data-slot="member photo"></div>
+            <div class="team-socials-overlay">
+              <a href="#" class="team-social" title="TikTok">TT</a>
+              <a href="#" class="team-social" title="Facebook">FB</a>
+              <a href="#" class="team-social" title="Instagram">IG</a>
+              <a href="#" class="team-social" title="YouTube">YT</a>
+              <a href="#" class="team-social suite" title="Sparkle Suite">◆</a>
+            </div>
+          </div>
+          <div class="team-meta-v2">
+            <div class="team-name-v2">Marisol R.</div>
+            <div class="team-show">The Velvet Hour Show</div>
+            <div class="team-state">Austin, TX</div>
+          </div>
+        </div>
+        <div class="team-card-v2">
+          <div class="team-photo-v2">
+            <div class="img-placeholder slot" data-slot="member photo"></div>
+            <div class="team-socials-overlay">
+              <a href="#" class="team-social" title="TikTok">TT</a>
+              <a href="#" class="team-social" title="Facebook">FB</a>
+              <a href="#" class="team-social" title="Instagram">IG</a>
+            </div>
+          </div>
+          <div class="team-meta-v2">
+            <div class="team-name-v2">Devyn T.</div>
+            <div class="team-show">Sparkle Friday Live</div>
+            <div class="team-state">Phoenix, AZ</div>
+          </div>
+        </div>
+        <div class="team-card-v2">
+          <div class="team-photo-v2">
+            <div class="img-placeholder slot" data-slot="member photo"></div>
+            <div class="team-socials-overlay">
+              <a href="#" class="team-social" title="TikTok">TT</a>
+              <a href="#" class="team-social" title="Instagram">IG</a>
+              <a href="#" class="team-social" title="YouTube">YT</a>
+              <a href="#" class="team-social suite" title="Sparkle Suite">◆</a>
+            </div>
+          </div>
+          <div class="team-meta-v2">
+            <div class="team-name-v2">Hannah K.</div>
+            <div class="team-show">Coastal Confetti</div>
+            <div class="team-state">Wilmington, NC</div>
+          </div>
+        </div>
+        <div class="team-card-v2 team-recruit">
+          <div class="team-recruit-glyph">+</div>
+          <div class="team-recruit-title">This is your spot</div>
+          <div class="team-recruit-desc">Your name, your show, your home state — join the team and claim this card.</div>
+          <button class="btn btn-sparkle btn-sm" style="margin-top: 16px;">
+            Join the team
+            <span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       IMAGERY treatments
+       ============================================================ -->
+  <section class="ds-section" id="imagery">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">08 / Imagery</div>
+        <div>
+          <h2 class="ds-section-title">Six framing treatments</h2>
+          <p class="ds-section-desc">
+            How rep photos appear across About cards, "Follow the Journey", team cards, and
+            secondary slots. Pick the look (or mix) that fits Amethyst's structure.
+          </p>
+        </div>
+      </div>
+
+      <div class="variant-grid">
+        <div class="variant">
+          <div class="variant-label"><span>I1 — Square + border</span><span class="variant-tag">CLEAN</span></div>
+          <div class="variant-stage" style="padding: 16px;">
+            <div class="img-row">
+              <div class="img-cell img-square"><div class="img-placeholder"></div></div>
+              <div class="img-cell img-square"><div class="img-placeholder"></div></div>
+              <div class="img-cell img-square"><div class="img-placeholder"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="variant">
+          <div class="variant-label"><span>I2 — Rounded</span><span class="variant-tag" style="background: var(--primary); color: white;">LOCKED</span></div>
+          <div class="variant-stage" style="padding: 16px;">
+            <div class="img-row">
+              <div class="img-cell img-rounded"><div class="img-placeholder"></div></div>
+              <div class="img-cell img-rounded"><div class="img-placeholder"></div></div>
+              <div class="img-cell img-rounded"><div class="img-placeholder"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="variant">
+          <div class="variant-label"><span>I3 — Mixed editorial</span><span class="variant-tag">MAGAZINE</span></div>
+          <div class="variant-stage" style="padding: 16px;">
+            <div class="img-row">
+              <div class="img-cell img-square"><div class="img-placeholder"></div></div>
+              <div class="img-cell img-circle"><div class="img-placeholder"></div></div>
+              <div class="img-cell img-arch"><div class="img-placeholder"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="variant">
+          <div class="variant-label"><span>I4 — Geometric mask</span><span class="variant-tag">SHARP</span></div>
+          <div class="variant-stage" style="padding: 16px;">
+            <div class="img-row">
+              <div class="img-cell img-hex"><div class="img-placeholder"></div></div>
+              <div class="img-cell img-hex"><div class="img-placeholder"></div></div>
+              <div class="img-cell img-hex"><div class="img-placeholder"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="variant">
+          <div class="variant-label"><span>I5 — Polaroid</span><span class="variant-tag">PERSONAL</span></div>
+          <div class="variant-stage" style="padding: 16px;">
+            <div class="img-row">
+              <div class="img-polaroid"><div class="img-cell-inner"></div><div class="caption">Tuesday show</div></div>
+              <div class="img-polaroid"><div class="img-cell-inner"></div><div class="caption">Trade haul</div></div>
+              <div class="img-polaroid"><div class="img-cell-inner"></div><div class="caption">Team retreat</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="variant">
+          <div class="variant-label"><span>I6 — Arch frames</span><span class="variant-tag">EDITORIAL</span></div>
+          <div class="variant-stage" style="padding: 16px;">
+            <div class="img-row">
+              <div class="img-cell img-arch"><div class="img-placeholder"></div></div>
+              <div class="img-cell img-arch"><div class="img-placeholder"></div></div>
+              <div class="img-cell img-arch"><div class="img-placeholder"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       NIC-NAC
+       ============================================================ -->
+  <section class="ds-section" id="nic-nac">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">09 / Nic-Nac</div>
+        <div>
+          <h2 class="ds-section-title">Five chat-launcher styles</h2>
+          <p class="ds-section-desc">
+            <strong>Nic-Nac</strong> is the rep-facing AI assistant for managing the site (events, codes, content, photos). This launcher chrome belongs to Nic-Nac across the platform. <strong>TH3 Square + sparkle</strong> is locked; the other four remain as reference. Open-state panel design comes after we lock launch scope.
+          </p>
+          <div style="margin-top: 16px; padding: 14px 18px; background: rgba(124, 58, 237, 0.06); border-left: 3px solid var(--primary); font-family: var(--font-sans); font-size: 13px; color: var(--fg-soft); border-radius: 0 8px 8px 0;">
+            <strong style="color: var(--fg);">Note for build:</strong> Nic-Nac launcher renders for visitors but the chat surface is dormant at v1 launch. Nic-Nac is rep-only (admin route) and is the active assistant.
+          </div>
+        </div>
+      </div>
+
+      <div class="variant-grid">
+        <div class="variant">
+          <div class="variant-label"><span>TH1 — Pill with label</span><span class="variant-tag">EXPLICIT</span></div>
+          <div class="variant-desc">Most discoverable — name + avatar + label.</div>
+          <div class="nic-nac-stage" style="margin-top: 16px;">
+            <button class="th-pill">
+              <span class="th-avatar">T</span>
+              <span>Ask Nic-Nac</span>
+            </button>
+          </div>
+        </div>
+        <div class="variant">
+          <div class="variant-label"><span>TH2 — Round + pulse</span><span class="variant-tag">CLASSIC</span></div>
+          <div class="variant-desc">Standard FAB pattern with subtle pulse to draw eye.</div>
+          <div class="nic-nac-stage" style="margin-top: 16px;">
+            <button class="th-round" aria-label="Open Nic-Nac">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.5 7.2L3 21l1.8-6.5A8 8 0 1 1 21 12z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="variant">
+          <div class="variant-label"><span>TH3 — Square + sparkle</span><span class="variant-tag" style="background: var(--primary); color: white;">LOCKED</span></div>
+          <div class="variant-desc">Geometric square with sparkle indicator that rotates softly.</div>
+          <div class="nic-nac-stage" style="margin-top: 16px;">
+            <button class="th-square" aria-label="Open Nic-Nac">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.5 7.2L3 21l1.8-6.5A8 8 0 1 1 21 12z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="variant">
+          <div class="variant-label"><span>TH4 — Bottom dock</span><span class="variant-tag">PROMINENT</span></div>
+          <div class="variant-desc">Full-width bar docked to bottom edge. Hardest to miss.</div>
+          <div class="nic-nac-stage" style="margin-top: 16px;">
+            <button class="th-dock">
+              <div class="th-dock-left">
+                <span class="th-avatar"></span>
+                <span>Nic-Nac is here to help</span>
+              </div>
+              <span class="th-arrow">↗</span>
+            </button>
+          </div>
+        </div>
+        <div class="variant">
+          <div class="variant-label"><span>TH5 — Floating gem</span><span class="variant-tag">AMETHYST-CODED</span></div>
+          <div class="variant-desc">Diamond/gem shape that floats softly — kit-themed.</div>
+          <div class="nic-nac-stage" style="margin-top: 16px;">
+            <button class="th-gem" aria-label="Open Nic-Nac">
+              <span class="th-gem-inner">T</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <section class="ds-section" id="footer-spec">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">10 / Footer</div>
+        <div>
+          <h2 class="ds-section-title">Footer with locked disclaimer</h2>
+          <p class="ds-section-desc">
+            Three columns + optional rep-added fourth. Bottom bar is locked legal copy
+            (year, business name, rep name, trademark notice, NR powered-by).
+          </p>
+        </div>
+      </div>
+
+      <footer class="site-footer" style="border-radius: var(--r-xl); overflow: hidden;">
+        <div class="footer-cols">
+          <div class="footer-col">
+            <div style="display: flex; align-items: center; gap: 10px; color: white; font-size: 16px; font-weight: 600;">
+              <span class="site-brand-glyph"></span>
+              <span class="slot" data-slot="business name">Sparkle by Sasha</span>
+            </div>
+            <div class="footer-tagline slot" data-slot="tagline">Live reveals, real friendships, jewelry that means something.</div>
+            <div class="footer-team-pill slot" data-slot="team name">Proud member of Fizz City</div>
+          </div>
+          <div class="footer-col">
+            <h4>Quick Links</h4>
+            <ul>
+              <li><a href="#">Home</a></li>
+              <li><a href="#">Dance Floor</a></li>
+              <li><a href="#">Join Team</a></li>
+              <li><a href="#">Bomb Party 101</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Connect with <span class="slot" data-slot="rep name">Sasha</span></h4>
+            <ul class="slot" data-slot="rep socials">
+              <li><a href="#">TikTok</a></li>
+              <li><a href="#">Facebook Live</a></li>
+              <li><a href="#">Instagram</a></li>
+              <li><a href="#">Email me</a></li>
+            </ul>
+          </div>
+          <div class="footer-col slot" data-slot="optional 4th column">
+            <h4>Also by Sasha</h4>
+            <ul>
+              <li><a href="#">My Etsy shop</a></li>
+              <li><a href="#">Coaching calls</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          © 2026 Sparkle by Sasha. All rights reserved.
+          <span class="seg">|</span>
+          Sasha Lin is an Independent Bomb Party Representative. Bomb Party® is a registered trademark of Bomb Party LLC. Sparkle by Sasha is not affiliated with, endorsed by, or sponsored by Bomb Party LLC.
+          <span class="seg">|</span>
+          Powered by Neon Rabbit Sparkle Suites.
+        </div>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SLOTS LEGEND
+       ============================================================ -->
+  <section class="ds-section" id="slots">
+    <div class="container">
+      <div class="ds-section-header">
+        <div class="ds-section-num">11 / Slots</div>
+        <div>
+          <h2 class="ds-section-title">What reps can edit (and what they can't)</h2>
+          <p class="ds-section-desc">
+            Toggle the slot overlay (bottom-left) to see customization slots highlighted
+            throughout this document. Below: the full inventory.
+          </p>
+        </div>
+      </div>
+
+      <div class="legend-grid">
+        <div class="legend-col swappable">
+          <h3>Rep-customizable (via Nic-Nac)</h3>
+          <ul>
+            <li>Hero image (per page)</li>
+            <li>Rep name, business name, tagline</li>
+            <li>About: 3 bio cards (text + media each)</li>
+            <li>About: "Follow the Journey" (2 media cards)</li>
+            <li>Social links and streaming platforms</li>
+            <li>Event calendar (next 2 shows + codes + collections)</li>
+            <li>Showcase TikTok clip (in "What is a Bomb Party?")</li>
+            <li>Dance Floor items (via add_listing flow)</li>
+            <li>Join Team hero text + CTA link</li>
+            <li>Join Team FAQ answers (questions locked)</li>
+            <li>Team member roster (name, show name, state, socials, photo)</li>
+            <li>Announcement banner (text + on/off)</li>
+            <li>Scrolling ticker top row (text + on/off; bottom row auto)</li>
+            <li>Footer optional 4th column</li>
+            <li>Email/SMS audience list (rep-owned)</li>
+            <li>Design kit selection (1 of 5)</li>
+          </ul>
+        </div>
+        <div class="legend-col locked">
+          <h3>NR-controlled (locked across all sites)</h3>
+          <ul>
+            <li>Header bar layout + structure</li>
+            <li>Footer bottom-bar disclaimer</li>
+            <li>"Why Join" — 6 benefit cards</li>
+            <li>Join Team FAQ — the 6 questions</li>
+            <li>Join Team final CTA structure</li>
+            <li>U&amp;D / FAQ page (36 questions, all answers, copy)</li>
+            <li>Value tier cards (Everyday / Diamond / Unicorn)</li>
+            <li>"What is a Bomb Party?" explainer section</li>
+            <li>Card / button / section design standards</li>
+            <li>CTA divider sections (rep name swaps in)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<button class="slot-toggle" id="slotToggle">
+  <span class="dot"></span>
+  Show edit slots
+</button>
+
+<script>
+  // Slot overlay toggle
+  const toggle = document.getElementById('slotToggle');
+  toggle.addEventListener('click', () => {
+    document.body.classList.toggle('slots-on');
+    toggle.querySelector('span:last-child') ||
+      (toggle.lastChild.textContent = document.body.classList.contains('slots-on') ? ' Hide edit slots' : ' Show edit slots');
+    toggle.innerHTML = document.body.classList.contains('slots-on')
+      ? '<span class="dot"></span> Hide edit slots'
+      : '<span class="dot"></span> Show edit slots';
+  });
+</script>
+
+</body>
+</html>

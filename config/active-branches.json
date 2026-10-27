@@ -6,7 +6,8 @@
     "C:\\Users\\louis\\sparkle-suite-repo",
     "C:\\Users\\louis\\.codex\\worktrees\\blingkitchen-google-verification\\sparkle-suite-repo",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\trade-request-completion",
-    "C:\\Users\\louis\\.codex\\visualizations\\2026\\10\\05\\01a10df3-2121-7673-8f71-c58c6d0e5ab4\\section1-workspace"
+    "C:\\Users\\louis\\.codex\\visualizations\\2026\\10\\05\\01a10df3-2121-7673-8f71-c58c6d0e5ab4\\section1-workspace",
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\ssr-chunk1-fizzfest-home"
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
@@ -38,7 +39,8 @@
     "cursor/rep-host-seo-fixes",
     "cursor/join-server-html-26e8",
     "cursor/suite-join-ssr-rep-routes",
-    "cursor/theme-carousel-site-peeks-db80"
+    "cursor/theme-carousel-site-peeks-db80",
+    "codex/ssr-chunk1-fizzfest-home"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -139,6 +141,10 @@
     },
     "cursor/theme-carousel-site-peeks-db80": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/ssr-chunk1-fizzfest-home": {
+      "projectId": "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3",
       "environment": "preview"
     }
   },

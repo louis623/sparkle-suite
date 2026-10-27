@@ -874,3 +874,6 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
 - [ ] Louis: do the promised FAQ accuracy and polish smoke when convenient on
   the live customer domain. The shared page is already deployed and was
   visually checked at desktop and narrow widths by Codex.
+
+## October 26 — isolated SSR Chunk 1
+See [SSR Chunk 1 checkpoint](2026-10-26-ssr-chunk1-fizzfest.md). One public preview approved; no Live/Smoke/settings/alias changes. Local TypeScript and 75 tests pass; one deployed measurement round pending. #156 remains reference-only.

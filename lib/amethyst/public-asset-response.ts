@@ -1,3 +1,5 @@
+import { shouldUseRepRenderV2 } from './rep-render-version'
+import { bestEffortHomepage } from './homepage-render-safety'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
@@ -531,7 +533,11 @@ export async function renderAmethystPublicAssetResponse(
   asset: string[],
   options: RenderAmethystPublicAssetResponseOptions = {},
 ) {
-  const filePath = resolveAmethystAsset(asset)
+  if (!shouldUseRepRenderV2(asset, options)) {
+    const legacy = await import('./legacy/public-asset-response')
+    return legacy.renderAmethystPublicAssetResponse(request, asset, options)
+  }
+  const filePath = join(process.cwd(), 'lib/amethyst/legacy/assets/Homepage.html')
   if (!filePath) return new Response('Not found', { status: 404 })
 
   try {
@@ -603,6 +609,19 @@ export async function renderAmethystPublicAssetResponse(
           { ...resolvedOptions, pantryRecipes, pantryEmpty, joinRuntimeContext },
           ga4Tag,
         )
+        if (page === 'homepage' && templateData) {
+          const original = responseBody as string
+          responseBody = await bestEffortHomepage(async () => {
+            const endpoint = original.match(/data-template-src="([^"]+)"/)?.[1]
+            if (!endpoint) return original
+            const url = new URL(endpoint.replaceAll('&amp;', '&'), requestUrl.origin)
+            url.searchParams.set('lineupPresentation', 'grouped-v1')
+            const { buildLegacyHomepageBootstrapResponse } = await import('./legacy/homepage-bootstrap-response')
+            const bootstrap = await (await buildLegacyHomepageBootstrapResponse(new Request(url, { headers: request.headers }))).text()
+            const { renderHomepageFirstPaint } = await import('./homepage-first-paint')
+            return renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
+          }) ?? original
+        }
       } else if (templateScriptPage) {
         responseBody = rewriteTemplateScriptTarget(
           html,
