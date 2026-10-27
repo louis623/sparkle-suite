@@ -1,0 +1,18 @@
+{
+  "id": "dpl_DLFp9TpR6AYPUrkeUh2WuBFBFR3G",
+  "url": "sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app",
+  "readyState": "READY",
+  "target": null,
+  "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+  "gitSource": {
+    "type": "github",
+    "repoId": 1192110792,
+    "ref": "codex/ssr-chunk1-fizzfest-home",
+    "sha": "fd013765658ae26fede0a8a95bb1c66f01d50819"
+  },
+  "alias": [
+    "sparkle-suite-smoke-git-codex-ssr-c-869f9e-louis-2849s-projects.vercel.app"
+  ],
+  "sha": "fd013765658ae26fede0a8a95bb1c66f01d50819",
+  "mode": "on"
+}

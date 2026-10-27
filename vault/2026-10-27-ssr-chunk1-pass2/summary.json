@@ -1,0 +1,4013 @@
+{
+  "settings": {
+    "profiles": [
+      {
+        "name": "desktop",
+        "width": 1440,
+        "height": 1200,
+        "cpu": 1,
+        "mobile": false
+      },
+      {
+        "name": "slow-phone",
+        "width": 390,
+        "height": 900,
+        "cpu": 4,
+        "mobile": true,
+        "down": 200000,
+        "up": 93750,
+        "latency": 150
+      }
+    ],
+    "runs": 5,
+    "locale": "en-US",
+    "offsets": [
+      0,
+      100,
+      200,
+      500,
+      1000,
+      2000
+    ],
+    "cache": "disabled",
+    "desktopHeightReason": "Original motion button visible without scrolling",
+    "input": "Native CDP touches, one per fresh navigation. Shop navigation prevented for timing. App non-GET/HEAD requests blocked."
+  },
+  "performance": [
+    {
+      "profile": "desktop",
+      "origin": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app",
+      "runs": 5,
+      "lcp": 1452,
+      "cls": 0,
+      "maxCls": 0,
+      "ssr": 5,
+      "hydrated": 5,
+      "h1": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "motion": [
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        }
+      ],
+      "hydrationErrors": [],
+      "errors": [],
+      "console": [
+        "Connecting to 'https://mon-sg.capcutapi.com/monitor_browser/collect/batch/?bid=capcut_pns_web_runtime' violates the following Content Security Policy directive: \"connect-src 'self' blob: bytedance: data: http://localhost:* https://localhost:* wss://*.us.tiktok.com wss://im-ws.tiktok.com *.akamaized.net *.amazonaws.com *.bing.com *.bitssec.com *.braintree-api.com *.braintreegateway.com *.bytelemon.com *.capcut.com *.cloudflare.com *.ctfassets.net *.doubleclick.net *.facebook.com *.facebook.net *.fbsbx.com *.fcdnstatic-intl.com *.fdmstatic.com *.g-p-static.com *.gauthmath.com *.google-analytics.com *.googleadservices.com *.googleapis.com *.googletagmanager.com *.gstatic.com *.ibytedtos.com *.ibyteimg.com *.jumio.ai *.kakao.com *.lemon8-app.com *.lemon8cdn.com *.licdn.com *.linkedin.com *.muscdn.com *.musical.ly *.oecstatic.com *.omise.co *.pangle-ads.com *.paypal.com *.pipopay.com *.pipopay.eu *.pipopayment.com *.pipopayment.eu *.pipopayment.us *.redditstatic.com *.resso.me *.soundon.global *.tableau.com *.tiktok-usts.com *.tiktok.com/passport/ *.tiktokcdn-eu.com *.tiktokcdn-us.com *.tiktokcdn.com *.tiktokcreativeone.com *.tiktokforbusinessoutbound.com *.tiktokglobalshop.us *.tiktokglobalshopv.us *.tiktokmusic.me *.tiktokshops.us *.tiktokstaticb.com *.tiktokus.info *.tiktokv-us.com *.tiktokv.us *.tiktokw.eu/passport/ *.tiktokw.us *.topbuzzcdn.com *.ttwstatic.com *.twitter.com *.us.tiktok.com *.us.tiktokv.com *.vimeo.com *.vodupload.com *.yahoo.co.jp *.yhgfb-static.com accounts.google.com affiliate-us.tiktok.com analytics.tiktok.com api.music.apple.com effecthouse.tiktok.com facebook.com im-api.tiktok.com im-image.tiktokv.com image-va.tiktok.com livecenter.tiktok.com login-eu.www.tiktok.com login-no1a.www.tiktok.com login-row.www.tiktok.com login-us.www.tiktok.com newassets.hcaptcha.com newsroom.tiktok.com p0-pu-private-useast8.tiktok.com play.itunes.apple.com scm-us.tiktok.com seller-us.tiktok.com shop.tiktok.com starling-i18n.tiktokv.com/check_and_get_text/ starling-sg.tiktokv.com/check_and_get_text/ starling-va.tiktokv.com/check_and_get_text/ static.captchami.com support.tiktok.com t.co t.tiktok.com tikitoks.com tiktokfollowersfree.com tv.tiktok.com twitter.com unpkg.com us.tiktok.com v16-webapp-prime.tiktok.com v16-webapp.tiktok.com v19-webapp-prime.tiktok.com vas-alisg16.tiktokv.com vas-maliva16.tiktokv.com vas-useast2a.tiktokv.com vas-va.tiktokv.com vcs-sg.tiktokv.com vcs-va.byteoversea.com vcs-va.tiktokv.com verification-i18n.tiktok.com verification-sg.tiktok.com verification-va.byteoversea.com verification-va.tiktok.com verification.tiktokw.eu verification16-normal-no1a.tiktokw.eu verify-sg.byteoversea.com web-app.goidentitas.id web-i18n.tiktok.com/passport/ web-sg.tiktok.com/passport/ web-va.tiktok.com/passport/ webapp-sg.tiktok.com webapp-va.tiktok.com www.tiktok.com\". The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Permissions policy violation: accelerometer is not allowed in this document.",
+        "Fetch API cannot load https://mon-sg.capcutapi.com/monitor_browser/collect/batch/?bid=capcut_pns_web_runtime. Refused to connect because it violates the document's Content Security Policy."
+      ],
+      "forbiddenScripts": [],
+      "failures": []
+    },
+    {
+      "profile": "desktop",
+      "origin": "https://www.yoursparklesuite.com",
+      "runs": 5,
+      "lcp": 3172,
+      "cls": 0.02362848734914521,
+      "maxCls": 0.023647760474436574,
+      "ssr": 0,
+      "hydrated": 0,
+      "h1": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "motion": [
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        }
+      ],
+      "hydrationErrors": [],
+      "errors": [],
+      "console": [
+        "Connecting to 'https://mon-sg.capcutapi.com/monitor_browser/collect/batch/?bid=capcut_pns_web_runtime' violates the following Content Security Policy directive: \"connect-src 'self' blob: bytedance: data: http://localhost:* https://localhost:* wss://*.us.tiktok.com wss://im-ws.tiktok.com *.akamaized.net *.amazonaws.com *.bing.com *.bitssec.com *.braintree-api.com *.braintreegateway.com *.bytelemon.com *.capcut.com *.cloudflare.com *.ctfassets.net *.doubleclick.net *.facebook.com *.facebook.net *.fbsbx.com *.fcdnstatic-intl.com *.fdmstatic.com *.g-p-static.com *.gauthmath.com *.google-analytics.com *.googleadservices.com *.googleapis.com *.googletagmanager.com *.gstatic.com *.ibytedtos.com *.ibyteimg.com *.jumio.ai *.kakao.com *.lemon8-app.com *.lemon8cdn.com *.licdn.com *.linkedin.com *.muscdn.com *.musical.ly *.oecstatic.com *.omise.co *.pangle-ads.com *.paypal.com *.pipopay.com *.pipopay.eu *.pipopayment.com *.pipopayment.eu *.pipopayment.us *.redditstatic.com *.resso.me *.soundon.global *.tableau.com *.tiktok-usts.com *.tiktok.com/passport/ *.tiktokcdn-eu.com *.tiktokcdn-us.com *.tiktokcdn.com *.tiktokcreativeone.com *.tiktokforbusinessoutbound.com *.tiktokglobalshop.us *.tiktokglobalshopv.us *.tiktokmusic.me *.tiktokshops.us *.tiktokstaticb.com *.tiktokus.info *.tiktokv-us.com *.tiktokv.us *.tiktokw.eu/passport/ *.tiktokw.us *.topbuzzcdn.com *.ttwstatic.com *.twitter.com *.us.tiktok.com *.us.tiktokv.com *.vimeo.com *.vodupload.com *.yahoo.co.jp *.yhgfb-static.com accounts.google.com affiliate-us.tiktok.com analytics.tiktok.com api.music.apple.com effecthouse.tiktok.com facebook.com im-api.tiktok.com im-image.tiktokv.com image-va.tiktok.com livecenter.tiktok.com login-eu.www.tiktok.com login-no1a.www.tiktok.com login-row.www.tiktok.com login-us.www.tiktok.com newassets.hcaptcha.com newsroom.tiktok.com p0-pu-private-useast8.tiktok.com play.itunes.apple.com scm-us.tiktok.com seller-us.tiktok.com shop.tiktok.com starling-i18n.tiktokv.com/check_and_get_text/ starling-sg.tiktokv.com/check_and_get_text/ starling-va.tiktokv.com/check_and_get_text/ static.captchami.com support.tiktok.com t.co t.tiktok.com tikitoks.com tiktokfollowersfree.com tv.tiktok.com twitter.com unpkg.com us.tiktok.com v16-webapp-prime.tiktok.com v16-webapp.tiktok.com v19-webapp-prime.tiktok.com vas-alisg16.tiktokv.com vas-maliva16.tiktokv.com vas-useast2a.tiktokv.com vas-va.tiktokv.com vcs-sg.tiktokv.com vcs-va.byteoversea.com vcs-va.tiktokv.com verification-i18n.tiktok.com verification-sg.tiktok.com verification-va.byteoversea.com verification-va.tiktok.com verification.tiktokw.eu verification16-normal-no1a.tiktokw.eu verify-sg.byteoversea.com web-app.goidentitas.id web-i18n.tiktok.com/passport/ web-sg.tiktok.com/passport/ web-va.tiktok.com/passport/ webapp-sg.tiktok.com webapp-va.tiktok.com www.tiktok.com\". The action has been blocked.",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Permissions policy violation: accelerometer is not allowed in this document.",
+        "Fetch API cannot load https://mon-sg.capcutapi.com/monitor_browser/collect/batch/?bid=capcut_pns_web_runtime. Refused to connect because it violates the document's Content Security Policy."
+      ],
+      "forbiddenScripts": [
+        "https://unpkg.com/react@18.3.1/umd/react.development.js",
+        "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+      ],
+      "failures": []
+    },
+    {
+      "profile": "slow-phone",
+      "origin": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app",
+      "runs": 5,
+      "lcp": 2000,
+      "cls": 0,
+      "maxCls": 0,
+      "ssr": 5,
+      "hydrated": 5,
+      "h1": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "motion": [
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        }
+      ],
+      "hydrationErrors": [],
+      "errors": [],
+      "console": [],
+      "forbiddenScripts": [],
+      "failures": []
+    },
+    {
+      "profile": "slow-phone",
+      "origin": "https://www.yoursparklesuite.com",
+      "runs": 5,
+      "lcp": 13316,
+      "cls": 0.025839047661443494,
+      "maxCls": 0.025839047661443494,
+      "ssr": 0,
+      "hydrated": 0,
+      "h1": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "motion": [
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        },
+        {
+          "saved": "still",
+          "button": "Play animation",
+          "pressed": "false",
+          "time": 0,
+          "paused": true
+        }
+      ],
+      "hydrationErrors": [],
+      "errors": [],
+      "console": [],
+      "forbiddenScripts": [
+        "https://unpkg.com/react@18.3.1/umd/react.development.js",
+        "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+      ],
+      "failures": []
+    }
+  ],
+  "input": [
+    {
+      "profile": "desktop",
+      "name": "Shop",
+      "offset": 0,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 126.60009765625,
+      "maxPaint": 141.10009765625,
+      "medianEvent": 64,
+      "maxEvent": 136,
+      "maxLate": 101.39990234375,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Shop",
+      "offset": 100,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 83.89990234375,
+      "maxPaint": 114,
+      "medianEvent": 56,
+      "maxEvent": 80,
+      "maxLate": 57.199951171875,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Shop",
+      "offset": 200,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 65.699951171875,
+      "maxPaint": 67,
+      "medianEvent": 32,
+      "maxEvent": 64,
+      "maxLate": 7.10009765625,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Shop",
+      "offset": 500,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 60.10009765625,
+      "maxPaint": 65.300048828125,
+      "medianEvent": 16,
+      "maxEvent": 64,
+      "maxLate": 8.199951171875,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Shop",
+      "offset": 1000,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 56.39990234375,
+      "maxPaint": 60.199951171875,
+      "medianEvent": 48,
+      "maxEvent": 64,
+      "maxLate": 11.89990234375,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Shop",
+      "offset": 2000,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 63.900146484375,
+      "maxPaint": 66.5,
+      "medianEvent": 16,
+      "maxEvent": 64,
+      "maxLate": 6.39990234375,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Play/Pause",
+      "offset": 0,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 135.099853515625,
+      "maxPaint": 178.800048828125,
+      "medianEvent": 56,
+      "maxEvent": 160,
+      "maxLate": 80.60009765625,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Play/Pause",
+      "offset": 100,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 104.89990234375,
+      "maxPaint": 136.900146484375,
+      "medianEvent": 64,
+      "maxEvent": 120,
+      "maxLate": 13.10009765625,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Play/Pause",
+      "offset": 200,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 56.699951171875,
+      "maxPaint": 59.400146484375,
+      "medianEvent": 32,
+      "maxEvent": 64,
+      "maxLate": 12.699951171875,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Play/Pause",
+      "offset": 500,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 64.800048828125,
+      "maxPaint": 65,
+      "medianEvent": 16,
+      "maxEvent": 64,
+      "maxLate": 4.60009765625,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Play/Pause",
+      "offset": 1000,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 63.89990234375,
+      "maxPaint": 65.10009765625,
+      "medianEvent": 16,
+      "maxEvent": 64,
+      "maxLate": 6.300048828125,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Play/Pause",
+      "offset": 2000,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 59.800048828125,
+      "maxPaint": 68.60009765625,
+      "medianEvent": 20,
+      "maxEvent": 64,
+      "maxLate": 13.199951171875,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Shop",
+      "offset": 0,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 572.400146484375,
+      "maxPaint": 611.89990234375,
+      "medianEvent": 336,
+      "maxEvent": 488,
+      "maxLate": 725.89990234375,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Shop",
+      "offset": 100,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 229.199951171875,
+      "maxPaint": 583.39990234375,
+      "medianEvent": 88,
+      "maxEvent": 520,
+      "maxLate": 545,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Shop",
+      "offset": 200,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 68.300048828125,
+      "maxPaint": 464.60009765625,
+      "medianEvent": 24,
+      "maxEvent": 408,
+      "maxLate": 360.60009765625,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Shop",
+      "offset": 500,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 66.900146484375,
+      "maxPaint": 67.5,
+      "medianEvent": 24,
+      "maxEvent": 64,
+      "maxLate": 16.5,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Shop",
+      "offset": 1000,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 95.800048828125,
+      "maxPaint": 166.7998046875,
+      "medianEvent": 64,
+      "maxEvent": 160,
+      "maxLate": 12.60009765625,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Shop",
+      "offset": 2000,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 103.5,
+      "maxPaint": 117.199951171875,
+      "medianEvent": 48,
+      "maxEvent": 112,
+      "maxLate": 10.10009765625,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Play/Pause",
+      "offset": 0,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 65.699951171875,
+      "maxPaint": 583.39990234375,
+      "medianEvent": 64,
+      "maxEvent": 504,
+      "maxLate": 673.10009765625,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Play/Pause",
+      "offset": 100,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 521.300048828125,
+      "maxPaint": 760,
+      "medianEvent": 136,
+      "maxEvent": 656,
+      "maxLate": 588.89990234375,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Play/Pause",
+      "offset": 200,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 70,
+      "maxPaint": 760.300048828125,
+      "medianEvent": 56,
+      "maxEvent": 528,
+      "maxLate": 413.699951171875,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Play/Pause",
+      "offset": 500,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 70.60009765625,
+      "maxPaint": 484.800048828125,
+      "medianEvent": 24,
+      "maxEvent": 424,
+      "maxLate": 79.800048828125,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Play/Pause",
+      "offset": 1000,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 158.39990234375,
+      "maxPaint": 374.39990234375,
+      "medianEvent": 80,
+      "maxEvent": 320,
+      "maxLate": 13.10009765625,
+      "missing": 0,
+      "hydrationErrors": []
+    },
+    {
+      "profile": "slow-phone",
+      "name": "Play/Pause",
+      "offset": 2000,
+      "runs": 5,
+      "clicked": 5,
+      "medianPaint": 86.699951171875,
+      "maxPaint": 93.60009765625,
+      "medianEvent": 24,
+      "maxEvent": 96,
+      "maxLate": 14.89990234375,
+      "missing": 0,
+      "hydrationErrors": []
+    }
+  ],
+  "comparisons": [
+    {
+      "profile": "desktop",
+      "timezone": "America/New_York",
+      "showsEqual": true,
+      "headerEqual": true,
+      "metadataEqual": true,
+      "liveShows": [
+        "Tue, Oct 278:00 PM EDT",
+        "Fri, Oct 308:00 AM EDT"
+      ],
+      "previewShows": [
+        "Tue, Oct 278:00 PM EDT",
+        "Fri, Oct 308:00 AM EDT"
+      ],
+      "liveHeader": "<header class=\"hp-header\"><div class=\"hp-header-inner\"><div class=\"hp-brand\"><div class=\"hp-brand-name slot\" data-slot=\"business name\">Fizz Festival</div><div class=\"hp-brand-sub\">Jewelry reveals</div></div><nav class=\"hp-header-nav\" aria-label=\"Primary\"><a href=\"#top\" class=\"hp-header-link\" aria-current=\"page\">Home</a><a href=\"/dudesfizzfest/trade\" class=\"hp-header-link\">Dance Floor</a><a href=\"/dudesfizzfest/join\" class=\"hp-header-link\">Join Team</a></nav><a href=\"https://bombparty.com\" target=\"_blank\" rel=\"noreferrer noopener\" class=\"hp-shop-btn\">Shop</a></div></header>",
+      "previewHeader": "<header class=\"hp-header\"><div class=\"hp-header-inner\"><div class=\"hp-brand\"><div class=\"hp-brand-name slot\" data-slot=\"business name\">Fizz Festival</div><div class=\"hp-brand-sub\">Jewelry reveals</div></div><nav class=\"hp-header-nav\" aria-label=\"Primary\"><a href=\"#top\" class=\"hp-header-link\" aria-current=\"page\">Home</a><a href=\"/dudesfizzfest/trade\" class=\"hp-header-link\">Dance Floor</a><a href=\"/dudesfizzfest/join\" class=\"hp-header-link\">Join Team</a></nav><a href=\"https://bombparty.com\" target=\"_blank\" rel=\"noreferrer noopener\" class=\"hp-shop-btn\">Shop</a></div></header>"
+    },
+    {
+      "profile": "desktop",
+      "timezone": "America/Los_Angeles",
+      "showsEqual": true,
+      "headerEqual": true,
+      "metadataEqual": true,
+      "liveShows": [
+        "Tue, Oct 275:00 PM PDT",
+        "Fri, Oct 305:00 AM PDT"
+      ],
+      "previewShows": [
+        "Tue, Oct 275:00 PM PDT",
+        "Fri, Oct 305:00 AM PDT"
+      ],
+      "liveHeader": "<header class=\"hp-header\"><div class=\"hp-header-inner\"><div class=\"hp-brand\"><div class=\"hp-brand-name slot\" data-slot=\"business name\">Fizz Festival</div><div class=\"hp-brand-sub\">Jewelry reveals</div></div><nav class=\"hp-header-nav\" aria-label=\"Primary\"><a href=\"#top\" class=\"hp-header-link\" aria-current=\"page\">Home</a><a href=\"/dudesfizzfest/trade\" class=\"hp-header-link\">Dance Floor</a><a href=\"/dudesfizzfest/join\" class=\"hp-header-link\">Join Team</a></nav><a href=\"https://bombparty.com\" target=\"_blank\" rel=\"noreferrer noopener\" class=\"hp-shop-btn\">Shop</a></div></header>",
+      "previewHeader": "<header class=\"hp-header\"><div class=\"hp-header-inner\"><div class=\"hp-brand\"><div class=\"hp-brand-name slot\" data-slot=\"business name\">Fizz Festival</div><div class=\"hp-brand-sub\">Jewelry reveals</div></div><nav class=\"hp-header-nav\" aria-label=\"Primary\"><a href=\"#top\" class=\"hp-header-link\" aria-current=\"page\">Home</a><a href=\"/dudesfizzfest/trade\" class=\"hp-header-link\">Dance Floor</a><a href=\"/dudesfizzfest/join\" class=\"hp-header-link\">Join Team</a></nav><a href=\"https://bombparty.com\" target=\"_blank\" rel=\"noreferrer noopener\" class=\"hp-shop-btn\">Shop</a></div></header>"
+    },
+    {
+      "profile": "slow-phone",
+      "timezone": "America/New_York",
+      "showsEqual": true,
+      "headerEqual": true,
+      "metadataEqual": true,
+      "liveShows": [
+        "Tue, Oct 278:00 PM EDT",
+        "Fri, Oct 308:00 AM EDT"
+      ],
+      "previewShows": [
+        "Tue, Oct 278:00 PM EDT",
+        "Fri, Oct 308:00 AM EDT"
+      ],
+      "liveHeader": "<header class=\"hp-header\"><div class=\"hp-header-inner\"><div class=\"hp-brand\"><div class=\"hp-brand-name slot\" data-slot=\"business name\">Fizz Festival</div><div class=\"hp-brand-sub\">Jewelry reveals</div></div><nav class=\"hp-header-nav\" aria-label=\"Primary\"><a href=\"#top\" class=\"hp-header-link\" aria-current=\"page\">Home</a><a href=\"/dudesfizzfest/trade\" class=\"hp-header-link\">Dance Floor</a><a href=\"/dudesfizzfest/join\" class=\"hp-header-link\">Join Team</a></nav><a href=\"https://bombparty.com\" target=\"_blank\" rel=\"noreferrer noopener\" class=\"hp-shop-btn\">Shop</a></div></header>",
+      "previewHeader": "<header class=\"hp-header\"><div class=\"hp-header-inner\"><div class=\"hp-brand\"><div class=\"hp-brand-name slot\" data-slot=\"business name\">Fizz Festival</div><div class=\"hp-brand-sub\">Jewelry reveals</div></div><nav class=\"hp-header-nav\" aria-label=\"Primary\"><a href=\"#top\" class=\"hp-header-link\" aria-current=\"page\">Home</a><a href=\"/dudesfizzfest/trade\" class=\"hp-header-link\">Dance Floor</a><a href=\"/dudesfizzfest/join\" class=\"hp-header-link\">Join Team</a></nav><a href=\"https://bombparty.com\" target=\"_blank\" rel=\"noreferrer noopener\" class=\"hp-shop-btn\">Shop</a></div></header>"
+    },
+    {
+      "profile": "slow-phone",
+      "timezone": "America/Los_Angeles",
+      "showsEqual": true,
+      "headerEqual": true,
+      "metadataEqual": true,
+      "liveShows": [
+        "Tue, Oct 275:00 PM PDT",
+        "Fri, Oct 305:00 AM PDT"
+      ],
+      "previewShows": [
+        "Tue, Oct 275:00 PM PDT",
+        "Fri, Oct 305:00 AM PDT"
+      ],
+      "liveHeader": "<header class=\"hp-header\"><div class=\"hp-header-inner\"><div class=\"hp-brand\"><div class=\"hp-brand-name slot\" data-slot=\"business name\">Fizz Festival</div><div class=\"hp-brand-sub\">Jewelry reveals</div></div><nav class=\"hp-header-nav\" aria-label=\"Primary\"><a href=\"#top\" class=\"hp-header-link\" aria-current=\"page\">Home</a><a href=\"/dudesfizzfest/trade\" class=\"hp-header-link\">Dance Floor</a><a href=\"/dudesfizzfest/join\" class=\"hp-header-link\">Join Team</a></nav><a href=\"https://bombparty.com\" target=\"_blank\" rel=\"noreferrer noopener\" class=\"hp-shop-btn\">Shop</a></div></header>",
+      "previewHeader": "<header class=\"hp-header\"><div class=\"hp-header-inner\"><div class=\"hp-brand\"><div class=\"hp-brand-name slot\" data-slot=\"business name\">Fizz Festival</div><div class=\"hp-brand-sub\">Jewelry reveals</div></div><nav class=\"hp-header-nav\" aria-label=\"Primary\"><a href=\"#top\" class=\"hp-header-link\" aria-current=\"page\">Home</a><a href=\"/dudesfizzfest/trade\" class=\"hp-header-link\">Dance Floor</a><a href=\"/dudesfizzfest/join\" class=\"hp-header-link\">Join Team</a></nav><a href=\"https://bombparty.com\" target=\"_blank\" rel=\"noreferrer noopener\" class=\"hp-shop-btn\">Shop</a></div></header>"
+    }
+  ],
+  "repParity": {
+    "count": 33,
+    "matches": 3,
+    "failures": [
+      {
+        "name": "slug:blingkitchen",
+        "leftUrl": "https://www.yoursparklesuite.com/blingkitchen",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/blingkitchen",
+        "left": {
+          "status": 200,
+          "hash": "963e9a7324105ad1d4968dd6ae382c16a65e1eb7346cb3c922a207a254d01559",
+          "bytes": 9814,
+          "ttfb": 581.6675999999279,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "a403146cd1aef15326acb0b54bfd033f91718253d02ade10e6300ae9c5b860be",
+          "bytes": 10904,
+          "ttfb": 603.6565999999875,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5614,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"homepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"home\"><h1>BlingKitchen</h1><p>Heather is the rep for BlingKitchen.</p><p>Serving Sparkle from t",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:blingkitchen/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/blingkitchen/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/blingkitchen/trade",
+        "left": {
+          "status": 200,
+          "hash": "40adca6b5356ff954643a8f2b4e55afbc9c3fca6e30fb59af3911c4980c5726c",
+          "bytes": 10698,
+          "ttfb": 472.54509999998845,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "771d21b486d3bfa2ddf0bd30d1999b8aed5e3c92ec61324f940420ab2b2d0dc2",
+          "bytes": 11788,
+          "ttfb": 1702.236900000018,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5062,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"tradepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"dance-floor\"><h1>BlingKitchen Dance Floor</h1><p>Heather is the rep for BlingKitchen.</p><p>Bl",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:blingkitchen/join",
+        "leftUrl": "https://www.yoursparklesuite.com/blingkitchen/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/blingkitchen/join",
+        "left": {
+          "status": 200,
+          "hash": "c4b95e2b73fac7089b266188f5826706349e81a3a971c8e975426be12c724a43",
+          "bytes": 11812,
+          "ttfb": 472.6992999999784,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "860c90ff1b037c58bed6ed4a5f2b231e6c99c22ced126a68635b9a99050e3db9",
+          "bytes": 12902,
+          "ttfb": 1598.2911000000313,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5915,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"joinpage\">\n\n<div id=\"root\"><main id=\"join-server-index\"><h1>Join Opal Sparkling Gems</h1><p>Explore what it takes to join Opal Sparkling Gems with Heather, revi",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:blingwithkrissig",
+        "leftUrl": "https://www.yoursparklesuite.com/blingwithkrissig",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/blingwithkrissig",
+        "left": {
+          "status": 200,
+          "hash": "1f2ca9b930d85c6c68b0d9fe44732c57747f5d5adce1f0330274569cc806816c",
+          "bytes": 9023,
+          "ttfb": 545.2552000000142,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "8c2abccd55ef2c1a252508e104e72e43535af9e4983e8308df55b90a6f0cfe5d",
+          "bytes": 10113,
+          "ttfb": 801.358600000036,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5589,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"homepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"home\"><h1>BlingwithKrissiG</h1><p>Kristin is the rep for BlingwithKrissiG.</p><p>BlingwithKriss",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:blingwithkrissig/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/blingwithkrissig/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/blingwithkrissig/trade",
+        "left": {
+          "status": 200,
+          "hash": "45447026665d8e7936f833d5e90da57bf19b22ebf410e6e5b6cd1fbb2f086969",
+          "bytes": 9960,
+          "ttfb": 465.34150000009686,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "b65e600652967786c5338cd44eab5acc5d2a365afeb613e92e9e64839af11a6f",
+          "bytes": 11050,
+          "ttfb": 572.7212999999756,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5037,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"tradepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"dance-floor\"><h1>BlingwithKrissiG Dance Floor</h1><p>Kristin is the rep for BlingwithKrissiG.<",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:blingwithkrissig/join",
+        "leftUrl": "https://www.yoursparklesuite.com/blingwithkrissig/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/blingwithkrissig/join",
+        "left": {
+          "status": 200,
+          "hash": "f61a86dc5d38a4baad96c8da2d7f0028c5ce91ca6609a89069e53983050911c8",
+          "bytes": 10192,
+          "ttfb": 425.1783000000287,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "63a182e83382368babe03808d8f718cee8cd30e48de616a6073919a06cea9a5d",
+          "bytes": 11282,
+          "ttfb": 479.98400000005495,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5127,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"joinpage\">\n\n<div id=\"root\"><main id=\"join-server-index\"><h1>Join BlingwithKrissiG</h1><p>Explore what it takes to join BlingwithKrissiG with Kristin, review the",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:brisglowtique",
+        "leftUrl": "https://www.yoursparklesuite.com/brisglowtique",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/brisglowtique",
+        "left": {
+          "status": 200,
+          "hash": "81e56219b286bd435a83859bc2bd309950f7df819c3e21416bea41a8b9d1e33b",
+          "bytes": 9988,
+          "ttfb": 356.99340000003576,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "b88ecb1fe17c52e8bcb74f43921643438bdb5a5743fbff0e813a458e3aa087fe",
+          "bytes": 11077,
+          "ttfb": 1011.8784999999916,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5657,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"homepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"home\"><h1>Bri's Glowtique</h1><p>Brianna is the rep for Bri's Glowtique.</p><p>Hi, I'm Brianna,",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:brisglowtique/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/brisglowtique/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/brisglowtique/trade",
+        "left": {
+          "status": 200,
+          "hash": "0e572da8b64699aa2f62d895490688cdb23c3dc6441b75229c5bd66b58c3571b",
+          "bytes": 10924,
+          "ttfb": 403.66299999994226,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "35b1bd66bb58f19154a0fdb18b186a31555dc0fbce3250a63e921b8d44eaf9d6",
+          "bytes": 12013,
+          "ttfb": 565.2378000000026,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5105,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"tradepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"dance-floor\"><h1>Bri's Glowtique Dance Floor</h1><p>Brianna is the rep for Bri's Glowtique.</p",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:brisglowtique/join",
+        "leftUrl": "https://www.yoursparklesuite.com/brisglowtique/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/brisglowtique/join",
+        "left": {
+          "status": 200,
+          "hash": "5065331dea405dc6fa288c46978f992f3b16b9d9d803942ee325447244b605b4",
+          "bytes": 10719,
+          "ttfb": 447.6981000000378,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "f0b325784b2c4c357fc3657e20f0be9881ad98a2353670871cbd00b195fed335",
+          "bytes": 11808,
+          "ttfb": 469.56809999991674,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5636,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"joinpage\">\n\n<div id=\"root\"><main id=\"join-server-index\"><h1>Join Team Sparkaholics</h1><p>Explore what it takes to join Team Sparkaholics with Brianna, review t",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:brittwithbling",
+        "leftUrl": "https://www.yoursparklesuite.com/brittwithbling",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/brittwithbling",
+        "left": {
+          "status": 200,
+          "hash": "5b61d730bd3665475f759d8c9d30139a27e2e90541d94553221614d594876073",
+          "bytes": 9525,
+          "ttfb": 386.86109999998007,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "473add7a5eb64bac17352b86080e5fa79050bae74a20fe69a262a34555a8c7aa",
+          "bytes": 10613,
+          "ttfb": 999.4221000000834,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5993,
+        "difference": {
+          "live": "veArea\",\"addressRegion\":\"Florida\",\"addressCountry\":\"US\"}}]}</script>\n</head>\n<body class=\"homepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"home\"><h1>Britt with Bling in Florida</h1><p>Brittany is the rep for Britt with Bling in Florid",
+          "preview": "veArea\",\"addressRegion\":\"Florida\",\"addressCountry\":\"US\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:brittwithbling/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/brittwithbling/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/brittwithbling/trade",
+        "left": {
+          "status": 200,
+          "hash": "fb9033e72d4adab9086e8783cf8e3d65cd7d3dd165e70ec5b450029a27dc47c5",
+          "bytes": 10336,
+          "ttfb": 301.6743000000715,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "a2490b592051b0e2ea07e19b3eee9017ed13b7ad31e7a999c2931d563f07e569",
+          "bytes": 11424,
+          "ttfb": 736.35839999991,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5441,
+        "difference": {
+          "live": "veArea\",\"addressRegion\":\"Florida\",\"addressCountry\":\"US\"}}]}</script>\n</head>\n<body class=\"tradepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"dance-floor\"><h1>Digital Dance Floor coming soon for Britt with Bling in Florida</h1><p>Britta",
+          "preview": "veArea\",\"addressRegion\":\"Florida\",\"addressCountry\":\"US\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:brittwithbling/join",
+        "leftUrl": "https://www.yoursparklesuite.com/brittwithbling/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/brittwithbling/join",
+        "left": {
+          "status": 200,
+          "hash": "78b86f187531a0f31b3d6f0f4823d04729c1ff6dd6c5081eafe7ee3cf7f0d1e8",
+          "bytes": 12972,
+          "ttfb": 391.8408000000054,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "a66f0b679dbb5365b421b01d8a34c95c409f4fb90a1d23b97e1af4035d32a67a",
+          "bytes": 14060,
+          "ttfb": 615.497699999949,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5541,
+        "difference": {
+          "live": "veArea\",\"addressRegion\":\"Florida\",\"addressCountry\":\"US\"}}]}</script>\n</head>\n<body class=\"joinpage\">\n\n<div id=\"root\"><main id=\"join-server-index\"><h1>Join The Virtuous Fizzers</h1><p>Explore what it takes to join The Virtuous Fizzers with Brittany, r",
+          "preview": "veArea\",\"addressRegion\":\"Florida\",\"addressCountry\":\"US\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:demosparklestudiod5decc",
+        "leftUrl": "https://www.yoursparklesuite.com/demosparklestudiod5decc",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/demosparklestudiod5decc",
+        "left": {
+          "status": 200,
+          "hash": "e66f01102bd181f9c8210a9c64861e40bc582fce251184e7a8addd741672ec22",
+          "bytes": 9055,
+          "ttfb": 981.655700000003,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "517b964c9ef71367f82174c4692fd7861af83c0bb1dffae3c15dd3a46c10f653",
+          "bytes": 10141,
+          "ttfb": 448.6792000000132,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5610,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"homepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"home\"><h1>Demo Sparkle Rep</h1><p>Demo is the rep for Demo Sparkle Rep.</p><p>Demo Sparkle Rep ",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:demosparklestudiod5decc/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/demosparklestudiod5decc/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/demosparklestudiod5decc/trade",
+        "left": {
+          "status": 200,
+          "hash": "e2747ae3d6e8145e73c3bcbf19b56dd2c27fec818daa042624ba0ca8a55a8f3c",
+          "bytes": 9992,
+          "ttfb": 333.5309000000125,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "6a1afa53ff8fe53847f6b5fad9dbf94970a1a38913e7e0b643560abebeb0c1e8",
+          "bytes": 11078,
+          "ttfb": 567.0378999999957,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5058,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"tradepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"dance-floor\"><h1>Demo Sparkle Rep Dance Floor</h1><p>Demo is the rep for Demo Sparkle Rep.</p>",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:demosparklestudiod5decc/join",
+        "leftUrl": "https://www.yoursparklesuite.com/demosparklestudiod5decc/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/demosparklestudiod5decc/join",
+        "left": {
+          "status": 200,
+          "hash": "02330aba6c7360c1eaeea4c3874614eb5e6f24cef5db5b0bbfa01504b1ab82e3",
+          "bytes": 10406,
+          "ttfb": 354.79470000008587,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "d978b5d19f0b51da505828a16e5effb1cabde2b13c995d37e5eeb081fb0e65dd",
+          "bytes": 11492,
+          "ttfb": 535.8378999999259,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5280,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"joinpage\">\n\n<div id=\"root\"><main id=\"join-server-index\"><h1>Join Demo Sparkle Studio d5decc</h1><p>Explore what it takes to join Demo Sparkle Studio d5decc with",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:goforthebling",
+        "leftUrl": "https://www.yoursparklesuite.com/goforthebling",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/goforthebling",
+        "left": {
+          "status": 200,
+          "hash": "85673d69cc4bbe9204cdd2e250093dd1a2e58cd67122fb35009b93ab20172c79",
+          "bytes": 10106,
+          "ttfb": 308.15139999997336,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "0d39a90857e6422fd34ec33b3c469cddfd5274b31779555e3fac737ddc2557fd",
+          "bytes": 11190,
+          "ttfb": 446.4564000000246,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5579,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"homepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"home\"><h1>GofortheBling</h1><p>Kim is the rep for GofortheBling.</p><p>A little wonder, a lot o",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:goforthebling/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/goforthebling/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/goforthebling/trade",
+        "left": {
+          "status": 200,
+          "hash": "2efb187b7cd9a1ad70bd2fb346c10599ac67b2dbd2d8fdca2bb0f09b8dbc7404",
+          "bytes": 10902,
+          "ttfb": 383.00130000000354,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "5991c95d587bc6ec7e8d75809a089b16473d2129fc0e3d2941947ef7a00ef47f",
+          "bytes": 11986,
+          "ttfb": 465.8951999999117,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5027,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"tradepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"dance-floor\"><h1>GofortheBling Dance Floor</h1><p>Kim is the rep for GofortheBling.</p><p>Gofo",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:goforthebling/join",
+        "leftUrl": "https://www.yoursparklesuite.com/goforthebling/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/goforthebling/join",
+        "left": {
+          "status": 200,
+          "hash": "af9ef3704804a1802571248a6193d5537e6c3d788d957e985102b4f7600b9420",
+          "bytes": 10888,
+          "ttfb": 415.7118999999948,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "05714ad53c297614be6b9c7fbe0b73b065c7852a5638cab09d97277eb6516b75",
+          "bytes": 11972,
+          "ttfb": 505.7267999999458,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5158,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"joinpage\">\n\n<div id=\"root\"><main id=\"join-server-index\"><h1>Join GofortheBling</h1><p>Explore what it takes to join GofortheBling with Kim, review the current o",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:louisfizzfest",
+        "leftUrl": "https://www.yoursparklesuite.com/louisfizzfest",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/louisfizzfest",
+        "left": {
+          "status": 200,
+          "hash": "f36028b611a31cc18e34eb8151a313799dc133ebb3339455f249be54b3ee1c62",
+          "bytes": 9042,
+          "ttfb": 335.1125999999931,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "794c5568f8356841b1cac355a32df3e9ef7d496b25ed43cdd7277981f3ed6e76",
+          "bytes": 10130,
+          "ttfb": 966.8460999999661,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5613,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"homepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"home\"><h1>Louis's Fizz Fest</h1><p>Louis is the rep for Louis's Fizz Fest.</p><p>Louis's Fizz F",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:louisfizzfest/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/louisfizzfest/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/louisfizzfest/trade",
+        "left": {
+          "status": 200,
+          "hash": "900963cba47476da285997270f47310e9204bf8529a66d4f38c8653bc902a570",
+          "bytes": 9980,
+          "ttfb": 314.0929999999935,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "ebe2fa3642012b2adafee17e75d16a9f505652186785984f9dd7946a2475139e",
+          "bytes": 11068,
+          "ttfb": 482.86979999998584,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5061,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"tradepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"dance-floor\"><h1>Louis's Fizz Fest Dance Floor</h1><p>Louis is the rep for Louis's Fizz Fest.<",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:louisfizzfest/join",
+        "leftUrl": "https://www.yoursparklesuite.com/louisfizzfest/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/louisfizzfest/join",
+        "left": {
+          "status": 200,
+          "hash": "9795c9d72568657b9cf616fe09a099275927cc726409fc872883f6b4802eafff",
+          "bytes": 10052,
+          "ttfb": 357.9852999999421,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "700aad35f4d76776462d99e7bd0a4fa4947d2127b3d948c86ba6589a1b84e5b0",
+          "bytes": 11140,
+          "ttfb": 442.1154999999562,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5007,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"joinpage\">\n\n<div id=\"root\"><main id=\"join-server-index\"><h1>Join Louis's Fizz Fest</h1><p>Explore what it takes to join Louis's Fizz Fest with Louis, review the",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:milehighfizz",
+        "leftUrl": "https://www.yoursparklesuite.com/milehighfizz",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/milehighfizz",
+        "left": {
+          "status": 200,
+          "hash": "22b529f9afcd31ffb10f25eb015beaad8123a71607af60a05d855c0103ca8569",
+          "bytes": 10045,
+          "ttfb": 286.51410000002943,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "6e270d411429b0c38f66b1f7241a109dbd9cf5290554276b0f8e59a890f817b7",
+          "bytes": 11133,
+          "ttfb": 377.3711999999359,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5630,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"homepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"home\"><h1>Mile High Fizz</h1><p>Lindsey is the rep for Mile High Fizz.</p><p>Revealing somethin",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:milehighfizz/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/milehighfizz/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/milehighfizz/trade",
+        "left": {
+          "status": 200,
+          "hash": "b0d220e8b8777ee0aeaaa95a824176b7ba12b1c88e24c2a8630518f2d58e32ec",
+          "bytes": 10936,
+          "ttfb": 368.842399999965,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "868834af0a9f10da0a787fad27ed57ff925be1a54b66beac10121648678f20c9",
+          "bytes": 12024,
+          "ttfb": 367.749199999962,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5078,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"tradepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"dance-floor\"><h1>Mile High Fizz Dance Floor</h1><p>Lindsey is the rep for Mile High Fizz.</p><",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:milehighfizz/join",
+        "leftUrl": "https://www.yoursparklesuite.com/milehighfizz/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/milehighfizz/join",
+        "left": {
+          "status": 200,
+          "hash": "59537dc6eccc5d732a74275b7fe2b766084629942f4fafa37fc6d75ee14cff1a",
+          "bytes": 10516,
+          "ttfb": 403.2689000000246,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "734977301e968864cd03cb7f7d5f8b1ec5cec354fe06585373ad4f87b9b6abb5",
+          "bytes": 11604,
+          "ttfb": 438.12240000010934,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5512,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"joinpage\">\n\n<div id=\"root\"><main id=\"join-server-index\"><h1>Join Diamond Peak Society</h1><p>Explore what it takes to join Diamond Peak Society with Lindsey, re",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:sparklebetademo",
+        "leftUrl": "https://www.yoursparklesuite.com/sparklebetademo",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/sparklebetademo",
+        "left": {
+          "status": 200,
+          "hash": "3719afa1ccfec2328daf0af8e363daa300454c34b37ceeb5a26e03718b87f534",
+          "bytes": 9210,
+          "ttfb": 359.7778999999864,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "8b541fca98041c9d03dba282a9eab6971e18fcdd9800833b97ec4a3679bea31d",
+          "bytes": 10303,
+          "ttfb": 413.2259000000777,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5759,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"homepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"home\"><h1>Sparkle Suite Beta Demo</h1><p>Louis is the rep for Sparkle Suite Beta Demo.</p><p>Sp",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:sparklebetademo/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/sparklebetademo/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/sparklebetademo/trade",
+        "left": {
+          "status": 200,
+          "hash": "05c3ad298ea5631ef78acda16ad8d6b4415011cc829e10a2e00e9dc5a8aa837d",
+          "bytes": 10154,
+          "ttfb": 382.52720000001136,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "03f22d949027b674affeda6f013f40a97d78389971a7949e13a918a5df408059",
+          "bytes": 11247,
+          "ttfb": 475.42089999991003,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5207,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"tradepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"dance-floor\"><h1>Sparkle Suite Beta Demo Dance Floor</h1><p>Louis is the rep for Sparkle Suite",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:sparklebetademo/join",
+        "leftUrl": "https://www.yoursparklesuite.com/sparklebetademo/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/sparklebetademo/join",
+        "left": {
+          "status": 200,
+          "hash": "1cf6631ea312757fcc2dcdb00c91b579c072ce6323ba9c35677d20cdb984583e",
+          "bytes": 10250,
+          "ttfb": 331.3632000000216,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "bb6c190a153be6ba225e6d6477482645bb2157f381f9e74bf009f9400e3d816e",
+          "bytes": 11343,
+          "ttfb": 547.3801999998977,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5153,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"joinpage\">\n\n<div id=\"root\"><main id=\"join-server-index\"><h1>Join Sparkle Suite Beta Demo</h1><p>Explore what it takes to join Sparkle Suite Beta Demo with Louis",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:sparklybutterflies",
+        "leftUrl": "https://www.yoursparklesuite.com/sparklybutterflies",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/sparklybutterflies",
+        "left": {
+          "status": 200,
+          "hash": "8766869915818921a3841d10b627c6dfc853934b4b91c896b409f1b30db1e9db",
+          "bytes": 9826,
+          "ttfb": 289.9419999999227,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "b5f004774b98f7c33e37bb22c980e565b1a8848b1ad9f96bdf788e8a13b09b65",
+          "bytes": 10912,
+          "ttfb": 365.46649999998044,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5736,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"homepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"home\"><h1>Sparkly Butterflies</h1><p>Kelly is the rep for Sparkly Butterflies.</p><p>Your Spark",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:sparklybutterflies/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/sparklybutterflies/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/sparklybutterflies/trade",
+        "left": {
+          "status": 200,
+          "hash": "a478ed5f9dc7cfe01cac17b7565d72ff0f898607282acca941a762ae3a960c48",
+          "bytes": 10639,
+          "ttfb": 383.5820000000531,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "87840f86495fae38a718c102a24754cdd2627d69bbff6d6b01b154dbc3f4bed4",
+          "bytes": 11725,
+          "ttfb": 441.2568999999203,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5184,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"tradepage\">\n\n<div id=\"root\"><main class=\"public-index\" data-page=\"dance-floor\"><h1>Sparkly Butterflies Dance Floor</h1><p>Kelly is the rep for Sparkly Butterfli",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      },
+      {
+        "name": "slug:sparklybutterflies/join",
+        "leftUrl": "https://www.yoursparklesuite.com/sparklybutterflies/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/sparklybutterflies/join",
+        "left": {
+          "status": 200,
+          "hash": "13bb660638d30b3103d9ea2930ab72a88be2d00ee4e2cbe2316bee98e8ec79fd",
+          "bytes": 11870,
+          "ttfb": 282.8920999999391,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "2b9e525fe5533e8513c64611742950b9bb246416043e4c9bab50e197c1ae28f7",
+          "bytes": 12956,
+          "ttfb": 503.5378000000492,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 5464,
+        "difference": {
+          "live": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n</head>\n<body class=\"joinpage\">\n\n<div id=\"root\"><main id=\"join-server-index\"><h1>Join Sparkly Butterflies</h1><p>Explore what it takes to join Sparkly Butterflies with Kelly, review",
+          "preview": "com/#rep\"},\"brand\":{\"@type\":\"Brand\",\"name\":\"Bomb Party\"}}]}</script>\n<script id=\"sparkle-rep-ga4\">\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  ad_storage: 'denied',\n  ad_user_d"
+        }
+      }
+    ]
+  },
+  "domainParity": {
+    "count": 21,
+    "matches": 0,
+    "failures": [
+      {
+        "name": "domain:theblingkitchen.com/",
+        "leftUrl": "https://theblingkitchen.com/",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/",
+        "left": {
+          "status": 200,
+          "hash": "6c8b047d1142aade4f4b93f0fc74b2e189a6587645630e1dafcdeec27e840499",
+          "bytes": 10822,
+          "ttfb": 861.6350999999559,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "b80e95d8d4faecfd1104a0b49ba5b450bea78235d1c00d793f99ed5d80d3e791",
+          "bytes": 77579,
+          "ttfb": 3493.4995000000345,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 15,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>BlingKitchen | Live jewelry reveals and Dance Floo",
+          "preview": "<!DOCTYPE html><html data-dpl-id=\"dpl_DLFp9TpR6AYPUrkeUh2WuBFBFR3G\" lang=\"en\" class=\"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable playfair_display_8de51710"
+        }
+      },
+      {
+        "name": "domain:theblingkitchen.com/trade",
+        "leftUrl": "https://theblingkitchen.com/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/trade",
+        "left": {
+          "status": 200,
+          "hash": "a60d254dbba6b4ec7b81a2e1f8f22d04a2b056c9de7fb3d30c264be81b0f28f4",
+          "bytes": 11607,
+          "ttfb": 428.9053999999305,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 190.39319999993313,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>BlingKitchen Dance Floor</title>\n<m",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:theblingkitchen.com/join",
+        "leftUrl": "https://theblingkitchen.com/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/join",
+        "left": {
+          "status": 200,
+          "hash": "4c79428237aa41bf81bf4e94f63ea4562313497b0fe437fa78fc833820efe1de",
+          "bytes": 12042,
+          "ttfb": 526.2700999999652,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 446.9836999999825,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>BlingKitchen — Join Opal Sparkling ",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:blingwithkrissig.com/",
+        "leftUrl": "https://blingwithkrissig.com/",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/",
+        "left": {
+          "status": 200,
+          "hash": "a515d7f89257f747754e1423543180d2efecfa0aad730f1777b7e4631caddf7c",
+          "bytes": 9929,
+          "ttfb": 648.2773000000743,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "8b5ebd8b6869a4d29996592cd68deb7cf2aaaab2122bb2116befd649cda8d3e8",
+          "bytes": 77579,
+          "ttfb": 247.74829999997746,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 15,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>BlingwithKrissiG | Live jewelry reveals and Dance ",
+          "preview": "<!DOCTYPE html><html data-dpl-id=\"dpl_DLFp9TpR6AYPUrkeUh2WuBFBFR3G\" lang=\"en\" class=\"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable playfair_display_8de51710"
+        }
+      },
+      {
+        "name": "domain:blingwithkrissig.com/trade",
+        "leftUrl": "https://blingwithkrissig.com/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/trade",
+        "left": {
+          "status": 200,
+          "hash": "2aba7fa53b94c45c36ae7c0d10ac01897d20c130c7a26b067ff8423619ed9ccf",
+          "bytes": 10862,
+          "ttfb": 414.58829999994487,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 136.10739999997895,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>BlingwithKrissiG Dance Floor</title",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:blingwithkrissig.com/join",
+        "leftUrl": "https://blingwithkrissig.com/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/join",
+        "left": {
+          "status": 200,
+          "hash": "63af3c2db5e07d2d0ba903c817c8d50dc201a44163ef5f908961baf48684ce73",
+          "bytes": 11230,
+          "ttfb": 575.0206999999937,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 429.2419000000227,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>BlingwithKrissiG — Join the Team</t",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:brisglowtique.com/",
+        "leftUrl": "https://brisglowtique.com/",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/",
+        "left": {
+          "status": 200,
+          "hash": "1be82a15b95021f7390645c0cf699c13fc9e5482d9d3b4898098f4a1049bbcfb",
+          "bytes": 10955,
+          "ttfb": 619.8037000000477,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "253b4593cb80cb76d25483420b736a4a516187e9fb9625b0b445420835b484b7",
+          "bytes": 77579,
+          "ttfb": 276.8267999999225,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 15,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Bri's Glowtique | Live jewelry reveals and Dance F",
+          "preview": "<!DOCTYPE html><html data-dpl-id=\"dpl_DLFp9TpR6AYPUrkeUh2WuBFBFR3G\" lang=\"en\" class=\"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable playfair_display_8de51710"
+        }
+      },
+      {
+        "name": "domain:brisglowtique.com/trade",
+        "leftUrl": "https://brisglowtique.com/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/trade",
+        "left": {
+          "status": 200,
+          "hash": "2bd0696d974b542a05d6ce30dd08cdd957f1f737fa76ad9f1aa6b4ed0ff4b044",
+          "bytes": 11792,
+          "ttfb": 478.09359999990556,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 173.1435000000056,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Bri's Glowtique Dance Floor</title>",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:brisglowtique.com/join",
+        "leftUrl": "https://brisglowtique.com/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/join",
+        "left": {
+          "status": 200,
+          "hash": "e27f32438e0edbde0c0b3af1983585b16fe915b1470811f5d8fcd3b0515f1457",
+          "bytes": 11762,
+          "ttfb": 457.1331999999238,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 587.0823000000091,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Bri's Glowtique — Join Team Sparkah",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:brittwithbling.com/",
+        "leftUrl": "https://brittwithbling.com/",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/",
+        "left": {
+          "status": 200,
+          "hash": "0d870373a1e4018187cbce69b5332e45e354bad8cb328e628a8834b25f25c21c",
+          "bytes": 10502,
+          "ttfb": 561.8866000000853,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "1a8f7512737bcb6c4cd737f223f54d349f7c8b934461b0ab55a09246f4ad364a",
+          "bytes": 77579,
+          "ttfb": 199.90049999998882,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 15,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Britt with Bling | Live jewelry reveals and Dance ",
+          "preview": "<!DOCTYPE html><html data-dpl-id=\"dpl_DLFp9TpR6AYPUrkeUh2WuBFBFR3G\" lang=\"en\" class=\"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable playfair_display_8de51710"
+        }
+      },
+      {
+        "name": "domain:brittwithbling.com/trade",
+        "leftUrl": "https://brittwithbling.com/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/trade",
+        "left": {
+          "status": 200,
+          "hash": "2ae46ca4650c1cfdc5e028d626a9985d5c5ec675044c5d6577b934cd822757bd",
+          "bytes": 11214,
+          "ttfb": 386.86959999997634,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 140.32259999995586,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Britt with Bling Dance Floor</title",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:brittwithbling.com/join",
+        "leftUrl": "https://brittwithbling.com/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/join",
+        "left": {
+          "status": 200,
+          "hash": "52de334ce76f7b0209573f6d2f23746d29066ee8476d03576f97241111aa5fce",
+          "bytes": 14012,
+          "ttfb": 416.5452000000514,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 623.8300000000745,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Britt with Bling in Florida — Join ",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:goforthebling.com/",
+        "leftUrl": "https://goforthebling.com/",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/",
+        "left": {
+          "status": 200,
+          "hash": "61cf42480efa596c6c596967e1d80b7952b4c5fe9cda159ffc656ac6592c09b0",
+          "bytes": 10973,
+          "ttfb": 479.5018000000855,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "5cd800a5b28f85e43fe306f7c878f4a4e7e9b58a4a9b9dd8c3837df7c80d05a2",
+          "bytes": 77579,
+          "ttfb": 265.280299999984,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 15,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>GofortheBling | Live jewelry reveals and Dance Flo",
+          "preview": "<!DOCTYPE html><html data-dpl-id=\"dpl_DLFp9TpR6AYPUrkeUh2WuBFBFR3G\" lang=\"en\" class=\"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable playfair_display_8de51710"
+        }
+      },
+      {
+        "name": "domain:goforthebling.com/trade",
+        "leftUrl": "https://goforthebling.com/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/trade",
+        "left": {
+          "status": 200,
+          "hash": "8e0cfbeb2a80ed5e1861c2e0af991f0aa4e40cd3162e479aafc03715b0fb5781",
+          "bytes": 11765,
+          "ttfb": 456.04430000006687,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 149.8235000000568,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>GofortheBling Dance Floor</title>\n<",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:goforthebling.com/join",
+        "leftUrl": "https://goforthebling.com/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/join",
+        "left": {
+          "status": 200,
+          "hash": "f97e3df9c0877719e475878ecea9ebdb12c4e9183034eecc9692aba9d328cef2",
+          "bytes": 11195,
+          "ttfb": 420.8485000000801,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 608.0208000000566,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>GofortheBling — Join the Team</titl",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:milehighfizz.com/",
+        "leftUrl": "https://milehighfizz.com/",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/",
+        "left": {
+          "status": 200,
+          "hash": "7f93c020d3fbe9db3cf434dfd943bdc997294a646bc7777df8de0c81540cb943",
+          "bytes": 10905,
+          "ttfb": 561.6820000000298,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "ad77c6a8c8098bc41ef89414ad487d293ec2dec74eeafce12cd700dbea584b3a",
+          "bytes": 77579,
+          "ttfb": 248.1439000000246,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 15,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Mile High Fizz | Live jewelry reveals and Dance Fl",
+          "preview": "<!DOCTYPE html><html data-dpl-id=\"dpl_DLFp9TpR6AYPUrkeUh2WuBFBFR3G\" lang=\"en\" class=\"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable playfair_display_8de51710"
+        }
+      },
+      {
+        "name": "domain:milehighfizz.com/trade",
+        "leftUrl": "https://milehighfizz.com/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/trade",
+        "left": {
+          "status": 200,
+          "hash": "a7d0c66a45878ce4cba11cdb8138266d4140df28c70238996158ee4687385f47",
+          "bytes": 11792,
+          "ttfb": 334.1284999999916,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 139.71699999994598,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Mile High Fizz Dance Floor</title>\n",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:milehighfizz.com/join",
+        "leftUrl": "https://milehighfizz.com/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/join",
+        "left": {
+          "status": 200,
+          "hash": "a72baf7df92179762fb78414dd7c76144e902c3f020cda518eb3b5df4221faef",
+          "bytes": 11560,
+          "ttfb": 412.33809999993537,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 631.3527999999933,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Mile High Fizz — Join Diamond Peak ",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:sparklybutterflies.com/",
+        "leftUrl": "https://sparklybutterflies.com/",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/",
+        "left": {
+          "status": 200,
+          "hash": "a9c2fc3ca2a9f948454c5fbb6d1fc0a646dec6ccc7f6ad3dda9fe6bd87c8de01",
+          "bytes": 10845,
+          "ttfb": 689.8244999999879,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "30786801ff1120d5ed76755d725ef04282434bb0857e7af5d14786f97b60a8bd",
+          "bytes": 77579,
+          "ttfb": 218.41720000002533,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 15,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Sparkly Butterflies | Live jewelry reveals and Dan",
+          "preview": "<!DOCTYPE html><html data-dpl-id=\"dpl_DLFp9TpR6AYPUrkeUh2WuBFBFR3G\" lang=\"en\" class=\"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable playfair_display_8de51710"
+        }
+      },
+      {
+        "name": "domain:sparklybutterflies.com/trade",
+        "leftUrl": "https://sparklybutterflies.com/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/trade",
+        "left": {
+          "status": 200,
+          "hash": "27728583cd3c18eb805154333adac1aab3cd4c19e0945c40d0f97908d5ecd0f8",
+          "bytes": 11559,
+          "ttfb": 342.6972999999998,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 148.7273999999743,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Sparkly Butterflies Dance Floor</ti",
+          "preview": "Not found"
+        }
+      },
+      {
+        "name": "domain:sparklybutterflies.com/join",
+        "leftUrl": "https://sparklybutterflies.com/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/join",
+        "left": {
+          "status": 200,
+          "hash": "6e6f5efb3cacb0e97419e6606a9fe6a1ae225f44e95b66edc471908eee414137",
+          "bytes": 12900,
+          "ttfb": 394.3022999999812,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 404,
+          "hash": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+          "bytes": 9,
+          "ttfb": 661.3063000000548,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 0,
+        "difference": {
+          "live": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>Sparkly Butterflies — Join the Team",
+          "preview": "Not found"
+        }
+      }
+    ]
+  },
+  "otherParity": {
+    "count": 79,
+    "matches": 9,
+    "failures": [
+      {
+        "name": "skin:amethyst/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/amethyst/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/amethyst/homepage",
+        "left": {
+          "status": 200,
+          "hash": "677951a47dd2950faeea1cbe02309b59a1b5f4a0df1f30c55f9dff9959ecd7a5",
+          "bytes": 331084,
+          "ttfb": 166.5797999999486,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "2d8db7c7ae25013cff08c63925d11390e070d94e9f1ce268ff2b5f0654f0a596",
+          "bytes": 331306,
+          "ttfb": 164.2267999999458,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2116,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:amethyst/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/amethyst/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/amethyst/trade",
+        "left": {
+          "status": 200,
+          "hash": "68d6e20e50cfb8d552fc7264f8fd7de42cfcd247fe24f104ccc386cd53f5faef",
+          "bytes": 236770,
+          "ttfb": 105.53740000003017,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "bae3c96344e537d5ec60e6759890c79c2c8555d79dc672ade47633fff36e96e0",
+          "bytes": 236992,
+          "ttfb": 106.88179999997374,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2123,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:amethyst/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/amethyst/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/amethyst/join",
+        "left": {
+          "status": 200,
+          "hash": "c60a1a66d3c4823a7cf046ec4521a620edd90453e4111c1e37a391ccb1bacd51",
+          "bytes": 401759,
+          "ttfb": 115.3735999999335,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "889bc2aa96a25491d189d3aef9a2defa7a3b7eb8cb34f3f0086bf531c86c1c6a",
+          "bytes": 401981,
+          "ttfb": 109.42150000005495,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2116,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:amethyst/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/amethyst/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/amethyst/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "eb9b8fd33d659075af769df35c3ac1126992fe750ab8d4aaa9805182f78def03",
+          "bytes": 77879,
+          "ttfb": 220.59739999996964,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "4b3b50242a048bf8ec0ca65e6ca504c58775cc034e55d9a54d8084bc99960199",
+          "bytes": 78101,
+          "ttfb": 94.46500000008382,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2123,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gnome_garden/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gnome_garden/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gnome_garden/homepage",
+        "left": {
+          "status": 200,
+          "hash": "5b05ae5c920a358020e9385450b8f30d01d387b2b57c53e98cd9125d29f6d853",
+          "bytes": 331379,
+          "ttfb": 201.93279999995138,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "0f4b5afb191aaab316ff9e5e429ad086f634a7911a3e5d7cb3077cc3c9960aa6",
+          "bytes": 331564,
+          "ttfb": 106.87630000000354,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2087,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gnome_garden/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gnome_garden/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gnome_garden/trade",
+        "left": {
+          "status": 200,
+          "hash": "2f4e0064d6205c551d2fc1d7429d3cc9a2347f7cfef24e0e8c303da3967614d7",
+          "bytes": 236766,
+          "ttfb": 127.6591999999946,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "494a94a2e71dae9a2b8ebda8e2999b8d650ce7c1ebda0f90656efded7683dad7",
+          "bytes": 236951,
+          "ttfb": 116.80550000001676,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2094,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gnome_garden/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gnome_garden/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gnome_garden/join",
+        "left": {
+          "status": 200,
+          "hash": "5d6d4bb910efa381a03e21011dbdbe58f6800fbde55b89d73f7e83a84bb7b0bb",
+          "bytes": 401759,
+          "ttfb": 111.89549999998417,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "20bfb125b84e48337ce11ec342266e0509fc19f6c5d58139ee5a7639ace5d9fe",
+          "bytes": 401944,
+          "ttfb": 109.78300000005402,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2087,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gnome_garden/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gnome_garden/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gnome_garden/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "28c15f8ec7830663dd10b27d5d6ceea7f514becda12b76f3901ee20072e18145",
+          "bytes": 78178,
+          "ttfb": 248.50159999995958,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "57bd200fa7966debe466112eb1f05d203ab9f8e84eda37d266178bcd0aea54ca",
+          "bytes": 78363,
+          "ttfb": 86.87870000000112,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2094,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:neon_butterfly/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/neon_butterfly/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/neon_butterfly/homepage",
+        "left": {
+          "status": 200,
+          "hash": "f1603e1034639b724a2c6d6949ab1de7e92406adc01b583560451e759046de3e",
+          "bytes": 331346,
+          "ttfb": 105.00479999999516,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "7e1e523527a3a0db9f34c5377e57a4547c8e43977eed4c2a2feb1c5667d552c5",
+          "bytes": 331531,
+          "ttfb": 155.61800000001676,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2101,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:neon_butterfly/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/neon_butterfly/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/neon_butterfly/trade",
+        "left": {
+          "status": 200,
+          "hash": "ee06fc0d0cde0ab0fb63905f6d2fb369b678c41007725bfa35b89a635e7671d1",
+          "bytes": 236853,
+          "ttfb": 90.29690000007395,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "4c7d7c5f6cd01dffef91cc043488683b59c75be52521041135236d7176a29a24",
+          "bytes": 237038,
+          "ttfb": 101.84919999993872,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2108,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:neon_butterfly/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/neon_butterfly/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/neon_butterfly/join",
+        "left": {
+          "status": 200,
+          "hash": "94bce20496f6a0120371b4eae6b96bc512d405f09f634431162a2768da299d43",
+          "bytes": 401857,
+          "ttfb": 102.75190000003204,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "60718ab944848f6f2916c4918f105661e07bd0a7249a27f867f858c3c8e97db9",
+          "bytes": 402042,
+          "ttfb": 106.6811999999918,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2101,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:neon_butterfly/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/neon_butterfly/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/neon_butterfly/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "1c96a5c318da49988538b2f56a7ee302bfbd45646e207a36893b63deadd6c688",
+          "bytes": 78117,
+          "ttfb": 101.34349999995902,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "c9c1d17a8e3fdbca7565967f027a17120469c9a4ffa687308eaf81fc0e1ad7c1",
+          "bytes": 78302,
+          "ttfb": 104.29449999995995,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2108,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:halloween_pumpkin_witch/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/halloween_pumpkin_witch/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/halloween_pumpkin_witch/homepage",
+        "left": {
+          "status": 200,
+          "hash": "c3f554491917db23c747c60c86264281f63a596bffad7caddcdbb3ed561f23a8",
+          "bytes": 331708,
+          "ttfb": 110.54229999997187,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "11995216f06a0d09f1b93a47cffe7f371d465c7862519b0ad2fcca61ab0d3605",
+          "bytes": 331893,
+          "ttfb": 93.91419999999925,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2176,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:halloween_pumpkin_witch/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/halloween_pumpkin_witch/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/halloween_pumpkin_witch/trade",
+        "left": {
+          "status": 200,
+          "hash": "a645450d7674fdcdaa9edb9cfc4503aad74fea3f60159d3b6cdc50c0c0267692",
+          "bytes": 237068,
+          "ttfb": 97.31510000000708,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "ccfef34a9d4613bf5c0bb04098d299b6e83a0803f38e7d489d3f53824c1292c0",
+          "bytes": 237253,
+          "ttfb": 103.45579999999609,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2183,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:halloween_pumpkin_witch/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/halloween_pumpkin_witch/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/halloween_pumpkin_witch/join",
+        "left": {
+          "status": 200,
+          "hash": "daa5fce3ada9f27e129b0f52f06c5cd1e4418dc4d6ec390c870a321474424559",
+          "bytes": 402110,
+          "ttfb": 100.34840000001714,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "7fa986895c90d3eb2a57e611a1b3e2b3dc5344eadae41f8fd91a6a9eaa9b7a18",
+          "bytes": 402295,
+          "ttfb": 111.41780000005383,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2176,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:halloween_pumpkin_witch/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/halloween_pumpkin_witch/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/halloween_pumpkin_witch/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "c46eafe6428c1104e392761444955bda341873ced8a05778da148d04bc4c4310",
+          "bytes": 78483,
+          "ttfb": 91.03720000002068,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "7164f7285bbfac7e450b10e57866c3a2cbe16a531fb2433c686b04428f3dc545",
+          "bytes": 78668,
+          "ttfb": 85.91899999999441,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2183,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:halloween_pumpkin_cat/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/halloween_pumpkin_cat/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/halloween_pumpkin_cat/homepage",
+        "left": {
+          "status": 200,
+          "hash": "5bb748c62a781da926a4fe04aae56c1660a22965425f4c3b6fe99f0a3c9fddde",
+          "bytes": 331229,
+          "ttfb": 88.45010000001639,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "51f482ced179f6856f1564225cb0bd54c52f257b40cd46357a7519c2e72677f1",
+          "bytes": 331451,
+          "ttfb": 93.41820000007283,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2162,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:halloween_pumpkin_cat/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/halloween_pumpkin_cat/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/halloween_pumpkin_cat/trade",
+        "left": {
+          "status": 200,
+          "hash": "343372d82dd04635390b32ae2c9f5f505bd9f09b5b2ddcb7bd9c9cfcb043aaf2",
+          "bytes": 236874,
+          "ttfb": 91.32380000001285,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "41012324eb7758ad26b5a4c2b29f8ff5172a69afba793eef8fac6bdd41ca512c",
+          "bytes": 237096,
+          "ttfb": 98.24169999989681,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2169,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:halloween_pumpkin_cat/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/halloween_pumpkin_cat/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/halloween_pumpkin_cat/join",
+        "left": {
+          "status": 200,
+          "hash": "36b23bf43c117776f945bb37bd87225e1846bb3daaddd62823d3e3203ad4733d",
+          "bytes": 401891,
+          "ttfb": 119.50349999999162,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "c7c82fb4a0bc46493ec50a5ad18442e03b4c83983a4ccb61866fb6faf49183dc",
+          "bytes": 402113,
+          "ttfb": 101.52330000000075,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2162,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:halloween_pumpkin_cat/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/halloween_pumpkin_cat/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/halloween_pumpkin_cat/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "df0f3232f821a26ccbd07d32f91e50299087960b298ec150c963ca5c23ab468a",
+          "bytes": 78037,
+          "ttfb": 95.40910000004806,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "74642f9cc5a647b0dad7b283152cade75728378a9525a39c51e733e595fb3d46",
+          "bytes": 78259,
+          "ttfb": 84.4081999999471,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2169,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gilded_autumn/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gilded_autumn/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gilded_autumn/homepage",
+        "left": {
+          "status": 200,
+          "hash": "2ee672acbcf6e542a354c7c0bf3700019a7ed7bde13096db8e51a1f2099f1267",
+          "bytes": 330634,
+          "ttfb": 113.82610000006389,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "1ba802e59f2905e77ba64a2982043e6109e35c0221bd5f467034c65d31d79294",
+          "bytes": 330856,
+          "ttfb": 100.15700000000652,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2136,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gilded_autumn/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gilded_autumn/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gilded_autumn/trade",
+        "left": {
+          "status": 200,
+          "hash": "1da86b16f3ab112c3d031dfac42b631679bd282cd95c64ec8f429b4c9a0faabb",
+          "bytes": 236818,
+          "ttfb": 92.81890000007115,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "8d9ea17957638b97a7f13433ab967620ec20196f34e1da01b141e950fd530899",
+          "bytes": 237040,
+          "ttfb": 111.58619999990333,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2143,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gilded_autumn/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gilded_autumn/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gilded_autumn/join",
+        "left": {
+          "status": 200,
+          "hash": "d4d8448ca28db6e649d8207f3de744bb74f80b6388c3bc1296631fde0dfdc430",
+          "bytes": 401807,
+          "ttfb": 97.15320000005886,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "15e0694b00cb35f3261a8e0ea2f54b73a61882d74dda93a9e3a91d353f9294fe",
+          "bytes": 402029,
+          "ttfb": 101.45489999989513,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2136,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gilded_autumn/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gilded_autumn/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gilded_autumn/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "c37cc1a8da7b9adf4846904f15881b1b41d2509a4ad4a8195963039f547347c7",
+          "bytes": 77434,
+          "ttfb": 80.10809999995399,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "b82839684256ec6fbc1cbfcd0b4803538d18e15094af166eccd9630b2f3ab09f",
+          "bytes": 77656,
+          "ttfb": 82.79840000008699,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2143,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:rose_gold/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/rose_gold/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/rose_gold/homepage",
+        "left": {
+          "status": 200,
+          "hash": "a6a1f887ed0d9a2c1153d5ff59dedf93dbca22f919c879e50382bd60b2c94918",
+          "bytes": 337399,
+          "ttfb": 102.73290000006091,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "ee7ccb886ac1a96ed2a1ddcfe9ae9c6ec14018017ddfd8df7adc254631b40eda",
+          "bytes": 337584,
+          "ttfb": 114.49780000001192,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2068,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:rose_gold/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/rose_gold/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/rose_gold/trade",
+        "left": {
+          "status": 200,
+          "hash": "43d1f15d899788cd7347d5d137e88b8d603fb8e48f8b140c6562d0094689b485",
+          "bytes": 236691,
+          "ttfb": 87.25760000001173,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "da1d2cc09e2a54cb7e98fae74015aec5126869a1e0820692fb9d16cea9a209bd",
+          "bytes": 236876,
+          "ttfb": 86.374199999962,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2075,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:rose_gold/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/rose_gold/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/rose_gold/join",
+        "left": {
+          "status": 200,
+          "hash": "dd8cd6bb09ece0f28a9981777d991a08aaf1c536baed48392be7667da3bc71a0",
+          "bytes": 401680,
+          "ttfb": 140.94689999998081,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "39e84303b1b1cb435f933966835a912f7578d12b62ff08760763af8ff9e4eedc",
+          "bytes": 401865,
+          "ttfb": 163.94700000004377,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2068,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:rose_gold/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/rose_gold/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/rose_gold/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "da3fc9677bb0502e11d97319feb768de919615844f993a29a9a91472d55bc80c",
+          "bytes": 77899,
+          "ttfb": 89.45339999999851,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "25c5e01650fbe2996184c7af863ffcd4a3a9e552b1eec26ccf3b3d656d18c753",
+          "bytes": 78084,
+          "ttfb": 85.67449999996461,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2075,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:midnight_rose/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/midnight_rose/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/midnight_rose/homepage",
+        "left": {
+          "status": 200,
+          "hash": "3d231d046734b964b5d5056ca1752feed9322662a4bc56c5b965c5e5891ce43c",
+          "bytes": 337527,
+          "ttfb": 98.8691000000108,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "4db76c5855369c9dfd4ac76c3814a7bfa3d3ec4e4d06e679de4665e5fd23d8aa",
+          "bytes": 337749,
+          "ttfb": 107.06570000003558,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2094,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:midnight_rose/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/midnight_rose/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/midnight_rose/trade",
+        "left": {
+          "status": 200,
+          "hash": "b90803e915b813be6cec472ad0c43f5531e1ec7e33263cfefcee337b5af9432b",
+          "bytes": 236811,
+          "ttfb": 114.84360000002198,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "0a9b7eabf19d3abf20820de6f0abcb0311cd86ddf4c64337a185358f20c65d06",
+          "bytes": 237033,
+          "ttfb": 88.21369999996386,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2101,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:midnight_rose/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/midnight_rose/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/midnight_rose/join",
+        "left": {
+          "status": 200,
+          "hash": "728bb426dd09e5d5bcfdb2b1e3a0915413774d1534f7cd1f69dd0bea98d574de",
+          "bytes": 401800,
+          "ttfb": 113.05770000000484,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "4f685e9c1bf9ad4797a3d9759cba70e5d6ca0d242cd1244bb0213cc93b8f3b5c",
+          "bytes": 402022,
+          "ttfb": 104.13699999998789,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2094,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:midnight_rose/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/midnight_rose/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/midnight_rose/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "b72c44ac8f57cc90ccb869f6242f851e6bfda25afca51b30871c670530b503ed",
+          "bytes": 78031,
+          "ttfb": 87.44140000001062,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "b544ed855128e37ab1770eb90d0c3f41eaaf3f01620ac740004fd602b49fb3d5",
+          "bytes": 78253,
+          "ttfb": 101.3867999999784,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2101,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:fall_owl_harvest_moon/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/fall_owl_harvest_moon/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/fall_owl_harvest_moon/homepage",
+        "left": {
+          "status": 200,
+          "hash": "f01e545943f03c9e790d3e486362e9aa1b4c197de034441c7668d03c9f84b3ee",
+          "bytes": 337645,
+          "ttfb": 111.04790000000503,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "ccd4457e01e1366a846e17249a6a3733ed0809ff29ab64deff47d6caa3b8f636",
+          "bytes": 337867,
+          "ttfb": 93.22869999997783,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2162,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:fall_owl_harvest_moon/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/fall_owl_harvest_moon/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/fall_owl_harvest_moon/trade",
+        "left": {
+          "status": 200,
+          "hash": "2c565f04bc0aa810c16379876c10a07fa2788fecf7721f0ba9e51903960bd7df",
+          "bytes": 236910,
+          "ttfb": 95.6136000000406,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "172dae486742902c407c0af0699eebf1ecfaa16e0fbefaf1374a3fc818fd93fc",
+          "bytes": 237132,
+          "ttfb": 120.64480000000913,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2169,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:fall_owl_harvest_moon/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/fall_owl_harvest_moon/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/fall_owl_harvest_moon/join",
+        "left": {
+          "status": 200,
+          "hash": "554b4c54553197cc033a7428cba78a377ee154aa295e8e63f66e82df17f11d77",
+          "bytes": 401899,
+          "ttfb": 100.74619999993593,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "fae0192554d2527bffcd6d4cb6a3180d1d4d9d0e6ea5a163c734272b1dbc833e",
+          "bytes": 402121,
+          "ttfb": 203.44109999993816,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2162,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:fall_owl_harvest_moon/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/fall_owl_harvest_moon/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/fall_owl_harvest_moon/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "cfe09ce1a26b64b7ced3038c14eef37f113855d4c3d6d204f5b08281e8c46036",
+          "bytes": 78157,
+          "ttfb": 108.60759999998845,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "4e00e6649fc5bf1967687eb0ae497436f258353e7a66ae00d550afb13cd76829",
+          "bytes": 78379,
+          "ttfb": 108.93969999998808,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2169,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gobble_and_fizz/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gobble_and_fizz/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gobble_and_fizz/homepage",
+        "left": {
+          "status": 200,
+          "hash": "942a3f4ed555ad6888d1073fa6e3a0afb90b04816df6b2a55ab06e8325304d96",
+          "bytes": 337885,
+          "ttfb": 114.94150000007357,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "dd049dab51de00eb7897ab0248bf903236e52471941902603a5086c1ee3d9d4f",
+          "bytes": 338107,
+          "ttfb": 107.24029999994673,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2102,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gobble_and_fizz/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gobble_and_fizz/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gobble_and_fizz/trade",
+        "left": {
+          "status": 200,
+          "hash": "d38b1cfd5ff85c6dead1172837bff2617363eec67c11ef2aae419e10929297a2",
+          "bytes": 236846,
+          "ttfb": 101.11609999998473,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "a283960a8aee2e56e988871c45aa9e40d56e78db5ad8019e48ace0096de2aae0",
+          "bytes": 237068,
+          "ttfb": 130.36720000009518,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2109,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gobble_and_fizz/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gobble_and_fizz/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gobble_and_fizz/join",
+        "left": {
+          "status": 200,
+          "hash": "4598262ab749b17877ae984a2500e9c4a30cd0a52903c3f175fb3f626737cc7f",
+          "bytes": 401835,
+          "ttfb": 96.54560000007041,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "b4c5456f4af91260f2b83b4f8be8c46f902cd5f60ea0008f84e1572d043a5259",
+          "bytes": 402057,
+          "ttfb": 108.50420000008307,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2102,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:gobble_and_fizz/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/gobble_and_fizz/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/gobble_and_fizz/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "74f5eb71668e6e6831e59c94e9ebeada98f0c9e77dee716f9f1683aa66face36",
+          "bytes": 78391,
+          "ttfb": 97.37009999994189,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "2a8f3f1d5056d77045420e975bb1b69f8c4b300d3d2cc45bbc7c9da77308327b",
+          "bytes": 78613,
+          "ttfb": 104.31800000008661,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2109,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:pie_please/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/pie_please/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/pie_please/homepage",
+        "left": {
+          "status": 200,
+          "hash": "b8feb80cd92fa5ead42519596b15f382ad9d9d0cb1f1669ad583e92daeb90b73",
+          "bytes": 337759,
+          "ttfb": 113.51749999995809,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "5bf49cbfff28580af89f48d3f4c9ab4fed51adc446519cb14322d8ea79aae12d",
+          "bytes": 337981,
+          "ttfb": 109.54729999997653,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2076,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:pie_please/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/pie_please/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/pie_please/trade",
+        "left": {
+          "status": 200,
+          "hash": "e6d8692ba3e8d619a38aa42bf193fe697cffa4d11fed5fbea163e78361090768",
+          "bytes": 236761,
+          "ttfb": 113.21880000003148,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "727f4b3f5c1b4027bfc45a8dcab6db8be623e799de69eca6cfec373a0663e473",
+          "bytes": 236983,
+          "ttfb": 117.88159999996424,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2083,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:pie_please/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/pie_please/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/pie_please/join",
+        "left": {
+          "status": 200,
+          "hash": "6b78b1f4a9ee158c38802ee63a4058655facb47190932a859fbaf9aca15dc0b9",
+          "bytes": 401750,
+          "ttfb": 100.58890000008978,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "b8e7155f9e084b6390613d94c821cef9028d74f1f7d8ed15af124a2d77c6fba6",
+          "bytes": 401972,
+          "ttfb": 99.01540000003297,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2076,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:pie_please/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/pie_please/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/pie_please/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "9964a41820a5ea107a4e11335c549a4b4c2397484c80da5a4ba280210060dd62",
+          "bytes": 78260,
+          "ttfb": 94.50400000007357,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "82b8b35581e7e46835f827f51be05984fd7c33b04dedfa41a8f59a1d6e0f7e9c",
+          "bytes": 78482,
+          "ttfb": 159.82099999999627,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2083,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:pearl_rose/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/pearl_rose/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/pearl_rose/homepage",
+        "left": {
+          "status": 200,
+          "hash": "7b3681238bd80aced47223033ad4f62d832a59513d0ba76af191bc3ebd53f0b0",
+          "bytes": 337467,
+          "ttfb": 120.06260000006296,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "ca6f996293352253c9162f484f5d765b5acf7443733df03d9af9cf463cba846e",
+          "bytes": 337689,
+          "ttfb": 101.21440000005532,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2073,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:pearl_rose/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/pearl_rose/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/pearl_rose/trade",
+        "left": {
+          "status": 200,
+          "hash": "9ec6a4c0a9fc2845cd061489f501b511bba8cd50f551f703954c183d8fe14d86",
+          "bytes": 236757,
+          "ttfb": 99.3361000000732,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "c7c1c7f353e7bc71661c268817cf7fdfe0d306b4ad7f1edcb825b4f9f53b9429",
+          "bytes": 236979,
+          "ttfb": 92.38250000006519,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2080,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:pearl_rose/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/pearl_rose/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/pearl_rose/join",
+        "left": {
+          "status": 200,
+          "hash": "11aba97cefd9ce7414bf413b9a397eef60a011ae2c40928e09b02e0a67b3ec7e",
+          "bytes": 401746,
+          "ttfb": 95.90159999998286,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "ef2e24ef124c0311c7482a5178026b6191f8d1a1c6a5de16dad9e7c1d422335c",
+          "bytes": 401968,
+          "ttfb": 100.60950000002049,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2073,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:pearl_rose/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/pearl_rose/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/pearl_rose/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "ed195815ab58c764a80d93850bc5b8b4ade6b2869aff364c094aa5ae4255c350",
+          "bytes": 77968,
+          "ttfb": 86.33440000005066,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "0418560033a4d17c359f64fe3dab9d5aae38107c8c4e99d998fead50e2c18dd2",
+          "bytes": 78190,
+          "ttfb": 317.7716000000946,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2080,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:rose_champagne/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/rose_champagne/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/rose_champagne/homepage",
+        "left": {
+          "status": 200,
+          "hash": "0f6a9de6f83cd341c3e4914945ec5d98635d905a85a716a45c9b4ea6c7b13670",
+          "bytes": 337533,
+          "ttfb": 100.55489999998827,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "e87681221a2ea4ff4b0ec29f1c1ac07c0963d41466eec50823181c9c34126ddd",
+          "bytes": 337755,
+          "ttfb": 105.20180000003893,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2101,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:rose_champagne/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/rose_champagne/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/rose_champagne/trade",
+        "left": {
+          "status": 200,
+          "hash": "b1a84670d56b65314b326e3c7817277a94355fa4ecc53e0973dfd9e8806b6d4e",
+          "bytes": 236815,
+          "ttfb": 101.41940000001341,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "403083233559c1f5f75aa6b38010715358b653d2dec2047bba03943fc25c6243",
+          "bytes": 237037,
+          "ttfb": 85.73399999993853,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2108,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:rose_champagne/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/rose_champagne/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/rose_champagne/join",
+        "left": {
+          "status": 200,
+          "hash": "5188cf3e6c6e809ee8bde0c4ad33ef0c6cc47e9e42e5165a2186c77595d31819",
+          "bytes": 401804,
+          "ttfb": 107.8074000000488,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "854bbf6497cc26e46761f42c39cdf6d019a7ce9b0360cf0bd31cc00d101846a7",
+          "bytes": 402026,
+          "ttfb": 114.73769999993965,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2101,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:rose_champagne/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/rose_champagne/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/rose_champagne/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "cef3a65cc78db5e4338f93aeae47fa6ec737a38cb063c54d70be54d2261cf388",
+          "bytes": 78038,
+          "ttfb": 82.6302999999607,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "b14f1d059e7364baf86ba7d62932ffe970b35e0f245b19289e5eeeae86a67a69",
+          "bytes": 78260,
+          "ttfb": 95.43009999999776,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2108,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:sunset_beach/homepage",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/sunset_beach/homepage",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/sunset_beach/homepage",
+        "left": {
+          "status": 200,
+          "hash": "5b2ae59cb3476521c8edb1c6095a30024b06c8ea9210ed1f0b2f5441b4dd302b",
+          "bytes": 337495,
+          "ttfb": 106.72320000000764,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "a0dad8985d2d412651639de31a5561613b62efbf4bedc384d48ebad9734d600d",
+          "bytes": 337717,
+          "ttfb": 112.95730000000913,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2087,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:sunset_beach/trade",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/sunset_beach/trade",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/sunset_beach/trade",
+        "left": {
+          "status": 200,
+          "hash": "c1473d8fefe2f97ac75549b672047712ce72a308d9725b42b7cb17dab2bec315",
+          "bytes": 236783,
+          "ttfb": 219.12829999998212,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "23fe9fad61c20f0bba15dbccb6010061c1e3e8797d990031135d661decb26c32",
+          "bytes": 237005,
+          "ttfb": 101.40949999995064,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2094,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:sunset_beach/join",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/sunset_beach/join",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/sunset_beach/join",
+        "left": {
+          "status": 200,
+          "hash": "0bc189f8d7db546996dbe8af4a05e93039d958136a8038141b1406b0b712cb3a",
+          "bytes": 401772,
+          "ttfb": 97.54330000001937,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "d2fe7193985128387d8030d8cf62d7fc1cf82233a63b5fe505f1916f3511bffb",
+          "bytes": 401994,
+          "ttfb": 106.15460000000894,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2087,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "skin:sunset_beach/unsubscribe",
+        "leftUrl": "https://www.yoursparklesuite.com/skin-preview/sunset_beach/unsubscribe",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/skin-preview/sunset_beach/unsubscribe",
+        "left": {
+          "status": 200,
+          "hash": "cc41f200f80acfaf5405dddb20922dca712c1e4349b1f407306d94a0443df7db",
+          "bytes": 77998,
+          "ttfb": 88.19770000001881,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "e35c7d43c5b65b7f1cd067e57dbaee8a48c54159f05614f40db28a4e07113711",
+          "bytes": 78220,
+          "ttfb": 145.02480000001378,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 2094,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "community:amethyst",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/community-theme-preview?theme=amethyst",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/community-theme-preview?theme=amethyst",
+        "left": {
+          "status": 200,
+          "hash": "cfe6e4bbd87da618a0d2086a4fa746d3d472d0827307ac6eb603eda1d9be653d",
+          "bytes": 745958,
+          "ttfb": 171.25659999996424,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "0dfdad4bdb10d3dfeb24e956ba71f6a33d2632de5a2e55667a53adccb78db418",
+          "bytes": 746143,
+          "ttfb": 141.8867999999784,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "community:halloween_pumpkin_witch",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/community-theme-preview?theme=halloween_pumpkin_witch",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/community-theme-preview?theme=halloween_pumpkin_witch",
+        "left": {
+          "status": 200,
+          "hash": "879e3f280d299aa8d26818d2cdf4043e392a260a90aa9fe9be23b1c4b58c2ffa",
+          "bytes": 746712,
+          "ttfb": 133.0289000000339,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "5f127347d1b1e36cc0effae98aa5f8e36ad5273049cafbba9d9d63b2f65593c2",
+          "bytes": 746897,
+          "ttfb": 126.13970000005793,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "community:halloween_pumpkin_cat",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/community-theme-preview?theme=halloween_pumpkin_cat",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/community-theme-preview?theme=halloween_pumpkin_cat",
+        "left": {
+          "status": 200,
+          "hash": "e75d9658a50175aa1b0180130ad39387ead8f9ed45ef944c14c1f25f6c41b2b5",
+          "bytes": 746282,
+          "ttfb": 415.6716000000015,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "1ef9c99c0036c2d7c9dcbe64070566d531013c5e7562ca936704f3f4ec84c914",
+          "bytes": 746467,
+          "ttfb": 153.64830000000075,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "community:gilded_autumn",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/community-theme-preview?theme=gilded_autumn",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/community-theme-preview?theme=gilded_autumn",
+        "left": {
+          "status": 200,
+          "hash": "47516abeb77d0a03780c5738fa95334330c1d4fea50ef7fecb9b7058379a8e23",
+          "bytes": 745593,
+          "ttfb": 155.50919999997132,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "8ea93b3611b26d51ad1fcf6ee9a0e9c9fdd71b7d7c98bb3534cb895b8bc8c2c0",
+          "bytes": 745778,
+          "ttfb": 124.82590000005439,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "community:midnight_rose",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/community-theme-preview?theme=midnight_rose",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/community-theme-preview?theme=midnight_rose",
+        "left": {
+          "status": 200,
+          "hash": "e8ee68645a4f2576159ff6b32a80b5fb4508879c2037d3340e0b3904e691b082",
+          "bytes": 750680,
+          "ttfb": 146.27630000002682,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "4e00459c3e81192901840664411c12b311f00f2d05e9c8b52e94c14e15e39c4a",
+          "bytes": 750865,
+          "ttfb": 132.80440000002272,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "community:fall_owl_harvest_moon",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/community-theme-preview?theme=fall_owl_harvest_moon",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/community-theme-preview?theme=fall_owl_harvest_moon",
+        "left": {
+          "status": 200,
+          "hash": "88c8b7df842fc125c80a6f09bce11c24241597a3efe9a7a528a2a3538cf00543",
+          "bytes": 750733,
+          "ttfb": 145.96569999994244,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "897c3d3030555f0ed00bb6373bacd64e8b40d010b6687bcb72dbf02d7c06422d",
+          "bytes": 750918,
+          "ttfb": 130.08199999993667,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "community:gobble_and_fizz",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/community-theme-preview?theme=gobble_and_fizz",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/community-theme-preview?theme=gobble_and_fizz",
+        "left": {
+          "status": 200,
+          "hash": "cb31142963ff34593892860dd137c12f20dd80a7c6453f49afb2e10fb31afb0d",
+          "bytes": 751150,
+          "ttfb": 151.0912000000244,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "652fa25ac438a221439339a1426e87e5f0e9b2e57a474711b600accd915bee75",
+          "bytes": 751335,
+          "ttfb": 142.45429999998305,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "community:pie_please",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/community-theme-preview?theme=pie_please",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/community-theme-preview?theme=pie_please",
+        "left": {
+          "status": 200,
+          "hash": "fea5dd27e69142ddf0d4fc4f0d3c2fed54fc266d9137f5b3e69fe7ad207babc2",
+          "bytes": 751030,
+          "ttfb": 134.92269999999553,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "5ab43f1be89fc5570bb0913573efa45aa2b4c24ef09880394030797cbcf70e26",
+          "bytes": 751215,
+          "ttfb": 140.26579999993555,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "community:pearl_rose",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/community-theme-preview?theme=pearl_rose",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/community-theme-preview?theme=pearl_rose",
+        "left": {
+          "status": 200,
+          "hash": "cdb6c128e1beb3cd87120ee75ccaf66314e90ff6d2c71c93e06f2835f9a6d091",
+          "bytes": 750635,
+          "ttfb": 136.7266000000527,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "4135dbc402ed7f21efbb5dd6205e8c99f44ea0156eb7f91ec5d5aa21fb04e34a",
+          "bytes": 750820,
+          "ttfb": 196.22440000006463,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "community:rose_champagne",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/community-theme-preview?theme=rose_champagne",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/community-theme-preview?theme=rose_champagne",
+        "left": {
+          "status": 200,
+          "hash": "077d37aaeadc0aa184255ad6a25a81d608de81766414b32bf016831d754809e9",
+          "bytes": 750681,
+          "ttfb": 132.953600000008,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "db3fb56cdf58953ab20b5fcc462aa308855d9fb33f0996bb0da46ad8e3d386ae",
+          "bytes": 750866,
+          "ttfb": 134.56459999992512,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "community:sunset_beach",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/community-theme-preview?theme=sunset_beach",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/community-theme-preview?theme=sunset_beach",
+        "left": {
+          "status": 200,
+          "hash": "65c9114730d5847f44511d93c57ddcfdb3f71378e8ea05ef3815d6cabb902383",
+          "bytes": 750702,
+          "ttfb": 144.3169999999227,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "adebd5deb27e4df98f8380d252785f18cea258678d853d62a85ae06ae4dad943",
+          "bytes": 750887,
+          "ttfb": 175.61529999994673,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "/api/public/landing-demo/preview",
+        "leftUrl": "https://www.yoursparklesuite.com/api/public/landing-demo/preview",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/api/public/landing-demo/preview",
+        "left": {
+          "status": 200,
+          "hash": "f060c6755df43eb151ff231ff918228ee9d53d4d5693fec5056999314efddba6",
+          "bytes": 743923,
+          "ttfb": 245.3067999999039,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "d38b99bd6e0a1156761294ab464e4dc3370a83c81eb116d64f383ed05317c4f3",
+          "bytes": 744108,
+          "ttfb": 366.11719999997877,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      },
+      {
+        "name": "/portfolio",
+        "leftUrl": "https://www.yoursparklesuite.com/portfolio",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/portfolio",
+        "left": {
+          "status": 200,
+          "hash": "775644fa6e45049e63c23d63462e502c8c4d8e2c9cbc6831c8f71daf17c6783a",
+          "bytes": 58996,
+          "ttfb": 60.393600000068545,
+          "etag": "W/\"6cec7c4abc8299ab01ab3cb547f47f57\"",
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "d598939f4b00d52f7d7648562a13f15bdf684e3ee6ec4b5275e8e7d72a8d17e4",
+          "bytes": 59031,
+          "ttfb": 194.30980000004638,
+          "etag": "W/\"a4a049f7b8a0b1c0a4cc901652769f59\"",
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 38,
+        "difference": {
+          "live": "<!DOCTYPE html><html data-dpl-id=\"dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P\" lang=\"en\" class=\"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable playfair_display_8de51710-module__uG7mFq__variab",
+          "preview": "<!DOCTYPE html><html data-dpl-id=\"dpl_DLFp9TpR6AYPUrkeUh2WuBFBFR3G\" lang=\"en\" class=\"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable playfair_display_8de51710-module__uG7mFq__variab"
+        }
+      },
+      {
+        "name": "/marketing/chasing-unicorns",
+        "leftUrl": "https://www.yoursparklesuite.com/marketing/chasing-unicorns",
+        "rightUrl": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app/marketing/chasing-unicorns",
+        "left": {
+          "status": 200,
+          "hash": "ba7ad0df15effd642ec9802656167e05ba665d14f8ee53eacb3f6bcabe226924",
+          "bytes": 281285,
+          "ttfb": 229.43899999989662,
+          "etag": null,
+          "location": null
+        },
+        "right": {
+          "status": 200,
+          "hash": "8e0fd318e7095307a1eb129b1f1f8d837b8d0e6de66319b6cb48c7706777bfe8",
+          "bytes": 281507,
+          "ttfb": 117.688300000038,
+          "etag": null,
+          "location": null
+        },
+        "matches": false,
+        "differentAt": 205,
+        "difference": {
+          "live": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://www.yoursparklesuite.com https://fonts.googleapis.com https://api.fontshare.com; font-src https://www.yoursparklesuite.com https://fonts.gstatic.com https://cdn.fontshare.com https",
+          "preview": "e' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app https://fonts.googleapis.com https://api.fontshare.com; font-src https://sparkle-suite-smoke-okwp813nm-louis-2849s-pro"
+        }
+      }
+    ]
+  },
+  "fallback": [
+    {
+      "name": "empty-allowlist",
+      "status": 200,
+      "hash": "7b2ba1da9351df549418fd2d1a66d223b7035684ad899884fdc022d148f1a271",
+      "liveHash": "90a4774b0e1f240051604c8d22230abcaff1de29bdfd923546411ab2980bcf79",
+      "matches": false,
+      "ssr": false
+    },
+    {
+      "name": "forced-render-failure",
+      "status": 200,
+      "hash": "7b2ba1da9351df549418fd2d1a66d223b7035684ad899884fdc022d148f1a271",
+      "liveHash": "90a4774b0e1f240051604c8d22230abcaff1de29bdfd923546411ab2980bcf79",
+      "matches": false,
+      "ssr": false
+    }
+  ],
+  "ttfb": [
+    {
+      "origin": "https://sparkle-suite-smoke-okwp813nm-louis-2849s-projects.vercel.app",
+      "runs": 5,
+      "median": 1142.8719000000274
+    },
+    {
+      "origin": "https://www.yoursparklesuite.com",
+      "runs": 5,
+      "median": 346.48399999993853
+    }
+  ]
+}

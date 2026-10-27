@@ -1,0 +1,37 @@
+{
+  "applicationCommit": "fd013765658ae26fede0a8a95bb1c66f01d50819",
+  "projectConfigurationUnchanged": true,
+  "checkedFields": [
+    "Git link",
+    "framework",
+    "build/install commands",
+    "root directory",
+    "SSO protection",
+    "custom-domain auto-assignment setting",
+    "environment IDs, names, scopes and updated timestamps"
+  ],
+  "domains": [
+    {
+      "domain": "www.yoursparklesuite.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "sha": "3f175871674e42dbc62d18419318941ea6a49935",
+      "state": "READY"
+    },
+    {
+      "domain": "yoursparklesuite.com",
+      "deploymentId": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "sha": "3f175871674e42dbc62d18419318941ea6a49935",
+      "state": "READY"
+    },
+    {
+      "domain": "sparkle-suite-smoke.vercel.app",
+      "deploymentId": "dpl_FD4TYQgPLe6UB8cE1zYgqyuJsV4Z",
+      "sha": "22ba7df60b651e756568bb3a75c0910fcf6a12c5",
+      "state": "READY"
+    }
+  ],
+  "manualAliasOrPromotionCommands": 0,
+  "automaticPreviewBranchAlias": "sparkle-suite-smoke-git-codex-ssr-c-869f9e-louis-2849s-projects.vercel.app",
+  "deploymentCount": 2,
+  "databaseWrites": 0
+}
