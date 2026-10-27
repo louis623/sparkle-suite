@@ -1,0 +1,57 @@
+{
+  "repository": "louis623/sparkle-suite",
+  "branch": "codex/ssr-chunk1-fizzfest-home",
+  "testedCommit": "285d282ad5f40d6a1c7bb62445c2158936ac8762",
+  "preview": "dpl_HqUE7kiDatd9EiYWWfpSxt1u4NTd",
+  "preserved": [
+    {
+      "before": {
+        "requested": "yoursparklesuite.com",
+        "id": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+        "sha": "3f175871674e42dbc62d18419318941ea6a49935",
+        "ready": "READY"
+      },
+      "after": {
+        "requested": "yoursparklesuite.com",
+        "id": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+        "sha": "3f175871674e42dbc62d18419318941ea6a49935",
+        "ready": "READY"
+      }
+    },
+    {
+      "before": {
+        "requested": "sparkle-suite-smoke.vercel.app",
+        "id": "dpl_FD4TYQgPLe6UB8cE1zYgqyuJsV4Z",
+        "sha": "22ba7df60b651e756568bb3a75c0910fcf6a12c5",
+        "ready": "READY"
+      },
+      "after": {
+        "requested": "sparkle-suite-smoke.vercel.app",
+        "id": "dpl_FD4TYQgPLe6UB8cE1zYgqyuJsV4Z",
+        "sha": "22ba7df60b651e756568bb3a75c0910fcf6a12c5",
+        "ready": "READY"
+      }
+    },
+    {
+      "before": {
+        "requested": "dpl_FR1uJtcKBdNkrMZJLEG6nsriufKn",
+        "id": "dpl_FR1uJtcKBdNkrMZJLEG6nsriufKn",
+        "sha": "e78fa626c443124ba11725dc93d32e859985ffa4",
+        "ready": "READY"
+      },
+      "after": {
+        "requested": "dpl_FR1uJtcKBdNkrMZJLEG6nsriufKn",
+        "id": "dpl_FR1uJtcKBdNkrMZJLEG6nsriufKn",
+        "sha": "e78fa626c443124ba11725dc93d32e859985ffa4",
+        "ready": "READY"
+      }
+    }
+  ],
+  "projectConfigurationUnchanged": true,
+  "databaseWrites": 0,
+  "formSubmissions": 0,
+  "manualAliasChanges": 0,
+  "projectEnvironmentChanges": 0,
+  "previewDeploymentsCreated": 1,
+  "postMeasurementCodeChanges": 0
+}

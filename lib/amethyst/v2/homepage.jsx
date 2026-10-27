@@ -90,8 +90,6 @@ const DEFAULTS = window.HOMEPAGE_TWEAK_DEFAULTS || {
   showSlots: false,
 };
 const CONTENT = window.AMETHYST_HOMEPAGE_TEMPLATE_DATA || {};
-// Keep the reserved event slots after the late read completes, so the swap cannot collapse them.
-const RESERVED_DEFERRED_EVENTS = Boolean(window.SPARKLE_PENDING_PAGE_DATA?.events);
 const DEFERRED_EVENT_SLOT_STYLE = { height: "42rem", minHeight: "42rem", overflowY: "auto" };
 const RUNTIME_CONTEXT = window.AMETHYST_RUNTIME_CONTEXT || {};
 const isMileHighFizzHybrid = CONTENT.publicSiteVariant === "mile_high_fizz_hybrid";
@@ -1976,7 +1974,7 @@ function getVisibleEventDescription(event) {
 function Events({ count }) {
   const [calendarEvent, setCalendarEvent] = useState(null);
   const eventsPending = Boolean(window.SPARKLE_PENDING_PAGE_DATA?.events);
-  const slots = RESERVED_DEFERRED_EVENTS ? 2 : count;
+  const slots = eventsPending ? 2 : count;
   const visibleEvents = eventsPending ? [] : HOMEPAGE_EVENT_PAYLOAD.slice(0, slots);
   return (
     <section className="hp-section" id="events">
@@ -1991,7 +1989,7 @@ function Events({ count }) {
             const [dateStr, timeStr = ""] = ev.when.split(" - ");
             const visibleDescription = getVisibleEventDescription(event);
             return (
-              <article key={i} className={`hp-event-card ${ev.featured ? "featured" : ""}`} style={RESERVED_DEFERRED_EVENTS ? DEFERRED_EVENT_SLOT_STYLE : undefined}>
+              <article key={i} className={`hp-event-card ${ev.featured ? "featured" : ""}`} >
                 {ev.featured && <span className="hp-event-pill"><span className="pip" />Featured</span>}
                 <h3 className="hp-event-name slot" data-slot="event name">{ev.name}</h3>
                 <div className="hp-event-meta">
@@ -2062,7 +2060,7 @@ function Events({ count }) {
               </article>
             );
           })}
-          {RESERVED_DEFERRED_EVENTS && Array.from({ length: Math.max(0, slots - visibleEvents.length) }, (_, i) => (
+          {eventsPending && Array.from({ length: Math.max(0, slots - visibleEvents.length) }, (_, i) => (
             <article key={`pending-${i}`} className="hp-event-card" data-page-placeholder={eventsPending ? "events" : undefined} aria-hidden="true" style={{ ...DEFERRED_EVENT_SLOT_STYLE, visibility: eventsPending ? "visible" : "hidden" }}>
               {eventsPending && ["65%", "35%", "80%"].map((width, j) => <span key={j} style={{ width, height: j === 0 ? "2rem" : "1rem", background: "var(--fg-muted)", opacity: .12, borderRadius: ".3rem" }} />)}
             </article>
@@ -3256,7 +3254,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
 
       <div className="mhf-below-hero-shell">
         <div className="mhf-automation-panel">
-          {(t.showEvents || RESERVED_DEFERRED_EVENTS) && <Events count={t.eventCount} />}
+          {(t.showEvents || Boolean(window.SPARKLE_PENDING_PAGE_DATA?.events)) && <Events count={t.eventCount} />}
           {t.showWibp && <Wibp repName={repName} />}
           {t.showAbout && <AboutSection repName={repName} />}
           {t.showSignup && <Signup repName={repName} businessName={businessName} />}
@@ -3382,7 +3380,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
       <div className="bwb-below-hero-shell">
         <BrittWithBlingFeaturedReveal />
         <div className="bwb-automation-panel">
-          {(t.showEvents || RESERVED_DEFERRED_EVENTS) && <Events count={t.eventCount} />}
+          {(t.showEvents || Boolean(window.SPARKLE_PENDING_PAGE_DATA?.events)) && <Events count={t.eventCount} />}
           {t.showWibp && <BrittWithBlingRevealExplainer />}
           {t.showAbout && CONTENT.showAboutSection && (
             <AboutSection repName={repName} hideEmptyMedia />
@@ -3469,7 +3467,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
           <a {...linkProps(pantryHref)}>Open Recipes</a>
         </section>
         <div className="bk-home-automation-panel">
-          {(t.showEvents || RESERVED_DEFERRED_EVENTS) && <Events count={t.eventCount} />}
+          {(t.showEvents || Boolean(window.SPARKLE_PENDING_PAGE_DATA?.events)) && <Events count={t.eventCount} />}
           {t.showWibp && <BlingKitchenRevealGuide repName={repName} />}
           {t.showAbout && <AboutSection repName={repName} />}
           {t.showSignup && <Signup repName={repName} businessName={businessName} />}
@@ -3601,6 +3599,15 @@ function applyHomepageTheme(t, document) {
 
 }
 
+// Late data owns the final visibility/count, just as the on-time bootstrap does.
+function homepageEventsView(values, loaded) {
+  return loaded ? {
+    ...values,
+    showEvents: HOMEPAGE_EVENT_PAYLOAD.length > 0,
+    eventCount: HOMEPAGE_EVENT_PAYLOAD.length,
+  } : values;
+}
+
 function App() {
   const [serverClock, setServerClock] = useState(() => Boolean(window.SPARKLE_FIRST_PAINT?.serverClock));
   const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
@@ -3631,11 +3638,7 @@ function App() {
   const [tweakValues, setTweak] = useTweaks(DEFAULTS);
   // Late page data can enable the Events section; this is view state only.
   // Do not call the edit-mode setter while completing a read-only page load.
-  const t = pageDataRevision ? {
-    ...tweakValues,
-    showEvents: window.HOMEPAGE_TWEAK_DEFAULTS.showEvents,
-    eventCount: window.HOMEPAGE_TWEAK_DEFAULTS.eventCount,
-  } : tweakValues;
+  const t = homepageEventsView(tweakValues, pageDataRevision > 0);
   const [queueOpen, setQueueOpen] = useState(false);
   const repName = publicRepName(t.repName);
   const [now, setNow] = useState(() => window.SPARKLE_FIRST_PAINT?.now ?? Date.now());
@@ -3712,7 +3715,7 @@ function App() {
       {t.showHero && <Hero t={{ ...t, heroSub: redactPublicRepText(t.heroSub, t.repName) }} isLive={scheduleIsLive} liveShow={activeLiveShow} />}
 
       {/* Events */}
-      {(t.showEvents || RESERVED_DEFERRED_EVENTS) && <Events count={t.eventCount} />}
+      {(t.showEvents || Boolean(window.SPARKLE_PENDING_PAGE_DATA?.events)) && <Events count={t.eventCount} />}
 
       {/* What is a Bomb Party */}
       {t.showWibp && <Wibp repName={repName} />}

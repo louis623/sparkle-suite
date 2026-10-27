@@ -1,0 +1,1017 @@
+{
+  "base": "https://sparkle-suite-smoke-34g65ne2x-louis-2849s-projects.vercel.app",
+  "settings": {
+    "profiles": {
+      "desktop": {
+        "width": 1440,
+        "height": 1200,
+        "cpu": 1,
+        "mobile": false
+      },
+      "phone": {
+        "width": 390,
+        "height": 900,
+        "cpu": 4,
+        "mobile": true,
+        "down": 200000,
+        "up": 93750,
+        "latency": 150
+      }
+    },
+    "locale": "en-US",
+    "timeZone": "America/New_York",
+    "cache": "disabled",
+    "delayMs": 5000,
+    "fixtures": "Actual Smoke completion response filtered to zero or one event in the browser; no database changes."
+  },
+  "cases": [
+    {
+      "profile": "desktop",
+      "index": 0,
+      "expectedEvents": 0,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": false,
+        "fcp": {
+          "at": 3072,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1159.9375,
+        "cardCount": 2,
+        "placeholderCount": 2,
+        "remainingEventsAreaPx": 1159.9375,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          },
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          }
+        ],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 5363
+      },
+      "after": {
+        "cls": 0.13693706597222224,
+        "swapStartCls": 0,
+        "hydrated": true,
+        "fcp": {
+          "at": 3072,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "sourceEventCount": 2,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": false,
+        "eventSectionHeight": 0,
+        "cardCount": 0,
+        "placeholderCount": 0,
+        "remainingEventsAreaPx": 0,
+        "gapAfterCalendarHeading": 0,
+        "cards": [],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 4203
+      },
+      "swapCls": 0.13693706597222224,
+      "hydrationErrors": [],
+      "heightReleased": true,
+      "sanityPass": false,
+      "casePass": false
+    },
+    {
+      "profile": "desktop",
+      "index": 0,
+      "expectedEvents": 1,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": false,
+        "fcp": null,
+        "dancersCopies": [],
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1159.9375,
+        "cardCount": 2,
+        "placeholderCount": 2,
+        "remainingEventsAreaPx": 1159.9375,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          },
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          }
+        ],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 5363
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "swapStartCls": 0,
+        "hydrated": true,
+        "fcp": {
+          "at": 912,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "sourceEventCount": 2,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 962.265625,
+        "cardCount": 1,
+        "placeholderCount": 0,
+        "remainingEventsAreaPx": 962.265625,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 474.328125,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          }
+        ],
+        "eventCount": 1,
+        "defaults": {
+          "showEvents": true,
+          "eventCount": 1
+        },
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT"
+        ],
+        "pageHeight": 5165
+      },
+      "swapCls": 0.00005497685185185185,
+      "hydrationErrors": [],
+      "heightReleased": true,
+      "sanityPass": true,
+      "casePass": true
+    },
+    {
+      "profile": "phone",
+      "index": 0,
+      "expectedEvents": 0,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": false,
+        "fcp": {
+          "at": 1604,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1818.171875,
+        "cardCount": 2,
+        "placeholderCount": 2,
+        "remainingEventsAreaPx": 1818.171875,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          },
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          }
+        ],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 7862
+      },
+      "after": {
+        "cls": 0,
+        "swapStartCls": 0,
+        "hydrated": true,
+        "fcp": {
+          "at": 1604,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "sourceEventCount": 2,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": false,
+        "eventSectionHeight": 0,
+        "cardCount": 0,
+        "placeholderCount": 0,
+        "remainingEventsAreaPx": 0,
+        "gapAfterCalendarHeading": 0,
+        "cards": [],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 6044
+      },
+      "swapCls": 0,
+      "hydrationErrors": [],
+      "heightReleased": true,
+      "sanityPass": true,
+      "casePass": true
+    },
+    {
+      "profile": "phone",
+      "index": 0,
+      "expectedEvents": 1,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": true,
+        "fcp": {
+          "at": 1600,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1818.171875,
+        "cardCount": 2,
+        "placeholderCount": 2,
+        "remainingEventsAreaPx": 1818.171875,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          },
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          }
+        ],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 7862
+      },
+      "after": {
+        "cls": 0,
+        "swapStartCls": 0,
+        "hydrated": true,
+        "fcp": {
+          "at": 1600,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "sourceEventCount": 2,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1008.15625,
+        "cardCount": 1,
+        "placeholderCount": 0,
+        "remainingEventsAreaPx": 1008.15625,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 557.984375,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          }
+        ],
+        "eventCount": 1,
+        "defaults": {
+          "showEvents": true,
+          "eventCount": 1
+        },
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT"
+        ],
+        "pageHeight": 7052
+      },
+      "swapCls": 0,
+      "hydrationErrors": [],
+      "heightReleased": true,
+      "sanityPass": true,
+      "casePass": true
+    }
+  ],
+  "sanity": [
+    {
+      "profile": "desktop",
+      "index": 0,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": true,
+        "fcp": {
+          "at": 996,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1159.9375,
+        "cardCount": 2,
+        "placeholderCount": 2,
+        "remainingEventsAreaPx": 1159.9375,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          },
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          }
+        ],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 5363
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "swapStartCls": null,
+        "hydrated": true,
+        "fcp": {
+          "at": 996,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 983.59375,
+        "cardCount": 2,
+        "placeholderCount": 0,
+        "remainingEventsAreaPx": 983.59375,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 495.65625,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          },
+          {
+            "height": 495.65625,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          }
+        ],
+        "eventCount": 2,
+        "defaults": {
+          "showEvents": true,
+          "eventCount": 2
+        },
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "pageHeight": 5186
+      },
+      "swapCls": 0.00005497685185185185,
+      "hydrationErrors": [],
+      "heightReleased": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "desktop",
+      "index": 1,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": false,
+        "fcp": null,
+        "dancersCopies": [],
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1159.9375,
+        "cardCount": 2,
+        "placeholderCount": 2,
+        "remainingEventsAreaPx": 1159.9375,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          },
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          }
+        ],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 5363
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "swapStartCls": null,
+        "hydrated": true,
+        "fcp": {
+          "at": 932,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 983.59375,
+        "cardCount": 2,
+        "placeholderCount": 0,
+        "remainingEventsAreaPx": 983.59375,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 495.65625,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          },
+          {
+            "height": 495.65625,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          }
+        ],
+        "eventCount": 2,
+        "defaults": {
+          "showEvents": true,
+          "eventCount": 2
+        },
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "pageHeight": 5186
+      },
+      "swapCls": 0.00005497685185185185,
+      "hydrationErrors": [],
+      "heightReleased": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "desktop",
+      "index": 2,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": true,
+        "fcp": {
+          "at": 896,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1159.9375,
+        "cardCount": 2,
+        "placeholderCount": 2,
+        "remainingEventsAreaPx": 1159.9375,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          },
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          }
+        ],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 5363
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "swapStartCls": null,
+        "hydrated": true,
+        "fcp": {
+          "at": 896,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 983.59375,
+        "cardCount": 2,
+        "placeholderCount": 0,
+        "remainingEventsAreaPx": 983.59375,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 495.65625,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          },
+          {
+            "height": 495.65625,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          }
+        ],
+        "eventCount": 2,
+        "defaults": {
+          "showEvents": true,
+          "eventCount": 2
+        },
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "pageHeight": 5186
+      },
+      "swapCls": 0.00005497685185185185,
+      "hydrationErrors": [],
+      "heightReleased": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "phone",
+      "index": 0,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": false,
+        "fcp": {
+          "at": 1676,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1818.171875,
+        "cardCount": 2,
+        "placeholderCount": 2,
+        "remainingEventsAreaPx": 1818.171875,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          },
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          }
+        ],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 7862
+      },
+      "after": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": true,
+        "fcp": {
+          "at": 1676,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1568.8125,
+        "cardCount": 2,
+        "placeholderCount": 0,
+        "remainingEventsAreaPx": 1568.8125,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 557.984375,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          },
+          {
+            "height": 536.65625,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          }
+        ],
+        "eventCount": 2,
+        "defaults": {
+          "showEvents": true,
+          "eventCount": 2
+        },
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "pageHeight": 7612
+      },
+      "swapCls": 0,
+      "hydrationErrors": [],
+      "heightReleased": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "phone",
+      "index": 1,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": false,
+        "fcp": {
+          "at": 1740,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1818.171875,
+        "cardCount": 2,
+        "placeholderCount": 2,
+        "remainingEventsAreaPx": 1818.171875,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          },
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          }
+        ],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 7862
+      },
+      "after": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": true,
+        "fcp": {
+          "at": 1740,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1568.8125,
+        "cardCount": 2,
+        "placeholderCount": 0,
+        "remainingEventsAreaPx": 1568.8125,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 557.984375,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          },
+          {
+            "height": 536.65625,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          }
+        ],
+        "eventCount": 2,
+        "defaults": {
+          "showEvents": true,
+          "eventCount": 2
+        },
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "pageHeight": 7612
+      },
+      "swapCls": 0,
+      "hydrationErrors": [],
+      "heightReleased": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "phone",
+      "index": 2,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": false,
+        "fcp": {
+          "at": 1680,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1818.171875,
+        "cardCount": 2,
+        "placeholderCount": 2,
+        "remainingEventsAreaPx": 1818.171875,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          },
+          {
+            "height": 672,
+            "inlineHeight": "42rem",
+            "inlineMinHeight": "42rem",
+            "inlineOverflow": "auto"
+          }
+        ],
+        "eventCount": 0,
+        "defaults": {
+          "showEvents": false,
+          "eventCount": 0
+        },
+        "times": [],
+        "pageHeight": 7862
+      },
+      "after": {
+        "cls": 0,
+        "swapStartCls": null,
+        "hydrated": true,
+        "fcp": {
+          "at": 1680,
+          "ssr": true,
+          "background": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "dancersCopies": [],
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "eventSectionPresent": true,
+        "eventSectionHeight": 1568.8125,
+        "cardCount": 2,
+        "placeholderCount": 0,
+        "remainingEventsAreaPx": 1568.8125,
+        "gapAfterCalendarHeading": 148.6875,
+        "cards": [
+          {
+            "height": 557.984375,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          },
+          {
+            "height": 536.65625,
+            "inlineHeight": "",
+            "inlineMinHeight": "",
+            "inlineOverflow": ""
+          }
+        ],
+        "eventCount": 2,
+        "defaults": {
+          "showEvents": true,
+          "eventCount": 2
+        },
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "pageHeight": 7612
+      },
+      "swapCls": 0,
+      "hydrationErrors": [],
+      "heightReleased": true,
+      "sanityPass": true
+    }
+  ]
+}

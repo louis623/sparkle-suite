@@ -1,0 +1,6 @@
+M	lib/amethyst/v2/homepage.jsx
+M	public/amethyst/compiled/homepage.js
+A	scripts/qa/deferred-events.cjs
+A	tests/amethyst-late-events.test.ts
+A	vault/2026-10-27-ssr-chunk1-pass5/full-suite-comparison.json
+A	vault/2026-10-27-ssr-chunk1-pass5/predeployment.md

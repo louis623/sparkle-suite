@@ -1,0 +1,73 @@
+{
+  "casePass": false,
+  "sanityPass": true,
+  "cases": [
+    {
+      "profile": "desktop",
+      "expected": 0,
+      "pass": false,
+      "section": false,
+      "cards": 0,
+      "placeholders": 0,
+      "remainingArea": 0,
+      "heightReleased": true,
+      "heights": [],
+      "swapCls": 0.13693706597222224,
+      "sourceEvents": 2
+    },
+    {
+      "profile": "desktop",
+      "expected": 1,
+      "pass": true,
+      "section": true,
+      "cards": 1,
+      "placeholders": 0,
+      "remainingArea": 962.265625,
+      "heightReleased": true,
+      "heights": [
+        474.328125
+      ],
+      "swapCls": 0.00005497685185185185,
+      "sourceEvents": 2
+    },
+    {
+      "profile": "phone",
+      "expected": 0,
+      "pass": true,
+      "section": false,
+      "cards": 0,
+      "placeholders": 0,
+      "remainingArea": 0,
+      "heightReleased": true,
+      "heights": [],
+      "swapCls": 0,
+      "sourceEvents": 2
+    },
+    {
+      "profile": "phone",
+      "expected": 1,
+      "pass": true,
+      "section": true,
+      "cards": 1,
+      "placeholders": 0,
+      "remainingArea": 1008.15625,
+      "heightReleased": true,
+      "heights": [
+        557.984375
+      ],
+      "swapCls": 0,
+      "sourceEvents": 2
+    }
+  ],
+  "maxSwapCls": 0.13693706597222224,
+  "maxDesktopCls": 0.00005497685185185185,
+  "maxPhoneCls": 0,
+  "dancersCopies": 0,
+  "hydrationErrors": [],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "writesBlocked": 0,
+  "formSubmissions": 0,
+  "projectConfigurationUnchanged": true,
+  "testingWindowUpperBoundMinutes": 30.40495068359375
+}
