@@ -16,6 +16,7 @@ for(const [name,source] of Object.entries({
 })){
  let code=show(source).toString().replace(/from (['"])\.\//g,'from $1../');
  if(name==='public-asset-response.ts')code=code.replace("from '@/lib/amethyst/rep-ga4-tag'","from './rep-ga4-tag'").replace("return join(process.cwd(), 'public', 'amethyst', assetPath)","return join(process.cwd(), 'lib', 'amethyst', 'legacy', 'assets', assetPath)");
+ if(name==='public-asset-response.ts')code=code.replace("import { readFile } from 'node:fs/promises'", "import { readFile } from 'node:fs/promises'\nimport manifest from './manifest.json'").replace("return join(process.cwd(), 'lib', 'amethyst', 'legacy', 'assets', assetPath)", "const entry = (manifest.files as Record<string, { source: string }>)[assetPath]\n  return entry?.source === 'shared'\n    ? join(process.cwd(), 'public', 'amethyst', assetPath)\n    : join(process.cwd(), 'lib', 'amethyst', 'legacy', 'assets', assetPath)");
  if(name==='homepage-bootstrap-response.ts')code=code.replace("from '@/lib/amethyst/homepage-template-data'","from './homepage-template-data'").replace('export async function GET(','export async function buildLegacyHomepageBootstrapResponse(');
  writeFileSync(join(root,name),'// Frozen Live source: '+commit+' / '+source+'\n// Only import/root adapters differ; do not modernize this compatibility path.\n'+code);
 }

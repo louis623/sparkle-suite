@@ -4,7 +4,8 @@ import { defaultAmethystHomepageTemplateData as homepage } from '@/lib/amethyst/
 import { defaultAmethystJoinTemplateData as join } from '@/lib/amethyst/join-template-data'
 import { defaultAmethystTradeTemplateData as trade } from '@/lib/amethyst/trade-template-data'
 const mocks = vi.hoisted(() => ({ bootstrap: vi.fn(), render: vi.fn(), template: vi.fn() }))
-vi.mock('@/lib/amethyst/legacy/homepage-bootstrap-response', () => ({ buildLegacyHomepageBootstrapResponse: mocks.bootstrap }))
+vi.mock('@/lib/amethyst/homepage-template-cache', () => ({ loadHomepageV2Template: (...args: unknown[]) => mocks.template(...args) }))
+vi.mock('@/lib/amethyst/homepage-bootstrap-response', () => ({ buildHomepageBootstrapResponse: mocks.bootstrap }))
 vi.mock('@/lib/amethyst/homepage-first-paint', () => ({ renderHomepageFirstPaint: mocks.render }))
 vi.mock('@/lib/amethyst/preview-template-data', () => ({ loadAmethystPreviewTemplateData: (...args: unknown[]) => mocks.template(...args) }))
 import { renderAmethystPublicAssetResponse } from '@/lib/amethyst/public-asset-response'
@@ -31,6 +32,14 @@ it.each(['throw', 'timeout'])('returns exact frozen Live response on bootstrap %
 it('returns exact frozen Live response on render failure', async () => {
   mocks.render.mockRejectedValue(Error('forced render failure'))
   const actual = await (await renderAmethystPublicAssetResponse(request(), ['Homepage.html'], options)).text()
+  const expected = await (await frozenLive(request(), ['Homepage.html'], options)).text()
+  expect(hash(actual)).toBe(hash(expected))
+})
+it('rejects a non-OK data response and loads template only once', async () => {
+  mocks.bootstrap.mockResolvedValue(new Response('unavailable', { status: 503 }))
+  const actual = await (await renderAmethystPublicAssetResponse(request(), ['Homepage.html'], options)).text()
+  expect(mocks.template).toHaveBeenCalledTimes(1)
+  expect(mocks.render).not.toHaveBeenCalled()
   const expected = await (await frozenLive(request(), ['Homepage.html'], options)).text()
   expect(hash(actual)).toBe(hash(expected))
 })

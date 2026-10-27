@@ -102,11 +102,6 @@ export function legacyAmethystHtmlDestination(
 }
 
 export function proxy(request: NextRequest) {
-  if (request.nextUrl.pathname === '/amethyst/homepage.jsx') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/api/amethyst/homepage-source'
-    return NextResponse.rewrite(url)
-  }
   const headers = new Headers(request.headers)
   // Only this proxy may introduce the internal tenant handoff header.
   headers.delete('x-sparkle-customer-domain')

@@ -1225,7 +1225,7 @@ describe('Amethyst homepage template data wiring', () => {
 
     expect(jsx).toContain('window.AMETHYST_HOMEPAGE_EVENTS')
     expect(jsx).toContain('Intl.DateTimeFormat')
-    expect(jsx).toContain('Intl.DateTimeFormat(homepageRenderLocale')
+    expect(jsx).toContain('Intl.DateTimeFormat(undefined,')
     expect(jsx).toContain('timeZoneName: "short"')
     expect(jsx).not.toContain('timeZone: "UTC"')
     expect(jsx).toContain('downloadCalendarEvent')

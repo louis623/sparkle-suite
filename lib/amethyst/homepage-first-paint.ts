@@ -17,7 +17,8 @@ const escapeAttribute = (value: string) => value.replace(/&/g, '&amp;').replace(
 // Native links already work before hydration. Pumpkin Cat has no Sound or menu
 // toggle on pinned Live; adding either would change the approved presentation.
 export const earlyHomepageControls = `(function(){
-var wanted=true,ready=false,button=document.querySelector('.hpc-motion-control'),video=document.querySelector('.hpc-video');
+var ready=false,button=document.querySelector('.hpc-motion-control'),video=document.querySelector('.hpc-video');
+var wanted=button?.getAttribute('aria-pressed')==='true';
 function update(){if(!button||!video)return;button.textContent=wanted?'Pause animation':'Play animation';button.setAttribute('aria-pressed',String(wanted));if(wanted&&!document.hidden)video.play().catch(function(){});else video.pause()}
 function click(e){if(ready||!e.target.closest('.hpc-motion-control'))return;e.preventDefault();e.stopImmediatePropagation();wanted=!wanted;update()}
 document.addEventListener('click',click,true);
@@ -36,14 +37,16 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   const body = { className: 'homepage', classList: { add(...names: string[]) { body.className += ' ' + names.join(' ') } } }
   const document = { body, documentElement: { style: { setProperty(name: string, value: unknown) { properties.set(name, String(value)) } } }, getElementById: () => ({}) }
   let element: ReactTypes.ReactNode
-  const firstPaint = { locale: 'en-US', timeZone: 'America/New_York', now: Date.now() }
+  const firstPaint = { locale: 'en-US', timeZone: 'UTC', now: Date.now() }
   const window = { React, SPARKLE_FIRST_PAINT: firstPaint, location: { search: requestUrl.search, origin: requestUrl.origin, hostname: requestUrl.hostname } }
   const context = createContext({ window, document, React, URL, URLSearchParams, Intl, console,
     ReactDOM: { createRoot: () => ({ render(node: ReactTypes.ReactNode) { element = node } }) },
   })
-  // Restore motion only in this request's allowlisted bootstrap; no saved data changes.
-  const inlineBootstrap = bootstrap + '\nwindow.HOMEPAGE_TWEAK_DEFAULTS.heroMotion="cat_candle";'
+  const inlineBootstrap = bootstrap
   new Script(inlineBootstrap).runInContext(context, { timeout: 300 })
+  // Show cards use their own saved zones; lineup timestamps use the first
+  // saved event's zone until the viewer's locale is applied after hydration.
+  firstPaint.timeZone = new Script('window.AMETHYST_HOMEPAGE_EVENTS?.[0]?.timeZone || "UTC"').runInContext(context)
   for (const script of await runtimeScripts()) script.runInContext(context, { timeout: 300 })
   context.renderHomepageMarkup = () => renderToString(element)
   const rendered = new Script('renderHomepageMarkup()').runInContext(context, { timeout: 500 }) as string

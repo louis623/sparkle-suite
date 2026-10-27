@@ -1,6 +1,7 @@
 // Frozen Live source: 3f175871674e42dbc62d18419318941ea6a49935 / lib/amethyst/public-asset-response.ts
 // Only import/root adapters differ; do not modernize this compatibility path.
 import { readFile } from 'node:fs/promises'
+import manifest from './manifest.json'
 import { join } from 'node:path'
 
 import {
@@ -143,7 +144,10 @@ function resolveAmethystAsset(asset: string[]) {
   const assetPath = asset.join('/')
   if (!AMETHYST_ASSETS.has(assetPath)) return null
 
-  return join(process.cwd(), 'lib', 'amethyst', 'legacy', 'assets', assetPath)
+  const entry = (manifest.files as Record<string, { source: string }>)[assetPath]
+  return entry?.source === 'shared'
+    ? join(process.cwd(), 'public', 'amethyst', assetPath)
+    : join(process.cwd(), 'lib', 'amethyst', 'legacy', 'assets', assetPath)
 }
 
 function escapeHtmlAttribute(value: string) {

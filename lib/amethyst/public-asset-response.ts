@@ -1,6 +1,8 @@
 import { shouldUseRepRenderV2 } from './rep-render-version'
 import { bestEffortHomepage } from './homepage-render-safety'
 import { readFile } from 'node:fs/promises'
+import { forceHomepageRenderFailure } from './homepage-preview-probe'
+import { loadHomepageV2Template } from './homepage-template-cache'
 import { join } from 'node:path'
 
 import {
@@ -558,13 +560,22 @@ export async function renderAmethystPublicAssetResponse(
     }
     const repId = options.repIdOverride?.trim() || resolveAmethystRequestRepId(request)
     const resolvedOptions = repId ? { ...options, repIdOverride: repId } : options
-    const loadedTemplate =
+    const ssrStarted = performance.now()
+    const templatePromise =
       page && contentType.startsWith('text/html') && repId
-        ? await loadAmethystPreviewTemplateData({
-            repId,
-            publicSiteSlug: options.publicSiteSlugOverride,
-          })
-        : null
+        ? loadHomepageV2Template(repId, options.publicSiteSlugOverride || '')
+        : Promise.resolve(null)
+    const bootstrapUrl = new URL('/api/amethyst/homepage-template', requestUrl.origin)
+    bootstrapUrl.searchParams.set('c', repId || '')
+    bootstrapUrl.searchParams.set('publicSiteSlug', options.publicSiteSlugOverride || '')
+    bootstrapUrl.searchParams.set('lineupPresentation', 'grouped-v1')
+    // Start all data reads before waiting for the template used by metadata.
+    const bootstrapTask = import('./homepage-bootstrap-response').then(({ buildHomepageBootstrapResponse }) =>
+      buildHomepageBootstrapResponse(new Request(bootstrapUrl, { headers: request.headers }), {
+        templateData: templatePromise.then(data => { if (!data) throw new Error('Missing template'); return data }),
+        repId: repId || '',
+      })).catch(() => null)
+    const loadedTemplate = await templatePromise
     const templateData = loadedTemplate
       ? restrictPantryTemplateData(
           await indexPublicJoinTemplate(loadedTemplate, { repId }),
@@ -612,15 +623,13 @@ export async function renderAmethystPublicAssetResponse(
         if (page === 'homepage' && templateData) {
           const original = responseBody as string
           responseBody = await bestEffortHomepage(async () => {
-            const endpoint = original.match(/data-template-src="([^"]+)"/)?.[1]
-            if (!endpoint) return original
-            const url = new URL(endpoint.replaceAll('&amp;', '&'), requestUrl.origin)
-            url.searchParams.set('lineupPresentation', 'grouped-v1')
-            const { buildLegacyHomepageBootstrapResponse } = await import('./legacy/homepage-bootstrap-response')
-            const bootstrap = await (await buildLegacyHomepageBootstrapResponse(new Request(url, { headers: request.headers }))).text()
+            const response = await bootstrapTask
+            if (!response?.ok) throw new Error('Homepage data response failed')
+            const bootstrap = await response.text()
+            if (forceHomepageRenderFailure(request)) throw new Error('Preview render failure probe')
             const { renderHomepageFirstPaint } = await import('./homepage-first-paint')
             return renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
-          }) ?? original
+          }, Math.max(0, 1500 - (performance.now() - ssrStarted))) ?? original
         }
       } else if (templateScriptPage) {
         responseBody = rewriteTemplateScriptTarget(

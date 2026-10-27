@@ -9,6 +9,7 @@ it('defaults to nobody, rejects wildcards and other slugs, and enables only this
   expect(repRenderV2Enabled('dudesfizzfest', '*')).toBe(false)
   expect(repRenderV2Enabled('other', 'other,dudesfizzfest')).toBe(false)
   expect(repRenderV2Enabled('dudesfizzfest', 'dudesfizzfest')).toBe(true)
+  expect(repRenderV2Enabled(' DudesFizzFest ', ' other, DUDESFIZZFEST , ')).toBe(true)
   vi.stubEnv('REP_RENDER_V2_SLUGS', 'dudesfizzfest')
   expect(shouldUseRepRenderV2(['Homepage.html'], { publicSiteSlugOverride: 'dudesfizzfest' })).toBe(true)
   expect(shouldUseRepRenderV2(['Trade.html'], { publicSiteSlugOverride: 'dudesfizzfest' })).toBe(false)

@@ -2,3 +2,4 @@ apps/finder/supabase/migrations/*.sql text eol=lf
 
 # Pinned Live snapshot bytes must survive Windows checkouts unchanged.
 lib/amethyst/legacy/assets/** -text
+public/amethyst/homepage.jsx -text

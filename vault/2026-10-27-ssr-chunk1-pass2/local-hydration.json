@@ -1,0 +1,54 @@
+[
+  {
+    "timezoneId": "America/New_York",
+    "earlyClick": false,
+    "before": [
+      "Tue, Oct 274:00 PM EDT",
+      "Tue, Oct 271:00 PM PDT"
+    ],
+    "after": [
+      "Tue, Oct 274:00 PM EDT",
+      "Tue, Oct 274:00 PM EDT"
+    ],
+    "errors": []
+  },
+  {
+    "timezoneId": "America/New_York",
+    "earlyClick": true,
+    "before": [
+      "Tue, Oct 274:00 PM EDT",
+      "Tue, Oct 271:00 PM PDT"
+    ],
+    "after": [
+      "Tue, Oct 274:00 PM EDT",
+      "Tue, Oct 274:00 PM EDT"
+    ],
+    "errors": []
+  },
+  {
+    "timezoneId": "America/Los_Angeles",
+    "earlyClick": false,
+    "before": [
+      "Tue, Oct 274:00 PM EDT",
+      "Tue, Oct 271:00 PM PDT"
+    ],
+    "after": [
+      "Tue, Oct 271:00 PM PDT",
+      "Tue, Oct 271:00 PM PDT"
+    ],
+    "errors": []
+  },
+  {
+    "timezoneId": "America/Los_Angeles",
+    "earlyClick": true,
+    "before": [
+      "Tue, Oct 274:00 PM EDT",
+      "Tue, Oct 271:00 PM PDT"
+    ],
+    "after": [
+      "Tue, Oct 271:00 PM PDT",
+      "Tue, Oct 271:00 PM PDT"
+    ],
+    "errors": []
+  }
+]

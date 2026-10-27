@@ -226,4 +226,4 @@ Louis authorized pushing `codex/faq-articles` and opening draft PR #81 for revie
 
 ## SSR Chunk 1 — October 26, 2026
 
-Louis explicitly authorized `codex/ssr-chunk1-fizzfest-home`, fresh from production e78fa626, for one private preview only. Checkout `.codex-worktrees/ssr-chunk1-fizzfest-home`. No Smoke, Live, aliases, production branch or project environment changes. PR #154 reverted separately; #156 is reference-only.
+Louis explicitly authorized `codex/ssr-chunk1-fizzfest-home`, fresh from production e78fa626, for one private preview only. Pass 2 uses a disposable clone of verified GitHub tip 9f4b0c7b, with portable local checkout permission and deployment restricted to prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ / preview. No machine-specific branch path. Louis authorized a second preview with the allowlist empty solely for the deployed toggle check. No Smoke, Live, aliases, production branch or project environment changes. PR #154 reverted separately; #156 is reference-only.
