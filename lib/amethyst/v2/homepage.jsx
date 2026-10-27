@@ -90,6 +90,9 @@ const DEFAULTS = window.HOMEPAGE_TWEAK_DEFAULTS || {
   showSlots: false,
 };
 const CONTENT = window.AMETHYST_HOMEPAGE_TEMPLATE_DATA || {};
+// Keep the reserved event slots after the late read completes, so the swap cannot collapse them.
+const RESERVED_DEFERRED_EVENTS = Boolean(window.SPARKLE_PENDING_PAGE_DATA?.events);
+const DEFERRED_EVENT_SLOT_STYLE = { height: "42rem", minHeight: "42rem", overflowY: "auto" };
 const RUNTIME_CONTEXT = window.AMETHYST_RUNTIME_CONTEXT || {};
 const isMileHighFizzHybrid = CONTENT.publicSiteVariant === "mile_high_fizz_hybrid";
 const isBrittWithBlingHybrid = CONTENT.publicSiteVariant === "britt_with_bling_hybrid";
@@ -1548,6 +1551,7 @@ function Ticker({ topText }) {
   const trades = contentTrades.length > 0 || RUNTIME_CONTEXT.targeted ? contentTrades : fallbackTrades;
   const announcementTickerItems = buildTickerLoopItems(items, 6);
   const announcementSegmentLength = announcementTickerItems.length / 2;
+  const tradesPending = Boolean(window.SPARKLE_PENDING_PAGE_DATA?.trades);
   const tradeTickerSource = isBrittDanceFloorComingSoon ? [{ name: "Digital Dance Floor coming soon", isEmpty: true }] : trades.length > 0 ? trades : [EMPTY_TRADE_TICKER_ITEM];
   const tickerTrades = buildTickerLoopItems(tradeTickerSource, 15);
   const tradeSegmentLength = tickerTrades.length / 2;
@@ -1574,10 +1578,10 @@ function Ticker({ topText }) {
           ))}
         </div>
       </div>
-      <div className="hp-ticker-row reverse">
+      <div className="hp-ticker-row reverse" aria-busy={tradesPending || undefined}>
         <span className="hp-ticker-label">Dance Floor</span>
         <div className="hp-ticker-track" data-ticker-pps={TRADE_TICKER_SPEED_PPS} aria-hidden="true">
-          {tickerTrades.map((tr, i) => tr.isEmpty ? (
+          {tradesPending ? <span className="hp-ticker-empty" data-page-placeholder="trades" aria-hidden="true" style={{ width: "18rem", height: ".65em", background: "currentColor", opacity: .15, borderRadius: "1em" }} /> : tickerTrades.map((tr, i) => tr.isEmpty ? (
             <span
               key={i}
               className="hp-ticker-empty"
@@ -1607,6 +1611,11 @@ function LiveQueueStrip({ state, onOpen }) {
   const lineup = React.useContext(LiveLineupContext);
   const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
   if (entries.length === 0) {
+    if (window.SPARKLE_PENDING_PAGE_DATA?.events) return (
+      <section className="hp-trade-preview hp-lineup-idle" data-page-placeholder="calendar-strip" aria-label="Upcoming shows" aria-busy="true">
+        <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt" aria-hidden="true">&nbsp;</span></div>
+      </section>
+    );
     return window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref) || (
       <section className="hp-trade-preview hp-lineup-idle" data-lineup-surface="calendar" aria-label="Upcoming shows">
         <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt">Check back for upcoming shows</span></div>
@@ -1966,6 +1975,9 @@ function getVisibleEventDescription(event) {
 
 function Events({ count }) {
   const [calendarEvent, setCalendarEvent] = useState(null);
+  const eventsPending = Boolean(window.SPARKLE_PENDING_PAGE_DATA?.events);
+  const slots = RESERVED_DEFERRED_EVENTS ? 2 : count;
+  const visibleEvents = eventsPending ? [] : HOMEPAGE_EVENT_PAYLOAD.slice(0, slots);
   return (
     <section className="hp-section" id="events">
       <div className="hp-container">
@@ -1974,12 +1986,12 @@ function Events({ count }) {
           <h2 className="hp-section-title">Mark your calendar. The next two reveals.</h2>
           <p className="hp-section-sub">Times shown in your local timezone. Tap a code to copy it before showtime.</p>
         </div>
-        <div className="hp-event-grid" style={{ gridTemplateColumns: count === 1 ? "1fr" : undefined }}>
-          {HOMEPAGE_EVENT_PAYLOAD.slice(0, count).map((rawEvent, i) => { const event = normalizeHomepageEvent(rawEvent); const ev = event;
+        <div className="hp-event-grid" aria-busy={eventsPending || undefined} style={{ gridTemplateColumns: slots === 1 ? "1fr" : undefined }}>
+          {visibleEvents.map((rawEvent, i) => { const event = normalizeHomepageEvent(rawEvent); const ev = event;
             const [dateStr, timeStr = ""] = ev.when.split(" - ");
             const visibleDescription = getVisibleEventDescription(event);
             return (
-              <article key={i} className={`hp-event-card ${ev.featured ? "featured" : ""}`}>
+              <article key={i} className={`hp-event-card ${ev.featured ? "featured" : ""}`} style={RESERVED_DEFERRED_EVENTS ? DEFERRED_EVENT_SLOT_STYLE : undefined}>
                 {ev.featured && <span className="hp-event-pill"><span className="pip" />Featured</span>}
                 <h3 className="hp-event-name slot" data-slot="event name">{ev.name}</h3>
                 <div className="hp-event-meta">
@@ -2050,6 +2062,11 @@ function Events({ count }) {
               </article>
             );
           })}
+          {RESERVED_DEFERRED_EVENTS && Array.from({ length: Math.max(0, slots - visibleEvents.length) }, (_, i) => (
+            <article key={`pending-${i}`} className="hp-event-card" data-page-placeholder={eventsPending ? "events" : undefined} aria-hidden="true" style={{ ...DEFERRED_EVENT_SLOT_STYLE, visibility: eventsPending ? "visible" : "hidden" }}>
+              {eventsPending && ["65%", "35%", "80%"].map((width, j) => <span key={j} style={{ width, height: j === 0 ? "2rem" : "1rem", background: "var(--fg-muted)", opacity: .12, borderRadius: ".3rem" }} />)}
+            </article>
+          ))}
         </div>
       </div>
       <CalendarChooser event={calendarEvent} onClose={() => setCalendarEvent(null)} />
@@ -3239,7 +3256,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
 
       <div className="mhf-below-hero-shell">
         <div className="mhf-automation-panel">
-          {t.showEvents && <Events count={t.eventCount} />}
+          {(t.showEvents || RESERVED_DEFERRED_EVENTS) && <Events count={t.eventCount} />}
           {t.showWibp && <Wibp repName={repName} />}
           {t.showAbout && <AboutSection repName={repName} />}
           {t.showSignup && <Signup repName={repName} businessName={businessName} />}
@@ -3365,7 +3382,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
       <div className="bwb-below-hero-shell">
         <BrittWithBlingFeaturedReveal />
         <div className="bwb-automation-panel">
-          {t.showEvents && <Events count={t.eventCount} />}
+          {(t.showEvents || RESERVED_DEFERRED_EVENTS) && <Events count={t.eventCount} />}
           {t.showWibp && <BrittWithBlingRevealExplainer />}
           {t.showAbout && CONTENT.showAboutSection && (
             <AboutSection repName={repName} hideEmptyMedia />
@@ -3452,7 +3469,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
           <a {...linkProps(pantryHref)}>Open Recipes</a>
         </section>
         <div className="bk-home-automation-panel">
-          {t.showEvents && <Events count={t.eventCount} />}
+          {(t.showEvents || RESERVED_DEFERRED_EVENTS) && <Events count={t.eventCount} />}
           {t.showWibp && <BlingKitchenRevealGuide repName={repName} />}
           {t.showAbout && <AboutSection repName={repName} />}
           {t.showSignup && <Signup repName={repName} businessName={businessName} />}
@@ -3599,6 +3616,7 @@ function App() {
       Object.assign(CONTENT, window.AMETHYST_HOMEPAGE_TEMPLATE_DATA || {});
       HOMEPAGE_EVENT_PAYLOAD.splice(0, HOMEPAGE_EVENT_PAYLOAD.length, ...(window.AMETHYST_HOMEPAGE_EVENTS || []));
       window.SPARKLE_DEFERRED_PAGE_DATA = null;
+      window.SPARKLE_PENDING_PAGE_DATA = null;
       setLineup(window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT);
       setPageDataRevision(value => value + 1);
     };
@@ -3694,7 +3712,7 @@ function App() {
       {t.showHero && <Hero t={{ ...t, heroSub: redactPublicRepText(t.heroSub, t.repName) }} isLive={scheduleIsLive} liveShow={activeLiveShow} />}
 
       {/* Events */}
-      {t.showEvents && <Events count={t.eventCount} />}
+      {(t.showEvents || RESERVED_DEFERRED_EVENTS) && <Events count={t.eventCount} />}
 
       {/* What is a Bomb Party */}
       {t.showWibp && <Wibp repName={repName} />}

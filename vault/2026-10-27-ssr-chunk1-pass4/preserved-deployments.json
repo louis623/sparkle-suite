@@ -1,0 +1,39 @@
+{
+  "preserved": [
+    {
+      "requested": "yoursparklesuite.com",
+      "id": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "ready": "READY",
+      "sha": "3f175871674e42dbc62d18419318941ea6a49935"
+    },
+    {
+      "requested": "sparkle-suite-smoke.vercel.app",
+      "id": "dpl_FD4TYQgPLe6UB8cE1zYgqyuJsV4Z",
+      "ready": "READY",
+      "sha": "22ba7df60b651e756568bb3a75c0910fcf6a12c5"
+    },
+    {
+      "requested": "dpl_FR1uJtcKBdNkrMZJLEG6nsriufKn",
+      "id": "dpl_FR1uJtcKBdNkrMZJLEG6nsriufKn",
+      "ready": "READY",
+      "sha": "e78fa626c443124ba11725dc93d32e859985ffa4"
+    }
+  ],
+  "domains": [
+    {
+      "url": "https://yoursparklesuite.com",
+      "status": 200,
+      "finalUrl": "https://www.yoursparklesuite.com/"
+    },
+    {
+      "url": "https://sparkle-suite-smoke.vercel.app",
+      "status": 200
+    }
+  ],
+  "projectConfigurationUnchanged": true,
+  "manualAliasChanges": 0,
+  "projectEnvironmentChanges": 0,
+  "formSubmissions": 0,
+  "databaseWrites": 0,
+  "extraDeployments": 0
+}

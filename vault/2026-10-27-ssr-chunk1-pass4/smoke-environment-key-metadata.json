@@ -1,0 +1,362 @@
+[
+  {
+    "key": "OPENAI_API_KEY",
+    "target": [
+      "production"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "CONTROL_CENTER_OWNER_EMAILS",
+    "target": [
+      "preview"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "INTERNAL_OPERATOR_EMAILS",
+    "target": [
+      "preview"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "STRIPE_SECRET_KEY",
+    "target": [
+      "preview"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "STRIPE_WEBHOOK_SECRET",
+    "target": [
+      "preview"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "PUBLIC_SITE_VISIT_SALT",
+    "target": [
+      "preview"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "GA4_READER_SERVICE_ACCOUNT_JSON",
+    "target": [
+      "preview"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "GA4_SMOKE_TEST_MEASUREMENT_ID",
+    "target": [
+      "preview"
+    ],
+    "branch": null,
+    "type": "plain"
+  },
+  {
+    "key": "RESEND_FROM_EMAIL",
+    "target": [
+      "preview"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "RESEND_API_KEY",
+    "target": [
+      "preview"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "SPARKLE_FIZZ_TEST_SEND",
+    "target": [
+      "production"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "REMY_MCP_BEARER_TOKEN",
+    "target": [
+      "production"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "CARD_QR_APPROVAL_SECRET",
+    "target": [
+      "production"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "STRIPE_WEBHOOK_SECRET",
+    "target": [
+      "production"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "STRIPE_SECRET_KEY",
+    "target": [
+      "production"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "RESEND_FROM_EMAIL",
+    "target": [
+      "production"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "RESEND_API_KEY",
+    "target": [
+      "production"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "CARD_QR_FULFILLMENT_EMAIL",
+    "target": [
+      "production"
+    ],
+    "branch": null,
+    "type": "sensitive"
+  },
+  {
+    "key": "SPARKLE_ENVIRONMENT",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "NEXT_PUBLIC_SPARKLE_ENVIRONMENT",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "NEXT_PUBLIC_SUPABASE_URL",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SUPABASE_SERVICE_ROLE_KEY",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "NEXT_PUBLIC_APP_URL",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_RELEASE_BRANCH",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_RELEASE_REPOSITORY",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_SELF_SERVE_ENABLED",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_REVIEWER_SMOKE_MODE",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_STRIPE_TEST_BUYER_MODE",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_PRE_SHOW_SMS_ENABLED",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_PRE_SHOW_EMAIL_ENABLED",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SIGNWELL_SEND_ENABLED",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_LAB_MANUAL_RUNS_ENABLED",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_LAB_WEEKLY_RUNS_ENABLED",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_LAB_MODEL_SYNTHESIS_ENABLED",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "TEAM_PHOTO_POLISH_ENABLED",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "CRON_SECRET",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "CONTROL_CENTER_SESSION_SECRET",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_FINDER_CONTROL_CENTER_USAGE_URL",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_FINDER_TO_SUITE_REP_CLAIM_TOKEN",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_FINDER_TO_SUITE_REP_MEMORY_TOKEN",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  },
+  {
+    "key": "SPARKLE_FINDER_TO_SUITE_INTAKE_TOKEN",
+    "target": [
+      "production",
+      "preview"
+    ],
+    "branch": null,
+    "type": "encrypted"
+  }
+]

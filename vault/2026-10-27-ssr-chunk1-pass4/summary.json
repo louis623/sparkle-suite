@@ -1,0 +1,78 @@
+{
+  "deferredLoads": 5,
+  "deferredPass": 5,
+  "falseEmptyCopies": 0,
+  "unchangedSwapGeometry": 11,
+  "desktop": [
+    {
+      "pass": true,
+      "cls": 0.00005497685185185185,
+      "fcp": 9236,
+      "h1": 1,
+      "times": [
+        "Tue, Oct 27\n8:00 PM EDT",
+        "Sat, Oct 31\n7:00 PM EDT"
+      ]
+    },
+    {
+      "pass": true,
+      "cls": 0.00005497685185185185,
+      "fcp": 3404,
+      "h1": 1,
+      "times": [
+        "Tue, Oct 27\n8:00 PM EDT",
+        "Sat, Oct 31\n7:00 PM EDT"
+      ]
+    },
+    {
+      "pass": true,
+      "cls": 0.00005497685185185185,
+      "fcp": 18052,
+      "h1": 1,
+      "times": [
+        "Tue, Oct 27\n8:00 PM EDT",
+        "Sat, Oct 31\n7:00 PM EDT"
+      ]
+    }
+  ],
+  "phone": [
+    {
+      "pass": true,
+      "cls": 0,
+      "fcp": 2004,
+      "h1": 1,
+      "times": [
+        "Tue, Oct 27\n8:00 PM EDT",
+        "Sat, Oct 31\n7:00 PM EDT"
+      ]
+    },
+    {
+      "pass": true,
+      "cls": 0,
+      "fcp": 1828,
+      "h1": 1,
+      "times": [
+        "Tue, Oct 27\n8:00 PM EDT",
+        "Sat, Oct 31\n7:00 PM EDT"
+      ]
+    },
+    {
+      "pass": true,
+      "cls": 0,
+      "fcp": 1988,
+      "h1": 1,
+      "times": [
+        "Tue, Oct 27\n8:00 PM EDT",
+        "Sat, Oct 31\n7:00 PM EDT"
+      ]
+    }
+  ],
+  "hydrationErrors": [],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "attemptedWritesBlocked": 0,
+  "formSubmissions": 0,
+  "projectConfigurationUnchanged": true,
+  "testingWindowUpperBoundMinutes": 30.389731579589842,
+  "fullSuiteMinutes": 17.836383666992187
+}

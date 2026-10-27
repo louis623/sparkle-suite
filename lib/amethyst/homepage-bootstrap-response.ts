@@ -1,4 +1,4 @@
-import { withinHomepageDataBudget } from './homepage-data-budget'
+import { delayPreviewHomepageData, withinHomepageDataBudget } from './homepage-data-budget'
 import { buildLineupCalendar } from '@/lib/amethyst/lineup-calendar'
 import { requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
@@ -71,10 +71,14 @@ export async function buildHomepageBootstrapResponse(request: Request, loaded: {
   let events: Awaited<ReturnType<typeof loadAmethystHomepageUpcomingShows>> = []
   let tradeBoardListings: Awaited<ReturnType<typeof loadAmethystTradeBoardPreviewListings>> = []
   let liveQueueSnapshot: LiveQueueSnapshot | null = null
+  let eventsReady = false
+  let tradesReady = false
+  const delay = delayPreviewHomepageData(publicSiteSlug)
+  const readAfterDelay = <T>(read: () => Promise<T>) => delay ? delay.then(read) : read()
   const pageData = Promise.all([
-    loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }).then(value => { events = value }),
-    loadAmethystTradeBoardPreviewListings({ ...lookupTarget, repId: loaded.repId, targeted: true, limit: 8 }).then(value => { tradeBoardListings = value }),
-    loadHomepageLiveQueueSnapshot(loaded.repId).then(value => { liveQueueSnapshot = value }),
+    readAfterDelay(() => loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted })).then(value => { events = value; eventsReady = true }),
+    readAfterDelay(() => loadAmethystTradeBoardPreviewListings({ ...lookupTarget, repId: loaded.repId, targeted: true, limit: 8 })).then(value => { tradeBoardListings = value; tradesReady = true }),
+    readAfterDelay(() => loadHomepageLiveQueueSnapshot(loaded.repId)).then(value => { liveQueueSnapshot = value }),
   ])
   void pageData.catch(() => {})
   // The template is never cached. The extra budget starts only once it is ready.
@@ -122,7 +126,7 @@ export async function buildHomepageBootstrapResponse(request: Request, loaded: {
       linkedEvents,
       customerTemplateData.appearancePreset,
       { publicSiteSlug, repId, targeted },
-    ) + (deferred ? `\nwindow.SPARKLE_DEFERRED_PAGE_DATA=${JSON.stringify(new URL('/api/amethyst/homepage-template' + new URL(request.url).search, request.url).pathname + new URL(request.url).search)};` : ''),
+    ) + (deferred ? `\nwindow.SPARKLE_PENDING_PAGE_DATA=${JSON.stringify({ events: !eventsReady, trades: !tradesReady })};window.SPARKLE_DEFERRED_PAGE_DATA=${JSON.stringify(new URL('/api/amethyst/homepage-template' + new URL(request.url).search, request.url).pathname + new URL(request.url).search)};` : ''),
     {
       headers: {
         'content-type': 'application/javascript; charset=utf-8',

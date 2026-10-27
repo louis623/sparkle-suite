@@ -1,3 +1,4 @@
+import { previewHomepageTheme } from './homepage-data-budget'
 import { shouldUseRepRenderV2 } from './rep-render-version'
 import { bestEffortHomepage } from './homepage-render-safety'
 import { readFile } from 'node:fs/promises'
@@ -562,7 +563,7 @@ export async function renderAmethystPublicAssetResponse(
     const ssrStarted = performance.now()
     const templatePromise =
       page && contentType.startsWith('text/html') && repId
-        ? loadAmethystPreviewTemplateData({ repId, publicSiteSlug: options.publicSiteSlugOverride || '' })
+        ? loadAmethystPreviewTemplateData({ repId, publicSiteSlug: options.publicSiteSlugOverride || '' }).then(data => previewHomepageTheme(data, options.publicSiteSlugOverride))
         : Promise.resolve(null)
     const bootstrapUrl = new URL('/api/amethyst/homepage-template', requestUrl.origin)
     bootstrapUrl.searchParams.set('c', repId || '')
@@ -600,6 +601,7 @@ export async function renderAmethystPublicAssetResponse(
       templateData?.join.publicSiteVariant !== 'bling_kitchen_hybrid'
     const joinRuntimeContext =
       page === 'join' ? resolveJoinRuntimeContext(request, requestUrl, resolvedOptions) : undefined
+    let pageDataState: string | undefined
     let responseBody: BodyInit = new Uint8Array(body)
     if (contentType.startsWith('text/html')) {
       const html = body.toString('utf8')
@@ -624,6 +626,7 @@ export async function renderAmethystPublicAssetResponse(
           responseBody = await bestEffortHomepage(async () => {
             const response = await bootstrapTask
             if (!response?.ok) throw new Error('Homepage data response failed')
+            pageDataState = response.headers.get('x-sparkle-page-data') || undefined
             const bootstrap = await response.text()
             if (forceHomepageRenderFailure(request)) throw new Error('Preview render failure probe')
             const { renderHomepageFirstPaint } = await import('./homepage-first-paint')
@@ -648,6 +651,7 @@ export async function renderAmethystPublicAssetResponse(
       headers: {
         'Cache-Control': cacheControl,
         'Content-Type': contentType,
+        ...(pageDataState && String(responseBody).includes('data-server-rendered=') ? { 'x-sparkle-page-data': pageDataState } : {}),
         ...(pantryEmpty ? { 'X-Robots-Tag': EMPTY_PANTRY_ROBOTS } : {}),
       },
     })

@@ -1,0 +1,65 @@
+{
+  "removals": [
+    {
+      "id": "dpl_Czyd9FXC4VJ2ykGSCHB78KMmvUt4",
+      "order": 1,
+      "project": "sparkle-suite",
+      "result": "CLI success: removed one deployment"
+    },
+    {
+      "id": "dpl_DLFp9TpR6AYPUrkeUh2WuBFBFR3G",
+      "order": 2,
+      "project": "sparkle-suite-smoke",
+      "result": "CLI success: removed one deployment"
+    },
+    {
+      "id": "dpl_B86CVEHpXhkCrA6aW8oNyUNTU43r",
+      "order": 3,
+      "project": "sparkle-suite-smoke",
+      "result": "CLI success: removed one deployment"
+    },
+    {
+      "id": "dpl_BQf77goaaYrAyJDMGvwj6KWqhTxs",
+      "order": 4,
+      "project": "sparkle-suite-smoke",
+      "result": "CLI success: removed one deployment"
+    },
+    {
+      "id": "dpl_HshDECTPjwevxWE1F7PbSnZGaycW",
+      "order": 5,
+      "project": "sparkle-suite-smoke",
+      "result": "CLI success: removed one deployment"
+    }
+  ],
+  "domains": [
+    {
+      "url": "https://yoursparklesuite.com",
+      "status": 200,
+      "finalUrl": "https://www.yoursparklesuite.com/"
+    },
+    {
+      "url": "https://sparkle-suite-smoke.vercel.app",
+      "status": 200
+    }
+  ],
+  "preserved": [
+    {
+      "requested": "yoursparklesuite.com",
+      "id": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "sha": "3f175871674e42dbc62d18419318941ea6a49935",
+      "ready": "READY"
+    },
+    {
+      "requested": "sparkle-suite-smoke.vercel.app",
+      "id": "dpl_FD4TYQgPLe6UB8cE1zYgqyuJsV4Z",
+      "sha": "22ba7df60b651e756568bb3a75c0910fcf6a12c5",
+      "ready": "READY"
+    },
+    {
+      "requested": "dpl_FR1uJtcKBdNkrMZJLEG6nsriufKn",
+      "id": "dpl_FR1uJtcKBdNkrMZJLEG6nsriufKn",
+      "sha": "e78fa626c443124ba11725dc93d32e859985ffa4",
+      "ready": "READY"
+    }
+  ]
+}

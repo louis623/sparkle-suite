@@ -1,0 +1,10 @@
+M	app/api/amethyst/homepage-template/route.ts
+M	lib/amethyst/homepage-bootstrap-response.ts
+M	lib/amethyst/homepage-data-budget.ts
+M	lib/amethyst/public-asset-response.ts
+M	lib/amethyst/v2/homepage.jsx
+M	public/amethyst/compiled/homepage.js
+A	scripts/qa/deferred-homepage.cjs
+A	tests/amethyst-deferred-placeholder.test.ts
+A	vault/2026-10-27-ssr-chunk1-pass4/full-suite-comparison.json
+A	vault/2026-10-27-ssr-chunk1-pass4/predeployment.md

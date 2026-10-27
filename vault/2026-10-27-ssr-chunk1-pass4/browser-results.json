@@ -1,0 +1,970 @@
+{
+  "base": "https://sparkle-suite-smoke-cixlj4pu1-louis-2849s-projects.vercel.app",
+  "settings": {
+    "profiles": {
+      "desktop": {
+        "width": 1440,
+        "height": 1200,
+        "cpu": 1,
+        "mobile": false
+      },
+      "phone": {
+        "width": 390,
+        "height": 900,
+        "cpu": 4,
+        "mobile": true,
+        "down": 200000,
+        "up": 93750,
+        "latency": 150
+      }
+    },
+    "locale": "en-US",
+    "timeZone": "America/New_York",
+    "cache": "disabled",
+    "delayMs": 5000
+  },
+  "deferred": [
+    {
+      "profile": "desktop",
+      "index": 0,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 3196,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": false,
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [
+          "trades",
+          "calendar-strip",
+          "events",
+          "events"
+        ],
+        "falseCopy": false,
+        "times": [],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 3196,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [],
+        "falseCopy": false,
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "hydrationErrors": [],
+      "swapGeometryUnchanged": true,
+      "deferredPass": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "desktop",
+      "index": 1,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": null,
+        "hydrated": false,
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [
+          "trades",
+          "calendar-strip",
+          "events",
+          "events"
+        ],
+        "falseCopy": false,
+        "times": [],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 1128,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [],
+        "falseCopy": false,
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "hydrationErrors": [],
+      "swapGeometryUnchanged": true,
+      "deferredPass": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "desktop",
+      "index": 2,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 1064,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [
+          "trades",
+          "calendar-strip",
+          "events",
+          "events"
+        ],
+        "falseCopy": false,
+        "times": [],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 1064,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [],
+        "falseCopy": false,
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "hydrationErrors": [],
+      "swapGeometryUnchanged": true,
+      "deferredPass": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "desktop",
+      "index": 3,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 1012,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [
+          "trades",
+          "calendar-strip",
+          "events",
+          "events"
+        ],
+        "falseCopy": false,
+        "times": [],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 1012,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [],
+        "falseCopy": false,
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "hydrationErrors": [],
+      "swapGeometryUnchanged": true,
+      "deferredPass": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "desktop",
+      "index": 4,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 1128,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [
+          "trades",
+          "calendar-strip",
+          "events",
+          "events"
+        ],
+        "falseCopy": false,
+        "times": [],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 1128,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [],
+        "falseCopy": false,
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "hydrationErrors": [],
+      "swapGeometryUnchanged": true,
+      "deferredPass": true,
+      "sanityPass": true
+    }
+  ],
+  "sanity": [
+    {
+      "profile": "desktop",
+      "index": 0,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 9236,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [
+          "trades",
+          "calendar-strip",
+          "events",
+          "events"
+        ],
+        "falseCopy": false,
+        "times": [],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 9236,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [],
+        "falseCopy": false,
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "hydrationErrors": [],
+      "swapGeometryUnchanged": true,
+      "deferredPass": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "desktop",
+      "index": 1,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 3404,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [
+          "trades",
+          "calendar-strip",
+          "events",
+          "events"
+        ],
+        "falseCopy": false,
+        "times": [],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 3404,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [],
+        "falseCopy": false,
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "hydrationErrors": [],
+      "swapGeometryUnchanged": true,
+      "deferredPass": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "desktop",
+      "index": 2,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 18052,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [
+          "trades",
+          "calendar-strip",
+          "events",
+          "events"
+        ],
+        "falseCopy": false,
+        "times": [],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "after": {
+        "cls": 0.00005497685185185185,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 18052,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [],
+        "falseCopy": false,
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "eventGrid": {
+          "top": 1406.859375,
+          "height": 672,
+          "width": 880
+        },
+        "afterEvents": {
+          "top": 2174.859375,
+          "height": 743.875,
+          "width": 1440
+        },
+        "pageHeight": 5363,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "hydrationErrors": [],
+      "swapGeometryUnchanged": true,
+      "deferredPass": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "phone",
+      "index": 0,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 2004,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": false,
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [
+          "trades",
+          "calendar-strip",
+          "events",
+          "events"
+        ],
+        "falseCopy": false,
+        "times": [],
+        "eventGrid": {
+          "top": 1430.921875,
+          "height": 1368,
+          "width": 342
+        },
+        "afterEvents": {
+          "top": 2894.921875,
+          "height": 1390.5625,
+          "width": 390
+        },
+        "pageHeight": 7862,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "after": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 2004,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [],
+        "falseCopy": false,
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "eventGrid": {
+          "top": 1430.921875,
+          "height": 1368,
+          "width": 342
+        },
+        "afterEvents": {
+          "top": 2894.921875,
+          "height": 1390.5625,
+          "width": 390
+        },
+        "pageHeight": 7862,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "hydrationErrors": [],
+      "swapGeometryUnchanged": true,
+      "deferredPass": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "phone",
+      "index": 1,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 1828,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 5
+        },
+        "hydrated": false,
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [
+          "trades",
+          "calendar-strip",
+          "events",
+          "events"
+        ],
+        "falseCopy": false,
+        "times": [],
+        "eventGrid": {
+          "top": 1430.921875,
+          "height": 1368,
+          "width": 342
+        },
+        "afterEvents": {
+          "top": 2894.921875,
+          "height": 1390.5625,
+          "width": 390
+        },
+        "pageHeight": 7862,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "after": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 1828,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 5
+        },
+        "hydrated": true,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [],
+        "falseCopy": false,
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "eventGrid": {
+          "top": 1430.921875,
+          "height": 1368,
+          "width": 342
+        },
+        "afterEvents": {
+          "top": 2894.921875,
+          "height": 1390.5625,
+          "width": 390
+        },
+        "pageHeight": 7862,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "hydrationErrors": [],
+      "swapGeometryUnchanged": true,
+      "deferredPass": true,
+      "sanityPass": true
+    },
+    {
+      "profile": "phone",
+      "index": 2,
+      "errors": [],
+      "consoleErrors": [],
+      "writesBlocked": [],
+      "status": 200,
+      "pageDataHeader": "deferred",
+      "before": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 1988,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": false,
+        "pending": {
+          "events": true,
+          "trades": true
+        },
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [
+          "trades",
+          "calendar-strip",
+          "events",
+          "events"
+        ],
+        "falseCopy": false,
+        "times": [],
+        "eventGrid": {
+          "top": 1430.921875,
+          "height": 1368,
+          "width": 342
+        },
+        "afterEvents": {
+          "top": 2894.921875,
+          "height": 1390.5625,
+          "width": 390
+        },
+        "pageHeight": 7862,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "after": {
+        "cls": 0,
+        "errors": [],
+        "falseEmpty": [],
+        "fcp": {
+          "at": 1988,
+          "ssr": true,
+          "font": "Georgia, \"Times New Roman\", serif",
+          "bodyBackground": "rgb(8, 7, 6)",
+          "styles": 6
+        },
+        "hydrated": true,
+        "pending": null,
+        "ssr": true,
+        "h1": 1,
+        "placeholders": [],
+        "falseCopy": false,
+        "times": [
+          "Tue, Oct 27\n8:00 PM EDT",
+          "Sat, Oct 31\n7:00 PM EDT"
+        ],
+        "eventGrid": {
+          "top": 1430.921875,
+          "height": 1368,
+          "width": 342
+        },
+        "afterEvents": {
+          "top": 2894.921875,
+          "height": 1390.5625,
+          "width": 390
+        },
+        "pageHeight": 7862,
+        "theme": "halloween_pumpkin_cat"
+      },
+      "hydrationErrors": [],
+      "swapGeometryUnchanged": true,
+      "deferredPass": true,
+      "sanityPass": true
+    }
+  ]
+}

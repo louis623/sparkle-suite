@@ -1,3 +1,4 @@
+import { delayPreviewHomepageData, previewHomepageTheme } from '@/lib/amethyst/homepage-data-budget'
 import { buildLineupCalendar } from '@/lib/amethyst/lineup-calendar'
 import { requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
@@ -88,6 +89,7 @@ export async function GET(request: Request) {
   const repId = target.repId ?? target.customDomain
   const targeted = target.targeted
   const publicSiteSlug = target.publicSiteSlug
+  await delayPreviewHomepageData(publicSiteSlug)
   const lookupTarget = {
     ...(publicSiteSlug ? { publicSiteSlug } : {}),
     repId,
@@ -126,12 +128,12 @@ export async function GET(request: Request) {
         appearancePreset: DEFAULT_AMETHYST_APPEARANCE_PRESET,
       }
     : domainTemplateData
-  const customerTemplateData = restrictPantryTemplateData(previewTemplateData, {
+  const customerTemplateData = previewHomepageTheme(restrictPantryTemplateData(previewTemplateData, {
     repId,
     publicSiteSlug,
     customDomain: requestCustomDomain,
     requestHost: pantryRequestHost(request),
-  })
+  }), publicSiteSlug)
   const linkedEvents = applyCustomDomainToHomepageEvents(
     applyPublicSiteSlugToHomepageEvents(events, publicSiteSlug),
     requestCustomDomain,
