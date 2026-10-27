@@ -1,0 +1,13 @@
+# PR description draft — SSR Chunk 1, Pass 3
+
+The allowlisted Fizz Festival homepage had misdecoded punctuation, showed a guessed Eastern time before switching to the visitor's zone, reset an early Play tap during hydration, and could show settings up to 15 seconds after a save. This pass reconstructs the private v2 source from the raw UTF-8 bytes in `b9d707d0`, restores the original source assertion and branch guard, removes the template cache, fills reserved time lines before the first client paint, and keeps the saved still-motion/early-tap state.
+
+Page-data reads still start in parallel with the fresh template. Once the template is ready, optional data has **50 ms** more; completed reads are retained and the existing browser endpoint completes late data. Lineup state is never cached. Late event visibility updates local view state without calling the editor setter or submitting a form.
+
+**PR #154 remains reverted by the standalone commit `8827f151`.** Its Babel/development-React removal cannot ship globally through this chunk. Non-allowlisted reps retain the pinned Live renderer and public JSX; the demo's header remains the Live header. PR #156 is reference-only and is not continued or merged.
+
+Validation includes raw/escaped mojibake checks, next-render saved-setting tests using mocks with no Live writes, bounded parallel-read tests, isolated browser checks for pre-hydration local time and labelled missing-zone fallback, early Play handoff, full-suite comparison by failure name against `8827f151`, and one deployed measurement round. The committed normalizer strips only GA tags, origins, deployment IDs and build hashes; it preserves whitespace, tenant paths, content, query parameters and timestamps.
+
+Deployment scope: the existing preview project only, the approved deployment-only Live data connection, plus a second same-code deployment solely for the empty-allowlist check. No production or Smoke alias change, project settings/environment changes, database writes, signup/favorite/form submission, or post-measurement fixes. Vercel's automatic branch preview alias is provider-generated; immutable deployment URLs are the review targets.
+
+The [completed report](report.md), screenshots and [all deployment environment-variable names](environment-variable-names.md) are saved beside this draft. Response medians passed (+36.5 ms ON vs OFF; 0/60 full-page fallbacks). Observed LCP medians were 2.190 s phone and 1.298 s desktop, with host-contention caveats. Tap latency failed (968 ms max); parity verification matched 152/158. QA observer/coverage limitations are documented. No fixes or deployments followed measurement. This change is not ready to ship.

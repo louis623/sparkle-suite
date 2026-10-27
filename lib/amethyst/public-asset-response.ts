@@ -2,7 +2,6 @@ import { shouldUseRepRenderV2 } from './rep-render-version'
 import { bestEffortHomepage } from './homepage-render-safety'
 import { readFile } from 'node:fs/promises'
 import { forceHomepageRenderFailure } from './homepage-preview-probe'
-import { loadHomepageV2Template } from './homepage-template-cache'
 import { join } from 'node:path'
 
 import {
@@ -563,7 +562,7 @@ export async function renderAmethystPublicAssetResponse(
     const ssrStarted = performance.now()
     const templatePromise =
       page && contentType.startsWith('text/html') && repId
-        ? loadHomepageV2Template(repId, options.publicSiteSlugOverride || '')
+        ? loadAmethystPreviewTemplateData({ repId, publicSiteSlug: options.publicSiteSlugOverride || '' })
         : Promise.resolve(null)
     const bootstrapUrl = new URL('/api/amethyst/homepage-template', requestUrl.origin)
     bootstrapUrl.searchParams.set('c', repId || '')

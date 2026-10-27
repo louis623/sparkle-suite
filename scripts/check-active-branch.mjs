@@ -94,7 +94,6 @@ export function evaluateBranchPolicy({
   if (
     platform === "win32" &&
     !isVercel &&
-    !previewRule?.portable &&
     !(policy.activeLocalWorktrees || [policy.primaryLocalWorktree]).some(
       (allowedWorktree) =>
         normalize(worktree).toLowerCase() ===

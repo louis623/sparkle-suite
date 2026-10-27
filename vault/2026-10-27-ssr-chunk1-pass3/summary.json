@@ -1,0 +1,940 @@
+{
+  "settings": {
+    "profiles": [
+      {
+        "name": "desktop",
+        "width": 1440,
+        "height": 1200,
+        "cpu": 1,
+        "mobile": false
+      },
+      {
+        "name": "phone",
+        "width": 390,
+        "height": 900,
+        "cpu": 4,
+        "mobile": true,
+        "down": 200000,
+        "up": 93750,
+        "latency": 150
+      }
+    ],
+    "performanceRuns": 10,
+    "locale": "en-US",
+    "timeZone": "America/New_York",
+    "visualTimeZones": [
+      "America/New_York",
+      "America/Los_Angeles"
+    ],
+    "offsets": [
+      0,
+      100,
+      200,
+      500,
+      1000,
+      2000
+    ],
+    "inputRunsPerSlot": 5,
+    "responsePairs": 60,
+    "inputMetric": "PerformanceEventTiming.duration only; no dispatch-time latency",
+    "cache": "disabled",
+    "writes": "All browser non-GET/HEAD requests blocked. No forms submitted.",
+    "shop": "Default navigation prevented; native click processing/paint measured."
+  },
+  "response": [
+    {
+      "mode": "ON",
+      "n": 60,
+      "median": 565.4116499999982,
+      "p90": 704.0172999999995,
+      "fallback": 0,
+      "deferred": 14,
+      "garbled": []
+    },
+    {
+      "mode": "OFF",
+      "n": 60,
+      "median": 528.87075,
+      "p90": 654.6175000000003,
+      "fallback": 60,
+      "deferred": 0,
+      "garbled": []
+    }
+  ],
+  "medianDelta": 36.540899999998146,
+  "p90Delta": 49.39979999999923,
+  "performance": [
+    {
+      "profile": "desktop",
+      "n": 10,
+      "lcp": 1298,
+      "lcpValues": [
+        4088,
+        1224,
+        1360,
+        1212,
+        1256,
+        1340,
+        1396,
+        1716,
+        1256,
+        1148
+      ],
+      "cls": 0,
+      "maxCls": 0,
+      "errors": []
+    },
+    {
+      "profile": "phone",
+      "n": 10,
+      "lcp": 2190,
+      "lcpValues": [
+        5524,
+        3692,
+        9276,
+        1768,
+        2000,
+        1760,
+        1936,
+        2032,
+        2348,
+        2392
+      ],
+      "cls": 0,
+      "maxCls": 0,
+      "errors": []
+    }
+  ],
+  "input": [
+    {
+      "profile": "desktop",
+      "name": "Shop",
+      "n": 35,
+      "registered": 34,
+      "missingEntries": 1,
+      "maxEvent": 592,
+      "over200": 15,
+      "hydrationRuns": 5,
+      "hydrationCovered": 4,
+      "errors": []
+    },
+    {
+      "profile": "desktop",
+      "name": "Play/Pause",
+      "n": 35,
+      "registered": 35,
+      "missingEntries": 0,
+      "maxEvent": 472,
+      "over200": 11,
+      "hydrationRuns": 5,
+      "hydrationCovered": 3,
+      "errors": []
+    },
+    {
+      "profile": "phone",
+      "name": "Shop",
+      "n": 35,
+      "registered": 35,
+      "missingEntries": 0,
+      "maxEvent": 968,
+      "over200": 19,
+      "hydrationRuns": 5,
+      "hydrationCovered": 3,
+      "errors": []
+    },
+    {
+      "profile": "phone",
+      "name": "Play/Pause",
+      "n": 35,
+      "registered": 35,
+      "missingEntries": 0,
+      "maxEvent": 664,
+      "over200": 20,
+      "hydrationRuns": 5,
+      "hydrationCovered": 0,
+      "errors": []
+    }
+  ],
+  "parity": [
+    {
+      "prefix": "slug:",
+      "n": 35,
+      "matches": 35,
+      "failures": []
+    },
+    {
+      "prefix": "domain:",
+      "n": 21,
+      "matches": 17,
+      "failures": [
+        {
+          "name": "domain:theblingkitchen.com/",
+          "left": "https://theblingkitchen.com/",
+          "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/customer-site/home?c=theblingkitchen.com",
+          "a": {
+            "status": 200,
+            "ttfb": 621.4683000000659,
+            "hash": "6c8b047d1142aade4f4b93f0fc74b2e189a6587645630e1dafcdeec27e840499",
+            "normalizedHash": "a2d12cff97e8c522d282969ccbcae802fa07899c4b20260e23f3c9fbf7d0dc4c",
+            "etag": null,
+            "location": null,
+            "cache": "MISS",
+            "ssr": false,
+            "deferred": false,
+            "garbled": []
+          },
+          "b": {
+            "status": 200,
+            "ttfb": 1746.871799999848,
+            "hash": "f5fb962ce51d65fbcbeda869210194f02be153298c58038446ad73c49cc562eb",
+            "normalizedHash": "2e9cdf32c28ca3010af46b2c7b8b32414b7ab1f89db7e488a00489d0c1d8bedd",
+            "etag": null,
+            "location": null,
+            "cache": "MISS",
+            "ssr": false,
+            "deferred": false,
+            "garbled": []
+          },
+          "matches": false,
+          "differentAt": 1366,
+          "difference": {
+            "live": "name=\"twitter:image\" content=\"<ORIGIN>/opengraph-image\" />\n<meta name=\"google-site-verification\" content=\"feEZv_CKufx0oSqVev8dMlnlsW_15Huq4MxQ8qflSmo\" />\n<link rel=\"icon\" type=\"image/png\" href=\"<ORIGIN>/icon\" />\n<link re",
+            "preview": "name=\"twitter:image\" content=\"<ORIGIN>/opengraph-image\" />\n<link rel=\"icon\" type=\"image/png\" href=\"<ORIGIN>/icon\" />\n<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"<ORIGIN>/apple-icon\" />\n\n<link rel=\"preconnect\" href"
+          }
+        },
+        {
+          "name": "domain:brisglowtique.com/",
+          "left": "https://brisglowtique.com/",
+          "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/customer-site/home?c=brisglowtique.com",
+          "a": {
+            "status": 200,
+            "ttfb": 491.71200000005774,
+            "hash": "1be82a15b95021f7390645c0cf699c13fc9e5482d9d3b4898098f4a1049bbcfb",
+            "normalizedHash": "01e4c001baa4da248882729a774dd706224b05f337546be4e41219b00fd1cf3f",
+            "etag": null,
+            "location": null,
+            "cache": "MISS",
+            "ssr": false,
+            "deferred": false,
+            "garbled": []
+          },
+          "b": {
+            "status": 200,
+            "ttfb": 407.34129999997094,
+            "hash": "5c7f9bb53253474f8be00b4cd2e5a6c6e62ecef3e6c92652eec204fd8bd13920",
+            "normalizedHash": "5c3f476c294af3badf2953227decdaf9b19360f42833ed7c2de03b02c1534b18",
+            "etag": null,
+            "location": null,
+            "cache": "MISS",
+            "ssr": false,
+            "deferred": false,
+            "garbled": []
+          },
+          "matches": false,
+          "differentAt": 1387,
+          "difference": {
+            "live": "name=\"twitter:image\" content=\"<ORIGIN>/opengraph-image\" />\n<meta name=\"google-site-verification\" content=\"xPwvo7JypLtNV249Kng-6JmVac6hvtMvEVidIDmJmIU\" />\n<link rel=\"icon\" type=\"image/png\" href=\"<ORIGIN>/icon\" />\n<link re",
+            "preview": "name=\"twitter:image\" content=\"<ORIGIN>/opengraph-image\" />\n<link rel=\"icon\" type=\"image/png\" href=\"<ORIGIN>/icon\" />\n<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"<ORIGIN>/apple-icon\" />\n\n<link rel=\"preconnect\" href"
+          }
+        },
+        {
+          "name": "domain:brittwithbling.com/",
+          "left": "https://brittwithbling.com/",
+          "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/customer-site/home?c=brittwithbling.com",
+          "a": {
+            "status": 200,
+            "ttfb": 675.9820999999065,
+            "hash": "0d870373a1e4018187cbce69b5332e45e354bad8cb328e628a8834b25f25c21c",
+            "normalizedHash": "499dc3d38e37f085cdbfd7239f778c612c6f0ddd871066d46cd574050ee184b5",
+            "etag": null,
+            "location": null,
+            "cache": "MISS",
+            "ssr": false,
+            "deferred": false,
+            "garbled": []
+          },
+          "b": {
+            "status": 200,
+            "ttfb": 480.186299999943,
+            "hash": "7e02038531820a9d3adc56ee03f0f517b965f833cdc0087c1c64d54199f6915b",
+            "normalizedHash": "f919ff36c9856ef282d6f28202f70dc7f39e12d6e934b709f47681645f5c90e0",
+            "etag": null,
+            "location": null,
+            "cache": "MISS",
+            "ssr": false,
+            "deferred": false,
+            "garbled": []
+          },
+          "matches": false,
+          "differentAt": 1394,
+          "difference": {
+            "live": "name=\"twitter:image\" content=\"<ORIGIN>/opengraph-image\" />\n<meta name=\"google-site-verification\" content=\"EwFFAo5oMKSJKVrUGtZ0VkA-lSf7TOHCz90dvz7269s\" />\n<link rel=\"icon\" type=\"image/png\" href=\"<ORIGIN>/icon\" />\n<link re",
+            "preview": "name=\"twitter:image\" content=\"<ORIGIN>/opengraph-image\" />\n<link rel=\"icon\" type=\"image/png\" href=\"<ORIGIN>/icon\" />\n<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"<ORIGIN>/apple-icon\" />\n\n<link rel=\"preconnect\" href"
+          }
+        },
+        {
+          "name": "domain:sparklybutterflies.com/",
+          "left": "https://sparklybutterflies.com/",
+          "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/customer-site/home?c=sparklybutterflies.com",
+          "a": {
+            "status": 200,
+            "ttfb": 608.2697999998927,
+            "hash": "a9c2fc3ca2a9f948454c5fbb6d1fc0a646dec6ccc7f6ad3dda9fe6bd87c8de01",
+            "normalizedHash": "b2d17cf0322a0c048239a14c702eca5334b63962eeb02f328939e471ce38c556",
+            "etag": null,
+            "location": null,
+            "cache": "MISS",
+            "ssr": false,
+            "deferred": false,
+            "garbled": []
+          },
+          "b": {
+            "status": 200,
+            "ttfb": 555.0175000000745,
+            "hash": "1b9b8d860c892c6b2b3119893dbf1788994c18a82b49d7d11d071b5d1cdc9d38",
+            "normalizedHash": "c9b82c719359346cd7f0c2d4eda80d6723aa05b2fc24d3783f5d50dd7d903f89",
+            "etag": null,
+            "location": null,
+            "cache": "MISS",
+            "ssr": false,
+            "deferred": false,
+            "garbled": []
+          },
+          "matches": false,
+          "differentAt": 1415,
+          "difference": {
+            "live": "name=\"twitter:image\" content=\"<ORIGIN>/opengraph-image\" />\n<meta name=\"google-site-verification\" content=\"ivgAtlhf8_GUt8ES7nXdqvJSZbHi6AGwp3dUdmio9aA\" />\n<link rel=\"icon\" type=\"image/png\" href=\"<ORIGIN>/icon\" />\n<link re",
+            "preview": "name=\"twitter:image\" content=\"<ORIGIN>/opengraph-image\" />\n<link rel=\"icon\" type=\"image/png\" href=\"<ORIGIN>/icon\" />\n<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"<ORIGIN>/apple-icon\" />\n\n<link rel=\"preconnect\" href"
+          }
+        }
+      ]
+    },
+    {
+      "prefix": "domain-renderer:",
+      "n": 21,
+      "matches": 21,
+      "failures": []
+    },
+    {
+      "prefix": "skin:",
+      "n": 56,
+      "matches": 56,
+      "failures": []
+    },
+    {
+      "prefix": "community:",
+      "n": 11,
+      "matches": 11,
+      "failures": []
+    },
+    {
+      "prefix": "gnome:",
+      "n": 5,
+      "matches": 5,
+      "failures": []
+    }
+  ],
+  "otherParity": [
+    {
+      "name": "/",
+      "left": "https://www.yoursparklesuite.com/",
+      "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/",
+      "a": {
+        "status": 200,
+        "ttfb": 2823.556399999885,
+        "hash": "232ddaa904ee40d95cbe7edd4a5e2a3c8ffc5d57f5fb875beaba749550e41995",
+        "normalizedHash": "fdff0e1efe5192f17c64a09fec22dfaa7e1cd726a610f9a47e96e35e33093a16",
+        "etag": null,
+        "location": null,
+        "cache": "MISS",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "b": {
+        "status": 200,
+        "ttfb": 3075.81389999995,
+        "hash": "2daa79546d621d3713b70cbd83286d9b083539835f182b321692e13b5bca5d7f",
+        "normalizedHash": "750492c2e833fb60abc0fb5847d93ba4da830eb5686a57165f9e1bf1e8421002",
+        "etag": null,
+        "location": null,
+        "cache": "MISS",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "matches": false,
+      "differentAt": 629,
+      "difference": {
+        "live": "\"image\"/><link rel=\"stylesheet\" href=\"/_next/static/chunks/0n8bbz5plj2v~.css?dpl=<DEPLOYMENT_ID>\" data-precedence=\"next\"/><link rel=\"stylesheet\" href=\"/_next/static/chunks/0v1~80drx2s5r.css?dpl=<DEPLOYMENT_ID>\" data-prec",
+        "preview": "\"image\"/><link rel=\"stylesheet\" href=\"/_next/static/chunks/0v.fajp3r5_lf.css?dpl=<DEPLOYMENT_ID>\" data-precedence=\"next\"/><link rel=\"stylesheet\" href=\"/_next/static/chunks/0v1~80drx2s5r.css?dpl=<DEPLOYMENT_ID>\" data-prec"
+      }
+    },
+    {
+      "name": "/demo",
+      "left": "https://www.yoursparklesuite.com/demo",
+      "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/demo",
+      "a": {
+        "status": 301,
+        "ttfb": 60.48379999981262,
+        "hash": "7c040f8633b8823d72ed63da9b3b2dfe9846e912c66a64c9433ec9c4815d76c2",
+        "normalizedHash": "7c040f8633b8823d72ed63da9b3b2dfe9846e912c66a64c9433ec9c4815d76c2",
+        "etag": null,
+        "location": "/#watch",
+        "cache": null,
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "b": {
+        "status": 301,
+        "ttfb": 78.20380000001751,
+        "hash": "7c040f8633b8823d72ed63da9b3b2dfe9846e912c66a64c9433ec9c4815d76c2",
+        "normalizedHash": "7c040f8633b8823d72ed63da9b3b2dfe9846e912c66a64c9433ec9c4815d76c2",
+        "etag": null,
+        "location": "/#watch",
+        "cache": null,
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "matches": true,
+      "differentAt": -1
+    },
+    {
+      "name": "/api/public/landing-demo/preview",
+      "left": "https://www.yoursparklesuite.com/api/public/landing-demo/preview",
+      "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/api/public/landing-demo/preview",
+      "a": {
+        "status": 200,
+        "ttfb": 337.4165000000503,
+        "hash": "f060c6755df43eb151ff231ff918228ee9d53d4d5693fec5056999314efddba6",
+        "normalizedHash": "4f8d57fc3fa407f8349770702a5f82b7e3e460e5bb78de8a39db5105fff6367f",
+        "etag": null,
+        "location": null,
+        "cache": "MISS",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "b": {
+        "status": 200,
+        "ttfb": 445.50680000009015,
+        "hash": "c048f4e9e4108c769cff6a9417debfdd397809a70bfe5c476a9a31bbf9cca40a",
+        "normalizedHash": "4f8d57fc3fa407f8349770702a5f82b7e3e460e5bb78de8a39db5105fff6367f",
+        "etag": null,
+        "location": null,
+        "cache": "MISS",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "matches": true,
+      "differentAt": -1
+    },
+    {
+      "name": "/portfolio",
+      "left": "https://www.yoursparklesuite.com/portfolio",
+      "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/portfolio",
+      "a": {
+        "status": 200,
+        "ttfb": 103.9969000001438,
+        "hash": "775644fa6e45049e63c23d63462e502c8c4d8e2c9cbc6831c8f71daf17c6783a",
+        "normalizedHash": "92b8b34837d013d6b6bb406a29e71c76c9e597c282b61d514fae47d1a9e9394c",
+        "etag": "W/\"6cec7c4abc8299ab01ab3cb547f47f57\"",
+        "location": null,
+        "cache": "HIT",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "b": {
+        "status": 200,
+        "ttfb": 176.60800000000745,
+        "hash": "b5884bfc27ddccc764b68f0f41b19a6df98d3f9fc1d677e743261647ff7df24f",
+        "normalizedHash": "c9d6b33e90be43d26603951a12c2eb4248f2ba2193e396bf7b3cfe8933b2c13a",
+        "etag": "W/\"d1b52f795dc14cd896ebecafec6bd1ca\"",
+        "location": null,
+        "cache": "PRERENDER",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "matches": false,
+      "differentAt": 1341,
+      "difference": {
+        "live": "\"image\"/><link rel=\"stylesheet\" href=\"/_next/static/chunks/0n8bbz5plj2v~.css?dpl=<DEPLOYMENT_ID>\" data-precedence=\"next\"/><link rel=\"stylesheet\" href=\"/_next/static/chunks/0v1~80drx2s5r.css?dpl=<DEPLOYMENT_ID>\" data-prec",
+        "preview": "\"image\"/><link rel=\"stylesheet\" href=\"/_next/static/chunks/0v.fajp3r5_lf.css?dpl=<DEPLOYMENT_ID>\" data-precedence=\"next\"/><link rel=\"stylesheet\" href=\"/_next/static/chunks/0v1~80drx2s5r.css?dpl=<DEPLOYMENT_ID>\" data-prec"
+      }
+    },
+    {
+      "name": "/marketing/chasing-unicorns",
+      "left": "https://www.yoursparklesuite.com/marketing/chasing-unicorns",
+      "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/marketing/chasing-unicorns",
+      "a": {
+        "status": 200,
+        "ttfb": 291.341999999946,
+        "hash": "ba7ad0df15effd642ec9802656167e05ba665d14f8ee53eacb3f6bcabe226924",
+        "normalizedHash": "44ee3dd9e7a30c25c32e2a44aa9e26ce45dbe9e9ce831cc033e1ce6bed836c3b",
+        "etag": null,
+        "location": null,
+        "cache": "MISS",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "b": {
+        "status": 200,
+        "ttfb": 108.61300000012852,
+        "hash": "68d332f9440a8de8e9f5aabbbf285a4f23ab903ecd315818e4289a13bf6c43a5",
+        "normalizedHash": "44ee3dd9e7a30c25c32e2a44aa9e26ce45dbe9e9ce831cc033e1ce6bed836c3b",
+        "etag": null,
+        "location": null,
+        "cache": "MISS",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "matches": true,
+      "differentAt": -1
+    },
+    {
+      "name": "/amethyst/homepage.jsx",
+      "left": "https://www.yoursparklesuite.com/amethyst/homepage.jsx",
+      "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/amethyst/homepage.jsx",
+      "a": {
+        "status": 200,
+        "ttfb": 61.750800000038,
+        "hash": "49aa1ecae1229427f953adea0b79f3b270ea45e5a36d767397cd20533c35f15a",
+        "normalizedHash": "f9ac30be7284f175e1763ba28f5e426054a4cd24fd9c1cee24f7503bff8facdb",
+        "etag": "W/\"55be92b32870a75a6a96f6f9d4dbf180\"",
+        "location": null,
+        "cache": "HIT",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "b": {
+        "status": 200,
+        "ttfb": 55.585399999981746,
+        "hash": "49aa1ecae1229427f953adea0b79f3b270ea45e5a36d767397cd20533c35f15a",
+        "normalizedHash": "f9ac30be7284f175e1763ba28f5e426054a4cd24fd9c1cee24f7503bff8facdb",
+        "etag": "W/\"55be92b32870a75a6a96f6f9d4dbf180\"",
+        "location": null,
+        "cache": "HIT",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "matches": true,
+      "differentAt": -1
+    },
+    {
+      "name": "/amethyst/%68omepage.jsx",
+      "left": "https://www.yoursparklesuite.com/amethyst/%68omepage.jsx",
+      "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/amethyst/%68omepage.jsx",
+      "a": {
+        "status": 200,
+        "ttfb": 76.18889999995008,
+        "hash": "49aa1ecae1229427f953adea0b79f3b270ea45e5a36d767397cd20533c35f15a",
+        "normalizedHash": "f9ac30be7284f175e1763ba28f5e426054a4cd24fd9c1cee24f7503bff8facdb",
+        "etag": "W/\"55be92b32870a75a6a96f6f9d4dbf180\"",
+        "location": null,
+        "cache": "HIT",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "b": {
+        "status": 200,
+        "ttfb": 216.79260000004433,
+        "hash": "49aa1ecae1229427f953adea0b79f3b270ea45e5a36d767397cd20533c35f15a",
+        "normalizedHash": "f9ac30be7284f175e1763ba28f5e426054a4cd24fd9c1cee24f7503bff8facdb",
+        "etag": "W/\"55be92b32870a75a6a96f6f9d4dbf180\"",
+        "location": null,
+        "cache": "HIT",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "matches": true,
+      "differentAt": -1
+    },
+    {
+      "name": "/amethyst/homepage%2Ejsx",
+      "left": "https://www.yoursparklesuite.com/amethyst/homepage%2Ejsx",
+      "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/amethyst/homepage%2Ejsx",
+      "a": {
+        "status": 200,
+        "ttfb": 65.0977000000421,
+        "hash": "49aa1ecae1229427f953adea0b79f3b270ea45e5a36d767397cd20533c35f15a",
+        "normalizedHash": "f9ac30be7284f175e1763ba28f5e426054a4cd24fd9c1cee24f7503bff8facdb",
+        "etag": "W/\"55be92b32870a75a6a96f6f9d4dbf180\"",
+        "location": null,
+        "cache": "HIT",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "b": {
+        "status": 200,
+        "ttfb": 94.23160000005737,
+        "hash": "49aa1ecae1229427f953adea0b79f3b270ea45e5a36d767397cd20533c35f15a",
+        "normalizedHash": "f9ac30be7284f175e1763ba28f5e426054a4cd24fd9c1cee24f7503bff8facdb",
+        "etag": "W/\"55be92b32870a75a6a96f6f9d4dbf180\"",
+        "location": null,
+        "cache": "HIT",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "matches": true,
+      "differentAt": -1
+    },
+    {
+      "name": "/%61methyst/homepage.jsx",
+      "left": "https://www.yoursparklesuite.com/%61methyst/homepage.jsx",
+      "right": "https://sparkle-suite-smoke-6vbqvxhoy-louis-2849s-projects.vercel.app/%61methyst/homepage.jsx",
+      "a": {
+        "status": 200,
+        "ttfb": 59.364000000059605,
+        "hash": "49aa1ecae1229427f953adea0b79f3b270ea45e5a36d767397cd20533c35f15a",
+        "normalizedHash": "f9ac30be7284f175e1763ba28f5e426054a4cd24fd9c1cee24f7503bff8facdb",
+        "etag": "W/\"55be92b32870a75a6a96f6f9d4dbf180\"",
+        "location": null,
+        "cache": "HIT",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "b": {
+        "status": 200,
+        "ttfb": 62.83810000005178,
+        "hash": "49aa1ecae1229427f953adea0b79f3b270ea45e5a36d767397cd20533c35f15a",
+        "normalizedHash": "f9ac30be7284f175e1763ba28f5e426054a4cd24fd9c1cee24f7503bff8facdb",
+        "etag": "W/\"55be92b32870a75a6a96f6f9d4dbf180\"",
+        "location": null,
+        "cache": "HIT",
+        "ssr": false,
+        "deferred": false,
+        "garbled": []
+      },
+      "matches": true,
+      "differentAt": -1
+    }
+  ],
+  "fallback": [
+    {
+      "off": {
+        "status": 200,
+        "hash": "7b2ba1da9351df549418fd2d1a66d223b7035684ad899884fdc022d148f1a271",
+        "ssr": false
+      },
+      "forced": {
+        "status": 200,
+        "hash": "7b2ba1da9351df549418fd2d1a66d223b7035684ad899884fdc022d148f1a271",
+        "ssr": false
+      },
+      "matches": true
+    }
+  ],
+  "source": [
+    {
+      "route": "/amethyst/compiled/homepage.js",
+      "status": 200,
+      "ttfb": 172.79300000000512,
+      "hash": "165d6003fcc68f5274cd521ca1e1f0c3f378b69527e32bd1f4ba9210a17a8f57",
+      "normalizedHash": "488f69ddef70183c29a24e12cf93d346aa6fe5ae9940896150ca08283c901767",
+      "etag": "W/\"acd662637f2a2384473f06853975dba0\"",
+      "location": null,
+      "cache": "MISS",
+      "ssr": false,
+      "deferred": true,
+      "garbled": []
+    },
+    {
+      "route": "/amethyst/homepage.jsx",
+      "status": 200,
+      "ttfb": 216.93940000000293,
+      "hash": "49aa1ecae1229427f953adea0b79f3b270ea45e5a36d767397cd20533c35f15a",
+      "normalizedHash": "f9ac30be7284f175e1763ba28f5e426054a4cd24fd9c1cee24f7503bff8facdb",
+      "etag": "W/\"55be92b32870a75a6a96f6f9d4dbf180\"",
+      "location": null,
+      "cache": "MISS",
+      "ssr": false,
+      "deferred": false,
+      "garbled": []
+    }
+  ],
+  "pacific": [
+    {
+      "profile": "desktop",
+      "phase": "before-hydration",
+      "times": [
+        "Tue, Oct 27",
+        "5:00 PM PDT",
+        "Fri, Oct 30",
+        "5:00 AM PDT"
+      ],
+      "hydrated": null,
+      "hydrationStart": null,
+      "cls": 0,
+      "hasEastern": false,
+      "hasPacific": true
+    },
+    {
+      "profile": "desktop",
+      "phase": "final",
+      "times": [
+        "Tue, Oct 27",
+        "5:00 PM PDT",
+        "Fri, Oct 30",
+        "5:00 AM PDT"
+      ],
+      "hydrated": 5485,
+      "hydrationStart": 5352,
+      "cls": 0,
+      "hasEastern": false,
+      "hasPacific": true
+    },
+    {
+      "profile": "phone",
+      "phase": "before-hydration",
+      "times": [
+        "Tue, Oct 27",
+        "5:00 PM PDT",
+        "Fri, Oct 30",
+        "5:00 AM PDT"
+      ],
+      "hydrated": null,
+      "hydrationStart": null,
+      "cls": 0,
+      "hasEastern": false,
+      "hasPacific": true
+    },
+    {
+      "profile": "phone",
+      "phase": "final",
+      "times": [
+        "Tue, Oct 27",
+        "5:00 PM PDT",
+        "Fri, Oct 30",
+        "5:00 AM PDT"
+      ],
+      "hydrated": 5738.599999997765,
+      "hydrationStart": 5521.699999999255,
+      "cls": 0,
+      "hasEastern": false,
+      "hasPacific": true
+    }
+  ],
+  "previewNavigations": 164,
+  "hydrationErrors": [],
+  "pageErrors": [
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function",
+    "window.qaFirstPaint is not a function"
+  ],
+  "h1Counts": [
+    1
+  ],
+  "stillStates": [
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    },
+    {
+      "saved": "still",
+      "button": "Play animation",
+      "pressed": "false",
+      "paused": true,
+      "time": 0,
+      "muted": true,
+      "playingAudio": 0
+    }
+  ]
+}

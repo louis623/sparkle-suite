@@ -1,0 +1,11 @@
+{
+  "reportImageProcessing": {
+    "knownOverlap": true,
+    "firstPhoneRun": 0,
+    "firstPhoneNavigationUtc": "2026-10-27T16:27:50.585Z",
+    "processingLastArtifactWrittenUtc": "2026-10-27T16:28:00.185Z",
+    "overlapAfterNavigationMilliseconds": 9600.7900390625,
+    "action": "All ten samples retained; no rerun and no additional deployment. No more background compositing until the measurement round ends."
+  },
+  "browserOriginField": "The numeric origin field is performance.timeOrigin. Visual attribution uses screenshot names, SSR markers and the fixed run order."
+}

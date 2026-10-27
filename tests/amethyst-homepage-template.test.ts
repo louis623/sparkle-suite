@@ -31,7 +31,7 @@ describe('Amethyst homepage template data wiring', () => {
       expect(source).not.toContain('Update delayed')
       expect(source).toContain('className="hp-trade-preview-updated"')
       expect(source).toContain('Updating · Last update ')
-      expect(source).toMatch(/new Date\(updatedAt\)\.toLocaleTimeString|homepageDateLabel\(updatedAt/)
+      expect(source).toContain("new Date(updatedAt).toLocaleTimeString")
       expect(source).toMatch(
         /className="hp-trade-preview-items"[\s\S]*?className="hp-trade-preview-link"[\s\S]*?<LiveLineupUpdatedAt lineup=\{lineup\} \/>/,
       )

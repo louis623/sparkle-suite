@@ -30,8 +30,11 @@ it('renders each saved event zone and saved still motion', async () => {
   const data = { ...homepage, heroMotion: 'still' }
   const bootstrap = buildAmethystHomepageBootstrapScript(data, events, 'halloween_pumpkin_cat', { targeted: true })
   const html = await renderHomepageFirstPaint(readFileSync('public/amethyst/Homepage.html','utf8'), { homepage: data, join, trade, appearancePreset: 'halloween_pumpkin_cat' }, new URL('https://example.test/dudesfizzfest'), bootstrap)
-  expect(html).toContain('4:00 PM EDT')
-  expect(html).toContain('1:00 PM PDT')
+  expect(html).toContain('data-sparkle-local-time="true"')
+  expect(html).toContain('data-time-zone="America/New_York"')
+  expect(html).toContain('data-time-zone="America/Los_Angeles"')
+  expect(html).not.toContain('4:00 PM EDT')
+  expect(html).not.toContain('1:00 PM PDT')
   expect(html).toContain('aria-pressed="false">Play animation')
   expect(html).toContain('data-hero-motion="off"')
 })
@@ -48,9 +51,10 @@ it('fault probe is impossible on production or the Live project', () => {
   vi.stubEnv('VERCEL_PROJECT_ID', 'prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3')
   expect(forceHomepageRenderFailure(request)).toBe(false)
 })
-it('allows portable clones but only the approved preview deployment project', () => {
+it('requires an approved Windows workbench and the approved preview deployment project', () => {
   const context = { branch: 'codex/ssr-chunk1-fizzfest-home', remoteRepository: 'louis623/sparkle-suite', worktree: 'D:/disposable/verified-clone', platform: 'win32' }
-  expect(evaluateBranchPolicy(context)).toEqual([])
+  expect(evaluateBranchPolicy(context)).not.toEqual([])
+  expect(evaluateBranchPolicy({ ...context, platform: "linux" })).toEqual([])
   expect(evaluateBranchPolicy({ ...context, isVercel: true, deploymentEnvironment: 'preview', deploymentProjectId: 'prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3' })).not.toEqual([])
   expect(evaluateBranchPolicy({ ...context, isVercel: true, deploymentEnvironment: 'preview', deploymentProjectId: 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ' })).toEqual([])
 })

@@ -4,7 +4,6 @@ import { defaultAmethystHomepageTemplateData as homepage } from '@/lib/amethyst/
 import { defaultAmethystJoinTemplateData as join } from '@/lib/amethyst/join-template-data'
 import { defaultAmethystTradeTemplateData as trade } from '@/lib/amethyst/trade-template-data'
 const mocks = vi.hoisted(() => ({ bootstrap: vi.fn(), render: vi.fn(), template: vi.fn() }))
-vi.mock('@/lib/amethyst/homepage-template-cache', () => ({ loadHomepageV2Template: (...args: unknown[]) => mocks.template(...args) }))
 vi.mock('@/lib/amethyst/homepage-bootstrap-response', () => ({ buildHomepageBootstrapResponse: mocks.bootstrap }))
 vi.mock('@/lib/amethyst/homepage-first-paint', () => ({ renderHomepageFirstPaint: mocks.render }))
 vi.mock('@/lib/amethyst/preview-template-data', () => ({ loadAmethystPreviewTemplateData: (...args: unknown[]) => mocks.template(...args) }))
@@ -16,7 +15,7 @@ const request = () => new Request('https://www.yoursparklesuite.com/dudesfizzfes
 beforeEach(() => {
   vi.stubEnv('REP_RENDER_V2_SLUGS', 'dudesfizzfest')
   mocks.template.mockReset().mockResolvedValue({ appearancePreset: 'halloween_pumpkin_cat', homepage, join, trade })
-  mocks.bootstrap.mockReset().mockResolvedValue(new Response('window.QA=true;'))
+  mocks.bootstrap.mockReset().mockImplementation(async () => new Response('window.QA=true;'))
   mocks.render.mockReset().mockImplementation(async html => html.replace('id="root"', 'id="root" data-server-rendered="true"'))
 })
 afterEach(() => vi.unstubAllEnvs())
@@ -57,4 +56,16 @@ it.each(['milehighfizz', 'brisglowtique', 'goforthebling', 'brittwithbling', 'th
   const expected = await (await frozenLive(req, ['Homepage.html'], opts)).text()
   expect(hash(actual)).toBe(hash(expected))
   expect(mocks.render).not.toHaveBeenCalled()
+})
+
+it('reflects a changed saved setting on the very next render without a template cache', async () => {
+  mocks.template.mockResolvedValueOnce({ appearancePreset: 'halloween_pumpkin_cat', homepage: { ...homepage, businessName: 'Before save' }, join, trade })
+  const before = await (await renderAmethystPublicAssetResponse(request(), ['Homepage.html'], options)).text()
+  mocks.template.mockResolvedValueOnce({ appearancePreset: 'halloween_pumpkin_cat', homepage: { ...homepage, businessName: 'After save' }, join, trade })
+  const after = await (await renderAmethystPublicAssetResponse(request(), ['Homepage.html'], options)).text()
+  expect(before).toContain('Before save')
+  expect(after).toContain('After save')
+  expect(after).not.toContain('Before save')
+  expect(mocks.template).toHaveBeenCalledTimes(2)
+  expect(mocks.render.mock.calls[1][1].homepage.businessName).toBe('After save')
 })

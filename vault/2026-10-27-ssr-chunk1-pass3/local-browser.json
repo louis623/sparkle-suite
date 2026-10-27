@@ -1,0 +1,101 @@
+[
+  {
+    "timezoneId": "America/New_York",
+    "earlyClick": false,
+    "before": [
+      "Tue, Oct 274:00 PM EDT",
+      "Tue, Oct 274:00 PM EDT"
+    ],
+    "after": [
+      "Tue, Oct 274:00 PM EDT",
+      "Tue, Oct 274:00 PM EDT"
+    ],
+    "labels": [
+      "Play animation"
+    ],
+    "errors": []
+  },
+  {
+    "timezoneId": "America/New_York",
+    "earlyClick": true,
+    "before": [
+      "Tue, Oct 274:00 PM EDT",
+      "Tue, Oct 274:00 PM EDT"
+    ],
+    "after": [
+      "Tue, Oct 274:00 PM EDT",
+      "Tue, Oct 274:00 PM EDT"
+    ],
+    "labels": [
+      "Play animation",
+      "Pause animation"
+    ],
+    "errors": []
+  },
+  {
+    "timezoneId": "America/Los_Angeles",
+    "earlyClick": false,
+    "before": [
+      "Tue, Oct 271:00 PM PDT",
+      "Tue, Oct 271:00 PM PDT"
+    ],
+    "after": [
+      "Tue, Oct 271:00 PM PDT",
+      "Tue, Oct 271:00 PM PDT"
+    ],
+    "labels": [
+      "Play animation"
+    ],
+    "errors": []
+  },
+  {
+    "timezoneId": "America/Los_Angeles",
+    "earlyClick": true,
+    "before": [
+      "Tue, Oct 271:00 PM PDT",
+      "Tue, Oct 271:00 PM PDT"
+    ],
+    "after": [
+      "Tue, Oct 271:00 PM PDT",
+      "Tue, Oct 271:00 PM PDT"
+    ],
+    "labels": [
+      "Play animation",
+      "Pause animation"
+    ],
+    "errors": []
+  },
+  {
+    "timezoneId": "unavailable",
+    "earlyClick": false,
+    "before": [
+      "Tue, Oct 27 (event time zone: America/New_York)4:00 PM EDT (event time zone: America/New_York)",
+      "Tue, Oct 27 (event time zone: America/Los_Angeles)1:00 PM PDT (event time zone: America/Los_Angeles)"
+    ],
+    "after": [
+      "Tue, Oct 27 (event time zone: America/New_York)4:00 PM EDT (event time zone: America/New_York)",
+      "Tue, Oct 27 (event time zone: America/Los_Angeles)1:00 PM PDT (event time zone: America/Los_Angeles)"
+    ],
+    "labels": [
+      "Play animation"
+    ],
+    "errors": []
+  },
+  {
+    "timezoneId": "unavailable",
+    "earlyClick": true,
+    "before": [
+      "Tue, Oct 27 (event time zone: America/New_York)4:00 PM EDT (event time zone: America/New_York)",
+      "Tue, Oct 27 (event time zone: America/Los_Angeles)1:00 PM PDT (event time zone: America/Los_Angeles)"
+    ],
+    "after": [
+      "Tue, Oct 27 (event time zone: America/New_York)4:00 PM EDT (event time zone: America/New_York)",
+      "Tue, Oct 27 (event time zone: America/Los_Angeles)1:00 PM PDT (event time zone: America/Los_Angeles)"
+    ],
+    "labels": [
+      "Play animation",
+      "Pause animation"
+    ],
+    "errors": []
+  }
+]

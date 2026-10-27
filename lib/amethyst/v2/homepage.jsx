@@ -1,13 +1,26 @@
 /* global React, ReactDOM */
 const { useState, useEffect, useMemo, useRef } = React;
 
-const HomepageClockContext = React.createContext(Boolean(window.SPARKLE_FIRST_PAINT));
-function homepageDateLabel(value, options, serverClock, savedTimeZone) {
-  return new Intl.DateTimeFormat(serverClock ? 'en-US' : undefined, {
-    ...options,
-    timeZone: serverClock ? (savedTimeZone || window.SPARKLE_FIRST_PAINT?.timeZone || 'UTC') : undefined,
-  }).format(new Date(value));
+const homepageDateFormatters = new Map();
+const HomepageClockContext = React.createContext(Boolean(window.SPARKLE_FIRST_PAINT?.serverClock));
+function homepageDateLabel(value, options, savedTimeZone) {
+  if (window.sparkleFormatLocalTime) return window.sparkleFormatLocalTime(value, options, savedTimeZone);
+  const key = JSON.stringify([options, savedTimeZone]);
+  let formatter = homepageDateFormatters.get(key);
+  if (!formatter) { formatter = new Intl.DateTimeFormat('en-US', { ...options, timeZone: savedTimeZone || 'UTC' }); homepageDateFormatters.set(key, formatter); }
+  return formatter.format(new Date(value));
 }
+function LocalTime({ value, options, timeZone = 'UTC' }) {
+  const serverClock = React.useContext(HomepageClockContext);
+  const label = serverClock ? '\u00a0' : homepageDateLabel(value, options, timeZone);
+  return <span data-time-value={new Date(value).toISOString()} data-sparkle-local-time="true"
+    data-time-options={JSON.stringify(options)} data-time-zone={timeZone}
+    title={serverClock ? undefined : label}
+    style={{ display: 'inline-block', minHeight: '1.4em', lineHeight: '1.4', visibility: serverClock ? 'hidden' : 'visible' }}>{label}</span>;
+}
+
+
+const homepageEventTimeZones = new Map();
 
 // Read tweaks panel components from the global scope (loaded from tweaks-panel.jsx)
 const {
@@ -29,7 +42,7 @@ function responsiveRepImage(src, options) {
 }
 
 // ============================================================
-// Default tweak values â€” wrapped in EDITMODE markers for persistence
+// Default tweak values — wrapped in EDITMODE markers for persistence
 // ============================================================
 // Tweak defaults are bootstrapped from the Next app so the locked export can
 // read structured rep data without changing layout or motion behavior.
@@ -464,13 +477,12 @@ function getContentLiveQueueState() {
 
 const LiveLineupContext = React.createContext(null);
 function LiveLineupStatus() {
-  const serverClock = React.useContext(HomepageClockContext);
   const lineup = React.useContext(LiveLineupContext);
   if (!lineup) return null;
   const updated = Date.parse(lineup.liveQueueLastUpdated);
   if (!Number.isFinite(updated)) return null;
   return <p className="hp-lineup-status">
-    Updated {homepageDateLabel(updated, { hour: 'numeric', minute: '2-digit' }, serverClock)}
+    Updated <LocalTime value={updated} options={{ hour: "numeric", minute: "2-digit" }} timeZone={window.AMETHYST_HOMEPAGE_EVENTS?.[0]?.timeZone} />
   </p>;
 }
 
@@ -482,9 +494,9 @@ function LiveLineupUpdatedAt({ lineup }) {
     <time
       className="hp-trade-preview-updated"
       dateTime={new Date(updatedAt).toISOString()}
-      title={homepageDateLabel(updatedAt, { dateStyle: "short", timeStyle: "medium" }, serverClock)}
+      title={serverClock ? undefined : homepageDateLabel(updatedAt, { dateStyle: "short", timeStyle: "medium" }, window.AMETHYST_HOMEPAGE_EVENTS?.[0]?.timeZone)}
     >
-      {lineup?.liveQueueState === "delayed" ? "Updating Â· Last update " : "Updated "}{homepageDateLabel(updatedAt, { hour: "numeric", minute: "2-digit" }, serverClock)}
+      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}<LocalTime value={updatedAt} options={{ hour: "numeric", minute: "2-digit" }} timeZone={window.AMETHYST_HOMEPAGE_EVENTS?.[0]?.timeZone} />
     </time>
   );
 }
@@ -792,7 +804,7 @@ function LRQRail({ state }) {
             <span className="live-dot" />
             Live Lineup
           </div>
-          <div style={{ fontSize: 13, color: "var(--fg-muted)" }}>Loading lineupâ€¦</div>
+          <div style={{ fontSize: 13, color: "var(--fg-muted)" }}>Loading lineup…</div>
         </div>
       </div>
     );
@@ -805,7 +817,7 @@ function LRQRail({ state }) {
             <span className="live-dot" />
             Live Lineup
           </div>
-          <div style={{ fontSize: 13, color: "var(--fg)", fontWeight: 600 }}>âœ¦ Ready to Reveal! âœ¦</div>
+          <div style={{ fontSize: 13, color: "var(--fg)", fontWeight: 600 }}>✦ Ready to Reveal! ✦</div>
         </div>
       </div>
     );
@@ -868,7 +880,7 @@ function GnomeGardenScene() {
 
 // Same approved Pumpkin Cat art and control, now present in the server tree.
 function PumpkinCatScene({ motion }) {
-  const [wanted, setWanted] = useState(() => !["still", "none"].includes(motion));
+  const [wanted, setWanted] = useState(() => window.sparkleEarlyMotion?.() ?? !["still", "none"].includes(motion));
   useEffect(() => { setWanted(window.sparkleEarlyMotion?.() ?? !["still", "none"].includes(motion)); }, []);
   const videoRef = useRef(null);
   const mediaRef = useRef(null);
@@ -942,7 +954,7 @@ function Hero({ t, isLive, liveShow }) {
                     <SocialHeroLinks className="hp-btn-outline hp-btn-watch" />
                   </div>
                   <a {...linkProps(getTradeBoardHref())} className="hp-btn-primary hp-btn-sparkle hp-hero-trade-board-cta">
-                    {isBrittDanceFloorComingSoon ? "Dance Floor Â· Coming soon" : "Browse the dance floor"}
+                    {isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Browse the dance floor"}
                     <span className="spark" /><span className="spark" /><span className="spark" /><span className="spark" />
                   </a>
                 </div>
@@ -962,7 +974,7 @@ function Hero({ t, isLive, liveShow }) {
                     <SocialHeroLinks className="hp-btn-outline hp-btn-watch" />
                   </div>
                   <a {...linkProps(getTradeBoardHref())} className="hp-btn-primary hp-btn-sparkle hp-hero-trade-board-cta">
-                    {isBrittDanceFloorComingSoon ? "Dance Floor Â· Coming soon" : "Browse the dance floor"}
+                    {isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Browse the dance floor"}
                     <span className="spark" /><span className="spark" /><span className="spark" /><span className="spark" />
                   </a>
                   {isHeatherBlingKitchenSite && CONTENT.pantryPageUrl && (
@@ -1646,14 +1658,14 @@ function LiveQueueModal({ open, onClose, state }) {
               {live ? "Full lineup" : state === "loading" ? "Loading lineup" : state === "empty" ? "Lineup ready" : "No Live Lineup right now"}
             </h2>
           </div>
-          <button type="button" className="hp-queue-modal-close" onClick={onClose} aria-label="Close Live Lineup">Ã—</button>
+          <button type="button" className="hp-queue-modal-close" onClick={onClose} aria-label="Close Live Lineup">×</button>
         </div>
 
         {entries.length > 0 && <LiveLineupStatus />}
         {state === "offline" ? (
           <div className="hp-queue-modal-empty">{lineup?.liveQueueSummary || getLiveQueueSummary("No show is running right now. Check the calendar for the next scheduled reveal.")}</div>
         ) : state === "loading" ? (
-          <div className="hp-queue-modal-empty">Loading lineupâ€¦</div>
+          <div className="hp-queue-modal-empty">Loading lineup…</div>
         ) : state === "empty" || entries.length === 0 ? (
           <div className="hp-queue-modal-empty">{lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup is ready. Customer names appear here when a live show is connected.")}</div>
         ) : (
@@ -1702,28 +1714,16 @@ const EVENTS = Array.isArray(HOMEPAGE_EVENT_PAYLOAD) && (HOMEPAGE_EVENT_PAYLOAD.
   },
 ];
 
-function formatEventDateLabel(eventTime, timeZone, serverClock) {
+function formatEventDateLabel(eventTime, timeZone) {
   const parsed = new Date(eventTime);
   if (Number.isNaN(parsed.getTime())) return eventTime;
-
-  return new Intl.DateTimeFormat(serverClock ? "en-US" : undefined, {
-    timeZone: serverClock ? (timeZone || "UTC") : undefined,
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  }).format(parsed);
+  return homepageDateLabel(parsed, { weekday: "short", month: "short", day: "numeric" }, timeZone);
 }
 
-function formatEventTimeLabel(eventTime, timeZone, serverClock) {
+function formatEventTimeLabel(eventTime, timeZone) {
   const parsed = new Date(eventTime);
   if (Number.isNaN(parsed.getTime())) return eventTime;
-
-  return new Intl.DateTimeFormat(serverClock ? "en-US" : undefined, {
-    timeZone: serverClock ? (timeZone || "UTC") : undefined,
-    hour: "numeric",
-    minute: "2-digit",
-    timeZoneName: "short",
-  }).format(parsed);
+  return homepageDateLabel(parsed, { hour: "numeric", minute: "2-digit", timeZoneName: "short" }, timeZone);
 }
 
 function sanitizeCalendarFilename(title) {
@@ -1879,7 +1879,7 @@ function CalendarChooser({ event, onClose }) {
             <h2 id="calendar-choice-title" className="hp-calendar-modal-title">Add to your calendar</h2>
             <p>{event.title}</p>
           </div>
-          <button type="button" className="hp-calendar-modal-close" onClick={onClose} aria-label="Close calendar choices">Ã—</button>
+          <button type="button" className="hp-calendar-modal-close" onClick={onClose} aria-label="Close calendar choices">×</button>
         </div>
         <div className="hp-calendar-choice-list">
           <a href={buildGoogleCalendarHref(event)} target="_blank" rel="noreferrer" className="hp-calendar-choice google">Google Calendar</a>
@@ -1892,11 +1892,11 @@ function CalendarChooser({ event, onClose }) {
   );
 }
 
-function normalizeHomepageEvent(event, serverClock = Boolean(window.SPARKLE_FIRST_PAINT)) {
+function normalizeHomepageEvent(event) {
   const title = event.title || event.name || "Upcoming live reveal";
   const eventTime = event.eventTime || null;
   const when = event.when || (eventTime
-    ? `${formatEventDateLabel(eventTime, event.timeZone, serverClock)} - ${formatEventTimeLabel(eventTime, event.timeZone, serverClock)}`
+    ? `${formatEventDateLabel(eventTime, event.timeZone)} - ${formatEventTimeLabel(eventTime, event.timeZone)}`
     : "Date TBD - Time TBD");
   const platforms = Array.isArray(event.platforms)
     ? event.platforms.map((platform) => {
@@ -1942,7 +1942,7 @@ function EventCodeRow({ code, desc }) {
     <div className="hp-event-code-row">
       <div className="hp-event-code-text">
         <strong>{code}</strong>
-        <span className="dash"> â€” </span>
+        <span className="dash"> — </span>
         <span className="desc">{desc}</span>
       </div>
       <button className={`hp-event-copy ${copied ? "copied" : ""}`} onClick={onCopy}>
@@ -1965,7 +1965,6 @@ function getVisibleEventDescription(event) {
 }
 
 function Events({ count }) {
-  const serverClock = React.useContext(HomepageClockContext);
   const [calendarEvent, setCalendarEvent] = useState(null);
   return (
     <section className="hp-section" id="events">
@@ -1976,7 +1975,7 @@ function Events({ count }) {
           <p className="hp-section-sub">Times shown in your local timezone. Tap a code to copy it before showtime.</p>
         </div>
         <div className="hp-event-grid" style={{ gridTemplateColumns: count === 1 ? "1fr" : undefined }}>
-          {HOMEPAGE_EVENT_PAYLOAD.slice(0, count).map((rawEvent, i) => { const event = normalizeHomepageEvent(rawEvent, serverClock); const ev = event;
+          {HOMEPAGE_EVENT_PAYLOAD.slice(0, count).map((rawEvent, i) => { const event = normalizeHomepageEvent(rawEvent); const ev = event;
             const [dateStr, timeStr = ""] = ev.when.split(" - ");
             const visibleDescription = getVisibleEventDescription(event);
             return (
@@ -1988,13 +1987,13 @@ function Events({ count }) {
                     <span className="hp-event-meta-icon" aria-hidden="true">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                     </span>
-                    <span className="slot" data-slot="event date">{dateStr}</span>
+                    <span className="slot" data-slot="event date"><LocalTime value={event.eventTime} options={{ weekday: "short", month: "short", day: "numeric" }} timeZone={event.timeZone} /></span>
                   </div>
                   <div className="hp-event-meta-row">
                     <span className="hp-event-meta-icon" aria-hidden="true">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                     </span>
-                    <span>{timeStr}</span>
+                    <span><LocalTime value={event.eventTime} options={{ hour: "numeric", minute: "2-digit", timeZoneName: "short" }} timeZone={event.timeZone} /></span>
                   </div>
                 </div>
 
@@ -2068,10 +2067,10 @@ function Wibp({ repName }) {
         <div className="hp-wibp-grid">
           <div className="hp-wibp-card">
             <div className="hp-wibp-eyebrow">First time here?</div>
-            <h2 className="hp-wibp-title">It's a live jewelry reveal â€” with <span className="slot" data-slot="rep name">{repName}</span></h2>
+            <h2 className="hp-wibp-title">It's a live jewelry reveal — with <span className="slot" data-slot="rep name">{repName}</span></h2>
             <p className="hp-wibp-body">
               You order a sealed box, then watch it revealed live on <span className="slot" data-slot="rep name">{repName}</span>&apos;s platform.{" "}
-              Every box has real jewelry inside â€” some Everyday Sparkle, some Diamond Territory, and a few rare Unicorn Magic pieces hidden throughout the show.
+              Every box has real jewelry inside — some Everyday Sparkle, some Diamond Territory, and a few rare Unicorn Magic pieces hidden throughout the show.
               After the reveal, your jewelry ships straight to your door from Bomb Party.
             </p>
             <div className="hp-steps">
@@ -2198,7 +2197,7 @@ function AboutSection({ repName, hideEmptyMedia = false }) {
 }
 
 // ============================================================
-// Signup favorites â€” pick up to 3, same interaction as Sparkle Finder
+// Signup favorites — pick up to 3, same interaction as Sparkle Finder
 // ============================================================
 const SIGNUP_PREFERENCE_MAX = 3;
 const SIGNUP_NOT_SURE = "not_sure";
@@ -3038,11 +3037,11 @@ function Signup({ repName, businessName }) {
                 ) : null}
                 <button type="submit" className="hp-signup-submit" disabled={submitState.status === "submitting"}>
                   {submitState.status === "submitting" ? "Saving..." : step === SIGNUP_LAST_STEP ? "Sign me up" : "Continue"}
-                  <span className="hp-signup-submit-arrow" aria-hidden="true">â†’</span>
+                  <span className="hp-signup-submit-arrow" aria-hidden="true">→</span>
                 </button>
               </div>
               {step === SIGNUP_LAST_STEP ? (
-                <p className="hp-signup-consent slot" data-slot="consent â€” pending legal">
+                <p className="hp-signup-consent slot" data-slot="consent — pending legal">
                   Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from <span className="slot" data-slot="business name">{businessName}</span>.
                   Msg & data rates may apply. Reply STOP to unsubscribe. <a {...linkProps(getUnsubscribeHref())}>Manage or unsubscribe</a>.
                 </p>
@@ -3098,7 +3097,7 @@ function Footer({ businessName }) {
         <div className="hp-footer-col">
           <ul>
             <li><a {...linkProps(CONTENT.footerLinks?.home || withCurrentSearch("/amethyst/Homepage.html"))}>Home</a></li>
-            <li><a {...linkProps(getTradeBoardHref())}>{isBrittDanceFloorComingSoon ? "Dance Floor Â· Coming soon" : "Dance Floor"}</a></li>
+            <li><a {...linkProps(getTradeBoardHref())}>{isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Dance Floor"}</a></li>
             {CONTENT.pantryPageUrl && <li><a {...linkProps(CONTENT.pantryPageUrl)}>In the Pantry</a></li>}
             {joinTeamHref && <li><a {...linkProps(joinTeamHref)}>Join Team</a></li>}
           </ul>
@@ -3114,8 +3113,8 @@ function Footer({ businessName }) {
       </div>
       <div className="hp-footer-bottom">
         <div className="legal-row">
-          <span>Â© 2026 {businessName} Â· <window.SparkleSuiteFooterCredit /></span>
-          <span><a href="#">Privacy</a> Â· <a href="#">Terms</a> Â· <a href="#">Accessibility</a></span>
+          <span>© 2026 {businessName} · <window.SparkleSuiteFooterCredit /></span>
+          <span><a href="#">Privacy</a> · <a href="#">Terms</a> · <a href="#">Accessibility</a></span>
         </div>
         <p>
           {CONTENT.legalDisclaimer || `${businessName} is operated by an independent Bomb Party Representative. Bomb Party is a registered trademark of Bomb Party LLC. This site is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by Bomb Party LLC.`}
@@ -3176,7 +3175,7 @@ function SparkleSuiteHeaderStack({ t, scheduleIsLive, effectiveLrqState, onOpenQ
           </div>
           <nav className="hp-header-nav" aria-label="Primary">
             <a href="#top" className="hp-header-link" aria-current="page">Home</a>
-            <a {...linkProps(getTradeBoardHref())} className="hp-header-link">{isBrittDanceFloorComingSoon ? "Dance Floor Â· Coming soon" : "Dance Floor"}</a>
+            <a {...linkProps(getTradeBoardHref())} className="hp-header-link">{isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Dance Floor"}</a>
             {CONTENT.pantryPageUrl ? (
               <a {...linkProps(CONTENT.pantryPageUrl)} className="hp-header-link">In the Pantry</a>
             ) : null}
@@ -3272,7 +3271,7 @@ function BrittWithBlingFeaturedReveal() {
           title={reveal.videoTitle}
           videoUrl={reveal.videoUrl}
         >
-          <span className="bwb-video-play" aria-hidden="true">â–¶</span>
+          <span className="bwb-video-play" aria-hidden="true">▶</span>
           <span className="bwb-video-kicker">Featured TikTok</span>
           <span className="bwb-video-title">{reveal.videoTitle}</span>
         </TikTokEmbed>
@@ -3356,7 +3355,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
                 ))}
                 <SocialHeroLinks className="bwb-cta bwb-cta-watch" />
               </div>
-              <a {...linkProps(getTradeBoardHref())} className="bwb-cta bwb-cta-dance-floor">Dance Floor Â· Coming soon</a>
+              <a {...linkProps(getTradeBoardHref())} className="bwb-cta bwb-cta-dance-floor">Dance Floor · Coming soon</a>
             </div>
           </div>
         </div>
@@ -3404,10 +3403,10 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
               {tiktokLink && <a {...linkProps(tiktokLink.href)} className={"bkf-btn bkf-btn-secondary" + (isLive ? " is-live" : "")}>{isLive ? "Watch Live on TikTok" : "Watch on TikTok"}</a>}
             </div>
             <div className="bkf-links">
-              <a {...linkProps(getTradeBoardHref())}>Browse the Dance Floor â†’</a>
-              <a {...linkProps(pantryHref)}>In the Pantry â†’</a>
+              <a {...linkProps(getTradeBoardHref())}>Browse the Dance Floor →</a>
+              <a {...linkProps(pantryHref)}>In the Pantry →</a>
             </div>
-            <p className="bkf-live"><i aria-hidden="true"></i>Live M / W / F Â· 7 PM EST</p>
+            <p className="bkf-live"><i aria-hidden="true"></i>Live M / W / F · 7 PM EST</p>
           </div>
           {heroImageUrl && (
             <div className="bkf-card">
@@ -3586,18 +3585,43 @@ function applyHomepageTheme(t, document) {
 }
 
 function App() {
-  const [serverClock, setServerClock] = useState(() => Boolean(window.SPARKLE_FIRST_PAINT));
+  const [serverClock, setServerClock] = useState(() => Boolean(window.SPARKLE_FIRST_PAINT?.serverClock));
   const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
   window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
+
+  const [pageDataRevision, setPageDataRevision] = useState(0);
+  useEffect(() => {
+    const url = window.SPARKLE_DEFERRED_PAGE_DATA;
+    if (!url) return;
+    const script = document.createElement('script');
+    script.src = url; script.async = true;
+    script.onload = () => {
+      Object.assign(CONTENT, window.AMETHYST_HOMEPAGE_TEMPLATE_DATA || {});
+      HOMEPAGE_EVENT_PAYLOAD.splice(0, HOMEPAGE_EVENT_PAYLOAD.length, ...(window.AMETHYST_HOMEPAGE_EVENTS || []));
+      window.SPARKLE_DEFERRED_PAGE_DATA = null;
+      setLineup(window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT);
+      setPageDataRevision(value => value + 1);
+    };
+    document.head.appendChild(script);
+    return () => { script.onload = null; script.remove(); };
+  }, []);
+
   useEffect(() => {
     if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
     return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });
   }, []);
-  const [t, setTweak] = useTweaks(DEFAULTS);
+  const [tweakValues, setTweak] = useTweaks(DEFAULTS);
+  // Late page data can enable the Events section; this is view state only.
+  // Do not call the edit-mode setter while completing a read-only page load.
+  const t = pageDataRevision ? {
+    ...tweakValues,
+    showEvents: window.HOMEPAGE_TWEAK_DEFAULTS.showEvents,
+    eventCount: window.HOMEPAGE_TWEAK_DEFAULTS.eventCount,
+  } : tweakValues;
   const [queueOpen, setQueueOpen] = useState(false);
   const repName = publicRepName(t.repName);
   const [now, setNow] = useState(() => window.SPARKLE_FIRST_PAINT?.now ?? Date.now());
-  const activeLiveShow = useMemo(() => getActiveLiveShow(now), [now, serverClock]);
+  const activeLiveShow = useMemo(() => getActiveLiveShow(now), [now, pageDataRevision]);
   const scheduleIsLive = Boolean(activeLiveShow);
   const contentLiveQueueState = lineup?.liveQueueState || getContentLiveQueueState();
   const effectiveLrqState = contentLiveQueueState || (scheduleIsLive ? t.lrqState : "offline");
@@ -3815,7 +3839,7 @@ function App() {
             onChange={(v) => setTweak("cursorEffect", v)}
             options={[
               { value: "default", label: "Default" },
-              { value: "sparkle", label: "Sparkle âœ¦" },
+              { value: "sparkle", label: "Sparkle ✦" },
             ]}
           />
         </TweakSection>
@@ -3946,14 +3970,6 @@ function App() {
 
 const homepageRoot = document.getElementById("root");
 if (homepageRoot.dataset?.serverRendered === "true") {
-  // Restore SSR text immediately before hydration; the effect adopts the saved
-  // early-click intent without a hydration mismatch or an extra DOM tree.
-  const motionButton = homepageRoot.querySelector('.hpc-motion-control');
-  if (motionButton) {
-    const initialMotion = !['still', 'none'].includes(DEFAULTS.heroMotion);
-    motionButton.textContent = initialMotion ? 'Pause animation' : 'Play animation';
-    motionButton.setAttribute('aria-pressed', String(initialMotion));
-  }
   ReactDOM.hydrateRoot(homepageRoot, <App />);
 } else {
   ReactDOM.createRoot(homepageRoot).render(<App />);

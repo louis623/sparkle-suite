@@ -1,0 +1,16 @@
+[
+  {
+    "timezoneId": "America/Los_Angeles",
+    "earlyClick": true,
+    "before": [],
+    "after": [
+      "Tue, Oct 271:00 PM PDT",
+      "Tue, Oct 271:00 PM PDT"
+    ],
+    "labels": [
+      "Play animation",
+      "Pause animation"
+    ],
+    "errors": []
+  }
+]

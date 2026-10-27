@@ -1,3 +1,4 @@
+import { earlyHomepageLocalTime } from './homepage-local-time'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Script, createContext } from 'node:vm'
@@ -37,16 +38,13 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   const body = { className: 'homepage', classList: { add(...names: string[]) { body.className += ' ' + names.join(' ') } } }
   const document = { body, documentElement: { style: { setProperty(name: string, value: unknown) { properties.set(name, String(value)) } } }, getElementById: () => ({}) }
   let element: ReactTypes.ReactNode
-  const firstPaint = { locale: 'en-US', timeZone: 'UTC', now: Date.now() }
+  const firstPaint = { serverClock: true, now: Date.now() }
   const window = { React, SPARKLE_FIRST_PAINT: firstPaint, location: { search: requestUrl.search, origin: requestUrl.origin, hostname: requestUrl.hostname } }
   const context = createContext({ window, document, React, URL, URLSearchParams, Intl, console,
     ReactDOM: { createRoot: () => ({ render(node: ReactTypes.ReactNode) { element = node } }) },
   })
   const inlineBootstrap = bootstrap
   new Script(inlineBootstrap).runInContext(context, { timeout: 300 })
-  // Show cards use their own saved zones; lineup timestamps use the first
-  // saved event's zone until the viewer's locale is applied after hydration.
-  firstPaint.timeZone = new Script('window.AMETHYST_HOMEPAGE_EVENTS?.[0]?.timeZone || "UTC"').runInContext(context)
   for (const script of await runtimeScripts()) script.runInContext(context, { timeout: 300 })
   context.renderHomepageMarkup = () => renderToString(element)
   const rendered = new Script('renderHomepageMarkup()').runInContext(context, { timeout: 500 }) as string
@@ -73,5 +71,5 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
     .replace('</head>', preloads + `<script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${escapeAttribute(style)}">`)
     .replace('<body class="homepage">', `<body class="${escapeAttribute(body.className)}">`)
-    .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageControls}</script>`)
+    .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}</script>`)
 }

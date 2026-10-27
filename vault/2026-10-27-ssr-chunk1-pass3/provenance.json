@@ -1,0 +1,34 @@
+{
+  "repository": "louis623/sparkle-suite",
+  "branch": "codex/ssr-chunk1-fizzfest-home",
+  "parent": "6f1459c0e73c13edb5a47f802efd282abf7d384e",
+  "testedCommit": "f5adfbb05409774a5c760d5055adcaabe6ec05f6",
+  "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+  "projectConfigurationUnchanged": true,
+  "liveAndSmokeAliasesUnchanged": true,
+  "aliases": [
+    {
+      "domain": "www.yoursparklesuite.com",
+      "deployment": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "commit": "3f175871674e42dbc62d18419318941ea6a49935"
+    },
+    {
+      "domain": "yoursparklesuite.com",
+      "deployment": "dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P",
+      "commit": "3f175871674e42dbc62d18419318941ea6a49935"
+    },
+    {
+      "domain": "sparkle-suite-smoke.vercel.app",
+      "deployment": "dpl_FD4TYQgPLe6UB8cE1zYgqyuJsV4Z",
+      "commit": "22ba7df60b651e756568bb3a75c0910fcf6a12c5"
+    }
+  ],
+  "deployments": [
+    "dpl_BQf77goaaYrAyJDMGvwj6KWqhTxs",
+    "dpl_HshDECTPjwevxWE1F7PbSnZGaycW"
+  ],
+  "formSubmissions": 0,
+  "databaseWrites": 0,
+  "manualAliasChanges": 0,
+  "note": "Vercel automatically assigned its generated branch preview alias. No Live/Smoke alias commands, project settings changes or project environment changes were made. Final commit is an evidence-only amendment of the tested commit; there is no third deployment."
+}

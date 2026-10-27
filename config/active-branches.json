@@ -144,8 +144,7 @@
     },
     "codex/ssr-chunk1-fizzfest-home": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
-      "environment": "preview",
-      "portable": true
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",

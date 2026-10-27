@@ -1,3 +1,4 @@
+import { withinHomepageDataBudget } from './homepage-data-budget'
 import { buildLineupCalendar } from '@/lib/amethyst/lineup-calendar'
 import { requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
@@ -67,12 +68,20 @@ export async function buildHomepageBootstrapResponse(request: Request, loaded: {
     ...(publicSiteSlug ? { publicSiteSlug } : {}),
     repId,
   }
-  const [events, templateData, tradeBoardListings, liveQueueSnapshot] = await Promise.all([
-    loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }),
-    loaded.templateData,
-    loadAmethystTradeBoardPreviewListings({ ...lookupTarget, repId: loaded.repId, targeted: true, limit: 8 }),
-    loadHomepageLiveQueueSnapshot(loaded.repId),
+  let events: Awaited<ReturnType<typeof loadAmethystHomepageUpcomingShows>> = []
+  let tradeBoardListings: Awaited<ReturnType<typeof loadAmethystTradeBoardPreviewListings>> = []
+  let liveQueueSnapshot: LiveQueueSnapshot | null = null
+  const pageData = Promise.all([
+    loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }).then(value => { events = value }),
+    loadAmethystTradeBoardPreviewListings({ ...lookupTarget, repId: loaded.repId, targeted: true, limit: 8 }).then(value => { tradeBoardListings = value }),
+    loadHomepageLiveQueueSnapshot(loaded.repId).then(value => { liveQueueSnapshot = value }),
   ])
+  void pageData.catch(() => {})
+  // The template is never cached. The extra budget starts only once it is ready.
+  const templateData = await loaded.templateData
+  const completed = await withinHomepageDataBudget(pageData)
+  const deferred = completed === undefined
+
   const linkedTemplateData = applyPublicSiteSlugToTemplateData(
     templateData,
     publicSiteSlug,
@@ -113,11 +122,12 @@ export async function buildHomepageBootstrapResponse(request: Request, loaded: {
       linkedEvents,
       customerTemplateData.appearancePreset,
       { publicSiteSlug, repId, targeted },
-    ),
+    ) + (deferred ? `\nwindow.SPARKLE_DEFERRED_PAGE_DATA=${JSON.stringify(new URL('/api/amethyst/homepage-template' + new URL(request.url).search, request.url).pathname + new URL(request.url).search)};` : ''),
     {
       headers: {
         'content-type': 'application/javascript; charset=utf-8',
         'cache-control': 'no-store',
+        'x-sparkle-page-data': deferred ? 'deferred' : 'complete',
       },
     },
   )
