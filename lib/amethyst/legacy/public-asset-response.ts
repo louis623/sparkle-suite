@@ -145,9 +145,8 @@ function resolveAmethystAsset(asset: string[]) {
   if (!AMETHYST_ASSETS.has(assetPath)) return null
 
   const entry = (manifest.files as Record<string, { source: string }>)[assetPath]
-  return entry?.source === 'shared'
-    ? join(process.cwd(), 'public', 'amethyst', assetPath)
-    : join(process.cwd(), 'lib', 'amethyst', 'legacy', 'assets', assetPath)
+  if (entry?.source === 'shared') return join(process.cwd(), 'public', 'amethyst', assetPath)
+  return join(process.cwd(), 'lib', 'amethyst', 'legacy', 'assets', assetPath)
 }
 
 function escapeHtmlAttribute(value: string) {

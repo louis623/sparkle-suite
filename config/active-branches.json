@@ -39,7 +39,8 @@
     "cursor/join-server-html-26e8",
     "cursor/suite-join-ssr-rep-routes",
     "cursor/theme-carousel-site-peeks-db80",
-    "codex/ssr-chunk1-fizzfest-home"
+    "codex/ssr-chunk1-fizzfest-home",
+    "codex/ssr-chunk1-build-size"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -143,6 +144,10 @@
       "environment": "preview"
     },
     "codex/ssr-chunk1-fizzfest-home": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/ssr-chunk1-build-size": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }
