@@ -1,3 +1,9 @@
+## October 28, 2026 — Required demo utility SSR and preserved typography
+
+- Within Louis’s approved chunk 2, only dudesfizzfest Trade/Join opt into production SSR. Shared theme/motion/controls; real content before paint. Other reps and pantry retain frozen rendering.
+- Required utility reads must never invoke the homepage five-second legacy fallback; failures return explicit 503. Homepage boundary remains unchanged. Original utility fonts are pinned/embedded and decoded in the head to preserve geometry without a font-swap jump. Utility Gnome has continuous visitor-controlled motion; homepage is unchanged except approved art fixes.
+- Speed acceptance failed, so normal Smoke stays on dpl_8Z9xfABn8F7WkSPMHKdNYE7NpTek; final preview is provenance evidence only. No Live authority inferred. See chunk-2 closeout.
+
 ## 2026-09-23 - Trade images, MSRP, and Dance Floor presentation
 
 - Customer reveal images are optional. Accept JPEG, PNG, WebP, HEIC, HEIF, and AVIF through 25 MiB by direct private upload; show preview/attachment/failure state, allow text-only submission, and expire normalized rep images after seven days. Preserve the one-item, same-family, same-type rule and rep final decision.

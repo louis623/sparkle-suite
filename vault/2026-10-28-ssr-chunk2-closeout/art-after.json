@@ -1,0 +1,152 @@
+[
+  {
+    "theme": "halloween_pumpkin_cat",
+    "run": 1,
+    "lcp": 3900,
+    "main": 1034.699999999255,
+    "fcp": 1568,
+    "art": [
+      {
+        "name": "hero-desktop-720.webp",
+        "end": 1692.699999999255,
+        "bytes": 40076
+      },
+      {
+        "name": "hero-desktop-1200.webp",
+        "end": 3052.099999997765,
+        "bytes": 107074
+      },
+      {
+        "name": "hero-desktop-motion.mp4",
+        "end": 7657.89999999851,
+        "bytes": 1014907
+      }
+    ],
+    "preloads": []
+  },
+  {
+    "theme": "halloween_pumpkin_cat",
+    "run": 2,
+    "lcp": 3724,
+    "main": 845,
+    "fcp": 1176,
+    "art": [
+      {
+        "name": "hero-desktop-720.webp",
+        "end": 1451,
+        "bytes": 40076
+      },
+      {
+        "name": "hero-desktop-1200.webp",
+        "end": 2680.10000000149,
+        "bytes": 107074
+      },
+      {
+        "name": "hero-desktop-motion.mp4",
+        "end": 7474.300000000745,
+        "bytes": 1014907
+      }
+    ],
+    "preloads": []
+  },
+  {
+    "theme": "halloween_pumpkin_cat",
+    "run": 3,
+    "lcp": 3824,
+    "main": 924.8000000007451,
+    "fcp": 1204,
+    "art": [
+      {
+        "name": "hero-desktop-720.webp",
+        "end": 1577,
+        "bytes": 40076
+      },
+      {
+        "name": "hero-desktop-1200.webp",
+        "end": 2760.099999997765,
+        "bytes": 107074
+      },
+      {
+        "name": "hero-desktop-motion.mp4",
+        "end": 7549.800000000745,
+        "bytes": 1014907
+      }
+    ],
+    "preloads": []
+  },
+  {
+    "theme": "neon_butterfly",
+    "run": 1,
+    "lcp": 3632,
+    "main": 979.6999999992549,
+    "fcp": 1048,
+    "art": [
+      {
+        "name": "kelly-sign-pink.webp",
+        "end": 3073.699999999255,
+        "bytes": 63518
+      },
+      {
+        "name": "kelly-sign-gold.webp",
+        "end": 2790.5,
+        "bytes": 48180
+      },
+      {
+        "name": "kelly-sign-violet.webp",
+        "end": 2600,
+        "bytes": 41640
+      }
+    ],
+    "preloads": []
+  },
+  {
+    "theme": "neon_butterfly",
+    "run": 2,
+    "lcp": 3580,
+    "main": 942.1000000014901,
+    "fcp": 948,
+    "art": [
+      {
+        "name": "kelly-sign-pink.webp",
+        "end": 3057.400000002235,
+        "bytes": 63518
+      },
+      {
+        "name": "kelly-sign-gold.webp",
+        "end": 2774.60000000149,
+        "bytes": 48180
+      },
+      {
+        "name": "kelly-sign-violet.webp",
+        "end": 2587.7000000029802,
+        "bytes": 41640
+      }
+    ],
+    "preloads": []
+  },
+  {
+    "theme": "neon_butterfly",
+    "run": 3,
+    "lcp": 3752,
+    "main": 923.5999999977648,
+    "fcp": 920,
+    "art": [
+      {
+        "name": "kelly-sign-pink.webp",
+        "end": 3058.099999997765,
+        "bytes": 63518
+      },
+      {
+        "name": "kelly-sign-gold.webp",
+        "end": 2820.39999999851,
+        "bytes": 48180
+      },
+      {
+        "name": "kelly-sign-violet.webp",
+        "end": 2629.199999999255,
+        "bytes": 41640
+      }
+    ],
+    "preloads": []
+  }
+]

@@ -1,3 +1,10 @@
+## October 28, 2026 — SSR chunk 2: code complete, speed acceptance failed
+
+- Draft PR #163 targets codex/ssr-all-themes; app 7fa6fbe69922f1802068e2f91efe5a40d6beb7cb. Clean worktree .codex-worktrees/ssr-dancefloor-join; primary dirty checkout preserved.
+- Demo-only Trade/Join SSR covers 23 themes × four layouts. Final candidate dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc READY; 184 protected HTTP cases and 12 local final Gnome browser checks pass. Full suite once: 5908/56/6; 52 baseline names, four harness failures fixed in focused checks.
+- NOT ready: 9.160s cold desktop and intermittent phone/data delays remain. Smoke alias restored/confirmed at dpl_8Z9xfABn8F7WkSPMHKdNYE7NpTek. Automatic approval review blocked reassigning the failed candidate; no retry. No Live, migrations, project/env changes or merge.
+- [Evidence and remaining work](2026-10-28-ssr-chunk2-closeout/closeout.md), including full page/theme/layout table, timings and screenshots. Open Brain capture confirmed separately.
+
 ## October 24, 2026 - Rose Beach animation preview
 
 - Louis approved option 4 and its local Amethyst still treatment, then one Higgsfield motion job within $8.70. Completed single $4.622-estimated job, preserved raw footage, and finished a 9.083-second forward loop with audio crossfade. Local preview includes motion/sound controls and still fallback; no deployment or theme registration. See [motion checkpoint](2026-10-24-rose-beach-motion.md). Open Brain capture confirmed.

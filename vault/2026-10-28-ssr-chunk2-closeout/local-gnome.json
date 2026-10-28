@@ -1,0 +1,2126 @@
+[
+  {
+    "page": "trade",
+    "phone": false,
+    "run": 1,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "page": "trade",
+    "phone": false,
+    "run": 2,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "page": "trade",
+    "phone": false,
+    "run": 3,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "page": "trade",
+    "phone": true,
+    "run": 1,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "page": "trade",
+    "phone": true,
+    "run": 2,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "page": "trade",
+    "phone": true,
+    "run": 3,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "page": "join",
+    "phone": false,
+    "run": 1,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "page": "join",
+    "phone": false,
+    "run": 2,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "page": "join",
+    "phone": false,
+    "run": 3,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "page": "join",
+    "phone": true,
+    "run": 1,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "page": "join",
+    "phone": true,
+    "run": 2,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  },
+  {
+    "page": "join",
+    "phone": true,
+    "run": 3,
+    "pass": true,
+    "before": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ],
+    "paused": [
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "paused",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "paused",
+        "loop": true
+      }
+    ],
+    "resumed": [
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-sway",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-glow",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "gg-drift",
+        "state": "running",
+        "loop": true
+      },
+      {
+        "name": "ssr-utility-gnome",
+        "state": "running",
+        "loop": true
+      }
+    ]
+  }
+]
