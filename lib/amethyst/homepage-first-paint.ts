@@ -1,6 +1,7 @@
 import { earlyHomepageLocalTime } from './homepage-local-time'
 import { HERO_MOTION_THEMES } from './hero-motion-config'
 import { earlyHomepageControls } from './hero-motion-controls'
+import homepageStyles from './generated/homepage-styles.json'
 export { earlyHomepageControls } from './hero-motion-controls'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -58,7 +59,10 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   const allowedCss = new Set(['tokens.css', 'components.css', 'homepage.css', ...theme.css,
     ...(data.homepage.publicSiteVariant === 'britt_with_bling_hybrid' ? ['britt-hero-buttons.css'] : [])])
   let result = html.replace(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"?]+)[^"]*"[^>]*>/g,
-    (tag, href: string) => allowedCss.has(href.split('/').at(-1) ?? '') ? tag : '')
+    (_tag, href: string) => {
+      const name = href.split('/').at(-1) ?? ''
+      return allowedCss.has(name) ? `<style data-ssr-style="${name}">${homepageStyles[name as keyof typeof homepageStyles]}</style>` : ''
+    })
   // No split CSS, self-hosted fonts, runtime loader, or third-party worker.
   result = result.replace(/<script\b[^>]*src="[^"]+"[^>]*><\/script>/g, tag => {
     if (tag.includes('data-template-src=')) return `<script>${inlineBootstrap.replace(/<\/script/gi, '<\\/script')}</script>`
@@ -74,7 +78,7 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   })
   return result
     .replace('</body>', ('ssrReview' in data ? '<aside data-ssr-review-label>Smoke demo · theme/layout review fixture · no saved changes</aside>' : '') + '</body>')
-    .replace('</head>', preloads + `<link rel="stylesheet" href="/amethyst/ssr-hero-motion.css"><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
+    .replace('</head>', preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${escapeAttribute(style)}">`)
     .replace('<body class="homepage">', `<body class="${escapeAttribute(body.className)}">`)
     .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}</script>`)
