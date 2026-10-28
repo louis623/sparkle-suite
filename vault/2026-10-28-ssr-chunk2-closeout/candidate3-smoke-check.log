@@ -1,0 +1,82 @@
+{"page":"trade","theme":"pearl_rose","profile":"desktop","run":1,"mainMs":9160,"cls":0,"pass":false,"errors":[]}
+{"page":"trade","theme":"pearl_rose","profile":"desktop","run":2,"mainMs":928,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"pearl_rose","profile":"desktop","run":3,"mainMs":912,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"pearl_rose","profile":"phone","run":1,"mainMs":2232.199999999255,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"pearl_rose","profile":"phone","run":2,"mainMs":2198.89999999851,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"pearl_rose","profile":"phone","run":3,"mainMs":1972.800000000745,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sunset_beach","profile":"desktop","run":1,"mainMs":996,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sunset_beach","profile":"desktop","run":2,"mainMs":860,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sunset_beach","profile":"desktop","run":3,"mainMs":900,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sunset_beach","profile":"phone","run":1,"mainMs":2004,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sunset_beach","profile":"phone","run":2,"mainMs":2310,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sunset_beach","profile":"phone","run":3,"mainMs":2206.599999997765,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"neon_butterfly","profile":"desktop","run":1,"pass":false,"error":"page.waitForFunction: Timeout 20000ms exceeded.","errors":[]}
+{"page":"trade","theme":"neon_butterfly","profile":"desktop","run":2,"mainMs":1076,"cls":0,"pass":false,"errors":[]}
+{"page":"trade","theme":"neon_butterfly","profile":"desktop","run":3,"mainMs":984,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"neon_butterfly","profile":"phone","run":1,"mainMs":3487.800000000745,"cls":0,"pass":false,"errors":[]}
+{"page":"trade","theme":"neon_butterfly","profile":"phone","run":2,"mainMs":2284,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"neon_butterfly","profile":"phone","run":3,"mainMs":2164,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"gnome_garden","profile":"desktop","run":1,"mainMs":948,"cls":0,"pass":false,"errors":[]}
+{"page":"trade","theme":"gnome_garden","profile":"desktop","run":2,"mainMs":896,"cls":0,"pass":false,"errors":[]}
+{"page":"trade","theme":"gnome_garden","profile":"desktop","run":3,"mainMs":816,"cls":0,"pass":false,"errors":[]}
+{"page":"trade","theme":"gnome_garden","profile":"phone","run":1,"pass":false,"error":"page.waitForFunction: Timeout 20000ms exceeded.","errors":[]}
+{"page":"trade","theme":"gnome_garden","profile":"phone","run":2,"mainMs":2036,"cls":0,"pass":false,"errors":[]}
+{"page":"trade","theme":"gnome_garden","profile":"phone","run":3,"mainMs":2092.89999999851,"cls":0,"pass":false,"errors":[]}
+{"page":"trade","theme":"halloween_pumpkin_cat","profile":"desktop","run":1,"mainMs":816,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"halloween_pumpkin_cat","profile":"desktop","run":2,"mainMs":912,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"halloween_pumpkin_cat","profile":"desktop","run":3,"mainMs":864,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"halloween_pumpkin_cat","profile":"phone","run":1,"mainMs":1812.2000000029802,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"halloween_pumpkin_cat","profile":"phone","run":2,"mainMs":1804,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"halloween_pumpkin_cat","profile":"phone","run":3,"mainMs":1756,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sparkle_suite_morganite","profile":"desktop","run":1,"mainMs":1020,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sparkle_suite_morganite","profile":"desktop","run":2,"mainMs":964,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sparkle_suite_morganite","profile":"desktop","run":3,"mainMs":868,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sparkle_suite_morganite","profile":"phone","run":1,"mainMs":1864,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sparkle_suite_morganite","profile":"phone","run":2,"mainMs":2022.1000000014901,"cls":0,"pass":true,"errors":[]}
+{"page":"trade","theme":"sparkle_suite_morganite","profile":"phone","run":3,"mainMs":2016,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"pearl_rose","profile":"desktop","run":1,"mainMs":960,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"pearl_rose","profile":"desktop","run":2,"mainMs":852,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"pearl_rose","profile":"desktop","run":3,"mainMs":948,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"pearl_rose","profile":"phone","run":1,"mainMs":2887.099999997765,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"pearl_rose","profile":"phone","run":2,"mainMs":6424.5,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"pearl_rose","profile":"phone","run":3,"mainMs":2248,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"sunset_beach","profile":"desktop","run":1,"mainMs":1348,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"sunset_beach","profile":"desktop","run":2,"mainMs":940,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"sunset_beach","profile":"desktop","run":3,"mainMs":1128,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"sunset_beach","profile":"phone","run":1,"mainMs":2208,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"sunset_beach","profile":"phone","run":2,"mainMs":3477.900000002235,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"sunset_beach","profile":"phone","run":3,"mainMs":8235.199999999255,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"neon_butterfly","profile":"desktop","run":1,"mainMs":876,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"neon_butterfly","profile":"desktop","run":2,"mainMs":952,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"neon_butterfly","profile":"desktop","run":3,"pass":false,"error":"page.waitForFunction: Timeout 20000ms exceeded.","errors":[]}
+{"page":"join","theme":"neon_butterfly","profile":"phone","run":1,"mainMs":2965.89999999851,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"neon_butterfly","profile":"phone","run":2,"mainMs":2288,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"neon_butterfly","profile":"phone","run":3,"mainMs":21365.599999997765,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"gnome_garden","profile":"desktop","run":1,"mainMs":856,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"gnome_garden","profile":"desktop","run":2,"mainMs":1032,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"gnome_garden","profile":"desktop","run":3,"mainMs":1304,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"gnome_garden","profile":"phone","run":1,"mainMs":2873.7000000029802,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"gnome_garden","profile":"phone","run":2,"mainMs":2645.199999999255,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"gnome_garden","profile":"phone","run":3,"mainMs":2698.10000000149,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"halloween_pumpkin_cat","profile":"desktop","run":1,"mainMs":1004,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"halloween_pumpkin_cat","profile":"desktop","run":2,"mainMs":912,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"halloween_pumpkin_cat","profile":"desktop","run":3,"mainMs":1148,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"halloween_pumpkin_cat","profile":"phone","run":1,"mainMs":2534.199999999255,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"halloween_pumpkin_cat","profile":"phone","run":2,"mainMs":2165.800000000745,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"halloween_pumpkin_cat","profile":"phone","run":3,"mainMs":2272,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"sparkle_suite_morganite","profile":"desktop","run":1,"mainMs":1020,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"sparkle_suite_morganite","profile":"desktop","run":2,"mainMs":1412,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"sparkle_suite_morganite","profile":"desktop","run":3,"mainMs":3754.099999997765,"cls":0,"pass":false,"errors":[]}
+{"page":"join","theme":"sparkle_suite_morganite","profile":"phone","run":1,"mainMs":2264,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"sparkle_suite_morganite","profile":"phone","run":2,"mainMs":2176,"cls":0,"pass":true,"errors":[]}
+{"page":"join","theme":"sparkle_suite_morganite","profile":"phone","run":3,"mainMs":2248,"cls":0,"pass":true,"errors":[]}
+matrix 20/184
+matrix 40/184
+matrix 60/184
+matrix 80/184
+matrix 100/184
+matrix 120/184
+matrix 140/184
+matrix 160/184
+matrix 180/184
+{"runs":72,"functionalFailures":17,"speedFailures":16,"matrix":184,"matrixFailures":0,"otherRoutes":[{"route":"/milehighfizz","status":200,"hash":"28ff7bd20052e0c663968ea2fbd0519359133ec0b20f15209ce9ab0246c9a0ee","bytes":8934,"newHash":"28ff7bd20052e0c663968ea2fbd0519359133ec0b20f15209ce9ab0246c9a0ee","unchanged":true},{"route":"/milehighfizz/trade","status":200,"hash":"e62e899feb568172d09aebabf6517b105b799b9679aab0ce2e94fe0327d38199","bytes":9825,"newHash":"e62e899feb568172d09aebabf6517b105b799b9679aab0ce2e94fe0327d38199","unchanged":true},{"route":"/milehighfizz/join","status":200,"hash":"368e00e3835ca7637c32b56ca6d26c786751a7e584dcc0cffcc64ffd4055c073","bytes":10173,"newHash":"368e00e3835ca7637c32b56ca6d26c786751a7e584dcc0cffcc64ffd4055c073","unchanged":true},{"route":"/blingkitchen/in-the-pantry","status":200,"hash":"54d178faa76f55f7f2ba421390d17e4f4b25eb9dd1783e7b7cbb3101bd432332","bytes":13484,"newHash":"54d178faa76f55f7f2ba421390d17e4f4b25eb9dd1783e7b7cbb3101bd432332","unchanged":true},{"route":"/blingkitchen/trade","status":200,"hash":"40adca6b5356ff954643a8f2b4e55afbc9c3fca6e30fb59af3911c4980c5726c","bytes":10698,"newHash":"40adca6b5356ff954643a8f2b4e55afbc9c3fca6e30fb59af3911c4980c5726c","unchanged":true},{"route":"/blingkitchen/join","status":200,"hash":"c4b95e2b73fac7089b266188f5826706349e81a3a971c8e975426be12c724a43","bytes":11812,"newHash":"c4b95e2b73fac7089b266188f5826706349e81a3a971c8e975426be12c724a43","unchanged":true}]}

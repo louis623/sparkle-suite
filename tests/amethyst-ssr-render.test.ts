@@ -16,6 +16,7 @@ it('renders finished Pumpkin Cat markup with one H1, production hydration and on
   expect(html).not.toMatch(/react\.development|babel|data-template-src=/)
   expect(html).not.toMatch(/(?:unicorn|sunset-beach|neon-butterfly)\.(?:css|js)/)
   expect(html).toContain('window.SPARKLE_FIRST_PAINT=')
+  expect(html).not.toContain('data-ssr-fonts')
 })
 
 it('autoplays the muted inline SSR hero even with saved still motion, retaining its poster', async () => {
@@ -28,7 +29,7 @@ it('autoplays the muted inline SSR hero even with saved still motion, retaining 
   for (const attribute of ['autoplay', 'muted', 'playsinline', 'loop']) {
     expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
   }
-  expect(video).toContain('poster="/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp"')
+  expect(video).toContain('poster="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp"')
   expect(html).toContain('class="hpc-poster"')
   expect(html).toMatch(/class="hpc-motion-control"[^>]*aria-pressed="true"[^>]*>Pause animation/)
 })

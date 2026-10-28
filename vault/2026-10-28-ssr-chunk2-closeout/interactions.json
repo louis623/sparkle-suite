@@ -1,0 +1,38 @@
+{
+  "testName": "SSR chunk 2 Smoke QA 1793211963311",
+  "repSlug": "dudesfizzfest",
+  "filters": {
+    "before": 12,
+    "noMatches": true,
+    "restored": 12,
+    "secondaryOpen": true
+  },
+  "swap": {
+    "expanded": true,
+    "status": 201,
+    "requestId": "6729fe29-6e41-4325-bda3-daf0a29a28cf",
+    "confirmation": true,
+    "receiptStatus": 200,
+    "reset": "denied via existing RPC; reservation released",
+    "testNotificationRemoved": true
+  },
+  "join": {
+    "forms": 0,
+    "ctas": [
+      {
+        "text": "Pause animation",
+        "href": null,
+        "disabled": false
+      },
+      {
+        "text": "Learn more",
+        "href": "#why"
+      },
+      {
+        "text": "Bomb Party Income Disclosure Statement",
+        "href": "https://bombpartyassets.blob.core.windows.net/exigoresourcelibraryassets/Rep%20Use%20Documents/Bomb%20Party_Income%20Disclosure%20Statement_2025%20%281%29.pdf"
+      }
+    ],
+    "faqToggled": true
+  }
+}

@@ -1,0 +1,9 @@
+
+ RUN  v4.1.5 C:/Users/louis/sparkle-suite-repo/.codex-worktrees/ssr-dancefloor-join
+
+
+ Test Files  3 passed (3)
+      Tests  192 passed (192)
+   Start at  14:36:55
+   Duration  21.68s (transform 2.26s, setup 0ms, import 4.35s, tests 15.86s, environment 1ms)
+

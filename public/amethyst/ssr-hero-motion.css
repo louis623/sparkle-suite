@@ -22,9 +22,14 @@
 [data-ssr-hero] .nb-sparkle { animation:nb-sparkle-twinkle 9s var(--nb-delay) ease-in-out infinite!important }
 [data-ssr-hero] .hpw-witch { animation:hpw-witch-hover 4.4s ease-in-out infinite!important }
 [data-ssr-hero] .hpw-sparkle { animation:hpw-sparkle-wink 5.8s ease-in-out var(--hpw-delay) infinite!important }
+[data-ssr-surface=utility] .gg-gnome { animation:ssr-utility-gnome 4.8s ease-in-out infinite!important }
 /* Legacy visibility helpers cannot override the SSR visitor's playback choice. */
 [data-ssr-hero]:not([data-visitor-paused=true]) :is(.nb-scene,.hpw-scene) * { animation-play-state:running!important }
 [data-ssr-hero][data-visitor-paused=true] *,
 [data-ssr-hero][data-visitor-paused=true] *::before,
 [data-ssr-hero][data-visitor-paused=true] *::after { animation-play-state:paused!important }
 [data-ssr-review-label] { position:fixed;bottom:6px;right:6px;z-index:10000;padding:4px 8px;border:1px solid #ae8e45;border-radius:6px;background:#fff7df;color:#402c09;font:11px/1.3 system-ui;pointer-events:none }
+[data-ssr-surface=utility] .ssr-utility-motion-control { position:absolute;right:18px;bottom:10px;z-index:6;min-height:36px;padding:8px 12px;border:1px solid currentColor;border-radius:999px;background:var(--hp-bg-elevated);color:var(--fg);font:12px/1.4 system-ui;cursor:pointer }
+[data-ssr-surface=utility] [data-hero-motion-toggle][hidden] { display:none!important }
+[data-hero-fx][data-visitor-paused=true] *,[data-hero-fx][data-visitor-paused=true]::before,[data-hero-fx][data-visitor-paused=true]::after { animation-play-state:paused!important }
+@keyframes ssr-utility-gnome { 0%,100% { opacity:1;transform:translateY(0) } 50% { opacity:1;transform:translateY(-2px) } }
