@@ -25,6 +25,8 @@ for (const page of ['trade', 'join'] as const) {
       expect(tree?.match(/<h1\b/g)).toHaveLength(1)
       expect(tree).toContain(page === 'trade' ? 'SSR jewelry first paint' : 'SSR roster first paint')
       expect(html).toContain(`data-ssr-style="${page}.css"`)
+      expect(html).toContain('data-ssr-fonts')
+      expect(html).toContain('/amethyst/ssr-fonts/')
       expect(html).toContain(`/amethyst/compiled/${page}.js`)
       expect(html).not.toMatch(/react\.development|babel|data-template-src=/)
       expect(tree).toContain('data-hero-motion-toggle=""')

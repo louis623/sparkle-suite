@@ -5,6 +5,7 @@ import homepageStyles from './generated/homepage-styles.json'
 export { earlyHomepageControls } from './hero-motion-controls'
 import runtimeSources from './generated/page-runtimes.json'
 import { webcrypto } from 'node:crypto'
+import { utilityPageFonts } from './utility-page-fonts'
 import { join } from 'node:path'
 import { Script, createContext } from 'node:vm'
 import { createRequire } from 'node:module'
@@ -58,6 +59,8 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
   const style = Array.from(properties, ([key, value]) => `${key}:${value}`).join(';')
   const allowedCss = new Set(['tokens.css', 'components.css', 'homepage.css', page + '.css', ...theme.css,
     ...(data.homepage.publicSiteVariant === 'britt_with_bling_hybrid' ? ['britt-hero-buttons.css'] : [])])
+  const fontMarkup = page === 'homepage' ? '' : utilityPageFonts(properties,
+    [...allowedCss].map(name => homepageStyles[name as keyof typeof homepageStyles]).join('\n'), data.appearancePreset)
   let result = html.replace(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"?]+)[^"]*"[^>]*>/g,
     (_tag, href: string) => {
       const name = href.split('/').at(-1) ?? ''
@@ -79,7 +82,7 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
   })
   return result
     .replace('</body>', ('ssrReview' in data ? '<aside data-ssr-review-label>Smoke demo · theme/layout review fixture · no saved changes</aside>' : '') + '</body>')
-    .replace('</head>', preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
+    .replace('</head>', fontMarkup + preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${escapeAttribute(style)}">`)
     .replace('<body class="' + (page === 'homepage' ? 'homepage' : page + 'page') + '">', `<body class="${escapeAttribute(body.className)}">`)
     .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}</script>`)

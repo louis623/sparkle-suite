@@ -16,6 +16,7 @@ it('renders finished Pumpkin Cat markup with one H1, production hydration and on
   expect(html).not.toMatch(/react\.development|babel|data-template-src=/)
   expect(html).not.toMatch(/(?:unicorn|sunset-beach|neon-butterfly)\.(?:css|js)/)
   expect(html).toContain('window.SPARKLE_FIRST_PAINT=')
+  expect(html).not.toContain('data-ssr-fonts')
 })
 
 it('autoplays the muted inline SSR hero even with saved still motion, retaining its poster', async () => {
