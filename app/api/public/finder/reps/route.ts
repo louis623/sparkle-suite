@@ -1,4 +1,8 @@
 import {
+  applyPublicFinderRepFeedFields,
+  loadPublicFinderRepFeedSources,
+} from '@/app/api/public/finder/reps/feed-fields'
+import {
   DEFAULT_FINDER_REP_DIRECTORY_LIMIT,
   MAX_FINDER_REP_DIRECTORY_LIMIT,
   listSparkleFinderPublicReps,
@@ -33,10 +37,14 @@ export async function GET(request: Request) {
   }
 
   try {
-    const reps = await listSparkleFinderPublicReps({
+    const directoryReps = await listSparkleFinderPublicReps({
       limit,
       query: query || undefined,
     })
+    const sources = await loadPublicFinderRepFeedSources(
+      directoryReps.map((rep) => rep.repId),
+    )
+    const reps = applyPublicFinderRepFeedFields(directoryReps, sources)
 
     return Response.json(
       {

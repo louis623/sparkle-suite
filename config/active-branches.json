@@ -44,7 +44,8 @@
     "codex/ssr-chunk1-fizzfest-home",
     "codex/ssr-chunk1-build-size",
     "codex/ssr-all-themes",
-    "codex/ssr-dancefloor-join"
+    "codex/ssr-dancefloor-join",
+    "codex/finder-rep-feed-fields"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -160,6 +161,10 @@
       "environment": "preview"
     },
     "codex/ssr-dancefloor-join": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/finder-rep-feed-fields": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }
