@@ -13,6 +13,19 @@ function runtimeScripts() {
     'responsive-image.js', 'sparkle-suite-footer-credit.js', 'compiled/homepage.js',
   ].map(async name => new Script(await readFile(join(process.cwd(), 'public/amethyst', name), 'utf8'), { filename: name })))
 }
+// Prepare immutable code once as soon as this module is imported.
+const runtimeInitStarted = performance.now()
+const preparedRuntime = Promise.resolve().then(async () => {
+  const { React, renderToString } = createRequire(join(process.cwd(), 'package.json'))('./lib/amethyst/generated/homepage-server.cjs') as {
+    React: typeof ReactTypes; renderToString: (element: ReactTypes.ReactNode) => string
+  }
+  const bundleMs = performance.now() - runtimeInitStarted
+  await runtimeScripts()
+  console.info('homepage_ssr_runtime', JSON.stringify({ bundleMs, preparedMs: performance.now() - runtimeInitStarted }))
+  return { React, renderToString }
+})
+// Import-time failures are handled by the request's safety boundary.
+void preparedRuntime.catch(() => {})
 const escapeAttribute = (value: string) => value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
 // Native links already work before hydration. Pumpkin Cat has no Sound or menu
@@ -28,12 +41,10 @@ if(video){video.muted=true;if(matchMedia('(prefers-reduced-motion:reduce)').matc
 window.addEventListener('sparkle:homepage-hydrated',function(){ready=true;document.removeEventListener('click',click,true)},{once:true});
 })();`
 
-/** Called only inside the 1.5s best-effort boundary. Failure leaves Live HTML intact. */
+/** Called only inside the bounded best-effort boundary. Failure leaves Live HTML intact. */
 export async function renderHomepageFirstPaint(html: string, data: AmethystPreviewTemplateData, requestUrl: URL, bootstrap: string) {
   if (data.appearancePreset !== 'halloween_pumpkin_cat') throw new Error('Chunk 1 requires the approved Pumpkin Cat theme')
-  const { React, renderToString } = createRequire(join(process.cwd(), 'package.json'))('./lib/amethyst/generated/homepage-server.cjs') as {
-    React: typeof ReactTypes; renderToString: (element: ReactTypes.ReactNode) => string
-  }
+  const { React, renderToString } = await preparedRuntime
   const properties = new Map<string, string>()
   const body = { className: 'homepage', classList: { add(...names: string[]) { body.className += ' ' + names.join(' ') } } }
   const document = { body, documentElement: { style: { setProperty(name: string, value: unknown) { properties.set(name, String(value)) } } }, getElementById: () => ({}) }
@@ -47,7 +58,9 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   new Script(inlineBootstrap).runInContext(context, { timeout: 300 })
   for (const script of await runtimeScripts()) script.runInContext(context, { timeout: 300 })
   context.renderHomepageMarkup = () => renderToString(element)
+  const markupStarted = performance.now()
   const rendered = new Script('renderHomepageMarkup()').runInContext(context, { timeout: 500 }) as string
+  console.info('homepage_ssr_markup', JSON.stringify({ renderToStringMs: performance.now() - markupStarted }))
   const preloads = [...rendered.matchAll(/<link\b[^>]*rel="preload"[^>]*\/>/g)].map(match => match[0]).join('')
   const markup = rendered.replace(/<link\b[^>]*rel="preload"[^>]*\/>/g, '')
   new Script('applyHomepageTheme(window.HOMEPAGE_TWEAK_DEFAULTS, document)').runInContext(context, { timeout: 100 })

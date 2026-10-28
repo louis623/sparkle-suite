@@ -530,6 +530,8 @@ function rewriteAmethystPublicHtml(
   )
 }
 
+let homepageSSRRequests = 0
+
 export async function renderAmethystPublicAssetResponse(
   request: Request,
   asset: string[],
@@ -561,6 +563,11 @@ export async function renderAmethystPublicAssetResponse(
     const repId = options.repIdOverride?.trim() || resolveAmethystRequestRepId(request)
     const resolvedOptions = repId ? { ...options, repIdOverride: repId } : options
     const ssrStarted = performance.now()
+    const cold = homepageSSRRequests++ === 0
+    const timings: Record<string, number> = {}
+    const rendererTask = import('./homepage-first-paint')
+    void rendererTask.catch(() => {})
+    const mark = (step: string) => { timings[step] = performance.now() - ssrStarted }
     const templatePromise =
       page && contentType.startsWith('text/html') && repId
         ? loadAmethystPreviewTemplateData({ repId, publicSiteSlug: options.publicSiteSlugOverride || '' }).then(data => previewHomepageTheme(data, options.publicSiteSlugOverride))
@@ -576,6 +583,7 @@ export async function renderAmethystPublicAssetResponse(
         repId: repId || '',
       })).catch(() => null)
     const loadedTemplate = await templatePromise
+    mark('templateReadyMs')
     const templateData = loadedTemplate
       ? restrictPantryTemplateData(
           await indexPublicJoinTemplate(loadedTemplate, { repId }),
@@ -623,15 +631,19 @@ export async function renderAmethystPublicAssetResponse(
         )
         if (page === 'homepage' && templateData) {
           const original = responseBody as string
+          mark('metadataReadyMs')
           responseBody = await bestEffortHomepage(async () => {
             const response = await bootstrapTask
             if (!response?.ok) throw new Error('Homepage data response failed')
             pageDataState = response.headers.get('x-sparkle-page-data') || undefined
             const bootstrap = await response.text()
+            mark('bootstrapReadyMs')
             if (forceHomepageRenderFailure(request)) throw new Error('Preview render failure probe')
-            const { renderHomepageFirstPaint } = await import('./homepage-first-paint')
+            const { renderHomepageFirstPaint } = await rendererTask
+            mark('rendererReadyMs')
             return renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
-          }, Math.max(0, 1500 - (performance.now() - ssrStarted))) ?? original
+          }, Math.max(0, 5000 - (performance.now() - ssrStarted))) ?? original
+          console.info('homepage_ssr_request', JSON.stringify({ cold, ...timings, totalMs: performance.now() - ssrStarted, result: responseBody === original ? 'fallback' : 'ssr', pageDataState }))
         }
       } else if (templateScriptPage) {
         responseBody = rewriteTemplateScriptTarget(
