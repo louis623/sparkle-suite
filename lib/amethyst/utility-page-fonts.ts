@@ -11,6 +11,7 @@ export function utilityPageFonts(properties: Map<string, string>, css: string, p
   const primary = [properties.get('--hp-display-font'), properties.get('--hp-body-font')]
     .map(value => value?.split(',')[0]?.replaceAll('"', '').trim())
   const rules: string[] = []
+  const warmFonts = new Set<string>()
   for (const [family, faces] of families) {
     // Variable faces often share the same bytes across several weight rules.
     // Merge only identical file/style/range groups so inline data occurs once.
@@ -29,9 +30,14 @@ export function utilityPageFonts(properties: Map<string, string>, css: string, p
       const latin = !rule.includes('unicode-range') || rule.includes('U+0000-00FF')
       const critical = primary.includes(family) || family === 'Playfair Display' ||
         (preset === 'emerald_garden' && family === 'Cormorant Garamond')
-      if (critical && latin) rule = rule.replace(face.src, fontData[face.src as keyof typeof fontData])
+      if (critical && latin) {
+        rule = rule.replace(face.src, fontData[face.src as keyof typeof fontData])
+        warmFonts.add(`${face.style} ${face.weight} 16px ${JSON.stringify(family)}`)
+      }
       rules.push(rule)
     }
   }
-  return `<style data-ssr-fonts>${rules.join('\n')}</style>`
+  // Demand/decode embedded faces in the head, before body layout can use a
+  // substitute font. This never hides the page or waits on a provider request.
+  return `<style data-ssr-fonts>${rules.join('\n')}</style><script>if(document.fonts){${JSON.stringify([...warmFonts])}.forEach(function(font){document.fonts.load(font).catch(function(){})})}</script>`
 }
