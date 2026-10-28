@@ -18,7 +18,10 @@ export function homepageSmokeReview(data: AmethystPreviewTemplateData, url: URL,
   const theme = url.searchParams.get('ssrReviewTheme')
   const layout = url.searchParams.get('ssrReviewLayout')
   if (!AMETHYST_APPEARANCE_PRESET_IDS.some(id => id === theme) ||
-      !layout || !Object.hasOwn(SSR_REVIEW_LAYOUTS, layout)) return data
+      (layout !== null && !Object.hasOwn(SSR_REVIEW_LAYOUTS, layout))) return data
+  const variant = layout === null ? data.homepage.publicSiteVariant : SSR_REVIEW_LAYOUTS[layout as keyof typeof SSR_REVIEW_LAYOUTS]
   return { ...data, ssrReview: true, appearancePreset: theme as AmethystPreviewTemplateData['appearancePreset'],
-    homepage: { ...data.homepage, publicSiteVariant: SSR_REVIEW_LAYOUTS[layout as keyof typeof SSR_REVIEW_LAYOUTS] } }
+    homepage: { ...data.homepage, publicSiteVariant: variant },
+    trade: { ...data.trade, publicSiteVariant: variant },
+    join: { ...data.join, publicSiteVariant: variant } }
 }

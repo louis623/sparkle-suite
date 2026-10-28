@@ -230,3 +230,6 @@ Louis explicitly authorized `codex/ssr-chunk1-fizzfest-home`, fresh from product
 
 ## October 28 — SSR all themes Smoke review
 Louis explicitly approved codex/ssr-all-themes from application 09e46db0, one PR targeting codex/ssr-chunk1-build-size and deployment to the normal Smoke alias. Guard authorizes only preview project prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ and the disposable ssr-all-themes worktree. Demo slug dudesfizzfest only, same 41 Smoke-only overrides with SSR_PREVIEW_THEME_OVERRIDE empty. No Live project/data/keys, production branch changes, migrations or merge. Rollback dpl_HEaABdWqCtia5EY1YJvYKttXA5To.
+
+## October 28 — demo Dance Floor and Join SSR
+Louis approved codex/ssr-dancefloor-join from PR162 tip 98d14526 for one PR targeting codex/ssr-all-themes, Smoke preview project prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ only and its normal alias. Same 41 Smoke-only overrides; no Live data/keys/settings, migrations, other reps or merge. Roll back to dpl_8Z9xfABn8F7WkSPMHKdNYE7NpTek on acceptance failure. Disposable worktree ssr-dancefloor-join authorized; deployment guard unchanged.

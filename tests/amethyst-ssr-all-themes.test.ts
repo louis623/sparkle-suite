@@ -82,6 +82,11 @@ it('disables review overrides on Live, other projects, other databases and other
   vi.stubEnv('VERCEL_ENV', 'preview'); vi.stubEnv('VERCEL_PROJECT_ID', 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ')
   vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke'); vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://pukemqiwlyqmyytxkdmo.supabase.co')
   expect(homepageSmokeReview(data, url, 'dudesfizzfest').appearancePreset).toBe('pearl_rose')
+  const themeOnly = homepageSmokeReview(data, new URL(url.origin + url.pathname + '?ssrReviewTheme=neon_butterfly'), 'dudesfizzfest')
+  expect(themeOnly.appearancePreset).toBe('neon_butterfly')
+  expect(themeOnly.homepage.publicSiteVariant).toBe(homepage.publicSiteVariant)
+  expect(themeOnly.trade.publicSiteVariant).toBe(homepage.publicSiteVariant)
+  expect(themeOnly.join.publicSiteVariant).toBe(homepage.publicSiteVariant)
   expect(homepageSmokeReview(data, new URL(url.origin + url.pathname), 'dudesfizzfest')).toBe(data)
   expect(homepageSmokeReview(data, url, 'blingkitchen')).toBe(data)
   for (const [key, value] of [['VERCEL_ENV', 'production'], ['VERCEL_PROJECT_ID', 'other'], ['NEXT_PUBLIC_SUPABASE_URL', 'https://other.supabase.co'], ['NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'live']]) {

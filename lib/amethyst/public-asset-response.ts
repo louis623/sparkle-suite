@@ -542,7 +542,11 @@ export async function renderAmethystPublicAssetResponse(
     const legacy = await import('./legacy/public-asset-response')
     return legacy.renderAmethystPublicAssetResponse(request, asset, options)
   }
-  const filePath = join(process.cwd(), 'lib/amethyst/legacy/assets/Homepage.html')
+  const filePath = asset.join('/') === 'Trade.html'
+    ? join(process.cwd(), 'lib/amethyst/legacy/assets/Trade.html')
+    : asset.join('/') === 'Join.html'
+      ? join(process.cwd(), 'lib/amethyst/legacy/assets/Join.html')
+      : join(process.cwd(), 'lib/amethyst/legacy/assets/Homepage.html')
   if (!filePath) return new Response('Not found', { status: 404 })
 
   try {
@@ -578,7 +582,12 @@ export async function renderAmethystPublicAssetResponse(
     bootstrapUrl.searchParams.set('publicSiteSlug', options.publicSiteSlugOverride || '')
     bootstrapUrl.searchParams.set('lineupPresentation', 'grouped-v1')
     // Start all data reads before waiting for the template used by metadata.
-    const bootstrapTask = import('./homepage-bootstrap-response').then(({ buildHomepageBootstrapResponse }) =>
+    const bootstrapTask = page !== 'homepage'
+      ? import('./customer-page-bootstrap-response').then(({ buildCustomerPageBootstrapResponse }) => buildCustomerPageBootstrapResponse(page as 'trade' | 'join', request, {
+        templateData: templatePromise.then(data => { if (!data) throw new Error('Missing template'); return data }),
+        repId: repId || '', publicSiteSlug: options.publicSiteSlugOverride || '',
+      })).catch(() => null)
+      : import('./homepage-bootstrap-response').then(({ buildHomepageBootstrapResponse }) =>
       buildHomepageBootstrapResponse(new Request(bootstrapUrl, { headers: request.headers }), {
         templateData: templatePromise.then(data => { if (!data) throw new Error('Missing template'); return data }),
         repId: repId || '',
@@ -630,7 +639,7 @@ export async function renderAmethystPublicAssetResponse(
           { ...resolvedOptions, pantryRecipes, pantryEmpty, joinRuntimeContext },
           ga4Tag,
         )
-        if (page === 'homepage' && templateData) {
+        if ((page === 'homepage' || page === 'trade' || page === 'join') && templateData) {
           const original = responseBody as string
           mark('metadataReadyMs')
           responseBody = await bestEffortHomepage(async () => {
@@ -640,9 +649,10 @@ export async function renderAmethystPublicAssetResponse(
             const bootstrap = await response.text()
             mark('bootstrapReadyMs')
             if (forceHomepageRenderFailure(request)) throw new Error('Preview render failure probe')
-            const { renderHomepageFirstPaint } = await rendererTask
+            const renderer = await rendererTask
             mark('rendererReadyMs')
-            return renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
+            return page === 'homepage' ? renderer.renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
+              : renderer.renderAmethystPageFirstPaint(page, original, templateData, requestUrl, bootstrap)
           }, Math.max(0, 5000 - (performance.now() - ssrStarted))) ?? original
           console.info('homepage_ssr_request', JSON.stringify({ cold, ...timings, totalMs: performance.now() - ssrStarted, result: responseBody === original ? 'fallback' : 'ssr', pageDataState }))
         }

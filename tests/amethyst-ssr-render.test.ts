@@ -28,7 +28,7 @@ it('autoplays the muted inline SSR hero even with saved still motion, retaining 
   for (const attribute of ['autoplay', 'muted', 'playsinline', 'loop']) {
     expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
   }
-  expect(video).toContain('poster="/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp"')
+  expect(video).toContain('poster="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp"')
   expect(html).toContain('class="hpc-poster"')
   expect(html).toMatch(/class="hpc-motion-control"[^>]*aria-pressed="true"[^>]*>Pause animation/)
 })

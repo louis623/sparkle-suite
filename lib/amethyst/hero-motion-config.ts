@@ -1,6 +1,7 @@
-import type { AmethystAppearancePresetId } from './appearance-presets'
+import { AMETHYST_APPEARANCE_PRESETS, type AmethystAppearancePresetId } from './appearance-presets'
 
 export interface HeroMotionConfig {
+  motion?: string
   kind: 'video' | 'decoration' | 'sparkle'
   css: string[]
   script?: string
@@ -41,7 +42,7 @@ export const HERO_MOTION_THEMES: Record<AmethystAppearancePresetId, HeroMotionCo
   gnome_garden: { kind: 'decoration', scene: 'gnome', css: ['gnome-garden.css'] },
   neon_butterfly: { kind: 'decoration', scene: 'butterfly', css: ['neon-butterfly.css'], script: 'neon-butterfly.js' },
   halloween_pumpkin_witch: { kind: 'decoration', scene: 'witch', css: ['halloween-pumpkin-witch.css'], script: 'halloween-pumpkin-witch.js' },
-  halloween_pumpkin_cat: video('halloween-pumpkin-cat', 'hpc', { scene: 'pumpkin', mediaClass: 'hpc-art', posterClass: 'hpc-poster', controlClass: 'hpc-motion-control', frameAttribute: 'data-playing', poster: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp', src: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4', width: 1672, height: 941 }),
+  halloween_pumpkin_cat: video('halloween-pumpkin-cat', 'hpc', { scene: 'pumpkin', mediaClass: 'hpc-art', posterClass: 'hpc-poster', controlClass: 'hpc-motion-control', frameAttribute: 'data-playing', poster: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp', src: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4', width: 1672, height: 941 }),
   gilded_autumn: video('gilded-autumn', 'ga', { mediaClass: 'ga-art', src: '/amethyst/skins/gilded-autumn/hero-motion.mp4', controlClass: 'ga-motion-control', frameAttribute: 'data-playing', width: 1204, height: 764 }),
   rose_gold: sparkle(),
   midnight_rose: video('midnight-rose', 'mdr'),
@@ -56,3 +57,5 @@ export const HERO_MOTION_THEMES: Record<AmethystAppearancePresetId, HeroMotionCo
   velvet: sparkle(),
   rose_quartz: sparkle(),
 }
+
+for (const id of Object.keys(HERO_MOTION_THEMES) as AmethystAppearancePresetId[]) { HERO_MOTION_THEMES[id].motion = AMETHYST_APPEARANCE_PRESETS[id].values.heroMotion; }
