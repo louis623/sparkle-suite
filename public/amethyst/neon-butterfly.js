@@ -3,7 +3,7 @@
 
   var SKIN_CLASS = 'bg-neon-butterfly';
   var HERO_SELECTOR = [
-    '.hp-hero',
+    '.hp-hero:not([data-ssr-hero])',
     '.tp-hero',
     '.jp-hero',
     '.mhf-hero',

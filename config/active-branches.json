@@ -6,7 +6,8 @@
     "C:\\Users\\louis\\sparkle-suite-repo",
     "C:\\Users\\louis\\.codex\\worktrees\\blingkitchen-google-verification\\sparkle-suite-repo",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\trade-request-completion",
-    "C:\\Users\\louis\\.codex\\visualizations\\2026\\10\\05\\01a10df3-2121-7673-8f71-c58c6d0e5ab4\\section1-workspace"
+    "C:\\Users\\louis\\.codex\\visualizations\\2026\\10\\05\\01a10df3-2121-7673-8f71-c58c6d0e5ab4\\section1-workspace",
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\ssr-all-themes"
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
@@ -40,7 +41,8 @@
     "cursor/suite-join-ssr-rep-routes",
     "cursor/theme-carousel-site-peeks-db80",
     "codex/ssr-chunk1-fizzfest-home",
-    "codex/ssr-chunk1-build-size"
+    "codex/ssr-chunk1-build-size",
+    "codex/ssr-all-themes"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -148,6 +150,10 @@
       "environment": "preview"
     },
     "codex/ssr-chunk1-build-size": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/ssr-all-themes": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }

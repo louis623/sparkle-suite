@@ -99,7 +99,7 @@
     }};
   }
   function sync(records) {
-    const hero = document.querySelector('.hp-hero[data-appearance-preset="amethyst"]');
+    const hero = document.querySelector('.hp-hero:not([data-ssr-hero])[data-appearance-preset="amethyst"]');
     if (active && active.hero !== hero) { active.dispose(); active = null; }
     if (hero && !active) active = mount(hero);
     if (active && records?.some(record => record.target === hero && record.attributeName === 'data-hero-motion')) active.preferenceChanged();

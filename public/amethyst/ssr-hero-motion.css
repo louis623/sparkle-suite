@@ -1,0 +1,28 @@
+/* Loaded only by the allowlisted SSR homepage. Existing theme art/crops stay in
+   their original stylesheets; the visitor alone owns motion intent. */
+[data-ssr-hero] .ssr-motion-control { position:absolute;left:18px;bottom:16px;z-index:6;pointer-events:auto;min-height:44px;padding:10px 16px;border:1px solid currentColor;border-radius:999px;background:var(--hp-bg-elevated,#24182c);color:var(--fg,#fff);font:600 12px/1.4 system-ui;cursor:pointer }
+[data-ssr-hero] [data-hero-motion-toggle] { display:block!important }
+[data-ssr-hero] [data-hero-motion-toggle]:focus-visible { outline:3px solid currentColor;outline-offset:3px }
+[data-ssr-hero] .beach-poster { position:absolute;inset:0;width:100%;height:100%;object-fit:cover }
+[data-ssr-hero] .beach-video { position:relative }
+[data-ssr-hero] .beach-motion-layer { opacity:1 }
+[data-ssr-hero] .beach-video { opacity:0 }
+[data-ssr-hero] .beach-motion-layer[data-playing=true] .beach-video { opacity:1 }
+[data-ssr-hero] .nb-wing--left { animation:ssr-wing-left 3.2s var(--nb-flap-delay) ease-in-out infinite!important }
+[data-ssr-hero] .nb-wing--right { animation:ssr-wing-right 3.2s var(--nb-flap-delay) ease-in-out infinite!important }
+@keyframes ssr-wing-left { 0%,100%{transform:scaleX(1) skewY(0deg)}50%{transform:scaleX(.7) skewY(-1.5deg)} }
+@keyframes ssr-wing-right { 0%,100%{transform:scaleX(1) skewY(0deg)}50%{transform:scaleX(.7) skewY(1.5deg)} }
+/* Preserve continuous ambient motion even when the saved preference was Still. */
+[data-ssr-hero] .gg-lantern { animation:gg-sway 8s ease-in-out infinite!important }
+[data-ssr-hero] .gg-lantern::after { animation:gg-glow 5s ease-in-out infinite!important }
+[data-ssr-hero] .gg-firefly { animation:gg-drift 16s ease-in-out infinite!important }
+[data-ssr-hero] .nb-led-wash { animation:nb-led-color-cycle 24s ease-in-out infinite!important }
+[data-ssr-hero] .nb-curtain-light { animation:nb-curtain-breathe 18s ease-in-out infinite!important }
+[data-ssr-hero] .nb-lamp-shimmer { animation:nb-lamp-shimmer 17s ease-in-out infinite!important }
+[data-ssr-hero] .nb-sparkle { animation:nb-sparkle-twinkle 9s var(--nb-delay) ease-in-out infinite!important }
+[data-ssr-hero] .hpw-witch { animation:hpw-witch-hover 4.4s ease-in-out infinite!important }
+[data-ssr-hero] .hpw-sparkle { animation:hpw-sparkle-wink 5.8s ease-in-out var(--hpw-delay) infinite!important }
+[data-ssr-hero][data-visitor-paused=true] *,
+[data-ssr-hero][data-visitor-paused=true] *::before,
+[data-ssr-hero][data-visitor-paused=true] *::after { animation-play-state:paused!important }
+[data-ssr-review-label] { position:fixed;bottom:6px;right:6px;z-index:10000;padding:4px 8px;border:1px solid #ae8e45;border-radius:6px;background:#fff7df;color:#402c09;font:11px/1.3 system-ui;pointer-events:none }

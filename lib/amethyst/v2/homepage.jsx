@@ -879,36 +879,53 @@ function GnomeGardenScene() {
   );
 }
 
-// Same approved Pumpkin Cat art and control, now present in the server tree.
-function PumpkinCatScene() {
-  const [wanted, setWanted] = useState(() => window.sparkleEarlyMotion?.() ?? true);
-  useEffect(() => { setWanted(window.sparkleEarlyMotion?.() ?? true); }, []);
-  const videoRef = useRef(null);
-  const mediaRef = useRef(null);
-  useEffect(() => {
-    const video = videoRef.current, media = mediaRef.current;
-    if (!video) return;
-    const reduced = matchMedia('(prefers-reduced-motion:reduce)');
-    let visible = true;
-    function update() {
-      if (!wanted || reduced.matches || document.hidden || !visible) { video.pause(); return; }
-      video.muted = true;
-      video.play().catch(() => {});
-    }
-    const playing = () => media.setAttribute('data-playing', 'true');
-    video.addEventListener('playing', playing);
-    if (!video.paused) playing();
-    document.addEventListener('visibilitychange', update); reduced.addEventListener('change', update);
-    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); }, { threshold: 0.05 }); observer.observe(video);
-    update();
-    return () => { observer.disconnect(); video.removeEventListener('playing', playing); document.removeEventListener('visibilitychange', update); reduced.removeEventListener('change', update); };
-  }, [wanted]);
+function NeonButterflyScene() {
+  const butterflies = [
+    ['pink', 'crown', 17, -3.4, -4], ['gold', 'left', 21, -12.1, -7], ['violet', 'right', 19, -7.6, 12],
+  ];
+  const sparkles = [[12,21,-2],[19,70,-7],[28,14,-11],[38,79,-5],[49,24,-13],[58,68,-3],[67,17,-9],[74,77,-15],[82,34,-6],[89,61,-12],[94,19,-4],[7,48,-10],[23,43,-16],[34,61,-8],[54,84,-18],[64,42,-14],[78,57,-20],[91,81,-9],[17,33,-17],[31,88,-6],[44,47,-21],[61,75,-12],[72,10,-19],[86,68,-4]];
+  return <div className="nb-scene" aria-hidden="true">
+    <span className="nb-led-wash nb-led-wash--left" /><span className="nb-led-wash nb-led-wash--right" />
+    <span className="nb-curtain-light" /><span className="nb-lamp-shimmer" />
+    {butterflies.map(([tone, place, duration, delay, angle], index) => <span key={tone} className={`nb-butterfly nb-butterfly--${tone} nb-butterfly--${place}`} data-nb-butterfly={index + 1} style={{ '--nb-flap-duration': `${duration}s`, '--nb-flap-delay': `${delay}s`, '--nb-rest-angle': `${angle}deg` }}>
+      {['left','right'].map(side => <span key={side} className={`nb-wing nb-wing--${side}`}><img className="nb-butterfly-art" src={`/amethyst/skins/neon-butterfly/kelly-sign-${tone}.png`} alt="" draggable="false" /></span>)}
+    </span>)}
+    {sparkles.map(([x,y,delay],index) => <span key={index} className="nb-sparkle" data-nb-sparkle={index+1} style={{ '--nb-x': `${x}%`, '--nb-y': `${y}%`, '--nb-delay': `${delay}s` }} />)}
+  </div>;
+}
+
+function PumpkinWitchScene() {
+  return <div className="hpw-scene" aria-hidden="true">
+    <span className="hpw-witch-flight"><img className="hpw-witch" src="/amethyst/skins/halloween-pumpkin-witch/witch.webp" alt="" decoding="async" /></span>
+    {[[12,18,-.8,8],[30,12,-3.1,7],[84,50,-1.9,8],[95,72,-4.7,7]].map(([x,y,delay,size],index) => <span key={index} className={`hpw-sparkle hpw-sparkle--${index%3}`} style={{ '--hpw-x': `${x}%`, '--hpw-y': `${y}%`, '--hpw-delay': `${delay}s`, '--hpw-size': `${size}px` }} />)}
+  </div>;
+}
+
+// Shared production tree: the existing theme CSS still owns art/crop/presentation.
+// Native controls bind before hydration, preserving early Pause without remounts.
+function HeroMotionScene({ t, host = false }) {
+  const config = window.SPARKLE_HERO_THEMES[t.preset];
+  useEffect(() => { window.sparkleStartHeroMotion?.(); }, [t.preset]);
+  if (Boolean(config.host) !== host) return null;
+  const motion = <button type="button" className={config.controlClass || 'ssr-motion-control'} data-hero-motion-toggle="" aria-pressed="true" suppressHydrationWarning>Pause animation</button>;
+  if (config.kind === 'decoration') {
+    const prefix = { gnome: 'gg', butterfly: 'nb', witch: 'hpw' }[config.scene];
+    return <div className={`${prefix}-decoration`} data-paused="false" data-choreography="1">
+      {config.scene === 'gnome' ? <GnomeGardenScene /> : config.scene === 'butterfly' ? <NeonButterflyScene /> : <PumpkinWitchScene />}
+      <button type="button" className={`${prefix}-motion-control`} data-hero-motion-toggle="" aria-pressed="true" suppressHydrationWarning>Pause animation</button>
+    </div>;
+  }
+  if (config.kind === 'sparkle') return <><SparkleFx level={t.sparkleLevel === 'none' ? 'subtle' : t.sparkleLevel} motion={PRESETS[t.preset]?.heroMotion || 'sparkle_rise'} />{motion}</>;
+  const controls = config.controlsClass ? <div className={config.controlsClass} role="group" aria-label="Hero animation controls">
+    {motion}{config.sound && <button type="button" className={config.controlClass} data-hero-sound-toggle={config.sound} aria-pressed="false" suppressHydrationWarning>Enable {config.sound}</button>}
+  </div> : motion;
   return <>
-    <div className="hpc-art" ref={mediaRef}>
-      <picture className="hpc-poster" aria-hidden="true"><img src="/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp" srcSet="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-720.webp 720w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp 1200w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1672.webp 1672w" sizes="(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw" alt="" width="1672" height="941" /></picture>
-      <video ref={videoRef} className="hpc-video" autoPlay muted playsInline loop preload="none" poster="/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp" src="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4" aria-hidden="true" tabIndex={-1} />
+    <div className={config.mediaClass} data-hero-media={config.frameAttribute} aria-hidden="true" suppressHydrationWarning>
+      {config.scene === 'pumpkin' ? <picture className="hpc-poster" aria-hidden="true"><img src={config.poster} srcSet="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-720.webp 720w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp 1200w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1672.webp 1672w" sizes="(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw" alt="" width="1672" height="941" /></picture> : <img className={config.posterClass} src={config.poster} alt="" width={config.width} height={config.height} fetchPriority="high" />}
+      <video className={config.videoClass} data-hero-video="" autoPlay muted playsInline loop preload="none" poster={config.poster} src={config.src} aria-hidden="true" tabIndex={-1} />
     </div>
-    <button type="button" className="hpc-motion-control" aria-pressed={wanted} onClick={() => setWanted(value => !value)}>{wanted ? 'Pause animation' : 'Play animation'}</button>
+    {config.scene === 'unicorn' && <div className="au-magic" aria-hidden="true"><svg viewBox="0 0 1400 760" preserveAspectRatio="none"><path d="M-90 190 Q250 420 680 310 T1500 200"/><path d="M-100 480 Q300 720 790 540 T1500 470"/><path d="M-80 660 Q410 500 870 660 T1510 600"/></svg>{Array.from({length:12},(_,i)=><i key={i} style={{'--x':`${(i*29+7)%97}%`,'--y':`${(i*37+9)%93}%`,'--delay':`${-i*.7}s`}}/>)}</div>}
+    {controls}
   </>;
 }
 
@@ -919,11 +936,9 @@ function Hero({ t, isLive, liveShow }) {
 
   return (
     <>
-    <section className="hp-hero" data-appearance-preset={t.preset} data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
-      {t.preset === "halloween_pumpkin_cat" && window.SPARKLE_FIRST_PAINT !== undefined && <PumpkinCatScene />}
-      {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-      <div className="hp-hero-media" aria-hidden="true" />
-      {t.preset !== "halloween_pumpkin_cat" && t.preset !== "amethyst" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
+    <section className="hp-hero" data-ssr-hero={t.preset} data-appearance-preset={t.preset} data-hero-motion="on" data-cat-motion="on" suppressHydrationWarning>
+      <HeroMotionScene t={t} />
+      <div className="hp-hero-media"><HeroMotionScene t={t} host /></div>
       <div className="hp-hero-inner">
         <div>
           {isMileHighFizzHybrid && (
@@ -3165,7 +3180,7 @@ function SparkleFx({ level, motion }) {
         <span key={i} className="hp-fx-sparkle" style={{
           left: `${s.left}%`,
           bottom: -20,
-          animationDelay: `${s.delay}s`,
+          animationDelay: `${-s.delay}s`,
           animationDuration: `${s.duration}s`,
           transform: `scale(${s.size})`,
         }} />
@@ -3218,7 +3233,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
     <div className="mhf-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
-      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
+      {window.SPARKLE_HERO_THEMES ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="mhf-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="mhf-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         {t.preset !== "gilded_autumn" && <video className="mhf-hero-video" autoPlay muted loop playsInline poster="">
@@ -3345,7 +3360,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
     <div className="bwb-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
-      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
+      {window.SPARKLE_HERO_THEMES ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="bwb-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bwb-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         <img className="bwb-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "Live jewelry reveals", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />
@@ -3404,7 +3419,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
     <div className="bk-home-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
-      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : useFramedKitchenHero ? (
+      {window.SPARKLE_HERO_THEMES ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : useFramedKitchenHero ? (
       <section className="bkf-hero" aria-labelledby="bkf-hero-title">
         <div className="bkf-hero-inner">
           <div className="bkf-hero-copy">
@@ -3481,6 +3496,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
 // Main App
 // ============================================================
 function applyHomepageTheme(t, document) {
+    t = { ...t, heroMotion: PRESETS[t.preset]?.heroMotion || 'sparkle_rise' };
 
     const root = document.documentElement;
     const tone = TONES[t.bgTone] || TONES.lavender;
