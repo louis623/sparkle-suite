@@ -75,7 +75,7 @@
   }
   function sync(records) {
     const hero = document.body?.classList.contains('bg-rose-champagne')
-      ? document.querySelector('.hp-hero:not([data-ssr-hero])[data-appearance-preset="rose_champagne"]') : null;
+      ? document.querySelector('.hp-hero[data-appearance-preset="rose_champagne"]') : null;
     if (active && active.hero !== hero) { active.dispose(); active = null; }
     if (hero && !active) active = mount(hero);
     if (active && records?.some(record => record.target === hero && record.attributeName === 'data-hero-motion')) active.preferenceChanged();

@@ -72,7 +72,7 @@
     }};
   }
   function sync(records) {
-    const hero = document.body?.classList.contains('bg-halloween-pumpkin-cat') ? document.querySelector('.hp-hero:not([data-ssr-hero])') : null;
+    const hero = document.body?.classList.contains('bg-halloween-pumpkin-cat') ? document.querySelector('.hp-hero') : null;
     if (active && active.hero !== hero) { active.dispose(); active = null; }
     if (hero && !active) active = mount(hero);
     if (active && records?.some(r => r.attributeName === 'data-cat-motion')) active.preferenceChanged();

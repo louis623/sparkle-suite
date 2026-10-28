@@ -14,6 +14,7 @@ export interface HeroMotionConfig {
   controlsClass?: string
   frameAttribute?: string
   host?: boolean
+  controlsOutsideHost?: boolean
   sound?: string
   width?: number
   height?: number
@@ -48,7 +49,7 @@ export const HERO_MOTION_THEMES: Record<AmethystAppearancePresetId, HeroMotionCo
   gobble_and_fizz: video('gobble-and-fizz', 'tg', { host: true, frameAttribute: 'data-has-frame', script: 'thanksgiving-motion.js' }),
   pie_please: video('pie-please', 'tg', { host: true, frameAttribute: 'data-has-frame', script: 'thanksgiving-motion.js', poster: '/amethyst/skins/pie-please/hero-poster-v4.webp', src: '/amethyst/skins/pie-please/hero-loop-v4.mp4' }),
   pearl_rose: video('pearl-rose', 'prl'),
-  sunset_beach: video('sunset-beach', 'beach', { host: true, mediaClass: 'beach-motion-layer', videoClass: 'beach-video', frameAttribute: 'data-playing', controlsClass: 'beach-motion-controls', sound: 'wave sound' }),
+  sunset_beach: video('sunset-beach', 'beach', { host: true, controlsOutsideHost: true, mediaClass: 'beach-motion-layer', videoClass: 'beach-video', frameAttribute: 'data-playing', controlsClass: 'beach-motion-controls', sound: 'wave sound' }),
   rose_champagne: video('rose-champagne', 'rgc'),
   garnet: sparkle(),
   amber: sparkle(),

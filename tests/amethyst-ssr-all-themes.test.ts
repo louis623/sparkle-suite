@@ -32,7 +32,12 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
       expect(html).toContain('data-server-rendered="true"')
       expect(html.match(/<h1\b/g)).toHaveLength(1)
       expect(html).toContain('data-hero-motion-toggle=""')
+      expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
       expect(html).toContain('>Pause animation</button>')
+      if (HERO_MOTION_THEMES[preset].sound) {
+        expect(html).toContain('>Enable ' + HERO_MOTION_THEMES[preset].sound + '</button>')
+      }
+      if (preset === 'sunset_beach') expect(html.indexOf('class="beach-motion-controls"')).toBeLessThan(html.indexOf('class="hp-hero-media"'))
       for (const css of HERO_MOTION_THEMES[preset].css) expect(html).toContain(css)
       if (HERO_MOTION_THEMES[preset].script) expect(html).toMatch(new RegExp(`<script defer src="[^\"]*${HERO_MOTION_THEMES[preset].script}`))
       if (HERO_MOTION_THEMES[preset].kind === 'video') {

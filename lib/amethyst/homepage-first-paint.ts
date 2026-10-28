@@ -68,7 +68,7 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
     if (name === 'tweaks-panel.jsx') return '<script defer src="/amethyst/compiled/react.js"></script><script defer src="/amethyst/compiled/tweaks-panel.js"></script>'
     if (name === 'homepage.jsx') return '<script defer src="/amethyst/compiled/homepage.js"></script>'
     if (['live-lineup.js', 'responsive-image.js', 'sparkle-suite-footer-credit.js', 'dance-floor-ticker-label.js'].includes(name ?? '')) return tag.replace('<script ', '<script defer ')
-    if (name === theme.script) return tag.replace('<script ', '<script defer ')
+    if (name === theme.script) return tag.replace(src, src.replace('/amethyst/', '/amethyst/ssr-motion/')).replace('<script ', '<script defer ')
     if (src.startsWith('/amethyst/')) return ''
     return tag // Preserve the original analytics tags exactly once.
   })

@@ -1,6 +1,6 @@
 (function halloweenPumpkinWitchRuntime() {
   const SKIN_CLASS = "bg-halloween-pumpkin-witch";
-  const HERO_SELECTOR = ".hp-hero:not([data-ssr-hero]),.tp-hero,.jp-hero,.mhf-hero,.bwb-hero,.bk-home-hero";
+  const HERO_SELECTOR = ".hp-hero,.tp-hero,.jp-hero,.mhf-hero,.bwb-hero,.bk-home-hero";
   const ASSET_ROOT = "/amethyst/skins/halloween-pumpkin-witch/";
   const SPARKLES = [
     [12, 18, -0.8, 8], [30, 12, -3.1, 7],

@@ -83,7 +83,7 @@
   }
   function sync(records) {
     const hero = document.body.classList.contains('bg-sunset-beach')
-      ? document.querySelector('.hp-hero:not([data-ssr-hero])[data-appearance-preset="sunset_beach"]') : null;
+      ? document.querySelector('.hp-hero[data-appearance-preset="sunset_beach"]') : null;
     if (active && active.hero !== hero) { active.dispose(); active = null; }
     if (hero && !active) active = mount(hero);
     if (active && records?.some(record => record.target === hero && record.attributeName === 'data-hero-motion')) active.sync();
