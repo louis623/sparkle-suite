@@ -17,3 +17,18 @@ it('renders finished Pumpkin Cat markup with one H1, production hydration and on
   expect(html).not.toMatch(/(?:unicorn|sunset-beach|neon-butterfly)\.(?:css|js)/)
   expect(html).toContain('window.SPARKLE_FIRST_PAINT=')
 })
+
+it('autoplays the muted inline SSR hero even with saved still motion, retaining its poster', async () => {
+  const source = readFileSync('public/amethyst/Homepage.html', 'utf8')
+  const saved = { ...homepage, heroMotion: 'still' }
+  const bootstrap = buildAmethystHomepageBootstrapScript(saved, [], 'halloween_pumpkin_cat', { targeted: true })
+  const html = await renderHomepageFirstPaint(source, { homepage: saved, join, trade, appearancePreset: 'halloween_pumpkin_cat' }, new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
+  const video = html.match(/<video\b[^>]*class="hpc-video"[^>]*>/)?.[0]
+  expect(video).toBeDefined()
+  for (const attribute of ['autoplay', 'muted', 'playsinline', 'loop']) {
+    expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
+  }
+  expect(video).toContain('poster="/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp"')
+  expect(html).toContain('class="hpc-poster"')
+  expect(html).toMatch(/class="hpc-motion-control"[^>]*aria-pressed="true"[^>]*>Pause animation/)
+})

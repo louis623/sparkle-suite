@@ -880,34 +880,33 @@ function GnomeGardenScene() {
 }
 
 // Same approved Pumpkin Cat art and control, now present in the server tree.
-function PumpkinCatScene({ motion }) {
-  const [wanted, setWanted] = useState(() => window.sparkleEarlyMotion?.() ?? !["still", "none"].includes(motion));
-  useEffect(() => { setWanted(window.sparkleEarlyMotion?.() ?? !["still", "none"].includes(motion)); }, []);
+function PumpkinCatScene() {
+  const [wanted, setWanted] = useState(() => window.sparkleEarlyMotion?.() ?? true);
+  useEffect(() => { setWanted(window.sparkleEarlyMotion?.() ?? true); }, []);
   const videoRef = useRef(null);
   const mediaRef = useRef(null);
   useEffect(() => {
     const video = videoRef.current, media = mediaRef.current;
     if (!video) return;
-    let timer, resting = false;
     const reduced = matchMedia('(prefers-reduced-motion:reduce)');
     let visible = true;
     function update() {
       if (!wanted || reduced.matches || document.hidden || !visible) { video.pause(); return; }
-      if (!resting) video.play().catch(() => {});
+      video.muted = true;
+      video.play().catch(() => {});
     }
     const playing = () => media.setAttribute('data-playing', 'true');
-    const ended = () => { resting = true; timer = setTimeout(() => { resting = false; video.currentTime = 0; update(); }, 4000); };
-    video.addEventListener('playing', playing); video.addEventListener('ended', ended);
+    video.addEventListener('playing', playing);
     if (!video.paused) playing();
     document.addEventListener('visibilitychange', update); reduced.addEventListener('change', update);
     const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); }, { threshold: 0.05 }); observer.observe(video);
     update();
-    return () => { clearTimeout(timer); observer.disconnect(); video.removeEventListener('playing', playing); video.removeEventListener('ended', ended); document.removeEventListener('visibilitychange', update); reduced.removeEventListener('change', update); };
+    return () => { observer.disconnect(); video.removeEventListener('playing', playing); document.removeEventListener('visibilitychange', update); reduced.removeEventListener('change', update); };
   }, [wanted]);
   return <>
     <div className="hpc-art" ref={mediaRef}>
       <picture className="hpc-poster" aria-hidden="true"><img src="/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp" srcSet="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-720.webp 720w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp 1200w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1672.webp 1672w" sizes="(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw" alt="" width="1672" height="941" /></picture>
-      <video ref={videoRef} className="hpc-video" muted playsInline preload="none" src="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4" aria-hidden="true" tabIndex={-1} />
+      <video ref={videoRef} className="hpc-video" autoPlay muted playsInline loop preload="none" poster="/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp" src="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4" aria-hidden="true" tabIndex={-1} />
     </div>
     <button type="button" className="hpc-motion-control" aria-pressed={wanted} onClick={() => setWanted(value => !value)}>{wanted ? 'Pause animation' : 'Play animation'}</button>
   </>;
@@ -921,7 +920,7 @@ function Hero({ t, isLive, liveShow }) {
   return (
     <>
     <section className="hp-hero" data-appearance-preset={t.preset} data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
-      {t.preset === "halloween_pumpkin_cat" && window.SPARKLE_FIRST_PAINT !== undefined && <PumpkinCatScene motion={t.heroMotion} />}
+      {t.preset === "halloween_pumpkin_cat" && window.SPARKLE_FIRST_PAINT !== undefined && <PumpkinCatScene />}
       {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
       <div className="hp-hero-media" aria-hidden="true" />
       {t.preset !== "halloween_pumpkin_cat" && t.preset !== "amethyst" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
