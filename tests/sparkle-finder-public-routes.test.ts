@@ -8,6 +8,7 @@ const listSparkleFinderLiveShowsMock = vi.fn()
 const listSparkleFinderPublicRepsMock = vi.fn()
 const listSparkleFinderCatalogPageV2Mock = vi.fn()
 const listSparkleFinderCatalogFacetsV2Mock = vi.fn()
+const createAdminClientMock = vi.fn()
 
 vi.mock('@/lib/sparkle-finder/public-api', async () => {
   const actual = await vi.importActual<typeof import('@/lib/sparkle-finder/public-api')>(
@@ -30,6 +31,10 @@ vi.mock('@/lib/sparkle-finder/public-api', async () => {
       listSparkleFinderPublicRepsMock(...args),
   }
 })
+
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => createAdminClientMock(),
+}))
 
 vi.mock('@/lib/sparkle-finder/catalog-v2', async () => {
   const actual = await vi.importActual<typeof import('@/lib/sparkle-finder/catalog-v2')>(
@@ -55,6 +60,34 @@ import {
   FinderAvailabilityCursorError,
 } from '@/lib/sparkle-finder/availability-v2'
 
+function defaultFinderRepFeedClient() {
+  return {
+    from(table: string) {
+      return {
+        select() {
+          return {
+            in(_column: string, ids: string[]) {
+              if (table !== 'reps') return Promise.resolve({ data: [], error: null })
+              return Promise.resolve({
+                data: ids.map((id) => ({
+                  id,
+                  status: 'active',
+                  account_classification: 'customer',
+                  public_site_slug: 'blingkitchen',
+                  custom_domain: null,
+                  profile_photo_url: null,
+                  finder_directory_visible: true,
+                })),
+                error: null,
+              })
+            },
+          }
+        },
+      }
+    },
+  }
+}
+
 describe('Sparkle Finder public routes', () => {
   beforeEach(() => {
     listSparkleFinderCatalogFacetsMock.mockReset()
@@ -65,6 +98,8 @@ describe('Sparkle Finder public routes', () => {
     listSparkleFinderPublicRepsMock.mockReset()
     listSparkleFinderCatalogPageV2Mock.mockReset()
     listSparkleFinderCatalogFacetsV2Mock.mockReset()
+    createAdminClientMock.mockReset()
+    createAdminClientMock.mockImplementation(() => defaultFinderRepFeedClient())
   })
 
   it('returns public catalog search results without caching', async () => {
@@ -562,4 +597,230 @@ describe('Sparkle Finder public routes', () => {
     )
     errorSpy.mockRestore()
   })
+
+  it('adds public finder rep fields, photo and site fallbacks, and demo exclusions', async () => {
+    const heatherShow = {
+      showId: 'show-heather',
+      showName: 'Friday Reveal',
+      startsAt: '2026-10-30T23:00:00.000Z',
+      status: 'scheduled' as const,
+      customerSiteUrl: null,
+      durationMinutes: 60,
+      endTime: '2026-10-31T00:00:00.000Z',
+    }
+    const directoryReps = [
+      {
+        repId: 'rep-heather',
+        displayName: 'Heather',
+        businessName: 'BlingKitchen',
+        avatarUrl: 'https://cdn.example.test/heather-avatar.png',
+        state: null,
+        customerSiteUrl: 'https://www.yoursparklesuite.com/blingkitchen',
+        repBoardUrl: 'https://www.yoursparklesuite.com/blingkitchen/trade',
+        nextShow: heatherShow,
+      },
+      {
+        repId: 'rep-kim',
+        displayName: 'Kim',
+        businessName: 'Kim Goforth',
+        avatarUrl: null,
+        state: null,
+        customerSiteUrl: 'https://www.yoursparklesuite.com/kimgoforth',
+        repBoardUrl: 'https://www.yoursparklesuite.com/kimgoforth/trade',
+        nextShow: null,
+      },
+      {
+        repId: 'rep-mina',
+        displayName: 'Mina',
+        businessName: null,
+        avatarUrl: null,
+        state: null,
+        customerSiteUrl: 'https://www.yoursparklesuite.com/minastudio',
+        repBoardUrl: 'https://www.yoursparklesuite.com/minastudio/trade',
+        nextShow: null,
+      },
+      directoryRep('rep-dudes', 'Dudes', 'dudesfizzfest'),
+      directoryRep('rep-louis', 'Louis', 'louisfizzfest'),
+      directoryRep('rep-demo-studio', 'Demo Studio', 'demosparklestudiod5decc'),
+      directoryRep('rep-beta', 'Beta Demo', 'sparklebetademo'),
+      directoryRep('rep-reviewer', 'Reviewer', 'sparkle-reviewer-preview'),
+      directoryRep('rep-marked-demo', 'Marked Demo', 'markeddemo'),
+      directoryRep('rep-paused', 'Paused', 'pausedstudio'),
+      directoryRep('rep-hidden', 'Hidden', 'hiddenstudio'),
+      directoryRep('rep-blank-slug', 'Blank Slug', 'blankstudio'),
+    ]
+    const queries: Array<{ table: string; columns: string }> = []
+    listSparkleFinderPublicRepsMock.mockResolvedValueOnce(directoryReps)
+    createAdminClientMock.mockReturnValue({
+      from(table: string) {
+        return {
+          select(columns: string) {
+            queries.push({ table, columns })
+            return {
+              in(_column: string, ids: string[]) {
+                const data =
+                  table === 'reps'
+                    ? feedRepRows().filter((row) => ids.includes(row.id))
+                    : feedSettingsRows().filter((row) => ids.includes(row.rep_id))
+                return Promise.resolve({ data, error: null })
+              },
+            }
+          },
+        }
+      },
+    })
+
+    const response = await getFinderReps(
+      new Request('http://localhost/api/public/finder/reps?limit=50'),
+    )
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(queries).toEqual([
+      {
+        table: 'reps',
+        columns:
+          'id, status, account_classification, public_site_slug, custom_domain, profile_photo_url, finder_directory_visible',
+      },
+      {
+        table: 'site_settings',
+        columns: 'rep_id, about_narrative, homepage_media_slots',
+      },
+    ])
+    expect(queries.every((query) => !/email|phone|address/i.test(query.columns))).toBe(true)
+    expect(body.reps).toEqual([
+      {
+        repId: 'rep-heather',
+        displayName: 'Heather',
+        businessName: 'BlingKitchen',
+        avatarUrl: 'https://cdn.example.test/heather-avatar.png',
+        state: null,
+        customerSiteUrl: 'https://www.yoursparklesuite.com/blingkitchen',
+        repBoardUrl: 'https://www.yoursparklesuite.com/blingkitchen/trade',
+        nextShow: heatherShow,
+        about_text: 'Heather shares the story of her shows.',
+        about_photo_url: 'https://cdn.example.test/heather-about.jpg',
+        public_site_slug: 'blingkitchen',
+        custom_domain: null,
+        site_url: 'https://yoursparklesuite.com/blingkitchen',
+      },
+      {
+        repId: 'rep-kim',
+        displayName: 'Kim',
+        businessName: 'Kim Goforth',
+        avatarUrl: null,
+        state: null,
+        customerSiteUrl: 'https://www.yoursparklesuite.com/kimgoforth',
+        repBoardUrl: 'https://www.yoursparklesuite.com/kimgoforth/trade',
+        nextShow: null,
+        about_text: null,
+        about_photo_url: 'https://cdn.example.test/kim-profile.jpg',
+        public_site_slug: 'kimgoforth',
+        custom_domain: 'kimgoforth.com',
+        site_url: 'https://kimgoforth.com/',
+      },
+      {
+        repId: 'rep-mina',
+        displayName: 'Mina',
+        businessName: null,
+        avatarUrl: null,
+        state: null,
+        customerSiteUrl: 'https://www.yoursparklesuite.com/minastudio',
+        repBoardUrl: 'https://www.yoursparklesuite.com/minastudio/trade',
+        nextShow: null,
+        about_text: null,
+        about_photo_url: null,
+        public_site_slug: 'minastudio',
+        custom_domain: null,
+        site_url: 'https://yoursparklesuite.com/minastudio',
+      },
+    ])
+    const serialized = JSON.stringify(body)
+    for (const slug of [
+      'dudesfizzfest',
+      'louisfizzfest',
+      'demosparklestudiod5decc',
+      'sparklebetademo',
+      'sparkle-reviewer-preview',
+      'markeddemo',
+      'pausedstudio',
+      'hiddenstudio',
+      'blankstudio',
+    ]) {
+      expect(serialized).not.toContain(slug)
+    }
+    expect(serialized).not.toContain('email')
+    expect(serialized).not.toContain('phone')
+    expect(serialized).not.toContain('address')
+    expect(serialized).not.toContain('client_account_profiles')
+  })
 })
+
+function directoryRep(repId: string, displayName: string, slug: string) {
+  return {
+    repId,
+    displayName,
+    businessName: null,
+    avatarUrl: null,
+    state: null,
+    customerSiteUrl: `https://www.yoursparklesuite.com/${slug}`,
+    repBoardUrl: null,
+    nextShow: null,
+  }
+}
+
+function feedRepRows() {
+  return [
+    customerRow('rep-heather', 'blingkitchen', null, 'https://cdn.example.test/heather-profile.jpg'),
+    customerRow('rep-kim', 'KimGoforth', 'HTTPS://KimGoforth.com/', ' https://cdn.example.test/kim-profile.jpg '),
+    customerRow('rep-mina', 'minastudio', '   ', null),
+    customerRow('rep-dudes', 'dudesfizzfest', null, null),
+    customerRow('rep-louis', 'louisfizzfest', null, null),
+    customerRow('rep-demo-studio', 'demosparklestudiod5decc', null, null),
+    customerRow('rep-beta', 'sparklebetademo', null, null),
+    customerRow('rep-reviewer', 'sparkle-reviewer-preview', null, null),
+    { ...customerRow('rep-marked-demo', 'markeddemo', null, null), account_classification: 'demo' },
+    { ...customerRow('rep-paused', 'pausedstudio', null, null), status: 'churned' },
+    { ...customerRow('rep-hidden', 'hiddenstudio', null, null), finder_directory_visible: false },
+    { ...customerRow('rep-blank-slug', 'blankstudio', null, null), public_site_slug: '   ' },
+  ]
+}
+
+function customerRow(
+  id: string,
+  publicSiteSlug: string,
+  customDomain: string | null,
+  profilePhotoUrl: string | null,
+) {
+  return {
+    id,
+    status: 'active',
+    account_classification: 'customer',
+    public_site_slug: publicSiteSlug,
+    custom_domain: customDomain,
+    profile_photo_url: profilePhotoUrl,
+    finder_directory_visible: true,
+  }
+}
+
+function feedSettingsRows() {
+  return [
+    {
+      rep_id: 'rep-heather',
+      about_narrative: '  Heather shares the story of her shows.  ',
+      homepage_media_slots: [
+        { key: 'showcase', imageUrl: 'https://cdn.example.test/showcase.jpg', videoUrl: '' },
+        { key: 'about_2', imageUrl: 'https://cdn.example.test/not-the-portrait.jpg' },
+        { key: 'about_1', imageUrl: '  https://cdn.example.test/heather-about.jpg  ' },
+      ],
+    },
+    {
+      rep_id: 'rep-kim',
+      about_narrative: '   ',
+      homepage_media_slots: [
+        { key: 'about_1', imageUrl: 'https://cdn.example.test/stale-kim.jpg' },
+        { key: 'about_1', imageUrl: '   ' },
+      ],
+    },
+  ]
+}
