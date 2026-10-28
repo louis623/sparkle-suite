@@ -642,7 +642,7 @@ export async function renderAmethystPublicAssetResponse(
         if ((page === 'homepage' || page === 'trade' || page === 'join') && templateData) {
           const original = responseBody as string
           mark('metadataReadyMs')
-          responseBody = await bestEffortHomepage(async () => {
+          const renderFirstPaint = async () => {
             const response = await bootstrapTask
             if (!response?.ok) throw new Error('Homepage data response failed')
             pageDataState = response.headers.get('x-sparkle-page-data') || undefined
@@ -653,7 +653,20 @@ export async function renderAmethystPublicAssetResponse(
             mark('rendererReadyMs')
             return page === 'homepage' ? renderer.renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
               : renderer.renderAmethystPageFirstPaint(page, original, templateData, requestUrl, bootstrap)
-          }, Math.max(0, 5000 - (performance.now() - ssrStarted))) ?? original
+          }
+          if (page === 'homepage') {
+            responseBody = await bestEffortHomepage(renderFirstPaint, Math.max(0, 5000 - (performance.now() - ssrStarted))) ?? original
+          } else {
+            // These demo pages require their real data in the first paint.
+            // A slow read must never switch the visitor to browser Babel.
+            try { responseBody = await renderFirstPaint() }
+            catch {
+              console.warn('customer_page_ssr_failed', JSON.stringify({ page }))
+              return new Response('This page is temporarily unavailable. Please reload.', {
+                status: 503, headers: { 'Cache-Control': 'no-store' },
+              })
+            }
+          }
           console.info('homepage_ssr_request', JSON.stringify({ cold, ...timings, totalMs: performance.now() - ssrStarted, result: responseBody === original ? 'fallback' : 'ssr', pageDataState }))
         }
       } else if (templateScriptPage) {
