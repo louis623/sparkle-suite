@@ -1,4 +1,5 @@
 import { previewHomepageTheme } from './homepage-data-budget'
+import { homepageSmokeReview } from './homepage-smoke-review'
 import { shouldUseRepRenderV2 } from './rep-render-version'
 import { bestEffortHomepage } from './homepage-render-safety'
 import { readFile } from 'node:fs/promises'
@@ -570,7 +571,7 @@ export async function renderAmethystPublicAssetResponse(
     const mark = (step: string) => { timings[step] = performance.now() - ssrStarted }
     const templatePromise =
       page && contentType.startsWith('text/html') && repId
-        ? loadAmethystPreviewTemplateData({ repId, publicSiteSlug: options.publicSiteSlugOverride || '' }).then(data => previewHomepageTheme(data, options.publicSiteSlugOverride))
+        ? loadAmethystPreviewTemplateData({ repId, publicSiteSlug: options.publicSiteSlugOverride || '' }).then(data => homepageSmokeReview(previewHomepageTheme(data, options.publicSiteSlugOverride), requestUrl, options.publicSiteSlugOverride))
         : Promise.resolve(null)
     const bootstrapUrl = new URL('/api/amethyst/homepage-template', requestUrl.origin)
     bootstrapUrl.searchParams.set('c', repId || '')

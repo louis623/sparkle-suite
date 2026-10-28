@@ -1,4 +1,8 @@
 import { earlyHomepageLocalTime } from './homepage-local-time'
+import { HERO_MOTION_THEMES } from './hero-motion-config'
+import { earlyHomepageControls } from './hero-motion-controls'
+import homepageStyles from './generated/homepage-styles.json'
+export { earlyHomepageControls } from './hero-motion-controls'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Script, createContext } from 'node:vm'
@@ -28,33 +32,20 @@ const preparedRuntime = Promise.resolve().then(async () => {
 void preparedRuntime.catch(() => {})
 const escapeAttribute = (value: string) => value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
-// Native links already work before hydration. Pumpkin Cat has no Sound or menu
-// toggle on pinned Live; adding either would change the approved presentation.
-export const earlyHomepageControls = `(function(){
-var ready=false,button=document.querySelector('.hpc-motion-control'),video=document.querySelector('.hpc-video');
-var wanted=button?.getAttribute('aria-pressed')==='true';
-function update(){if(!button||!video)return;button.textContent=wanted?'Pause animation':'Play animation';button.setAttribute('aria-pressed',String(wanted));if(wanted&&!document.hidden)video.play().catch(function(){});else video.pause()}
-function click(e){if(ready||!e.target.closest('.hpc-motion-control'))return;e.preventDefault();e.stopImmediatePropagation();wanted=!wanted;update()}
-document.addEventListener('click',click,true);
-window.sparkleEarlyMotion=function(){return wanted};
-if(video){video.muted=true;if(matchMedia('(prefers-reduced-motion:reduce)').matches)wanted=false;update()}
-window.addEventListener('sparkle:homepage-hydrated',function(){ready=true;document.removeEventListener('click',click,true)},{once:true});
-})();`
-
 /** Called only inside the bounded best-effort boundary. Failure leaves Live HTML intact. */
 export async function renderHomepageFirstPaint(html: string, data: AmethystPreviewTemplateData, requestUrl: URL, bootstrap: string) {
-  if (data.appearancePreset !== 'halloween_pumpkin_cat') throw new Error('Chunk 1 requires the approved Pumpkin Cat theme')
+  const theme = HERO_MOTION_THEMES[data.appearancePreset]
   const { React, renderToString } = await preparedRuntime
   const properties = new Map<string, string>()
   const body = { className: 'homepage', classList: { add(...names: string[]) { body.className += ' ' + names.join(' ') } } }
   const document = { body, documentElement: { style: { setProperty(name: string, value: unknown) { properties.set(name, String(value)) } } }, getElementById: () => ({}) }
   let element: ReactTypes.ReactNode
   const firstPaint = { serverClock: true, now: Date.now() }
-  const window = { React, SPARKLE_FIRST_PAINT: firstPaint, location: { search: requestUrl.search, origin: requestUrl.origin, hostname: requestUrl.hostname } }
+  const window = { React, SPARKLE_HERO_THEMES: HERO_MOTION_THEMES, SPARKLE_FIRST_PAINT: firstPaint, location: { search: requestUrl.search, origin: requestUrl.origin, hostname: requestUrl.hostname } }
   const context = createContext({ window, document, React, URL, URLSearchParams, Intl, console,
     ReactDOM: { createRoot: () => ({ render(node: ReactTypes.ReactNode) { element = node } }) },
   })
-  const inlineBootstrap = bootstrap
+  const inlineBootstrap = `window.SPARKLE_HERO_THEMES=${JSON.stringify({ [data.appearancePreset]: theme })};` + bootstrap
   new Script(inlineBootstrap).runInContext(context, { timeout: 300 })
   for (const script of await runtimeScripts()) script.runInContext(context, { timeout: 300 })
   context.renderHomepageMarkup = () => renderToString(element)
@@ -65,9 +56,13 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   const markup = rendered.replace(/<link\b[^>]*rel="preload"[^>]*\/>/g, '')
   new Script('applyHomepageTheme(window.HOMEPAGE_TWEAK_DEFAULTS, document)').runInContext(context, { timeout: 100 })
   const style = Array.from(properties, ([key, value]) => `${key}:${value}`).join(';')
-  const allowedCss = new Set(['tokens.css', 'components.css', 'homepage.css', 'halloween-pumpkin-cat.css'])
+  const allowedCss = new Set(['tokens.css', 'components.css', 'homepage.css', ...theme.css,
+    ...(data.homepage.publicSiteVariant === 'britt_with_bling_hybrid' ? ['britt-hero-buttons.css'] : [])])
   let result = html.replace(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"?]+)[^"]*"[^>]*>/g,
-    (tag, href: string) => allowedCss.has(href.split('/').at(-1) ?? '') ? tag : '')
+    (_tag, href: string) => {
+      const name = href.split('/').at(-1) ?? ''
+      return allowedCss.has(name) ? `<style data-ssr-style="${name}">${homepageStyles[name as keyof typeof homepageStyles]}</style>` : ''
+    })
   // No split CSS, self-hosted fonts, runtime loader, or third-party worker.
   result = result.replace(/<script\b[^>]*src="[^"]+"[^>]*><\/script>/g, tag => {
     if (tag.includes('data-template-src=')) return `<script>${inlineBootstrap.replace(/<\/script/gi, '<\\/script')}</script>`
@@ -77,11 +72,13 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
     if (name === 'tweaks-panel.jsx') return '<script defer src="/amethyst/compiled/react.js"></script><script defer src="/amethyst/compiled/tweaks-panel.js"></script>'
     if (name === 'homepage.jsx') return '<script defer src="/amethyst/compiled/homepage.js"></script>'
     if (['live-lineup.js', 'responsive-image.js', 'sparkle-suite-footer-credit.js', 'dance-floor-ticker-label.js'].includes(name ?? '')) return tag.replace('<script ', '<script defer ')
+    if (name === theme.script) return tag.replace(src, src.replace('/amethyst/', '/amethyst/ssr-motion/')).replace('<script ', '<script defer ')
     if (src.startsWith('/amethyst/')) return ''
     return tag // Preserve the original analytics tags exactly once.
   })
   return result
-    .replace('</head>', preloads + `<script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
+    .replace('</body>', ('ssrReview' in data ? '<aside data-ssr-review-label>Smoke demo · theme/layout review fixture · no saved changes</aside>' : '') + '</body>')
+    .replace('</head>', preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${escapeAttribute(style)}">`)
     .replace('<body class="homepage">', `<body class="${escapeAttribute(body.className)}">`)
     .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}</script>`)

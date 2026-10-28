@@ -36,7 +36,8 @@ it('preserves saved event zones and settings while the SSR video defaults to aut
   expect(html).not.toContain('4:00 PM EDT')
   expect(html).not.toContain('1:00 PM PDT')
   expect(html).toContain('aria-pressed="true">Pause animation')
-  expect(html).toContain('data-hero-motion="off"')
+  expect(html).toContain('data-hero-motion="on"')
+  expect(data.heroMotion).toBe('still')
 })
 it('fault probe is impossible on production or the Live project', () => {
   const secret = 'test-only-probe-secret-32-characters'

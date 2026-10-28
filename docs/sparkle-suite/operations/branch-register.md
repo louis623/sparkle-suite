@@ -227,3 +227,6 @@ Louis authorized pushing `codex/faq-articles` and opening draft PR #81 for revie
 ## SSR Chunk 1 — October 26, 2026
 
 Louis explicitly authorized `codex/ssr-chunk1-fizzfest-home`, fresh from production e78fa626, for one private preview only. Pass 3 uses a disposable Linux Codespace clone of verified GitHub tip 6f1459c0. The portable checkout bypass is removed; the ordinary workbench guard is restored. Deployment remains restricted to prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ / preview. No machine-specific branch path. Louis authorized a second preview with the allowlist empty solely for the deployed toggle check. No Smoke, Live, aliases, production branch or project environment changes. PR #154 reverted separately; #156 is reference-only.
+
+## October 28 — SSR all themes Smoke review
+Louis explicitly approved codex/ssr-all-themes from application 09e46db0, one PR targeting codex/ssr-chunk1-build-size and deployment to the normal Smoke alias. Guard authorizes only preview project prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ and the disposable ssr-all-themes worktree. Demo slug dudesfizzfest only, same 41 Smoke-only overrides with SSR_PREVIEW_THEME_OVERRIDE empty. No Live project/data/keys, production branch changes, migrations or merge. Rollback dpl_HEaABdWqCtia5EY1YJvYKttXA5To.
