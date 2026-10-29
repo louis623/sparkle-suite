@@ -1,0 +1,11 @@
+{
+  "projectId": "pukemqiwlyqmyytxkdmo",
+  "source": "One read-only SELECT of public.jewelry_designs.id, ordered by id, limit 1",
+  "designId": "00e63bbe-ce49-401a-a375-c6b636646816",
+  "newDataCreated": false,
+  "routeContract": "availability requires designId; bare path is a validation error, not a schema-valid availability request",
+  "request": "/api/public/finder/availability?designId=00e63bbe-ce49-401a-a375-c6b636646816",
+  "userConfirmedExistingSmokeItem": true,
+  "executedGET": false,
+  "notExecutedReason": "Hard stop on preceding Rose Champagne navigation; confirmation does not override stop rule"
+}

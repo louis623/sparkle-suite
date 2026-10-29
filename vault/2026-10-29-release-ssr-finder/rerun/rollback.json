@@ -1,0 +1,15 @@
+{
+  "alias": "sparkle-suite-smoke.vercel.app",
+  "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+  "from": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+  "to": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+  "observedAfter": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+  "verified": true,
+  "startedAt": "2026-10-29T22:52:34.504Z",
+  "verifiedAt": "2026-10-29T22:52:39.947Z",
+  "verifiedAtET": "10/29/26, 6:52:39 PM EDT",
+  "method": "Scoped local Vercel CLI fallback",
+  "reason": "Rose Champagne desktop Dance Floor navigation ERR_TIMED_OUT; HTTP status and SSR marker unavailable",
+  "initialAutomaticCLIRecoveryFailed": true,
+  "connectorApprovalTimeouts": 2
+}

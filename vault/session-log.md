@@ -1,3 +1,12 @@
+## October 29, 2026 — Smoke browser rerun stopped on navigation failure
+
+- Reused READY dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j at ca6af2e6 from release tip e59b624e; no rebuild, redeploy or application changes. Smoke-only CLS limit below 0.01.
+- Matrix: 110/156 fully measured, 111 attempted, 1 timed-out navigation, 45 unattempted. All 110 completed loads were 200/SSR/styled, no audio autoplay, maximum CLS 0.00007330246913580247 (0.0001 displayed). Eleven phone timing misses; ten motion failures; 38/110 reduced-motion changes left hero playback running.
+- Rose Champagne desktop Dance Floor started 18:44:16 EDT and returned net::ERR_TIMED_OUT, with no HTTP status or SSR measurement. No application SSR defect or 503 is claimed; cause not isolated. Stop rule prevented remaining themes/layouts, formal warm/Live comparison, legacy and Finder GETs. First default Smoke cold sample: H1 7.810s, LCP 7.888s, TTFB 42.5ms.
+- Only sparkle-suite-smoke.vercel.app moved: candidate verified 18:18:31 EDT; recorded rollback dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc restored/reread 18:52:39 EDT. Initial automatic CLI recovery failed; two connector requests timed out in automatic permission review; bounded local CLI fallback succeeded.
+- One read-only Smoke catalog ID query prepared availability's required designId; Louis confirmed using an existing Smoke item. Availability GET remained unrun after stop. No Live env/DB/key/project operations, sign-in, submissions, data writes, merges or production-branch push.
+- [Rerun report, every-load data, screenshots and verified rollback](2026-10-29-release-ssr-finder/rerun/report.md). PR #166 stays draft; evidence goes only to codex/release-ssr-finder. Actual Open Brain MCP capture confirmed: "Captured as observation — SSR, Performance, Quality Assurance". STOP; no further application checks or fixes under this run.
+
 ## October 29, 2026 — Combined SSR + Finder Smoke RC failed acceptance
 
 - Exact cb4f4860 + afd18246 + 0c2167b4 inputs combined on `codex/release-ssr-finder`; allowlist-only c4e66b41; one draft PR #166, unmerged. One Smoke PREVIEW dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j is READY from ca6af2e6; no Live action.
