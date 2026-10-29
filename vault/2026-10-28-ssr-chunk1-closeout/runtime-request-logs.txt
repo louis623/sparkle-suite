@@ -1,0 +1,34 @@
+## Runtime Logs
+
+**Project:** prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ
+**Deployment:** dpl_HEaABdWqCtia5EY1YJvYKttXA5To
+**Time range:** 2026-10-28T13:41:41.693Z → 2026-10-28T13:51:41.693Z
+
+### 2026-10-28T13:50:58.597Z GET /dudesfizzfest [info/function]
+dep=dpl_HEaABdWqCtia5EY1YJvYKttXA5To request=4q67h-1793195458148-8c3f27e9bf3c domain=sparkle-suite-smoke.vercel.app environment=preview region=iad1 runtime=nodejs24.x stream=stdout
+    homepage_ssr_request {"cold":false,"templateReadyMs":255.4107690000019,"metadataReadyMs":288.134401000003,"bootstrapReadyMs":306.10187900000165,"rendererReadyMs":306.1202740000008,"totalMs":313.7841039999985,"result":"ssr","pageDataState":"deferred"}
+
+### 2026-10-28T13:50:47.238Z GET /dudesfizzfest [info/function]
+dep=dpl_HEaABdWqCtia5EY1YJvYKttXA5To request=9rk5l-1793195446720-d23ae4dc81a7 domain=sparkle-suite-smoke.vercel.app environment=preview region=iad1 runtime=nodejs24.x stream=stdout
+    homepage_ssr_request {"cold":false,"templateReadyMs":284.70919700000377,"metadataReadyMs":341.8358290000033,"bootstrapReadyMs":341.9452350000065,"rendererReadyMs":341.9653440000111,"totalMs":349.52302099998633,"result":"ssr","pageDataState":"deferred"}
+
+### 2026-10-28T13:50:35.605Z GET /dudesfizzfest [info/function]
+dep=dpl_HEaABdWqCtia5EY1YJvYKttXA5To request=ldhmw-1793195435042-47dcc9b68640 domain=sparkle-suite-smoke.vercel.app environment=preview region=iad1 runtime=nodejs24.x stream=stdout
+    homepage_ssr_request {"cold":false,"templateReadyMs":305.8520270000008,"metadataReadyMs":386.6644340000057,"bootstrapReadyMs":386.8351180000027,"rendererReadyMs":386.8595539999951,"totalMs":395.122577999995,"result":"ssr","pageDataState":"deferred"}
+
+### 2026-10-28T13:50:26.576Z GET /dudesfizzfest [info/function]
+dep=dpl_HEaABdWqCtia5EY1YJvYKttXA5To request=9mq2b-1793195426268-04488cb66bf7 domain=sparkle-suite-smoke.vercel.app environment=preview region=iad1 runtime=nodejs24.x stream=stdout
+    homepage_ssr_request {"cold":false,"templateReadyMs":130.72269700000106,"metadataReadyMs":151.03358200000002,"bootstrapReadyMs":180.7993889999998,"rendererReadyMs":180.82727499999964,"totalMs":188.26367400000163,"result":"ssr","pageDataState":"deferred"}
+
+### 2026-10-28T13:50:17.867Z GET /dudesfizzfest [info/function]
+dep=dpl_HEaABdWqCtia5EY1YJvYKttXA5To request=xxzzm-1793195417359-200bbdb93374 domain=sparkle-suite-smoke.vercel.app environment=preview region=iad1 runtime=nodejs24.x stream=stdout
+    homepage_ssr_request {"cold":false,"templateReadyMs":229.94112400000085,"metadataReadyMs":264.61977500000285,"bootstrapReadyMs":280.91392300000007,"rendererReadyMs":280.9369650000008,"totalMs":289.7238890000008,"result":"ssr","pageDataState":"deferred"}
+
+### 2026-10-28T13:50:09.344Z GET /dudesfizzfest [info/function]
+dep=dpl_HEaABdWqCtia5EY1YJvYKttXA5To request=xwv8w-1793195408750-b3c6a2f3cc65 domain=sparkle-suite-smoke.vercel.app environment=preview region=iad1 runtime=nodejs24.x stream=stdout
+    homepage_ssr_request {"cold":true,"templateReadyMs":283.3939329999994,"metadataReadyMs":358.88955299999907,"bootstrapReadyMs":360.3450139999986,"rendererReadyMs":360.3672119999992,"totalMs":383.24150999999983,"result":"ssr","pageDataState":"deferred"}
+
+### 2026-10-28T13:49:56.000Z GET /dudesfizzfest [info/function]
+dep=dpl_HEaABdWqCtia5EY1YJvYKttXA5To request=qf9jt-1793195394718-f8f8126d8b3e domain=sparkle-suite-smoke.vercel.app environment=preview region=iad1 runtime=nodejs24.x stream=stdout
+    homepage_ssr_request {"cold":true,"templateReadyMs":385.01271000001,"metadataReadyMs":486.1992850000097,"bootstrapReadyMs":486.7353240000084,"rendererReadyMs":486.76545800000895,"totalMs":512.4215530000074,"result":"ssr","pageDataState":"deferred"}
+
