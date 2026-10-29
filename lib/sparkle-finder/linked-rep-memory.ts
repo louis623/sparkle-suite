@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { assembleNicNacContext } from '@/lib/nic-nac/core/context-assembler'
 import { loadSuiteRepMemoryCards } from '@/lib/nic-nac/core/memory/rep-memory-cards'
 import { createSparkleFinderProductContext } from '@/lib/nic-nac/core/product-context'
-import { loadPublicFinderEligibleRepIds } from '@/lib/sparkle-finder/public-api'
+import { loadFinderEntitledRepIds } from '@/lib/sparkle-finder/public-api'
 
 export type SparkleFinderLinkedRepMemoryPayload = {
   sourceProduct?: string
@@ -87,7 +87,7 @@ export async function loadSparkleFinderLinkedRepMemory(
   }
 
   const eligibleRepIds = new Set(
-    await loadPublicFinderEligibleRepIds(deps.supabase),
+    await loadFinderEntitledRepIds(deps.supabase),
   )
   if (!eligibleRepIds.has(rep.id)) {
     return notFound()

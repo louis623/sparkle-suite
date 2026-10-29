@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { LIVE_LINEUP_CONNECTION_CODE_TABLE } from '@/lib/services/live-queue'
-import { loadPublicFinderEligibleRepIds } from '@/lib/sparkle-finder/public-api'
+import { loadFinderEntitledRepIds } from '@/lib/sparkle-finder/public-api'
 
 export type SparkleFinderRepClaimPayload = {
   sourceProduct?: string
@@ -102,7 +102,7 @@ export async function validateSparkleFinderRepClaim(
   if (!rep || rep.status !== 'active') return notFound()
 
   const eligibleRepIds = new Set(
-    await loadPublicFinderEligibleRepIds(deps.supabase),
+    await loadFinderEntitledRepIds(deps.supabase),
   )
   if (!eligibleRepIds.has(rep.id)) return notFound()
 

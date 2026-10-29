@@ -868,7 +868,8 @@ export function countListingsByDesignForQualifiedReps(
   return counts
 }
 
-export async function loadPublicFinderEligibleRepIds(supabase: SupabaseClient) {
+// Private account linking checks entitlement without requiring public listing.
+export async function loadFinderEntitledRepIds(supabase: SupabaseClient) {
   const paidRepIds = new Set<string>()
   const { data: subscriptions, error: subscriptionErr } = await supabase
     .from('subscriptions')
@@ -896,12 +897,17 @@ export async function loadPublicFinderEligibleRepIds(supabase: SupabaseClient) {
     // subscriptions remain sufficient for the public Finder boundary.
   }
 
-  if (paidRepIds.size === 0) return []
+  return Array.from(paidRepIds)
+}
+
+export async function loadPublicFinderEligibleRepIds(supabase: SupabaseClient) {
+  const entitledRepIds = await loadFinderEntitledRepIds(supabase)
+  if (entitledRepIds.length === 0) return []
 
   const { data: reps, error: repErr } = await supabase
     .from('reps')
     .select('id, status, finder_directory_visible, account_classification, public_site_slug')
-    .in('id', Array.from(paidRepIds))
+    .in('id', entitledRepIds)
   if (repErr) throw repErr
 
   const publicRepIds = new Set(
@@ -909,7 +915,7 @@ export async function loadPublicFinderEligibleRepIds(supabase: SupabaseClient) {
       .filter(isPublicFinderRepEligible)
       .map((rep) => rep.id),
   )
-  return Array.from(paidRepIds).filter((id) => publicRepIds.has(id))
+  return entitledRepIds.filter((id) => publicRepIds.has(id))
 }
 
 async function loadNextShowsByRepId(supabase: SupabaseClient, repIds: string[]) {
