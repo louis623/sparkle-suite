@@ -45,7 +45,8 @@
     "codex/ssr-chunk1-build-size",
     "codex/ssr-all-themes",
     "codex/ssr-dancefloor-join",
-    "codex/finder-rep-feed-fields"
+    "codex/finder-rep-feed-fields",
+    "codex/finder-feeds-real-reps-only"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -165,6 +166,10 @@
       "environment": "preview"
     },
     "codex/finder-rep-feed-fields": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/finder-feeds-real-reps-only": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }
