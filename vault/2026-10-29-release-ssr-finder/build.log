@@ -1,0 +1,301 @@
+
+> neon-rabbit-core@0.1.0 prebuild
+> npm run branch:check -- --operation build && npm run skin:layout-check && npm run build:amethyst:join && npm run build:amethyst:ssr
+
+
+> neon-rabbit-core@0.1.0 branch:check
+> node scripts/check-active-branch.mjs --operation build
+
+Sparkle Suite branch safety passed: louis623/sparkle-suite @ codex/release-ssr-finder (C:\Users\louis\sparkle-suite-repo\.codex-worktrees\release-ssr-finder)
+
+> neon-rabbit-core@0.1.0 skin:layout-check
+> node scripts/check-customer-site-layout-lock.mjs
+
+Customer-site layout lock passed: 11 approved source checks.
+
+> neon-rabbit-core@0.1.0 build:amethyst:join
+> esbuild scripts/amethyst-join-entry.jsx --bundle --minify --format=iife --platform=browser --target=es2020 --outfile=public/amethyst/join-runtime.js
+
+
+  public\amethyst\join-runtime.js  274.0kb
+
+Done in 144ms
+
+> neon-rabbit-core@0.1.0 build:amethyst:ssr
+> node scripts/build-amethyst-ssr.mjs
+
+
+> neon-rabbit-core@0.1.0 build
+> next build
+
+[33m[1m⚠[22m[39m No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+[1m[38;2;173;127;168m▲ Next.js 16.2.1[39m[22m (Turbopack)
+
+[37m[1m [22m[39m Creating an optimized production build ...
+[32m[1m✓[22m[39m Compiled successfully in 48s
+[37m[1m [22m[39m Running TypeScript ...
+[37m[1m [22m[39m Finished TypeScript in 55s ...
+[37m[1m [22m[39m Collecting page data using 7 workers ...
+[37m[1m [22m[39m Generating static pages using 7 workers (0/43) ...
+[37m[1m [22m[39m Generating static pages using 7 workers (10/43) 
+[37m[1m [22m[39m Generating static pages using 7 workers (21/43) 
+[37m[1m [22m[39m Generating static pages using 7 workers (32/43) 
+[32m[1m✓[22m[39m Generating static pages using 7 workers (43/43) in 1372ms
+[37m[1m [22m[39m Finalizing page optimization ...
+
+[4mRoute (app)[24m
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /[publicSiteSlug]
+├ ƒ /[publicSiteSlug]/faq
+├ ƒ /[publicSiteSlug]/in-the-pantry
+├ ƒ /[publicSiteSlug]/in-the-pantry/[...path]
+├ ƒ /[publicSiteSlug]/join
+├ ƒ /[publicSiteSlug]/trade
+├ ○ /adventure
+├ ƒ /amethyst/[...asset]
+├ ○ /amethyst/unsubscribe
+├ ƒ /api/amethyst/customer-audience
+├ ƒ /api/amethyst/customer-audience/unsubscribe
+├ ƒ /api/amethyst/homepage-template
+├ ƒ /api/amethyst/join-template
+├ ƒ /api/amethyst/live-lineup
+├ ƒ /api/amethyst/pantry-template
+├ ƒ /api/amethyst/preference-options
+├ ƒ /api/amethyst/trade-board
+├ ƒ /api/amethyst/trade-requests
+├ ƒ /api/amethyst/trade-requests/screen
+├ ƒ /api/amethyst/trade-requests/status
+├ ƒ /api/amethyst/trade-requests/uploads
+├ ƒ /api/amethyst/trade-requests/uploads/confirm
+├ ƒ /api/amethyst/trade-template
+├ ƒ /api/auth/callback
+├ ƒ /api/card-qr/printer-approval
+├ ƒ /api/compile-memory-index
+├ ƒ /api/control-center/bug-hunt
+├ ƒ /api/control-center/conversations
+├ ƒ /api/control-center/conversations/[conversationId]
+├ ƒ /api/control-center/conversations/[conversationId]/attachments/[attachmentId]
+├ ƒ /api/control-center/conversations/[conversationId]/messages
+├ ƒ /api/control-center/conversations/[conversationId]/moderate
+├ ƒ /api/control-center/customer-waitlist
+├ ƒ /api/control-center/direct-messages
+├ ƒ /api/control-center/direct-messages/[conversationId]
+├ ƒ /api/control-center/direct-messages/[conversationId]/attachments/[attachmentId]
+├ ƒ /api/control-center/direct-messages/uploads
+├ ƒ /api/control-center/finder-appearance
+├ ƒ /api/control-center/finder-studio-reviews
+├ ƒ /api/control-center/intake/agreement-document
+├ ƒ /api/control-center/intake/launch-build-draft
+├ ƒ /api/control-center/intake/launch-check
+├ ƒ /api/control-center/intake/launch-gate
+├ ƒ /api/control-center/intake/payment-link
+├ ƒ /api/control-center/intake/production-roster
+├ ƒ /api/control-center/intake/setup-profile
+├ ƒ /api/control-center/intake/waitlist-contact-batch
+├ ƒ /api/control-center/intake/waitlist-contact-progress
+├ ƒ /api/control-center/intake/waitlist-conversation-complete
+├ ƒ /api/control-center/intake/waitlist-meeting-scheduled
+├ ƒ /api/control-center/intake/waitlist-setup-profile-drafted
+├ ƒ /api/control-center/intake/waitlist-start-work-ready
+├ ƒ /api/control-center/messages
+├ ƒ /api/control-center/nic-nac-usage/export
+├ ƒ /api/control-center/onboarding-checklist
+├ ƒ /api/control-center/remy-reply-approvals
+├ ƒ /api/control-center/rep-messaging-suspensions
+├ ƒ /api/control-center/resources
+├ ƒ /api/control-center/session
+├ ƒ /api/control-center/sparkle-lab/run
+├ ƒ /api/control-center/support-reports
+├ ƒ /api/control-center/support-reports/[reportId]/promote-task
+├ ƒ /api/control-center/support-reports/[reportId]/status
+├ ƒ /api/control-center/support-sessions
+├ ƒ /api/control-center/support-sessions/[sessionId]/customers
+├ ƒ /api/control-center/support-sessions/[sessionId]/end
+├ ƒ /api/control-center/support-sessions/[sessionId]/gateway
+├ ƒ /api/internal/accounting/summary
+├ ƒ /api/internal/card-qr/approver-emails
+├ ƒ /api/internal/finder/jewelry-intake
+├ ƒ /api/internal/finder/jewelry-intake/v2
+├ ƒ /api/internal/finder/rep-claim
+├ ƒ /api/internal/finder/rep-memory
+├ ƒ /api/internal/loc-control-center
+├ ƒ /api/internal/owner-direct-uploads/cleanup
+├ ƒ /api/internal/photo-enhancement/queue
+├ ƒ /api/internal/show-reminders/pre-show
+├ ƒ /api/internal/show-reminders/pre-show/live
+├ ƒ /api/internal/sparkle-lab/weekly
+├ ƒ /api/internal/support-followups/process
+├ ƒ /api/internal/workspace-birthday-reports/process
+├ ƒ /api/internal/workspace-messages/process
+├ ƒ /api/lane/accounting/mcp
+├ ƒ /api/live-lineup/publish
+├ ƒ /api/nic-nac
+├ ƒ /api/nic-nac/account-billing
+├ ƒ /api/nic-nac/calendar-summary
+├ ƒ /api/nic-nac/conversation-rollover
+├ ƒ /api/nic-nac/conversation-state
+├ ƒ /api/nic-nac/conversation/[conversationId]
+├ ƒ /api/nic-nac/conversation/clear
+├ ƒ /api/nic-nac/conversation/latest
+├ ƒ /api/nic-nac/conversation/rollover
+├ ƒ /api/nic-nac/conversations/[conversationId]
+├ ƒ /api/nic-nac/conversations/[conversationId]/attachments
+├ ƒ /api/nic-nac/conversations/[conversationId]/attachments/[attachmentId]
+├ ƒ /api/nic-nac/conversations/[conversationId]/block
+├ ƒ /api/nic-nac/conversations/[conversationId]/messages
+├ ƒ /api/nic-nac/conversations/[conversationId]/report
+├ ƒ /api/nic-nac/conversations/[conversationId]/request-decision
+├ ƒ /api/nic-nac/conversations/[conversationId]/state
+├ ƒ /api/nic-nac/conversations/rep-directory
+├ ƒ /api/nic-nac/conversations/rep-requests
+├ ƒ /api/nic-nac/conversations/support
+├ ƒ /api/nic-nac/customer-audience
+├ ƒ /api/nic-nac/fulfillment-queue
+├ ƒ /api/nic-nac/health
+├ ƒ /api/nic-nac/jewelry-library
+├ ƒ /api/nic-nac/join-team-roster
+├ ƒ /api/nic-nac/join-team-roster/photo
+├ ƒ /api/nic-nac/me
+├ ƒ /api/nic-nac/messages
+├ ƒ /api/nic-nac/owner-direct/[conversationId]/attachments/[attachmentId]
+├ ƒ /api/nic-nac/rep-dashboard
+├ ƒ /api/nic-nac/resource-library
+├ ƒ /api/nic-nac/resources
+├ ƒ /api/nic-nac/send-email
+├ ƒ /api/nic-nac/site-analytics
+├ ƒ /api/nic-nac/site-recipes
+├ ƒ /api/nic-nac/site-recipes/draft
+├ ƒ /api/nic-nac/site-recipes/image
+├ ƒ /api/nic-nac/site-settings
+├ ƒ /api/nic-nac/site-settings/media
+├ ƒ /api/nic-nac/skin-options
+├ ƒ /api/nic-nac/support-access-history
+├ ƒ /api/nic-nac/support-reports
+├ ƒ /api/nic-nac/team-onboarding/participants
+├ ƒ /api/nic-nac/team-onboarding/participants/[participantId]
+├ ƒ /api/nic-nac/team-onboarding/participants/[participantId]/messages
+├ ƒ /api/nic-nac/team-photo-polish
+├ ƒ /api/nic-nac/time-zone
+├ ƒ /api/nic-nac/trade-board
+├ ƒ /api/nic-nac/trade-history
+├ ƒ /api/nic-nac/trade-requests
+├ ƒ /api/nic-nac/trade-requests/[requestId]/reveal-screenshot
+├ ƒ /api/nic-nac/trade-swap-cleanup
+├ ƒ /api/nic-nac/wallet-summary
+├ ƒ /api/open-brain/context
+├ ƒ /api/prelaunch/health
+├ ƒ /api/prelaunch/intake
+├ ƒ /api/prelaunch/intake/review
+├ ƒ /api/prelaunch/meet-transcript
+├ ƒ /api/prelaunch/meet-transcript/import
+├ ƒ /api/prelaunch/payment-gates/checkout
+├ ƒ /api/prelaunch/qr-assets
+├ ƒ /api/prelaunch/scout
+├ ƒ /api/prelaunch/signwell/agreement
+├ ƒ /api/prelaunch/waitlist
+├ ƒ /api/public-site/visit
+├ ƒ /api/public/community-theme-preview
+├ ƒ /api/public/finder/appearance
+├ ƒ /api/public/finder/availability
+├ ƒ /api/public/finder/catalog
+├ ƒ /api/public/finder/catalog/[designId]
+├ ƒ /api/public/finder/catalog/batch
+├ ƒ /api/public/finder/catalog/facets
+├ ƒ /api/public/finder/live-shows
+├ ƒ /api/public/finder/reps
+├ ƒ /api/public/founder-availability
+├ ƒ /api/public/landing-demo/preview
+├ ƒ /api/public/landing-lineup-preview
+├ ƒ /api/public/nic-nac
+├ ƒ /api/public/nic-nac/handoff
+├ ƒ /api/remy/mcp
+├ ƒ /api/reviewer-smoke/loc-session
+├ ƒ /api/reviewer-smoke/session
+├ ƒ /api/self-serve/setup-state
+├ ƒ /api/self-serve/signup
+├ ƒ /api/stripe/create-checkout
+├ ƒ /api/stripe/create-portal-session
+├ ƒ /api/stripe/subscription-status
+├ ƒ /api/stripe/sync
+├ ƒ /api/stripe/wallet/auto-recharge
+├ ƒ /api/stripe/wallet/load
+├ ƒ /api/stripe/webhook
+├ ƒ /api/team-onboarding/access
+├ ƒ /api/team-onboarding/access/[token]
+├ ƒ /api/team-onboarding/access/[token]/messages
+├ ƒ /api/team-onboarding/access/[token]/progress
+├ ƒ /api/team-onboarding/access/messages
+├ ƒ /api/team-onboarding/access/progress
+├ ƒ /api/telegram
+├ ƒ /api/telnyx/webhook
+├ ƒ /api/workspace/card-qr
+├ ƒ /api/workspace/card-qr/address
+├ ƒ /api/workspace/card-qr/card
+├ ƒ /api/workspace/card-qr/checkout
+├ ƒ /api/workspace/card-qr/flyer
+├ ƒ /api/workspace/card-qr/order
+├ ƒ /api/workspace/card-qr/press-stub
+├ ƒ /api/workspace/card-qr/qr
+├ ƒ /api/workspace/live-lineup
+├ ƒ /api/workspace/live-lineup/archives
+├ ƒ /api/workspace/live-lineup/audience
+├ ƒ /api/workspace/live-lineup/customers
+├ ƒ /api/workspace/live-lineup/publishers
+├ ƒ /api/workspace/live-lineup/readiness
+├ ƒ /apple-icon
+├ ƒ /control-center
+├ ƒ /control-center/accounting
+├ ƒ /control-center/guardian
+├ ƒ /control-center/intake
+├ ƒ /control-center/lab
+├ ○ /control-center/login
+├ ƒ /control-center/messages
+├ ƒ /control-center/nic-nac-usage
+├ ƒ /control-center/resources
+├ ƒ /control-center/support/[sessionId]
+├ ƒ /customer-site/[page]
+├ ƒ /customer-site/faq
+├ ƒ /dashboard
+├ ○ /demo
+├ ƒ /dev/public-nic-nac
+├ ƒ /email-signature.png
+├ ƒ /faq
+├ ƒ /faq/articles
+├ ƒ /faq/articles/[slug]
+├ ƒ /icon
+├ ƒ /internal/customer-faq-preview
+├ ƒ /internal/prelaunch/intake
+├ ƒ /learn
+├ ƒ /llms.txt
+├ ƒ /login
+├ ○ /manifest.webmanifest
+├ ƒ /marketing/chasing-unicorns
+├ ƒ /nic-nac
+├ ƒ /onboarding/[inviteSlug]
+├ ƒ /opengraph-image
+├ ○ /payment/cancelled
+├ ○ /payment/received
+├ ○ /portfolio
+├ ƒ /prelaunch
+├ ƒ /prelaunch/intake
+├ ○ /prelaunch/payment/cancelled
+├ ƒ /prelaunch/payment/success
+├ ƒ /privacy-policy
+├ ƒ /q/[code]
+├ ƒ /reset-password
+├ ƒ /robots.txt
+├ ƒ /sitemap.xml
+├ ƒ /skin-preview/[skin]/[page]
+├ ƒ /start
+├ ƒ /start/loc
+├ ƒ /terms-and-conditions
+├ ○ /tools
+└ ƒ /trade-request/status/[token]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

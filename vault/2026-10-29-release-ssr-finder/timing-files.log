@@ -1,0 +1,9 @@
+Sanitized file-level progress and totals. Raw unit output retained locally outside Git.
+ RUN  v4.1.5 C:/Users/louis/sparkle-suite-repo/.codex-worktrees/release-ssr-finder
+ ❯ tests/amethyst-ssr-fallback.test.ts (15 tests | 4 failed) 185047ms
+ ✓ tests/amethyst-ssr-required-pages.test.ts (3 tests) 21240ms
+ Test Files  1 failed | 1 passed (2)
+      Tests  4 failed | 14 passed (18)
+   Start at  17:39:48
+   Duration  207.98s (transform 753ms, setup 0ms, import 1.22s, tests 206.29s, environment 0ms)
+JSON report written to C:/Users/louis/sparkle-suite-repo/.codex-worktrees/release-ssr-finder/vault/2026-10-29-release-ssr-finder/timing-files.json

@@ -1,0 +1,8 @@
+{
+  "gate": "lint-base",
+  "exitCode": 1,
+  "signal": null,
+  "startedAt": "2026-10-29T20:32:31.652Z",
+  "finishedAt": "2026-10-29T20:37:41.486Z",
+  "durationMs": 309834
+}

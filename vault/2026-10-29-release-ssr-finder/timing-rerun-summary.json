@@ -1,0 +1,75 @@
+{
+  "total": 18,
+  "passed": 14,
+  "failed": 4,
+  "skipped": 0,
+  "hashTests": [
+    {
+      "name": "hashes non-listed milehighfizz against the frozen Live renderer",
+      "status": "passed",
+      "duration": 14111.8718
+    },
+    {
+      "name": "hashes non-listed brisglowtique against the frozen Live renderer",
+      "status": "passed",
+      "duration": 14106.411099999998
+    },
+    {
+      "name": "hashes non-listed goforthebling against the frozen Live renderer",
+      "status": "passed",
+      "duration": 14078.372600000002
+    },
+    {
+      "name": "hashes non-listed brittwithbling against the frozen Live renderer",
+      "status": "passed",
+      "duration": 14122.610700000005
+    },
+    {
+      "name": "hashes non-listed theblingkitchen against the frozen Live renderer",
+      "status": "passed",
+      "duration": 14105.264500000005
+    },
+    {
+      "name": "hashes non-listed blingwithkrissig against the frozen Live renderer",
+      "status": "passed",
+      "duration": 14108.217399999994
+    },
+    {
+      "name": "hashes non-listed sparklybutterflies against the frozen Live renderer",
+      "status": "passed",
+      "duration": 14109.306199999992
+    }
+  ],
+  "hashPassed": 7,
+  "failures": [
+    {
+      "file": "tests/amethyst-ssr-fallback.test.ts",
+      "name": "returns exact frozen Live response on bootstrap throw",
+      "title": "returns exact frozen Live response on bootstrap throw",
+      "reason": "Error: STACK_TRACE_ERROR",
+      "timedOut": false
+    },
+    {
+      "file": "tests/amethyst-ssr-fallback.test.ts",
+      "name": "returns exact frozen Live response on bootstrap timeout",
+      "title": "returns exact frozen Live response on bootstrap timeout",
+      "reason": "Error: STACK_TRACE_ERROR",
+      "timedOut": false
+    },
+    {
+      "file": "tests/amethyst-ssr-fallback.test.ts",
+      "name": "keeps SSR when a cold template read exceeds the old 1.5 second total budget",
+      "title": "keeps SSR when a cold template read exceeds the old 1.5 second total budget",
+      "reason": "AssertionError: expected '<!DOCTYPE html>\\n<html lang=\"en\">\\n<h…' to contain 'data-server-rendered=\"true\"'",
+      "timedOut": false
+    },
+    {
+      "file": "tests/amethyst-ssr-fallback.test.ts",
+      "name": "keeps SSR when the first renderer load takes longer than the former safety budget",
+      "title": "keeps SSR when the first renderer load takes longer than the former safety budget",
+      "reason": "AssertionError: expected '<!DOCTYPE html>\\n<html lang=\"en\">\\n<h…' to contain 'data-server-rendered=\"true\"'",
+      "timedOut": false
+    }
+  ],
+  "unexpectedFailures": []
+}

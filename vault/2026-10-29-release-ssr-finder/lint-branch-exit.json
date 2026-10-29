@@ -1,0 +1,8 @@
+{
+  "gate": "lint-branch",
+  "exitCode": 1,
+  "signal": null,
+  "startedAt": "2026-10-29T20:37:58.895Z",
+  "finishedAt": "2026-10-29T20:40:26.057Z",
+  "durationMs": 147162
+}

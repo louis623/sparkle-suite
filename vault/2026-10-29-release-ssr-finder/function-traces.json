@@ -1,0 +1,2093 @@
+{
+  "summary": {
+    "tracedWarnings": 0,
+    "traceCount": 250,
+    "requested": [
+      {
+        "route": "app/customer-site/[page]/route",
+        "fileCount": 478,
+        "bytes": 54046353,
+        "MB": 54.046353,
+        "MiB": 51.54261875152588,
+        "missing": []
+      },
+      {
+        "route": "app/[publicSiteSlug]/join/route",
+        "fileCount": 478,
+        "bytes": 54044781,
+        "MB": 54.044781,
+        "MiB": 51.54111957550049,
+        "missing": []
+      },
+      {
+        "route": "app/[publicSiteSlug]/in-the-pantry/route",
+        "fileCount": 478,
+        "bytes": 54044625,
+        "MB": 54.044625,
+        "MiB": 51.54097080230713,
+        "missing": []
+      },
+      {
+        "route": "app/[publicSiteSlug]/trade/route",
+        "fileCount": 478,
+        "bytes": 54044458,
+        "MB": 54.044458,
+        "MiB": 51.54081153869629,
+        "missing": []
+      },
+      {
+        "route": "app/[publicSiteSlug]/route",
+        "fileCount": 478,
+        "bytes": 54044419,
+        "MB": 54.044419,
+        "MiB": 51.54077434539795,
+        "missing": []
+      },
+      {
+        "route": "app/amethyst/[...asset]/route",
+        "fileCount": 478,
+        "bytes": 54044001,
+        "MB": 54.044001,
+        "MiB": 51.54037570953369,
+        "missing": []
+      },
+      {
+        "route": "app/api/public/finder/availability/route",
+        "fileCount": 219,
+        "bytes": 4149012,
+        "MB": 4.149012,
+        "MiB": 3.956806182861328,
+        "missing": []
+      },
+      {
+        "route": "app/api/public/finder/reps/route",
+        "fileCount": 219,
+        "bytes": 4147855,
+        "MB": 4.147855,
+        "MiB": 3.955702781677246,
+        "missing": []
+      },
+      {
+        "route": "app/api/public/finder/live-shows/route",
+        "fileCount": 219,
+        "bytes": 4147337,
+        "MB": 4.147337,
+        "MiB": 3.9552087783813477,
+        "missing": []
+      }
+    ],
+    "largest": {
+      "route": "app/control-center/support/[sessionId]/page",
+      "fileCount": 770,
+      "bytes": 140697711,
+      "MB": 140.697711,
+      "MiB": 134.17979335784912,
+      "missing": []
+    },
+    "allRepFunctionsBelow60MB": true,
+    "largestBelow250MB": true,
+    "missingInputCount": 0
+  },
+  "rows": [
+    {
+      "route": "app/control-center/support/[sessionId]/page",
+      "fileCount": 770,
+      "bytes": 140697711,
+      "MB": 140.697711,
+      "MiB": 134.17979335784912,
+      "missing": []
+    },
+    {
+      "route": "app/nic-nac/page",
+      "fileCount": 769,
+      "bytes": 140657986,
+      "MB": 140.657986,
+      "MiB": 134.14190864562988,
+      "missing": []
+    },
+    {
+      "route": "app/control-center/intake/page",
+      "fileCount": 767,
+      "bytes": 139669415,
+      "MB": 139.669415,
+      "MiB": 133.19913387298584,
+      "missing": []
+    },
+    {
+      "route": "app/internal/prelaunch/intake/page",
+      "fileCount": 767,
+      "bytes": 139664755,
+      "MB": 139.664755,
+      "MiB": 133.1946897506714,
+      "missing": []
+    },
+    {
+      "route": "app/page",
+      "fileCount": 770,
+      "bytes": 139512403,
+      "MB": 139.512403,
+      "MiB": 133.04939556121826,
+      "missing": []
+    },
+    {
+      "route": "app/prelaunch/payment/success/page",
+      "fileCount": 764,
+      "bytes": 139478234,
+      "MB": 139.478234,
+      "MiB": 133.01680946350098,
+      "missing": []
+    },
+    {
+      "route": "app/prelaunch/page",
+      "fileCount": 770,
+      "bytes": 139448967,
+      "MB": 139.448967,
+      "MiB": 132.98889827728271,
+      "missing": []
+    },
+    {
+      "route": "app/learn/page",
+      "fileCount": 770,
+      "bytes": 139438926,
+      "MB": 139.438926,
+      "MiB": 132.97932243347168,
+      "missing": []
+    },
+    {
+      "route": "app/terms-and-conditions/page",
+      "fileCount": 768,
+      "bytes": 139427851,
+      "MB": 139.427851,
+      "MiB": 132.96876049041748,
+      "missing": []
+    },
+    {
+      "route": "app/privacy-policy/page",
+      "fileCount": 768,
+      "bytes": 139427762,
+      "MB": 139.427762,
+      "MiB": 132.96867561340332,
+      "missing": []
+    },
+    {
+      "route": "app/control-center/page",
+      "fileCount": 766,
+      "bytes": 139424744,
+      "MB": 139.424744,
+      "MiB": 132.9657974243164,
+      "missing": []
+    },
+    {
+      "route": "app/portfolio/page",
+      "fileCount": 768,
+      "bytes": 139422587,
+      "MB": 139.422587,
+      "MiB": 132.96374034881592,
+      "missing": []
+    },
+    {
+      "route": "app/tools/page",
+      "fileCount": 768,
+      "bytes": 139420358,
+      "MB": 139.420358,
+      "MiB": 132.96161460876465,
+      "missing": []
+    },
+    {
+      "route": "app/faq/page",
+      "fileCount": 766,
+      "bytes": 139375917,
+      "MB": 139.375917,
+      "MiB": 132.91923236846924,
+      "missing": []
+    },
+    {
+      "route": "app/faq/articles/[slug]/page",
+      "fileCount": 767,
+      "bytes": 139369367,
+      "MB": 139.369367,
+      "MiB": 132.91298580169678,
+      "missing": []
+    },
+    {
+      "route": "app/faq/articles/page",
+      "fileCount": 767,
+      "bytes": 139368120,
+      "MB": 139.36812,
+      "MiB": 132.91179656982422,
+      "missing": []
+    },
+    {
+      "route": "app/control-center/messages/page",
+      "fileCount": 765,
+      "bytes": 139316367,
+      "MB": 139.316367,
+      "MiB": 132.86244106292725,
+      "missing": []
+    },
+    {
+      "route": "app/demo/page",
+      "fileCount": 765,
+      "bytes": 139316242,
+      "MB": 139.316242,
+      "MiB": 132.8623218536377,
+      "missing": []
+    },
+    {
+      "route": "app/control-center/resources/page",
+      "fileCount": 765,
+      "bytes": 139315773,
+      "MB": 139.315773,
+      "MiB": 132.8618745803833,
+      "missing": []
+    },
+    {
+      "route": "app/adventure/page",
+      "fileCount": 765,
+      "bytes": 139303300,
+      "MB": 139.3033,
+      "MiB": 132.84997940063477,
+      "missing": []
+    },
+    {
+      "route": "app/reset-password/page",
+      "fileCount": 765,
+      "bytes": 139261143,
+      "MB": 139.261143,
+      "MiB": 132.80977535247803,
+      "missing": []
+    },
+    {
+      "route": "app/login/page",
+      "fileCount": 765,
+      "bytes": 139261043,
+      "MB": 139.261043,
+      "MiB": 132.8096799850464,
+      "missing": []
+    },
+    {
+      "route": "app/start/page",
+      "fileCount": 764,
+      "bytes": 139228158,
+      "MB": 139.228158,
+      "MiB": 132.77831840515137,
+      "missing": []
+    },
+    {
+      "route": "app/control-center/nic-nac-usage/page",
+      "fileCount": 765,
+      "bytes": 139114691,
+      "MB": 139.114691,
+      "MiB": 132.6701078414917,
+      "missing": []
+    },
+    {
+      "route": "app/control-center/guardian/page",
+      "fileCount": 764,
+      "bytes": 139056685,
+      "MB": 139.056685,
+      "MiB": 132.61478900909424,
+      "missing": []
+    },
+    {
+      "route": "app/control-center/login/page",
+      "fileCount": 764,
+      "bytes": 139054273,
+      "MB": 139.054273,
+      "MiB": 132.61248874664307,
+      "missing": []
+    },
+    {
+      "route": "app/control-center/accounting/page",
+      "fileCount": 763,
+      "bytes": 139052009,
+      "MB": 139.052009,
+      "MiB": 132.61032962799072,
+      "missing": []
+    },
+    {
+      "route": "app/control-center/lab/page",
+      "fileCount": 763,
+      "bytes": 139050172,
+      "MB": 139.050172,
+      "MiB": 132.60857772827148,
+      "missing": []
+    },
+    {
+      "route": "app/onboarding/[inviteSlug]/page",
+      "fileCount": 765,
+      "bytes": 139040922,
+      "MB": 139.040922,
+      "MiB": 132.59975624084473,
+      "missing": []
+    },
+    {
+      "route": "app/amethyst/unsubscribe/page",
+      "fileCount": 763,
+      "bytes": 139028817,
+      "MB": 139.028817,
+      "MiB": 132.58821201324463,
+      "missing": []
+    },
+    {
+      "route": "app/dev/public-nic-nac/page",
+      "fileCount": 762,
+      "bytes": 139013558,
+      "MB": 139.013558,
+      "MiB": 132.5736598968506,
+      "missing": []
+    },
+    {
+      "route": "app/prelaunch/intake/page",
+      "fileCount": 762,
+      "bytes": 139013121,
+      "MB": 139.013121,
+      "MiB": 132.57324314117432,
+      "missing": []
+    },
+    {
+      "route": "app/dashboard/page",
+      "fileCount": 762,
+      "bytes": 139013024,
+      "MB": 139.013024,
+      "MiB": 132.57315063476562,
+      "missing": []
+    },
+    {
+      "route": "app/trade-request/status/[token]/page",
+      "fileCount": 763,
+      "bytes": 139009311,
+      "MB": 139.009311,
+      "MiB": 132.5696096420288,
+      "missing": []
+    },
+    {
+      "route": "app/start/loc/page",
+      "fileCount": 763,
+      "bytes": 139007431,
+      "MB": 139.007431,
+      "MiB": 132.56781673431396,
+      "missing": []
+    },
+    {
+      "route": "app/prelaunch/payment/cancelled/page",
+      "fileCount": 762,
+      "bytes": 139004635,
+      "MB": 139.004635,
+      "MiB": 132.5651502609253,
+      "missing": []
+    },
+    {
+      "route": "app/payment/cancelled/page",
+      "fileCount": 762,
+      "bytes": 139003972,
+      "MB": 139.003972,
+      "MiB": 132.56451797485352,
+      "missing": []
+    },
+    {
+      "route": "app/payment/received/page",
+      "fileCount": 762,
+      "bytes": 139003956,
+      "MB": 139.003956,
+      "MiB": 132.56450271606445,
+      "missing": []
+    },
+    {
+      "route": "app/_not-found/page",
+      "fileCount": 761,
+      "bytes": 139003144,
+      "MB": 139.003144,
+      "MiB": 132.56372833251953,
+      "missing": []
+    },
+    {
+      "route": "app/opengraph-image/route",
+      "fileCount": 756,
+      "bytes": 138967899,
+      "MB": 138.967899,
+      "MiB": 132.5301160812378,
+      "missing": []
+    },
+    {
+      "route": "app/icon/route",
+      "fileCount": 754,
+      "bytes": 138958739,
+      "MB": 138.958739,
+      "MiB": 132.5213804244995,
+      "missing": []
+    },
+    {
+      "route": "app/apple-icon/route",
+      "fileCount": 754,
+      "bytes": 138957846,
+      "MB": 138.957846,
+      "MiB": 132.52052879333496,
+      "missing": []
+    },
+    {
+      "route": "app/customer-site/[page]/route",
+      "fileCount": 478,
+      "bytes": 54046353,
+      "MB": 54.046353,
+      "MiB": 51.54261875152588,
+      "missing": []
+    },
+    {
+      "route": "app/[publicSiteSlug]/join/route",
+      "fileCount": 478,
+      "bytes": 54044781,
+      "MB": 54.044781,
+      "MiB": 51.54111957550049,
+      "missing": []
+    },
+    {
+      "route": "app/[publicSiteSlug]/in-the-pantry/route",
+      "fileCount": 478,
+      "bytes": 54044625,
+      "MB": 54.044625,
+      "MiB": 51.54097080230713,
+      "missing": []
+    },
+    {
+      "route": "app/[publicSiteSlug]/trade/route",
+      "fileCount": 478,
+      "bytes": 54044458,
+      "MB": 54.044458,
+      "MiB": 51.54081153869629,
+      "missing": []
+    },
+    {
+      "route": "app/[publicSiteSlug]/route",
+      "fileCount": 478,
+      "bytes": 54044419,
+      "MB": 54.044419,
+      "MiB": 51.54077434539795,
+      "missing": []
+    },
+    {
+      "route": "app/amethyst/[...asset]/route",
+      "fileCount": 478,
+      "bytes": 54044001,
+      "MB": 54.044001,
+      "MiB": 51.54037570953369,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/landing-demo/preview/route",
+      "fileCount": 464,
+      "bytes": 50550215,
+      "MB": 50.550215,
+      "MiB": 48.208441734313965,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/community-theme-preview/route",
+      "fileCount": 461,
+      "bytes": 50406676,
+      "MB": 50.406676,
+      "MiB": 48.07155227661133,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/landing-lineup-preview/route",
+      "fileCount": 461,
+      "bytes": 50406033,
+      "MB": 50.406033,
+      "MiB": 48.07093906402588,
+      "missing": []
+    },
+    {
+      "route": "app/marketing/chasing-unicorns/route",
+      "fileCount": 457,
+      "bytes": 50386533,
+      "MB": 50.386533,
+      "MiB": 48.05234241485596,
+      "missing": []
+    },
+    {
+      "route": "app/skin-preview/[skin]/[page]/route",
+      "fileCount": 457,
+      "bytes": 50383084,
+      "MB": 50.383084,
+      "MiB": 48.04905319213867,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/card-qr/flyer/route",
+      "fileCount": 377,
+      "bytes": 32927005,
+      "MB": 32.927005,
+      "MiB": 31.401638984680176,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/card-qr/checkout/route",
+      "fileCount": 421,
+      "bytes": 30529230,
+      "MB": 30.52923,
+      "MiB": 29.11494255065918,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/card-qr/card/route",
+      "fileCount": 420,
+      "bytes": 30322820,
+      "MB": 30.32282,
+      "MiB": 28.918094635009766,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/card-qr/qr/route",
+      "fileCount": 358,
+      "bytes": 26667663,
+      "MB": 26.667663,
+      "MiB": 25.432265281677246,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/card-qr/press-stub/route",
+      "fileCount": 357,
+      "bytes": 26660237,
+      "MB": 26.660237,
+      "MiB": 25.425183296203613,
+      "missing": []
+    },
+    {
+      "route": "app/email-signature.png/route",
+      "fileCount": 267,
+      "bytes": 7886499,
+      "MB": 7.886499,
+      "MiB": 7.521151542663574,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/photo-enhancement/queue/route",
+      "fileCount": 274,
+      "bytes": 7339882,
+      "MB": 7.339882,
+      "MiB": 6.999856948852539,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/loc-control-center/route",
+      "fileCount": 342,
+      "bytes": 7334873,
+      "MB": 7.334873,
+      "MiB": 6.99507999420166,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/trade-requests/uploads/route",
+      "fileCount": 270,
+      "bytes": 7009580,
+      "MB": 7.00958,
+      "MiB": 6.684856414794922,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/trade-requests/uploads/confirm/route",
+      "fileCount": 270,
+      "bytes": 7009429,
+      "MB": 7.009429,
+      "MiB": 6.6847124099731445,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/support-sessions/[sessionId]/gateway/route",
+      "fileCount": 301,
+      "bytes": 6887075,
+      "MB": 6.887075,
+      "MiB": 6.568026542663574,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/route",
+      "fileCount": 294,
+      "bytes": 6606925,
+      "MB": 6.606925,
+      "MiB": 6.300854682922363,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/trade-board/route",
+      "fileCount": 275,
+      "bytes": 5347109,
+      "MB": 5.347109,
+      "MiB": 5.099400520324707,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/jewelry-library/route",
+      "fileCount": 275,
+      "bytes": 5343622,
+      "MB": 5.343622,
+      "MiB": 5.096075057983398,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/team-photo-polish/route",
+      "fileCount": 274,
+      "bytes": 5334170,
+      "MB": 5.33417,
+      "MiB": 5.087060928344727,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversations/support/route",
+      "fileCount": 273,
+      "bytes": 5323602,
+      "MB": 5.323602,
+      "MiB": 5.076982498168945,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/join-team-roster/photo/route",
+      "fileCount": 272,
+      "bytes": 5297681,
+      "MB": 5.297681,
+      "MiB": 5.052262306213379,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/direct-messages/route",
+      "fileCount": 271,
+      "bytes": 5289852,
+      "MB": 5.289852,
+      "MiB": 5.044795989990234,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/direct-messages/uploads/route",
+      "fileCount": 271,
+      "bytes": 5289165,
+      "MB": 5.289165,
+      "MiB": 5.044140815734863,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/direct-messages/[conversationId]/attachments/[attachmentId]/route",
+      "fileCount": 271,
+      "bytes": 5289016,
+      "MB": 5.289016,
+      "MiB": 5.043998718261719,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/direct-messages/[conversationId]/route",
+      "fileCount": 271,
+      "bytes": 5288828,
+      "MB": 5.288828,
+      "MiB": 5.043819427490234,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/owner-direct/[conversationId]/attachments/[attachmentId]/route",
+      "fileCount": 271,
+      "bytes": 5284801,
+      "MB": 5.284801,
+      "MiB": 5.039978981018066,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/conversations/[conversationId]/attachments/[attachmentId]/route",
+      "fileCount": 271,
+      "bytes": 5279061,
+      "MB": 5.279061,
+      "MiB": 5.0345048904418945,
+      "missing": []
+    },
+    {
+      "route": "app/api/telegram/route",
+      "fileCount": 220,
+      "bytes": 5112023,
+      "MB": 5.112023,
+      "MiB": 4.875205039978027,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/trade-requests/[requestId]/reveal-screenshot/route",
+      "fileCount": 271,
+      "bytes": 5022034,
+      "MB": 5.022034,
+      "MiB": 4.789384841918945,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversations/[conversationId]/attachments/route",
+      "fileCount": 270,
+      "bytes": 5004555,
+      "MB": 5.004555,
+      "MiB": 4.7727155685424805,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversations/[conversationId]/attachments/[attachmentId]/route",
+      "fileCount": 270,
+      "bytes": 5004136,
+      "MB": 5.004136,
+      "MiB": 4.772315979003906,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/site-recipes/image/route",
+      "fileCount": 270,
+      "bytes": 5000364,
+      "MB": 5.000364,
+      "MiB": 4.768718719482422,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/site-settings/media/route",
+      "fileCount": 270,
+      "bytes": 5000248,
+      "MB": 5.000248,
+      "MiB": 4.768608093261719,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/owner-direct-uploads/cleanup/route",
+      "fileCount": 268,
+      "bytes": 4974570,
+      "MB": 4.97457,
+      "MiB": 4.744119644165039,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/sparkle-lab/run/route",
+      "fileCount": 228,
+      "bytes": 4963385,
+      "MB": 4.963385,
+      "MiB": 4.733452796936035,
+      "missing": []
+    },
+    {
+      "route": "app/api/remy/mcp/route",
+      "fileCount": 228,
+      "bytes": 4957648,
+      "MB": 4.957648,
+      "MiB": 4.7279815673828125,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/site-recipes/draft/route",
+      "fileCount": 228,
+      "bytes": 4952244,
+      "MB": 4.952244,
+      "MiB": 4.722827911376953,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/sparkle-lab/weekly/route",
+      "fileCount": 225,
+      "bytes": 4920848,
+      "MB": 4.920848,
+      "MiB": 4.6928863525390625,
+      "missing": []
+    },
+    {
+      "route": "app/api/prelaunch/scout/route",
+      "fileCount": 227,
+      "bytes": 4901664,
+      "MB": 4.901664,
+      "MiB": 4.674591064453125,
+      "missing": []
+    },
+    {
+      "route": "app/api/prelaunch/intake/route",
+      "fileCount": 226,
+      "bytes": 4867448,
+      "MB": 4.867448,
+      "MiB": 4.641960144042969,
+      "missing": []
+    },
+    {
+      "route": "app/api/lane/accounting/mcp/route",
+      "fileCount": 223,
+      "bytes": 4819056,
+      "MB": 4.819056,
+      "MiB": 4.5958099365234375,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/card-qr/order/route",
+      "fileCount": 227,
+      "bytes": 4782366,
+      "MB": 4.782366,
+      "MiB": 4.560819625854492,
+      "missing": []
+    },
+    {
+      "route": "app/api/stripe/webhook/route",
+      "fileCount": 226,
+      "bytes": 4781323,
+      "MB": 4.781323,
+      "MiB": 4.5598249435424805,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/payment-link/route",
+      "fileCount": 225,
+      "bytes": 4733852,
+      "MB": 4.733852,
+      "MiB": 4.514553070068359,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/account-billing/route",
+      "fileCount": 225,
+      "bytes": 4715827,
+      "MB": 4.715827,
+      "MiB": 4.497363090515137,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/wallet-summary/route",
+      "fileCount": 225,
+      "bytes": 4714195,
+      "MB": 4.714195,
+      "MiB": 4.495806694030762,
+      "missing": []
+    },
+    {
+      "route": "app/api/stripe/wallet/auto-recharge/route",
+      "fileCount": 225,
+      "bytes": 4713597,
+      "MB": 4.713597,
+      "MiB": 4.495236396789551,
+      "missing": []
+    },
+    {
+      "route": "app/api/stripe/wallet/load/route",
+      "fileCount": 225,
+      "bytes": 4713556,
+      "MB": 4.713556,
+      "MiB": 4.495197296142578,
+      "missing": []
+    },
+    {
+      "route": "app/api/stripe/create-checkout/route",
+      "fileCount": 225,
+      "bytes": 4713380,
+      "MB": 4.71338,
+      "MiB": 4.495029449462891,
+      "missing": []
+    },
+    {
+      "route": "app/api/prelaunch/payment-gates/checkout/route",
+      "fileCount": 224,
+      "bytes": 4710953,
+      "MB": 4.710953,
+      "MiB": 4.492714881896973,
+      "missing": []
+    },
+    {
+      "route": "app/api/stripe/sync/route",
+      "fileCount": 224,
+      "bytes": 4704573,
+      "MB": 4.704573,
+      "MiB": 4.486630439758301,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/show-reminders/pre-show/live/route",
+      "fileCount": 224,
+      "bytes": 4698771,
+      "MB": 4.698771,
+      "MiB": 4.481097221374512,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/show-reminders/pre-show/route",
+      "fileCount": 224,
+      "bytes": 4698546,
+      "MB": 4.698546,
+      "MiB": 4.48088264465332,
+      "missing": []
+    },
+    {
+      "route": "app/api/stripe/create-portal-session/route",
+      "fileCount": 224,
+      "bytes": 4696579,
+      "MB": 4.696579,
+      "MiB": 4.479006767272949,
+      "missing": []
+    },
+    {
+      "route": "app/api/reviewer-smoke/session/route",
+      "fileCount": 230,
+      "bytes": 4626757,
+      "MB": 4.626757,
+      "MiB": 4.412419319152832,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/resources/route",
+      "fileCount": 227,
+      "bytes": 4591370,
+      "MB": 4.59137,
+      "MiB": 4.378671646118164,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/live-lineup/customers/route",
+      "fileCount": 227,
+      "bytes": 4588217,
+      "MB": 4.588217,
+      "MiB": 4.375664710998535,
+      "missing": []
+    },
+    {
+      "route": "app/api/reviewer-smoke/loc-session/route",
+      "fileCount": 227,
+      "bytes": 4562643,
+      "MB": 4.562643,
+      "MiB": 4.351275444030762,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/messages/route",
+      "fileCount": 225,
+      "bytes": 4561767,
+      "MB": 4.561767,
+      "MiB": 4.35044002532959,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/card-qr/approver-emails/route",
+      "fileCount": 225,
+      "bytes": 4558713,
+      "MB": 4.558713,
+      "MiB": 4.347527503967285,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/rep-messaging-suspensions/route",
+      "fileCount": 225,
+      "bytes": 4553089,
+      "MB": 4.553089,
+      "MiB": 4.342164039611816,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/finder-studio-reviews/route",
+      "fileCount": 226,
+      "bytes": 4547294,
+      "MB": 4.547294,
+      "MiB": 4.336637496948242,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversations/rep-requests/route",
+      "fileCount": 225,
+      "bytes": 4546514,
+      "MB": 4.546514,
+      "MiB": 4.335893630981445,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/send-email/route",
+      "fileCount": 225,
+      "bytes": 4543682,
+      "MB": 4.543682,
+      "MiB": 4.333192825317383,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/remy-reply-approvals/route",
+      "fileCount": 225,
+      "bytes": 4542310,
+      "MB": 4.54231,
+      "MiB": 4.331884384155273,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/conversations/route",
+      "fileCount": 225,
+      "bytes": 4541504,
+      "MB": 4.541504,
+      "MiB": 4.33111572265625,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/support-reports/[reportId]/status/route",
+      "fileCount": 225,
+      "bytes": 4541430,
+      "MB": 4.54143,
+      "MiB": 4.331045150756836,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/conversations/[conversationId]/route",
+      "fileCount": 225,
+      "bytes": 4541248,
+      "MB": 4.541248,
+      "MiB": 4.33087158203125,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/support-reports/[reportId]/promote-task/route",
+      "fileCount": 225,
+      "bytes": 4539981,
+      "MB": 4.539981,
+      "MiB": 4.329663276672363,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/conversations/[conversationId]/messages/route",
+      "fileCount": 225,
+      "bytes": 4538798,
+      "MB": 4.538798,
+      "MiB": 4.328535079956055,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversations/[conversationId]/messages/route",
+      "fileCount": 225,
+      "bytes": 4535083,
+      "MB": 4.535083,
+      "MiB": 4.3249921798706055,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversations/[conversationId]/state/route",
+      "fileCount": 225,
+      "bytes": 4535009,
+      "MB": 4.535009,
+      "MiB": 4.324921607971191,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/conversations/[conversationId]/moderate/route",
+      "fileCount": 224,
+      "bytes": 4529361,
+      "MB": 4.529361,
+      "MiB": 4.319535255432129,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/support-reports/route",
+      "fileCount": 224,
+      "bytes": 4528842,
+      "MB": 4.528842,
+      "MiB": 4.319040298461914,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversations/[conversationId]/report/route",
+      "fileCount": 224,
+      "bytes": 4525106,
+      "MB": 4.525106,
+      "MiB": 4.31547737121582,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/finder-appearance/route",
+      "fileCount": 223,
+      "bytes": 4525102,
+      "MB": 4.525102,
+      "MiB": 4.315473556518555,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversations/[conversationId]/request-decision/route",
+      "fileCount": 224,
+      "bytes": 4525101,
+      "MB": 4.525101,
+      "MiB": 4.315472602844238,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversations/[conversationId]/block/route",
+      "fileCount": 224,
+      "bytes": 4524995,
+      "MB": 4.524995,
+      "MiB": 4.315371513366699,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/homepage-template/route",
+      "fileCount": 234,
+      "bytes": 4523368,
+      "MB": 4.523368,
+      "MiB": 4.313819885253906,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/resource-library/route",
+      "fileCount": 224,
+      "bytes": 4516935,
+      "MB": 4.516935,
+      "MiB": 4.307684898376465,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversations/rep-directory/route",
+      "fileCount": 224,
+      "bytes": 4515599,
+      "MB": 4.515599,
+      "MiB": 4.306410789489746,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/join-template/route",
+      "fileCount": 234,
+      "bytes": 4515399,
+      "MB": 4.515399,
+      "MiB": 4.306220054626465,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/time-zone/route",
+      "fileCount": 224,
+      "bytes": 4511049,
+      "MB": 4.511049,
+      "MiB": 4.302071571350098,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/waitlist-meeting-scheduled/route",
+      "fileCount": 223,
+      "bytes": 4509824,
+      "MB": 4.509824,
+      "MiB": 4.3009033203125,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/waitlist-contact-progress/route",
+      "fileCount": 223,
+      "bytes": 4509162,
+      "MB": 4.509162,
+      "MiB": 4.300271987915039,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/trade-template/route",
+      "fileCount": 233,
+      "bytes": 4506990,
+      "MB": 4.50699,
+      "MiB": 4.298200607299805,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/finder/jewelry-intake/v2/route",
+      "fileCount": 224,
+      "bytes": 4505788,
+      "MB": 4.505788,
+      "MiB": 4.297054290771484,
+      "missing": []
+    },
+    {
+      "route": "app/api/auth/callback/route",
+      "fileCount": 223,
+      "bytes": 4503493,
+      "MB": 4.503493,
+      "MiB": 4.294865608215332,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/support-reports/route",
+      "fileCount": 223,
+      "bytes": 4499472,
+      "MB": 4.499472,
+      "MiB": 4.2910308837890625,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/support-followups/process/route",
+      "fileCount": 223,
+      "bytes": 4495982,
+      "MB": 4.495982,
+      "MiB": 4.287702560424805,
+      "missing": []
+    },
+    {
+      "route": "app/api/prelaunch/waitlist/route",
+      "fileCount": 223,
+      "bytes": 4480626,
+      "MB": 4.480626,
+      "MiB": 4.27305793762207,
+      "missing": []
+    },
+    {
+      "route": "app/customer-site/faq/route",
+      "fileCount": 227,
+      "bytes": 4476083,
+      "MB": 4.476083,
+      "MiB": 4.268725395202637,
+      "missing": []
+    },
+    {
+      "route": "app/[publicSiteSlug]/faq/route",
+      "fileCount": 227,
+      "bytes": 4474213,
+      "MB": 4.474213,
+      "MiB": 4.266942024230957,
+      "missing": []
+    },
+    {
+      "route": "app/internal/customer-faq-preview/route",
+      "fileCount": 227,
+      "bytes": 4474159,
+      "MB": 4.474159,
+      "MiB": 4.266890525817871,
+      "missing": []
+    },
+    {
+      "route": "app/api/self-serve/signup/route",
+      "fileCount": 221,
+      "bytes": 4467327,
+      "MB": 4.467327,
+      "MiB": 4.260375022888184,
+      "missing": []
+    },
+    {
+      "route": "app/api/card-qr/printer-approval/route",
+      "fileCount": 219,
+      "bytes": 4439082,
+      "MB": 4.439082,
+      "MiB": 4.233438491821289,
+      "missing": []
+    },
+    {
+      "route": "app/sitemap.xml/route",
+      "fileCount": 225,
+      "bytes": 4437674,
+      "MB": 4.437674,
+      "MiB": 4.232095718383789,
+      "missing": []
+    },
+    {
+      "route": "app/llms.txt/route",
+      "fileCount": 225,
+      "bytes": 4437147,
+      "MB": 4.437147,
+      "MiB": 4.231593132019043,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/pantry-template/route",
+      "fileCount": 226,
+      "bytes": 4342929,
+      "MB": 4.342929,
+      "MiB": 4.141739845275879,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/card-qr/route",
+      "fileCount": 226,
+      "bytes": 4305236,
+      "MB": 4.305236,
+      "MiB": 4.105792999267578,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/trade-requests/route",
+      "fileCount": 226,
+      "bytes": 4304775,
+      "MB": 4.304775,
+      "MiB": 4.105353355407715,
+      "missing": []
+    },
+    {
+      "route": "app/api/self-serve/setup-state/route",
+      "fileCount": 226,
+      "bytes": 4304156,
+      "MB": 4.304156,
+      "MiB": 4.104763031005859,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/customer-audience/route",
+      "fileCount": 225,
+      "bytes": 4297181,
+      "MB": 4.297181,
+      "MiB": 4.098111152648926,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/card-qr/address/route",
+      "fileCount": 225,
+      "bytes": 4296388,
+      "MB": 4.296388,
+      "MiB": 4.097354888916016,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/live-lineup/archives/route",
+      "fileCount": 226,
+      "bytes": 4294596,
+      "MB": 4.294596,
+      "MiB": 4.095645904541016,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/support-sessions/route",
+      "fileCount": 225,
+      "bytes": 4292983,
+      "MB": 4.292983,
+      "MiB": 4.094107627868652,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/live-lineup/audience/route",
+      "fileCount": 225,
+      "bytes": 4291178,
+      "MB": 4.291178,
+      "MiB": 4.092386245727539,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/live-lineup/readiness/route",
+      "fileCount": 225,
+      "bytes": 4290842,
+      "MB": 4.290842,
+      "MiB": 4.092065811157227,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/messages/route",
+      "fileCount": 225,
+      "bytes": 4290572,
+      "MB": 4.290572,
+      "MiB": 4.091808319091797,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/support-sessions/[sessionId]/end/route",
+      "fileCount": 225,
+      "bytes": 4289946,
+      "MB": 4.289946,
+      "MiB": 4.091211318969727,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/rep-dashboard/route",
+      "fileCount": 225,
+      "bytes": 4289523,
+      "MB": 4.289523,
+      "MiB": 4.090807914733887,
+      "missing": []
+    },
+    {
+      "route": "app/api/live-lineup/publish/route",
+      "fileCount": 225,
+      "bytes": 4288946,
+      "MB": 4.288946,
+      "MiB": 4.09025764465332,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/site-settings/route",
+      "fileCount": 225,
+      "bytes": 4288208,
+      "MB": 4.288208,
+      "MiB": 4.0895538330078125,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/live-lineup/publishers/route",
+      "fileCount": 225,
+      "bytes": 4288011,
+      "MB": 4.288011,
+      "MiB": 4.0893659591674805,
+      "missing": []
+    },
+    {
+      "route": "app/api/workspace/live-lineup/route",
+      "fileCount": 225,
+      "bytes": 4287889,
+      "MB": 4.287889,
+      "MiB": 4.089249610900879,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/support-sessions/[sessionId]/customers/route",
+      "fileCount": 225,
+      "bytes": 4286793,
+      "MB": 4.286793,
+      "MiB": 4.088204383850098,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/trade-swap-cleanup/route",
+      "fileCount": 225,
+      "bytes": 4283595,
+      "MB": 4.283595,
+      "MiB": 4.0851545333862305,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/customer-audience/route",
+      "fileCount": 224,
+      "bytes": 4269563,
+      "MB": 4.269563,
+      "MiB": 4.071772575378418,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/skin-options/route",
+      "fileCount": 224,
+      "bytes": 4268306,
+      "MB": 4.268306,
+      "MiB": 4.070573806762695,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/join-team-roster/route",
+      "fileCount": 224,
+      "bytes": 4264396,
+      "MB": 4.264396,
+      "MiB": 4.066844940185547,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversations/[conversationId]/route",
+      "fileCount": 224,
+      "bytes": 4263539,
+      "MB": 4.263539,
+      "MiB": 4.066027641296387,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/workspace-messages/process/route",
+      "fileCount": 224,
+      "bytes": 4261909,
+      "MB": 4.261909,
+      "MiB": 4.0644731521606445,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/trade-history/route",
+      "fileCount": 224,
+      "bytes": 4261113,
+      "MB": 4.261113,
+      "MiB": 4.063714027404785,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/team-onboarding/participants/route",
+      "fileCount": 224,
+      "bytes": 4259384,
+      "MB": 4.259384,
+      "MiB": 4.062065124511719,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/team-onboarding/participants/[participantId]/route",
+      "fileCount": 224,
+      "bytes": 4259159,
+      "MB": 4.259159,
+      "MiB": 4.061850547790527,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/team-onboarding/participants/[participantId]/messages/route",
+      "fileCount": 224,
+      "bytes": 4258878,
+      "MB": 4.258878,
+      "MiB": 4.061582565307617,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/workspace-birthday-reports/process/route",
+      "fileCount": 224,
+      "bytes": 4258300,
+      "MB": 4.2583,
+      "MiB": 4.061031341552734,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversation-state/route",
+      "fileCount": 223,
+      "bytes": 4255164,
+      "MB": 4.255164,
+      "MiB": 4.058040618896484,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversation/rollover/route",
+      "fileCount": 224,
+      "bytes": 4254440,
+      "MB": 4.25444,
+      "MiB": 4.057350158691406,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversation-rollover/route",
+      "fileCount": 224,
+      "bytes": 4254439,
+      "MB": 4.254439,
+      "MiB": 4.05734920501709,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/calendar-summary/route",
+      "fileCount": 223,
+      "bytes": 4253743,
+      "MB": 4.253743,
+      "MiB": 4.056685447692871,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/agreement-document/route",
+      "fileCount": 222,
+      "bytes": 4253668,
+      "MB": 4.253668,
+      "MiB": 4.056613922119141,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/live-lineup/route",
+      "fileCount": 223,
+      "bytes": 4253610,
+      "MB": 4.25361,
+      "MiB": 4.056558609008789,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversation/[conversationId]/route",
+      "fileCount": 223,
+      "bytes": 4252762,
+      "MB": 4.252762,
+      "MiB": 4.055749893188477,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/site-analytics/route",
+      "fileCount": 223,
+      "bytes": 4252291,
+      "MB": 4.252291,
+      "MiB": 4.055300712585449,
+      "missing": []
+    },
+    {
+      "route": "app/api/prelaunch/meet-transcript/route",
+      "fileCount": 223,
+      "bytes": 4251604,
+      "MB": 4.251604,
+      "MiB": 4.054645538330078,
+      "missing": []
+    },
+    {
+      "route": "app/api/prelaunch/meet-transcript/import/route",
+      "fileCount": 223,
+      "bytes": 4251592,
+      "MB": 4.251592,
+      "MiB": 4.054634094238281,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/fulfillment-queue/route",
+      "fileCount": 223,
+      "bytes": 4250074,
+      "MB": 4.250074,
+      "MiB": 4.053186416625977,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversation/clear/route",
+      "fileCount": 223,
+      "bytes": 4248268,
+      "MB": 4.248268,
+      "MiB": 4.051464080810547,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/nic-nac-usage/export/route",
+      "fileCount": 222,
+      "bytes": 4247852,
+      "MB": 4.247852,
+      "MiB": 4.051067352294922,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/conversation/latest/route",
+      "fileCount": 223,
+      "bytes": 4245844,
+      "MB": 4.245844,
+      "MiB": 4.049152374267578,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/site-recipes/route",
+      "fileCount": 223,
+      "bytes": 4244894,
+      "MB": 4.244894,
+      "MiB": 4.048246383666992,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/me/route",
+      "fileCount": 223,
+      "bytes": 4242190,
+      "MB": 4.24219,
+      "MiB": 4.04566764831543,
+      "missing": []
+    },
+    {
+      "route": "app/api/prelaunch/intake/review/route",
+      "fileCount": 222,
+      "bytes": 4241715,
+      "MB": 4.241715,
+      "MiB": 4.045214653015137,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/setup-profile/route",
+      "fileCount": 222,
+      "bytes": 4241117,
+      "MB": 4.241117,
+      "MiB": 4.044644355773926,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/trade-requests/route",
+      "fileCount": 223,
+      "bytes": 4240557,
+      "MB": 4.240557,
+      "MiB": 4.044110298156738,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/launch-check/route",
+      "fileCount": 222,
+      "bytes": 4240086,
+      "MB": 4.240086,
+      "MiB": 4.043661117553711,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/launch-gate/route",
+      "fileCount": 222,
+      "bytes": 4239735,
+      "MB": 4.239735,
+      "MiB": 4.043326377868652,
+      "missing": []
+    },
+    {
+      "route": "app/api/prelaunch/signwell/agreement/route",
+      "fileCount": 222,
+      "bytes": 4239103,
+      "MB": 4.239103,
+      "MiB": 4.042723655700684,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/production-roster/route",
+      "fileCount": 222,
+      "bytes": 4238635,
+      "MB": 4.238635,
+      "MiB": 4.0422773361206055,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/onboarding-checklist/route",
+      "fileCount": 222,
+      "bytes": 4237270,
+      "MB": 4.23727,
+      "MiB": 4.040975570678711,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/launch-build-draft/route",
+      "fileCount": 222,
+      "bytes": 4236714,
+      "MB": 4.236714,
+      "MiB": 4.040445327758789,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/customer-waitlist/route",
+      "fileCount": 222,
+      "bytes": 4236009,
+      "MB": 4.236009,
+      "MiB": 4.039772987365723,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/bug-hunt/route",
+      "fileCount": 222,
+      "bytes": 4235403,
+      "MB": 4.235403,
+      "MiB": 4.0391950607299805,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/customer-audience/unsubscribe/route",
+      "fileCount": 222,
+      "bytes": 4234710,
+      "MB": 4.23471,
+      "MiB": 4.038534164428711,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/waitlist-setup-profile-drafted/route",
+      "fileCount": 222,
+      "bytes": 4234274,
+      "MB": 4.234274,
+      "MiB": 4.038118362426758,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/waitlist-contact-batch/route",
+      "fileCount": 222,
+      "bytes": 4234270,
+      "MB": 4.23427,
+      "MiB": 4.038114547729492,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/waitlist-conversation-complete/route",
+      "fileCount": 222,
+      "bytes": 4234267,
+      "MB": 4.234267,
+      "MiB": 4.038111686706543,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/intake/waitlist-start-work-ready/route",
+      "fileCount": 222,
+      "bytes": 4234233,
+      "MB": 4.234233,
+      "MiB": 4.038079261779785,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/finder/rep-memory/route",
+      "fileCount": 222,
+      "bytes": 4233601,
+      "MB": 4.233601,
+      "MiB": 4.037476539611816,
+      "missing": []
+    },
+    {
+      "route": "app/api/control-center/session/route",
+      "fileCount": 222,
+      "bytes": 4233191,
+      "MB": 4.233191,
+      "MiB": 4.03708553314209,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/trade-requests/screen/route",
+      "fileCount": 222,
+      "bytes": 4231144,
+      "MB": 4.231144,
+      "MiB": 4.035133361816406,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/finder/rep-claim/route",
+      "fileCount": 222,
+      "bytes": 4230960,
+      "MB": 4.23096,
+      "MiB": 4.0349578857421875,
+      "missing": []
+    },
+    {
+      "route": "app/api/telnyx/webhook/route",
+      "fileCount": 222,
+      "bytes": 4227969,
+      "MB": 4.227969,
+      "MiB": 4.032105445861816,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/support-access-history/route",
+      "fileCount": 222,
+      "bytes": 4227513,
+      "MB": 4.227513,
+      "MiB": 4.031670570373535,
+      "missing": []
+    },
+    {
+      "route": "app/api/stripe/subscription-status/route",
+      "fileCount": 222,
+      "bytes": 4227236,
+      "MB": 4.227236,
+      "MiB": 4.031406402587891,
+      "missing": []
+    },
+    {
+      "route": "app/api/public-site/visit/route",
+      "fileCount": 222,
+      "bytes": 4226064,
+      "MB": 4.226064,
+      "MiB": 4.0302886962890625,
+      "missing": []
+    },
+    {
+      "route": "app/api/team-onboarding/access/[token]/progress/route",
+      "fileCount": 222,
+      "bytes": 4222893,
+      "MB": 4.222893,
+      "MiB": 4.027264595031738,
+      "missing": []
+    },
+    {
+      "route": "app/api/team-onboarding/access/[token]/messages/route",
+      "fileCount": 222,
+      "bytes": 4222892,
+      "MB": 4.222892,
+      "MiB": 4.027263641357422,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/trade-requests/status/route",
+      "fileCount": 222,
+      "bytes": 4222841,
+      "MB": 4.222841,
+      "MiB": 4.027215003967285,
+      "missing": []
+    },
+    {
+      "route": "app/api/team-onboarding/access/[token]/route",
+      "fileCount": 222,
+      "bytes": 4222837,
+      "MB": 4.222837,
+      "MiB": 4.0272111892700195,
+      "missing": []
+    },
+    {
+      "route": "app/api/team-onboarding/access/progress/route",
+      "fileCount": 222,
+      "bytes": 4222828,
+      "MB": 4.222828,
+      "MiB": 4.027202606201172,
+      "missing": []
+    },
+    {
+      "route": "app/api/team-onboarding/access/messages/route",
+      "fileCount": 222,
+      "bytes": 4222825,
+      "MB": 4.222825,
+      "MiB": 4.027199745178223,
+      "missing": []
+    },
+    {
+      "route": "app/api/team-onboarding/access/route",
+      "fileCount": 222,
+      "bytes": 4222782,
+      "MB": 4.222782,
+      "MiB": 4.027158737182617,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/finder/jewelry-intake/route",
+      "fileCount": 222,
+      "bytes": 4220896,
+      "MB": 4.220896,
+      "MiB": 4.025360107421875,
+      "missing": []
+    },
+    {
+      "route": "app/api/internal/accounting/summary/route",
+      "fileCount": 220,
+      "bytes": 4203979,
+      "MB": 4.203979,
+      "MiB": 4.0092267990112305,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/founder-availability/route",
+      "fileCount": 221,
+      "bytes": 4194725,
+      "MB": 4.194725,
+      "MiB": 4.000401496887207,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/health/route",
+      "fileCount": 220,
+      "bytes": 4191178,
+      "MB": 4.191178,
+      "MiB": 3.997018814086914,
+      "missing": []
+    },
+    {
+      "route": "app/q/[code]/route",
+      "fileCount": 217,
+      "bytes": 4187986,
+      "MB": 4.187986,
+      "MiB": 3.9939746856689453,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/trade-board/route",
+      "fileCount": 220,
+      "bytes": 4166310,
+      "MB": 4.16631,
+      "MiB": 3.9733028411865234,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/finder/catalog/batch/route",
+      "fileCount": 220,
+      "bytes": 4161778,
+      "MB": 4.161778,
+      "MiB": 3.9689807891845703,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/finder/catalog/facets/route",
+      "fileCount": 220,
+      "bytes": 4161072,
+      "MB": 4.161072,
+      "MiB": 3.9683074951171875,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/finder/catalog/route",
+      "fileCount": 220,
+      "bytes": 4161008,
+      "MB": 4.161008,
+      "MiB": 3.9682464599609375,
+      "missing": []
+    },
+    {
+      "route": "app/api/compile-memory-index/route",
+      "fileCount": 218,
+      "bytes": 4160147,
+      "MB": 4.160147,
+      "MiB": 3.9674253463745117,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/finder/availability/route",
+      "fileCount": 219,
+      "bytes": 4149012,
+      "MB": 4.149012,
+      "MiB": 3.956806182861328,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/finder/reps/route",
+      "fileCount": 219,
+      "bytes": 4147855,
+      "MB": 4.147855,
+      "MiB": 3.955702781677246,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/finder/live-shows/route",
+      "fileCount": 219,
+      "bytes": 4147337,
+      "MB": 4.147337,
+      "MiB": 3.9552087783813477,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/finder/catalog/[designId]/route",
+      "fileCount": 219,
+      "bytes": 4147256,
+      "MB": 4.147256,
+      "MiB": 3.9551315307617188,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/finder/appearance/route",
+      "fileCount": 217,
+      "bytes": 4132771,
+      "MB": 4.132771,
+      "MiB": 3.941317558288574,
+      "missing": []
+    },
+    {
+      "route": "app/api/nic-nac/resources/route",
+      "fileCount": 220,
+      "bytes": 4036587,
+      "MB": 4.036587,
+      "MiB": 3.8495893478393555,
+      "missing": []
+    },
+    {
+      "route": "app/api/amethyst/preference-options/route",
+      "fileCount": 219,
+      "bytes": 4020839,
+      "MB": 4.020839,
+      "MiB": 3.83457088470459,
+      "missing": []
+    },
+    {
+      "route": "app/api/prelaunch/health/route",
+      "fileCount": 219,
+      "bytes": 4019829,
+      "MB": 4.019829,
+      "MiB": 3.8336076736450195,
+      "missing": []
+    },
+    {
+      "route": "app/api/prelaunch/qr-assets/route",
+      "fileCount": 219,
+      "bytes": 4012006,
+      "MB": 4.012006,
+      "MiB": 3.8261470794677734,
+      "missing": []
+    },
+    {
+      "route": "app/api/open-brain/context/route",
+      "fileCount": 219,
+      "bytes": 4010950,
+      "MB": 4.01095,
+      "MiB": 3.8251399993896484,
+      "missing": []
+    },
+    {
+      "route": "app/_global-error/page",
+      "fileCount": 217,
+      "bytes": 3996325,
+      "MB": 3.996325,
+      "MiB": 3.811192512512207,
+      "missing": []
+    },
+    {
+      "route": "app/manifest.webmanifest/route",
+      "fileCount": 216,
+      "bytes": 3996027,
+      "MB": 3.996027,
+      "MiB": 3.810908317565918,
+      "missing": []
+    },
+    {
+      "route": "app/robots.txt/route",
+      "fileCount": 213,
+      "bytes": 3975725,
+      "MB": 3.975725,
+      "MiB": 3.7915468215942383,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/nic-nac/handoff/route",
+      "fileCount": 216,
+      "bytes": 3931449,
+      "MB": 3.931449,
+      "MiB": 3.749321937561035,
+      "missing": []
+    },
+    {
+      "route": "app/api/public/nic-nac/route",
+      "fileCount": 216,
+      "bytes": 3931400,
+      "MB": 3.9314,
+      "MiB": 3.7492752075195312,
+      "missing": []
+    },
+    {
+      "route": "app/[publicSiteSlug]/in-the-pantry/[...path]/route",
+      "fileCount": 212,
+      "bytes": 3915035,
+      "MB": 3.915035,
+      "MiB": 3.733668327331543,
+      "missing": []
+    },
+    {
+      "route": "middleware",
+      "fileCount": 137,
+      "bytes": 1619261,
+      "MB": 1.619261,
+      "MiB": 1.5442476272583008,
+      "missing": []
+    }
+  ]
+}
