@@ -1,3 +1,11 @@
+## October 29, 2026 — Combined SSR + Finder Smoke RC failed acceptance
+
+- Exact cb4f4860 + afd18246 + 0c2167b4 inputs combined on `codex/release-ssr-finder`; allowlist-only c4e66b41; one draft PR #166, unmerged. One Smoke PREVIEW dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j is READY from ca6af2e6; no Live action.
+- Build/trace/tsc/lint-diff gates pass. Full suites once: base 5687/5598/84/5, candidate 5987/5895/87/5 (total/pass/fail/skip); only 3 permitted new names. The 90s rerun is 14/18, with all 7 frozen hashes passing.
+- Actual browser hard stop after 1/156 loads: desktop Amethyst Home 200/SSR, CLS 0.00007330246913580247, H1 4.044s, LCP 4.420s. Smoke alias restored/verified to dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc at 18:03:40 EDT. Remaining phone/theme/layout, warm/cold/Live, legacy and Finder checks skipped as instructed.
+- Initial QA-only cookie requirement caused a separate safety rollback before any theme load; corrected with public GETs, same preview reused. No rep sign-in, data write, Live env/DB access, production-branch push, PR merge or application fix.
+- [Full report, checklist, timestamps and screenshots](2026-10-29-release-ssr-finder/report.md). STOP; await a new scoped instruction. Actual Open Brain MCP capture succeeded, returning "Captured as observation — release candidate, browser acceptance, failed tests".
+
 ## October 28, 2026 — SSR chunk 2: code complete, speed acceptance failed
 
 - Draft PR #163 targets codex/ssr-all-themes; app 7fa6fbe69922f1802068e2f91efe5a40d6beb7cb. Clean worktree .codex-worktrees/ssr-dancefloor-join; primary dirty checkout preserved.

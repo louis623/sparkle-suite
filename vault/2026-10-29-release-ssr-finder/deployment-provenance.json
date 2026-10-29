@@ -1,0 +1,21 @@
+{
+  "purpose": "Immutable deployment provenance only; these are not authenticated share links or review targets",
+  "deployments": [
+    {
+      "id": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "target": "preview",
+      "readyState": "READY",
+      "url": "https://sparkle-suite-smoke-kfwyrs5jc-louis-2849s-projects.vercel.app",
+      "commitSha": "7fa6fbe69922f1802068e2f91efe5a40d6beb7cb"
+    },
+    {
+      "id": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "target": "preview",
+      "readyState": "READY",
+      "url": "https://sparkle-suite-smoke-fm1cdd6pi-louis-2849s-projects.vercel.app",
+      "commitSha": "ca6af2e6607d541f662d9aeeec6986c83ef8528b"
+    }
+  ]
+}

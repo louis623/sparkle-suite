@@ -1,0 +1,47 @@
+{
+  "alias": "sparkle-suite-smoke.vercel.app",
+  "uniqueAliasesChanged": 1,
+  "assignmentCount": 2,
+  "rollbackCount": 2,
+  "events": [
+    {
+      "type": "assign",
+      "at": "2026-10-29T21:56:25Z",
+      "atET": "10/29/26, 5:56:25 PM EDT",
+      "from": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+      "to": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+      "reason": "Initial step-8 assignment"
+    },
+    {
+      "type": "rollback",
+      "at": "2026-10-29T21:58:35.870Z",
+      "atET": "10/29/26, 5:58:35 PM EDT",
+      "from": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+      "to": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+      "reason": "Unnecessary runner cookie requirement; zero application acceptance loads"
+    },
+    {
+      "type": "assign",
+      "at": "2026-10-29T22:03:13Z",
+      "atET": "10/29/26, 6:03:13 PM EDT",
+      "from": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+      "to": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+      "reason": "Resume step 8 using the same preview after fixing the test runner"
+    },
+    {
+      "type": "rollback",
+      "at": "2026-10-29T22:03:40.955Z",
+      "atET": "10/29/26, 6:03:40 PM EDT",
+      "from": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+      "to": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+      "reason": "Actual hard stop: Amethyst Home CLS above zero"
+    }
+  ],
+  "final": {
+    "alias": "sparkle-suite-smoke.vercel.app",
+    "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+    "deploymentId": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+    "expectedRollbackMatch": true,
+    "checkedAt": "2026-10-29 22:05:09 UTC"
+  }
+}

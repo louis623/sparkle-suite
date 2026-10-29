@@ -1,0 +1,18 @@
+{
+  "error": "Smoke preview platform-cookie bootstrap failed; no rep sign-in attempted",
+  "rollback": {
+    "reason": "Runner setup error: Smoke preview platform-cookie bootstrap failed; no rep sign-in attempted",
+    "alias": "sparkle-suite-smoke.vercel.app",
+    "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+    "fromDeploymentId": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+    "rollbackDeploymentId": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+    "startedAt": "2026-10-29T21:58:28.834Z",
+    "startedAtET": "10/29/26, 5:58:28 PM EDT",
+    "observedBefore": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+    "observedAfter": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+    "verified": true,
+    "verifiedAt": "2026-10-29T21:58:35.870Z",
+    "verifiedAtET": "10/29/26, 5:58:35 PM EDT"
+  },
+  "timestamp": "2026-10-29T21:58:35.872Z"
+}
