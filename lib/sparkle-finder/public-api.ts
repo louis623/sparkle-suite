@@ -1,5 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
+import {
+  isPublicFinderRepEligible,
+  type PublicFinderRepEligibility,
+} from '@/app/api/public/finder/reps/feed-fields'
 import { PAID_WORKSPACE_STATUSES } from '@/lib/nic-nac/subscription-access'
 import { buildPublicSiteUrl, validatePublicSiteSlug } from '@/lib/public-site/show-link'
 import type { JewelryType } from '@/lib/services/types'
@@ -892,7 +896,20 @@ export async function loadPublicFinderEligibleRepIds(supabase: SupabaseClient) {
     // subscriptions remain sufficient for the public Finder boundary.
   }
 
-  return Array.from(paidRepIds)
+  if (paidRepIds.size === 0) return []
+
+  const { data: reps, error: repErr } = await supabase
+    .from('reps')
+    .select('id, status, finder_directory_visible, account_classification, public_site_slug')
+    .in('id', Array.from(paidRepIds))
+  if (repErr) throw repErr
+
+  const publicRepIds = new Set(
+    ((reps ?? []) as Array<{ id: string } & PublicFinderRepEligibility>)
+      .filter(isPublicFinderRepEligible)
+      .map((rep) => rep.id),
+  )
+  return Array.from(paidRepIds).filter((id) => publicRepIds.has(id))
 }
 
 async function loadNextShowsByRepId(supabase: SupabaseClient, repIds: string[]) {

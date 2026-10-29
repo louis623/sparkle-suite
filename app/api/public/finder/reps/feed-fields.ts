@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { validatePublicSiteSlug } from '@/lib/public-site/show-link'
 
 /**
  * Extra public fields for GET /api/public/finder/reps.
@@ -32,6 +33,22 @@ interface FinderRepFeedRepRow {
   custom_domain: string | null
   profile_photo_url: string | null
   finder_directory_visible: boolean
+}
+
+export type PublicFinderRepEligibility = Pick<
+  FinderRepFeedRepRow,
+  'status' | 'account_classification' | 'public_site_slug' | 'finder_directory_visible'
+>
+
+export function isPublicFinderRepEligible(rep: PublicFinderRepEligibility): boolean {
+  const slug = normalizeSlug(rep.public_site_slug)
+  return Boolean(
+    slug &&
+    !FINDER_PUBLIC_REP_FEED_EXCLUDED_SLUGS.has(slug) &&
+    rep.finder_directory_visible === true &&
+    normalizeToken(rep.status) === 'active' &&
+    normalizeToken(rep.account_classification) === 'customer',
+  )
 }
 
 interface FinderRepFeedSettingsRow {
@@ -121,12 +138,7 @@ function buildPublicFinderRepFeedFields(
   settings: FinderRepFeedSettingsRow | undefined,
 ): PublicFinderRepFeedFields | null {
   const publicSiteSlug = normalizeSlug(rep.public_site_slug)
-  if (!publicSiteSlug) return null
-  if (FINDER_PUBLIC_REP_FEED_EXCLUDED_SLUGS.has(publicSiteSlug)) return null
-  if (!rep.finder_directory_visible) return null
-  if (normalizeToken(rep.status) !== 'active') return null
-  // Demo, reviewer, and test reps are stored as account_classification "demo".
-  if (normalizeToken(rep.account_classification) !== 'customer') return null
+  if (!publicSiteSlug || !isPublicFinderRepEligible(rep)) return null
 
   const customDomain = readCustomDomain(rep.custom_domain)
   const aboutPhoto =
@@ -205,7 +217,7 @@ function readOptionalText(value: unknown) {
 
 function normalizeSlug(value: string | null) {
   const slug = value?.trim().toLowerCase() ?? ''
-  return slug || null
+  return validatePublicSiteSlug(slug).ok ? slug : null
 }
 
 function normalizeToken(value: string | null) {
