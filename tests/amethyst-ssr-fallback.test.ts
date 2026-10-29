@@ -26,8 +26,8 @@ it.each(['throw', 'timeout'])('returns exact frozen Live response on bootstrap %
   const actual = await renderAmethystPublicAssetResponse(request(), ['Homepage.html'], options)
   expect(actual.status).toBe(200)
   expect(hash(await actual.text())).toBe(hash(expected))
-  expect(performance.now() - started).toBeLessThan(1900)
-})
+  expect(performance.now() - started).toBeLessThan(5500)
+}, 7000)
 it('returns exact frozen Live response on render failure', async () => {
   mocks.render.mockRejectedValue(Error('forced render failure'))
   const actual = await (await renderAmethystPublicAssetResponse(request(), ['Homepage.html'], options)).text()
@@ -68,4 +68,24 @@ it('reflects a changed saved setting on the very next render without a template 
   expect(after).not.toContain('Before save')
   expect(mocks.template).toHaveBeenCalledTimes(2)
   expect(mocks.render.mock.calls[1][1].homepage.businessName).toBe('After save')
+})
+
+it('keeps SSR when a cold template read exceeds the old 1.5 second total budget', async () => {
+  mocks.template.mockImplementationOnce(async () => {
+    await new Promise(resolve => setTimeout(resolve, 1700))
+    return { appearancePreset: 'halloween_pumpkin_cat', homepage, join, trade }
+  })
+  const started = performance.now()
+  const response = await renderAmethystPublicAssetResponse(request(), ['Homepage.html'], options)
+  expect(performance.now() - started).toBeGreaterThanOrEqual(1650)
+  expect(await response.text()).toContain('data-server-rendered="true"')
+})
+
+it('keeps SSR when the first renderer load takes longer than the former safety budget', async () => {
+  mocks.render.mockImplementationOnce(async html => {
+    await new Promise(resolve => setTimeout(resolve, 1700))
+    return html.replace('id="root"', 'id="root" data-server-rendered="true"')
+  })
+  const response = await renderAmethystPublicAssetResponse(request(), ['Homepage.html'], options)
+  expect(await response.text()).toContain('data-server-rendered="true"')
 })

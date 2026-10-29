@@ -3,7 +3,20 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createRequire } from 'node:module'
 import { createContext, Script } from 'node:vm'
+import { buildSync } from 'esbuild'
 import { buildAmethystHomepageBootstrapScript, defaultAmethystHomepageTemplateData as homepage } from '@/lib/amethyst/homepage-template-data'
+
+// Exercise the same production entry with test-only access to its private
+// event functions. Bundling shared scenes now correctly keeps these out of
+// the public global scope; the assertions below still use one live module.
+const evaluatedPage = buildSync({
+  stdin: { contents: readFileSync('lib/amethyst/v2/homepage.jsx', 'utf8') +
+    '\nglobalThis.Events=Events;globalThis.homepageEventsView=homepageEventsView;globalThis.HOMEPAGE_EVENT_PAYLOAD=HOMEPAGE_EVENT_PAYLOAD;',
+    resolveDir: join(process.cwd(), 'lib/amethyst/v2'), loader: 'jsx' },
+  bundle: true, platform: 'browser', format: 'iife', write: false,
+  jsx: 'transform', jsxFactory: 'React.createElement', jsxFragment: 'React.Fragment',
+  tsconfigRaw: {}, define: { 'process.env.NODE_ENV': '"production"' },
+}).outputFiles[0].text
 
 // Keep one evaluated production module across pending -> loaded, so a sticky
 // module-level reservation or cap cannot be hidden by constructing a fresh page.
@@ -16,7 +29,7 @@ function pendingPage() {
   const run = (source: string) => new Script(source).runInContext(context, { timeout: 500 })
   run(buildAmethystHomepageBootstrapScript({ ...homepage, heroMotion: 'still' }, [], 'halloween_pumpkin_cat', { targeted: true }) + ';window.SPARKLE_PENDING_PAGE_DATA={events:true,trades:true};')
   for (const file of ['compiled/tweaks-panel.js', 'dance-floor-ticker-label.js', 'live-lineup.js', 'responsive-image.js', 'sparkle-suite-footer-credit.js', 'compiled/homepage.js']) {
-    run(readFileSync(join('public/amethyst', file), 'utf8'))
+    run(file === 'compiled/homepage.js' ? evaluatedPage : readFileSync(join('public/amethyst', file), 'utf8'))
   }
   return { run }
 }

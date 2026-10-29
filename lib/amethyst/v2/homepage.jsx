@@ -1,3 +1,4 @@
+import { HeroMotionScene, GnomeGardenScene } from "./hero-motion.jsx";
 /* global React, ReactDOM */
 const { useState, useEffect, useMemo, useRef } = React;
 
@@ -862,56 +863,6 @@ function GnomeGardenDecoration() {
   );
 }
 
-function GnomeGardenScene() {
-  return (
-    <div className="gg-scene" aria-hidden="true" style={{ pointerEvents: "none" }}>
-      <span className="gg-lantern gg-lantern-left">
-        <img src="/amethyst/skins/gnome-garden/lantern.webp" alt="" width="157" height="400" decoding="async" />
-      </span>
-      <span className="gg-lantern gg-lantern-right">
-        <img src="/amethyst/skins/gnome-garden/lantern.webp" alt="" width="157" height="400" decoding="async" />
-      </span>
-      {Array.from({ length: 8 }, (_, index) => (
-        <span className="gg-firefly" data-firefly-index={index + 1} key={index} />
-      ))}
-      <img className="gg-gnome" src="/amethyst/skins/gnome-garden/gnome.webp" alt="" width="347" height="640" decoding="async" />
-    </div>
-  );
-}
-
-// Same approved Pumpkin Cat art and control, now present in the server tree.
-function PumpkinCatScene({ motion }) {
-  const [wanted, setWanted] = useState(() => window.sparkleEarlyMotion?.() ?? !["still", "none"].includes(motion));
-  useEffect(() => { setWanted(window.sparkleEarlyMotion?.() ?? !["still", "none"].includes(motion)); }, []);
-  const videoRef = useRef(null);
-  const mediaRef = useRef(null);
-  useEffect(() => {
-    const video = videoRef.current, media = mediaRef.current;
-    if (!video) return;
-    let timer, resting = false;
-    const reduced = matchMedia('(prefers-reduced-motion:reduce)');
-    let visible = true;
-    function update() {
-      if (!wanted || reduced.matches || document.hidden || !visible) { video.pause(); return; }
-      if (!resting) video.play().catch(() => {});
-    }
-    const playing = () => media.setAttribute('data-playing', 'true');
-    const ended = () => { resting = true; timer = setTimeout(() => { resting = false; video.currentTime = 0; update(); }, 4000); };
-    video.addEventListener('playing', playing); video.addEventListener('ended', ended);
-    if (!video.paused) playing();
-    document.addEventListener('visibilitychange', update); reduced.addEventListener('change', update);
-    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); }, { threshold: 0.05 }); observer.observe(video);
-    update();
-    return () => { clearTimeout(timer); observer.disconnect(); video.removeEventListener('playing', playing); video.removeEventListener('ended', ended); document.removeEventListener('visibilitychange', update); reduced.removeEventListener('change', update); };
-  }, [wanted]);
-  return <>
-    <div className="hpc-art" ref={mediaRef}>
-      <picture className="hpc-poster" aria-hidden="true"><img src="/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp" srcSet="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-720.webp 720w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp 1200w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1672.webp 1672w" sizes="(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw" alt="" width="1672" height="941" /></picture>
-      <video ref={videoRef} className="hpc-video" muted playsInline preload="none" src="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4" aria-hidden="true" tabIndex={-1} />
-    </div>
-    <button type="button" className="hpc-motion-control" aria-pressed={wanted} onClick={() => setWanted(value => !value)}>{wanted ? 'Pause animation' : 'Play animation'}</button>
-  </>;
-}
 
 function Hero({ t, isLive, liveShow }) {
   const joinTeamHref = CONTENT.footerLinks?.joinTeam || "";
@@ -920,11 +871,9 @@ function Hero({ t, isLive, liveShow }) {
 
   return (
     <>
-    <section className="hp-hero" data-appearance-preset={t.preset} data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
-      {t.preset === "halloween_pumpkin_cat" && window.SPARKLE_FIRST_PAINT !== undefined && <PumpkinCatScene motion={t.heroMotion} />}
-      {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-      <div className="hp-hero-media" aria-hidden="true" />
-      {t.preset !== "halloween_pumpkin_cat" && t.preset !== "amethyst" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
+    <section className="hp-hero" data-ssr-hero={t.preset} data-appearance-preset={t.preset} data-hero-motion="on" data-cat-motion="on" suppressHydrationWarning>
+      <HeroMotionScene t={t} />
+      <div className="hp-hero-media"><HeroMotionScene t={t} host /></div>
       <div className="hp-hero-inner">
         <div>
           {isMileHighFizzHybrid && (
@@ -3142,38 +3091,7 @@ function Footer({ businessName }) {
 // ============================================================
 // Sparkle FX layer
 // ============================================================
-function SparkleFx({ level, motion }) {
-  const counts = { none: 0, subtle: 8, glittery: 24, maximum: 60 };
-  const n = counts[level] || 0;
-  const sparkles = useMemo(() => {
-    return Array.from({ length: n }, (_, i) => ({
-      left: ((i * 61 + 17) % 100),
-      delay: ((i * 37 + 11) % 40) / 10,
-      duration: 3 + ((i * 13 + 7) % 30) / 10,
-      size: 0.5 + ((i * 19 + 3) % 12) / 10,
-    }));
-  }, [n]);
 
-  if (motion === "still") return null;
-  if (motion === "soft_glow") {
-    return <div className="hp-fx-layer hp-hero-fx-layer hp-fx-layer-glow" aria-hidden="true" />;
-  }
-
-  if (!n) return null;
-  return (
-    <div className="hp-fx-layer hp-hero-fx-layer" aria-hidden="true">
-      {sparkles.map((s, i) => (
-        <span key={i} className="hp-fx-sparkle" style={{
-          left: `${s.left}%`,
-          bottom: -20,
-          animationDelay: `${s.delay}s`,
-          animationDuration: `${s.duration}s`,
-          transform: `scale(${s.size})`,
-        }} />
-      ))}
-    </div>
-  );
-}
 
 function SparkleSuiteHeaderStack({ t, scheduleIsLive, effectiveLrqState, onOpenQueue }) {
   return (
@@ -3219,7 +3137,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
     <div className="mhf-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
-      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
+      {window.SPARKLE_HERO_THEMES ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="mhf-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="mhf-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         {t.preset !== "gilded_autumn" && <video className="mhf-hero-video" autoPlay muted loop playsInline poster="">
@@ -3346,7 +3264,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
     <div className="bwb-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
-      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
+      {window.SPARKLE_HERO_THEMES ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="bwb-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bwb-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         <img className="bwb-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "Live jewelry reveals", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />
@@ -3405,7 +3323,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
     <div className="bk-home-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
-      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : useFramedKitchenHero ? (
+      {window.SPARKLE_HERO_THEMES ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : useFramedKitchenHero ? (
       <section className="bkf-hero" aria-labelledby="bkf-hero-title">
         <div className="bkf-hero-inner">
           <div className="bkf-hero-copy">
@@ -3482,6 +3400,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
 // Main App
 // ============================================================
 function applyHomepageTheme(t, document) {
+    t = { ...t, heroMotion: PRESETS[t.preset]?.heroMotion || 'sparkle_rise' };
 
     const root = document.documentElement;
     const tone = TONES[t.bgTone] || TONES.lavender;
@@ -3995,3 +3914,5 @@ if (homepageRoot.dataset?.serverRendered === "true") {
 } else {
   ReactDOM.createRoot(homepageRoot).render(<App />);
 }
+
+window.SPARKLE_APPLY_PAGE_THEME = applyHomepageTheme;

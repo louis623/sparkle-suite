@@ -22,7 +22,7 @@ it.each(['forest', 'forest-mobile', 'gnome', 'lantern', 'storybook-original'])('
   expect(response.status).toBe(200)
   expect(hash(new Uint8Array(await response.arrayBuffer()))).toBe(hash(readFileSync('public/amethyst/'+path)))
 })
-it('renders each saved event zone and saved still motion', async () => {
+it('preserves saved event zones and settings while the SSR video defaults to autoplay', async () => {
   const events = [
     { id: 'a', title: 'Eastern', eventTime: '2099-10-27T20:00:00Z', timeZone: 'America/New_York', durationMinutes: 60, featured: true, description: '', codes: [], collections: [], platforms: [] },
     { id: 'b', title: 'Pacific', eventTime: '2099-10-27T20:00:00Z', timeZone: 'America/Los_Angeles', durationMinutes: 60, featured: false, description: '', codes: [], collections: [], platforms: [] },
@@ -35,8 +35,9 @@ it('renders each saved event zone and saved still motion', async () => {
   expect(html).toContain('data-time-zone="America/Los_Angeles"')
   expect(html).not.toContain('4:00 PM EDT')
   expect(html).not.toContain('1:00 PM PDT')
-  expect(html).toContain('aria-pressed="false">Play animation')
-  expect(html).toContain('data-hero-motion="off"')
+  expect(html).toContain('aria-pressed="true">Pause animation')
+  expect(html).toContain('data-hero-motion="on"')
+  expect(data.heroMotion).toBe('still')
 })
 it('fault probe is impossible on production or the Live project', () => {
   const secret = 'test-only-probe-secret-32-characters'

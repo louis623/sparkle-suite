@@ -1,0 +1,134 @@
+[
+  {
+    "theme": "halloween_pumpkin_cat",
+    "run": 1,
+    "lcp": 5156,
+    "main": 1335.7000000029802,
+    "fcp": 1740,
+    "art": [
+      {
+        "name": "hero-desktop-720.webp",
+        "end": 1950.800000000745,
+        "bytes": 40076
+      }
+    ],
+    "preloads": []
+  },
+  {
+    "theme": "halloween_pumpkin_cat",
+    "run": 2,
+    "lcp": 4824,
+    "main": 998.3000000007451,
+    "fcp": 1324,
+    "art": [
+      {
+        "name": "hero-desktop-720.webp",
+        "end": 1587.6000000014901,
+        "bytes": 40076
+      }
+    ],
+    "preloads": []
+  },
+  {
+    "theme": "halloween_pumpkin_cat",
+    "run": 3,
+    "lcp": 4924,
+    "main": 1066.6000000014901,
+    "fcp": 1408,
+    "art": [
+      {
+        "name": "hero-desktop-720.webp",
+        "end": 1699.4000000022352,
+        "bytes": 40076
+      }
+    ],
+    "preloads": []
+  },
+  {
+    "theme": "neon_butterfly",
+    "run": 1,
+    "lcp": 3884,
+    "main": 1019.8999999985099,
+    "fcp": 1900,
+    "art": [
+      {
+        "name": "kelly-sign-pink.png",
+        "end": 3476.199999999255,
+        "bytes": 107827
+      },
+      {
+        "name": "kelly-sign-gold.png",
+        "end": 3019.599999997765,
+        "bytes": 79666
+      },
+      {
+        "name": "kelly-sign-violet.png",
+        "end": 2720.5,
+        "bytes": 69236
+      }
+    ],
+    "preloads": [
+      "/amethyst/skins/neon-butterfly/kelly-sign-pink.png",
+      "/amethyst/skins/neon-butterfly/kelly-sign-gold.png",
+      "/amethyst/skins/neon-butterfly/kelly-sign-violet.png"
+    ]
+  },
+  {
+    "theme": "neon_butterfly",
+    "run": 2,
+    "lcp": 3972,
+    "main": 1079.5999999977648,
+    "fcp": 1552,
+    "art": [
+      {
+        "name": "kelly-sign-pink.png",
+        "end": 3502.099999997765,
+        "bytes": 107827
+      },
+      {
+        "name": "kelly-sign-gold.png",
+        "end": 3091.7999999970198,
+        "bytes": 79666
+      },
+      {
+        "name": "kelly-sign-violet.png",
+        "end": 2837.5,
+        "bytes": 69236
+      }
+    ],
+    "preloads": [
+      "/amethyst/skins/neon-butterfly/kelly-sign-pink.png",
+      "/amethyst/skins/neon-butterfly/kelly-sign-gold.png",
+      "/amethyst/skins/neon-butterfly/kelly-sign-violet.png"
+    ]
+  },
+  {
+    "theme": "neon_butterfly",
+    "run": 3,
+    "lcp": 3848,
+    "main": 1017.8000000007451,
+    "fcp": 1500,
+    "art": [
+      {
+        "name": "kelly-sign-pink.png",
+        "end": 3396.900000002235,
+        "bytes": 107827
+      },
+      {
+        "name": "kelly-sign-gold.png",
+        "end": 2936.800000000745,
+        "bytes": 79666
+      },
+      {
+        "name": "kelly-sign-violet.png",
+        "end": 2697,
+        "bytes": 69236
+      }
+    ],
+    "preloads": [
+      "/amethyst/skins/neon-butterfly/kelly-sign-pink.png",
+      "/amethyst/skins/neon-butterfly/kelly-sign-gold.png",
+      "/amethyst/skins/neon-butterfly/kelly-sign-violet.png"
+    ]
+  }
+]

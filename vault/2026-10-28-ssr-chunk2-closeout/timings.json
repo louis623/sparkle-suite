@@ -1,0 +1,1323 @@
+{
+  "applicationCommit": "c4f6c3744a96d8cc128a6f9c31cdc6261ad58868",
+  "runs": [
+    {
+      "page": "trade",
+      "theme": "pearl_rose",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 9160,
+      "cls": 0,
+      "lcp": 9160,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "pearl_rose",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 928,
+      "cls": 0,
+      "lcp": 928,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "pearl_rose",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 912,
+      "cls": 0,
+      "lcp": 912,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "pearl_rose",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2232.199999999255,
+      "cls": 0,
+      "lcp": 2056,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "pearl_rose",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2198.89999999851,
+      "cls": 0,
+      "lcp": 2120,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "pearl_rose",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1972.800000000745,
+      "cls": 0,
+      "lcp": 1972,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sunset_beach",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 996,
+      "cls": 0,
+      "lcp": 996,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sunset_beach",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 860,
+      "cls": 0,
+      "lcp": 860,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sunset_beach",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 900,
+      "cls": 0,
+      "lcp": 900,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sunset_beach",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2004,
+      "cls": 0,
+      "lcp": 2000,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sunset_beach",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2310,
+      "cls": 0,
+      "lcp": 2236,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sunset_beach",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2206.599999997765,
+      "cls": 0,
+      "lcp": 2032,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "neon_butterfly",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "error": "page.waitForFunction: Timeout 20000ms exceeded.",
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "neon_butterfly",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1076,
+      "cls": 0,
+      "lcp": 1192,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://sparkle-suite-smoke.vercel.app/api/amethyst/live-lineup?ssrReviewTheme=neon_butterfly&ssrReviewLayout=standard&c=56c59f36-0e37-4e8e-a664-a1b293699c11&publicSiteSlug=dudesfizzfest",
+          "method": "GET",
+          "error": "net::ERR_ABORTED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "neon_butterfly",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 984,
+      "cls": 0,
+      "lcp": 1048,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "neon_butterfly",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 3487.800000000745,
+      "cls": 0,
+      "lcp": 5728,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "neon_butterfly",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2284,
+      "cls": 0,
+      "lcp": 4536,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "neon_butterfly",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2164,
+      "cls": 0,
+      "lcp": 4332,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "gnome_garden",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 948,
+      "cls": 0,
+      "lcp": 1384,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://sparkle-suite-smoke.vercel.app/api/amethyst/live-lineup?ssrReviewTheme=gnome_garden&ssrReviewLayout=standard&c=56c59f36-0e37-4e8e-a664-a1b293699c11&publicSiteSlug=dudesfizzfest",
+          "method": "GET",
+          "error": "net::ERR_ABORTED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "gnome_garden",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 896,
+      "cls": 0,
+      "lcp": 980,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "gnome_garden",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 816,
+      "cls": 0,
+      "lcp": 916,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "gnome_garden",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "error": "page.waitForFunction: Timeout 20000ms exceeded.",
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "gnome_garden",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2036,
+      "cls": 0,
+      "lcp": 2884,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "gnome_garden",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2092.89999999851,
+      "cls": 0,
+      "lcp": 2900,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 816,
+      "cls": 0,
+      "lcp": 816,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 912,
+      "cls": 0,
+      "lcp": 912,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 864,
+      "cls": 0,
+      "lcp": 864,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1812.2000000029802,
+      "cls": 0,
+      "lcp": 1768,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1804,
+      "cls": 0,
+      "lcp": 1804,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1756,
+      "cls": 0,
+      "lcp": 1756,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sparkle_suite_morganite",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1020,
+      "cls": 0,
+      "lcp": 1020,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sparkle_suite_morganite",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 964,
+      "cls": 0,
+      "lcp": 964,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sparkle_suite_morganite",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 868,
+      "cls": 0,
+      "lcp": 868,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sparkle_suite_morganite",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1864,
+      "cls": 0,
+      "lcp": 1864,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sparkle_suite_morganite",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2022.1000000014901,
+      "cls": 0,
+      "lcp": 1896,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "trade",
+      "theme": "sparkle_suite_morganite",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2016,
+      "cls": 0,
+      "lcp": 2016,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        },
+        {
+          "url": "https://example.invalid/TEST-dance-floor-seed.jpg",
+          "method": "GET",
+          "error": "net::ERR_NAME_NOT_RESOLVED"
+        }
+      ]
+    },
+    {
+      "page": "join",
+      "theme": "pearl_rose",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 960,
+      "cls": 0,
+      "lcp": 1044,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "pearl_rose",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 852,
+      "cls": 0,
+      "lcp": 852,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "pearl_rose",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 948,
+      "cls": 0,
+      "lcp": 948,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "pearl_rose",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2887.099999997765,
+      "cls": 0,
+      "lcp": 4204,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "pearl_rose",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 6424.5,
+      "cls": 0,
+      "lcp": 7716,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "pearl_rose",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2248,
+      "cls": 0,
+      "lcp": 3200,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "sunset_beach",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1348,
+      "cls": 0,
+      "lcp": 1648,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://sparkle-suite-smoke.vercel.app/api/amethyst/live-lineup?ssrReviewTheme=sunset_beach&ssrReviewLayout=standard&c=56c59f36-0e37-4e8e-a664-a1b293699c11&publicSiteSlug=dudesfizzfest",
+          "method": "GET",
+          "error": "net::ERR_ABORTED"
+        }
+      ]
+    },
+    {
+      "page": "join",
+      "theme": "sunset_beach",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 940,
+      "cls": 0,
+      "lcp": 992,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "sunset_beach",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1128,
+      "cls": 0,
+      "lcp": 1296,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": [
+        {
+          "url": "https://sparkle-suite-smoke.vercel.app/api/amethyst/live-lineup?ssrReviewTheme=sunset_beach&ssrReviewLayout=standard&c=56c59f36-0e37-4e8e-a664-a1b293699c11&publicSiteSlug=dudesfizzfest",
+          "method": "GET",
+          "error": "net::ERR_ABORTED"
+        }
+      ]
+    },
+    {
+      "page": "join",
+      "theme": "sunset_beach",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2208,
+      "cls": 0,
+      "lcp": 2116,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "sunset_beach",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 3477.900000002235,
+      "cls": 0,
+      "lcp": 3432,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "sunset_beach",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 8235.199999999255,
+      "cls": 0,
+      "lcp": 8112,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "neon_butterfly",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 876,
+      "cls": 0,
+      "lcp": 960,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "neon_butterfly",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 952,
+      "cls": 0,
+      "lcp": 1052,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "neon_butterfly",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "error": "page.waitForFunction: Timeout 20000ms exceeded.",
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "neon_butterfly",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2965.89999999851,
+      "cls": 0,
+      "lcp": 5224,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "neon_butterfly",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2288,
+      "cls": 0,
+      "lcp": 4536,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "neon_butterfly",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 21365.599999997765,
+      "cls": 0,
+      "lcp": 23516,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "gnome_garden",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 856,
+      "cls": 0,
+      "lcp": 908,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "gnome_garden",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1032,
+      "cls": 0,
+      "lcp": 1152,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "gnome_garden",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1304,
+      "cls": 0,
+      "lcp": 1368,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "gnome_garden",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2873.7000000029802,
+      "cls": 0,
+      "lcp": 2940,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "gnome_garden",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2645.199999999255,
+      "cls": 0,
+      "lcp": 2684,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "gnome_garden",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2698.10000000149,
+      "cls": 0,
+      "lcp": 2740,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1004,
+      "cls": 0,
+      "lcp": 1004,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 912,
+      "cls": 0,
+      "lcp": 912,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1148,
+      "cls": 0,
+      "lcp": 1148,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2534.199999999255,
+      "cls": 0,
+      "lcp": 2128,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2165.800000000745,
+      "cls": 0,
+      "lcp": 2172,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "halloween_pumpkin_cat",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2272,
+      "cls": 0,
+      "lcp": 2272,
+      "hydrated": true,
+      "controls": "static utility banner",
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "sparkle_suite_morganite",
+      "profile": "desktop",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1020,
+      "cls": 0,
+      "lcp": 1020,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "sparkle_suite_morganite",
+      "profile": "desktop",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 1412,
+      "cls": 0,
+      "lcp": 1412,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "sparkle_suite_morganite",
+      "profile": "desktop",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 3754.099999997765,
+      "cls": 0,
+      "lcp": 3716,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "sparkle_suite_morganite",
+      "profile": "phone",
+      "run": 1,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2264,
+      "cls": 0,
+      "lcp": 2264,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "sparkle_suite_morganite",
+      "profile": "phone",
+      "run": 2,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2176,
+      "cls": 0,
+      "lcp": 2176,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    },
+    {
+      "page": "join",
+      "theme": "sparkle_suite_morganite",
+      "profile": "phone",
+      "run": 3,
+      "status": 200,
+      "header": "ssr",
+      "mainMs": 2248,
+      "cls": 0,
+      "lcp": 1984,
+      "hydrated": true,
+      "controls": true,
+      "failedRequests": []
+    }
+  ],
+  "finalApplicationCommit": "7fa6fbe69922f1802068e2f91efe5a40d6beb7cb",
+  "finalRuns": []
+}
