@@ -1,0 +1,47 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 202610080001 / name conversation_reliability in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202610080001_conversation_reliability.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: (none recorded)
+-- Live statements: 1; sha256 of statements joined with newline: 92c6e65884a09372381262c68c6c6a77118be785f7b8a9fc40f41a400ed4ed71
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- BEGIN;
+-- SET LOCAL lock_timeout = '5s';
+-- DROP INDEX public.loc_conversation_one_reply;
+-- CREATE UNIQUE INDEX loc_conversation_final_reply ON public.loc_conversation_messages(reply_to,author)
+--  WHERE reply_to IS NOT NULL AND author <> 'louis' AND payload->>'kind' IN ('answer','blocked','needsLouis','pause');
+-- ALTER TABLE public.loc_conversation_deliveries ADD COLUMN purpose text NOT NULL DEFAULT 'response' CHECK(purpose IN ('response','observe'));
+-- ALTER TABLE public.loc_conversation_deliveries ADD COLUMN observed_at timestamptz;
+-- ALTER TABLE public.loc_conversation_deliveries ADD COLUMN processing_at timestamptz;
+-- ALTER TABLE public.loc_conversation_deliveries ADD COLUMN failure_code text;
+-- CREATE TABLE public.loc_conversation_reads (
+--  owner_id uuid PRIMARY KEY, message_id uuid NOT NULL REFERENCES public.loc_conversation_messages(id), updated_at timestamptz NOT NULL DEFAULT now()
+-- );
+-- CREATE TABLE public.loc_conversation_share_bindings (
+--  id uuid PRIMARY KEY, owner_id uuid NOT NULL, agent text NOT NULL CHECK(agent IN ('nova','suite')),
+--  principal_id text NOT NULL, conversation_id text NOT NULL, conversation_url text,
+--  expires_at timestamptz NOT NULL, revoked boolean NOT NULL DEFAULT false,
+--  max_messages integer NOT NULL CHECK(max_messages BETWEEN 1 AND 100), used_messages integer NOT NULL DEFAULT 0,
+--  created_at timestamptz NOT NULL DEFAULT now()
+-- );
+-- CREATE TABLE public.loc_conversation_wakes (
+--  id uuid PRIMARY KEY, owner_id uuid NOT NULL, message_id uuid NOT NULL REFERENCES public.loc_conversation_messages(id),
+--  recipient text NOT NULL CHECK(recipient IN ('nova','suite')), created_at timestamptz NOT NULL DEFAULT now()
+-- );
+-- CREATE INDEX loc_conversation_wake_window ON public.loc_conversation_wakes(owner_id,created_at);
+-- ALTER TABLE public.loc_conversation_reads ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.loc_conversation_share_bindings ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.loc_conversation_wakes ENABLE ROW LEVEL SECURITY;
+-- REVOKE ALL ON public.loc_conversation_reads,public.loc_conversation_share_bindings,public.loc_conversation_wakes FROM PUBLIC,anon,authenticated;
+-- GRANT SELECT,INSERT,UPDATE ON public.loc_conversation_reads,public.loc_conversation_share_bindings,public.loc_conversation_wakes TO loc_runtime;
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_reads TO loc_runtime USING(true) WITH CHECK(true);
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_share_bindings TO loc_runtime USING(true) WITH CHECK(true);
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_wakes TO loc_runtime USING(true) WITH CHECK(true);
+-- -- No historical delivery is requeued and no permission is created by this migration.
+-- COMMIT;
+--

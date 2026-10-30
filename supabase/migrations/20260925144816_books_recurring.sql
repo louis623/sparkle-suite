@@ -1,0 +1,40 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 20260925144816 / name books_recurring in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202609250002_books_recurring.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: louis@neonrabbit.net
+-- Live statements: 1; sha256 of statements joined with newline: 7efd664a380964325dc7e73d8457a06ef87f075d2270286d40fdc9ff93c5adb5
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- BEGIN;
+-- SET LOCAL lock_timeout = '5s';
+--
+-- -- Standing Suite + Finder burn lives on the books ledger, separate from money-out rows and payables.
+-- -- One-time seed for ledgers saved before this list existed. Keep names and amounts aligned with RECURRING_SEED.
+-- UPDATE public.loc_books
+-- SET ledger = jsonb_set(
+--       ledger,
+--       '{recurring}',
+--       $seed$[
+--         {"id":"e7b884a3-f52f-460a-b8ab-67e49fba56d8","name":"Wispr","cadence":"monthly","amountCents":1500,"status":"active","cancelBy":null,"note":"","product":"suite"},
+--         {"id":"8b1377d3-0ea3-46b7-80c0-0f0a04e581e2","name":"Readdy","cadence":"monthly","amountCents":2500,"status":"cancel_pending","cancelBy":"2026-11-30","note":"Bluevine amount; cancel by Nov 2026","product":"suite"},
+--         {"id":"8a8eafe1-6cad-4dd4-904f-822604c63f55","name":"Codex/ChatGPT","cadence":"monthly","amountCents":10000,"status":"active","cancelBy":null,"note":"","product":"suite"},
+--         {"id":"6930e3c1-0ac8-430f-9e11-e1c71d23fd7e","name":"OpenAI API","cadence":"monthly","amountCents":null,"status":"active","cancelBy":null,"note":"","product":"suite"},
+--         {"id":"c61d7e7d-d6f4-4fbc-9052-b8801cdebb5d","name":"Grok+Cursor combined plan","cadence":"monthly","amountCents":20000,"status":"active","cancelBy":null,"note":"","product":"suite"},
+--         {"id":"69c04f82-fd5c-456a-8283-1c1b59a7b981","name":"Google Workspace","cadence":"monthly","amountCents":2500,"status":"active","cancelBy":null,"note":"Provisional until moved to Suite business checking.","product":"suite"},
+--         {"id":"67bd2ea4-15bf-4a43-9ea7-ba52e191b686","name":"Claude","cadence":"monthly","amountCents":null,"status":"canceled_watch","cancelBy":null,"note":"","product":"suite"},
+--         {"id":"388b1caa-45ef-4cc2-9bc0-1bd14efb056b","name":"Fontpair","cadence":"monthly","amountCents":null,"status":"canceled_watch","cancelBy":null,"note":"Oct proof month after Sep Bluevine hits","product":"suite"},
+--         {"id":"a08e309c-3846-4c74-ab58-5389427ec402","name":"1Password","cadence":"monthly","amountCents":null,"status":"canceled_watch","cancelBy":null,"note":"","product":"suite"},
+--         {"id":"e14bb196-a943-4693-bfb3-e803fbadc3fe","name":"Canva","cadence":"monthly","amountCents":null,"status":"canceled_watch","cancelBy":null,"note":"","product":"suite"}
+--       ]$seed$::jsonb,
+--       true
+--     ),
+--     revision = revision + 1,
+--     updated_at = now()
+-- WHERE NOT (ledger ? 'recurring');
+--
+-- COMMIT;

@@ -1,0 +1,35 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 20261023125635 / name loc_finder_tasks in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202610220002_loc_finder_tasks.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: louis@neonrabbit.net
+-- Live statements: 1; sha256 of statements joined with newline: c09d026566dccb4501bd9af2e2d5b025eef05eadfc7a75b83963734c980edafe
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- SET LOCAL lock_timeout = '5s';
+--
+-- CREATE TABLE public.loc_finder_tasks (
+--   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+--   namespace text NOT NULL DEFAULT 'main',
+--   owner_id uuid NOT NULL,
+--   title text NOT NULL CHECK (char_length(title) BETWEEN 1 AND 240),
+--   details text NOT NULL DEFAULT '',
+--   item_type text NOT NULL DEFAULT 'operations' CHECK (item_type IN ('bug','update','research','content','operations')),
+--   status text NOT NULL DEFAULT 'open' CHECK (status IN ('open','in_progress','blocked','complete')),
+--   priority text NOT NULL DEFAULT 'medium' CHECK (priority IN ('urgent','high','medium','low')),
+--   owner text NOT NULL DEFAULT '',
+--   source text NOT NULL DEFAULT 'LOC',
+--   created_at timestamptz NOT NULL DEFAULT now(),
+--   updated_at timestamptz NOT NULL DEFAULT now(),
+--   completed_at timestamptz,
+--   revision integer NOT NULL DEFAULT 1 CHECK (revision > 0)
+-- );
+-- CREATE INDEX loc_finder_tasks_owner_updated ON public.loc_finder_tasks(namespace,owner_id,updated_at DESC,id);
+-- ALTER TABLE public.loc_finder_tasks ENABLE ROW LEVEL SECURITY;
+-- REVOKE ALL ON public.loc_finder_tasks FROM PUBLIC, anon, authenticated;
+-- GRANT SELECT, INSERT, UPDATE ON public.loc_finder_tasks TO loc_runtime;
+-- CREATE POLICY loc_runtime_access ON public.loc_finder_tasks FOR ALL TO loc_runtime USING (true) WITH CHECK (true);

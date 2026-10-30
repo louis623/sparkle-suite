@@ -1,0 +1,39 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 202609240001 / name prompt_library in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202609240001_prompt_library.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: (none recorded)
+-- Live statements: 9; sha256 of statements joined with newline: 294c58098d745c8c9681f1a425918a6739e0cf89fd4dd74f86bc5e54b1d15530
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- BEGIN
+-- [statement 2]
+-- SET LOCAL lock_timeout = '5s'
+-- [statement 3]
+-- CREATE TABLE public.loc_prompts (
+--   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+--   namespace text NOT NULL DEFAULT 'main',
+--   owner_id uuid NOT NULL,
+--   project_name text NOT NULL CHECK (length(project_name) BETWEEN 1 AND 160),
+--   title text NOT NULL CHECK (length(title) BETWEEN 1 AND 240),
+--   content text NOT NULL CHECK (length(content) BETWEEN 1 AND 1000000),
+--   revision integer NOT NULL DEFAULT 1 CHECK (revision > 0),
+--   created_at timestamptz NOT NULL DEFAULT now(),
+--   updated_at timestamptz NOT NULL DEFAULT now()
+-- )
+-- [statement 4]
+-- CREATE INDEX loc_prompts_owner_project ON public.loc_prompts(namespace, owner_id, lower(project_name), lower(title), id)
+-- [statement 5]
+-- ALTER TABLE public.loc_prompts ENABLE ROW LEVEL SECURITY
+-- [statement 6]
+-- REVOKE ALL ON public.loc_prompts FROM PUBLIC, anon, authenticated
+-- [statement 7]
+-- GRANT SELECT, INSERT, UPDATE ON public.loc_prompts TO loc_runtime
+-- [statement 8]
+-- CREATE POLICY loc_runtime_access ON public.loc_prompts FOR ALL TO loc_runtime USING (true) WITH CHECK (true)
+-- [statement 9]
+-- COMMIT

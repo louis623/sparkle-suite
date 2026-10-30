@@ -1,0 +1,36 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 202610070004 / name nova_task_continuation in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202610070004_nova_task_continuation.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: (none recorded)
+-- Live statements: 1; sha256 of statements joined with newline: 86a0e72935a2dc6ea8223942989319daf0ca72bdb959a44a57059f98b1a5a28b
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- BEGIN;
+-- SET LOCAL lock_timeout = '5s';
+-- CREATE TABLE public.loc_conversation_task_bindings (
+--  owner_id uuid NOT NULL, thread_id uuid NOT NULL REFERENCES public.loc_conversation_threads(id), task_id uuid NOT NULL,
+--  principal_id text NOT NULL, nova_conversation_id uuid NOT NULL, parent_conversation_id uuid NOT NULL,
+--  scope text NOT NULL, source_url text NOT NULL, expires_at timestamptz NOT NULL, revoked boolean NOT NULL DEFAULT false,
+--  PRIMARY KEY(owner_id,thread_id,task_id)
+-- );
+-- CREATE TABLE public.loc_conversation_task_claims (
+--  correlation_id uuid PRIMARY KEY, owner_id uuid NOT NULL, thread_id uuid NOT NULL, task_id uuid NOT NULL,
+--  message_id uuid NOT NULL REFERENCES public.loc_conversation_messages(id), artifact_version text NOT NULL,
+--  receiver_run_id text NOT NULL, state text NOT NULL DEFAULT 'claimed' CHECK(state IN ('claimed','ready','uncertain','accepted','closed')),
+--  observation jsonb, observed_at timestamptz, receipt jsonb,
+--  UNIQUE(owner_id,task_id,artifact_version),
+--  FOREIGN KEY(owner_id,thread_id,task_id) REFERENCES public.loc_conversation_task_bindings(owner_id,thread_id,task_id)
+-- );
+-- ALTER TABLE public.loc_conversation_task_bindings ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.loc_conversation_task_claims ENABLE ROW LEVEL SECURITY;
+-- REVOKE ALL ON public.loc_conversation_task_bindings,public.loc_conversation_task_claims FROM PUBLIC,anon,authenticated;
+-- GRANT SELECT,INSERT,UPDATE ON public.loc_conversation_task_bindings,public.loc_conversation_task_claims TO loc_runtime;
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_task_bindings TO loc_runtime USING(true) WITH CHECK(true);
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_task_claims TO loc_runtime USING(true) WITH CHECK(true);
+-- COMMIT;
+--

@@ -1,0 +1,31 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 202610140001 / name loc_ui_prefs in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202610140001_loc_ui_prefs.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: louis@neonrabbit.net
+-- Live statements: 1; sha256 of statements joined with newline: a44c0f4fa7db23893b29db7f481ba92a2ddf267fa3e762d0352c462a84927f6c
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- -- Additive page layout prefs. One row per page. No seed.
+-- BEGIN;
+-- SET LOCAL lock_timeout = '5s';
+--
+-- CREATE TABLE public.loc_ui_prefs (
+--   page text PRIMARY KEY,
+--   card_order text[] NOT NULL,
+--   updated_at timestamptz NOT NULL DEFAULT now(),
+--   CONSTRAINT loc_ui_prefs_page_check CHECK (page ~ '^[a-z][a-z0-9-]{0,31}$'),
+--   CONSTRAINT loc_ui_prefs_order_size CHECK (cardinality(card_order) <= 40)
+-- );
+--
+-- ALTER TABLE public.loc_ui_prefs ENABLE ROW LEVEL SECURITY;
+-- REVOKE ALL ON public.loc_ui_prefs FROM PUBLIC, anon, authenticated;
+-- GRANT SELECT, INSERT, UPDATE ON public.loc_ui_prefs TO loc_runtime;
+-- CREATE POLICY loc_runtime_access ON public.loc_ui_prefs FOR ALL TO loc_runtime USING (true) WITH CHECK (true);
+--
+-- COMMIT;
+--

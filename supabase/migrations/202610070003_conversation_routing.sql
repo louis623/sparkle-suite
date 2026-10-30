@@ -1,0 +1,41 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 202610070003 / name conversation_routing in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202610070003_conversation_routing.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: (none recorded)
+-- Live statements: 1; sha256 of statements joined with newline: 5620a50187e21120cfaeb108c1c9f5284da81556b58f980b67ca69388268c075
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- BEGIN;
+-- SET LOCAL lock_timeout = '5s';
+-- ALTER TABLE public.loc_conversation_messages ADD COLUMN thread_id uuid;
+-- ALTER TABLE public.loc_conversation_deliveries ADD COLUMN packet text;
+-- CREATE TABLE public.loc_conversation_threads (
+--  id uuid PRIMARY KEY REFERENCES public.loc_conversation_messages(id), owner_id uuid NOT NULL,
+--  state text NOT NULL DEFAULT 'active' CHECK(state IN ('active','blocked','needsLouis','pause','fuse')),
+--  agent_turns integer NOT NULL DEFAULT 0
+-- );
+-- -- History remains history; old messages are not automatically requeued.
+-- WITH RECURSIVE ancestry AS (
+--  SELECT id,id AS root FROM public.loc_conversation_messages WHERE reply_to IS NULL
+--  UNION ALL SELECT m.id,a.root FROM public.loc_conversation_messages m JOIN ancestry a ON m.reply_to=a.id
+-- ) UPDATE public.loc_conversation_messages m SET thread_id=a.root FROM ancestry a WHERE m.id=a.id;
+-- INSERT INTO public.loc_conversation_threads(id,owner_id) SELECT id,owner_id FROM public.loc_conversation_messages WHERE reply_to IS NULL;
+-- ALTER TABLE public.loc_conversation_messages ALTER COLUMN thread_id SET NOT NULL;
+-- CREATE TABLE public.loc_conversation_inputs (
+--  owner_id uuid NOT NULL, task_id text NOT NULL, recipient text NOT NULL CHECK(recipient IN ('nova','suite')),
+--  artifact_version text NOT NULL, message_id uuid NOT NULL REFERENCES public.loc_conversation_messages(id),
+--  outcome text NOT NULL, PRIMARY KEY(owner_id,task_id,recipient,artifact_version)
+-- );
+-- ALTER TABLE public.loc_conversation_threads ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.loc_conversation_inputs ENABLE ROW LEVEL SECURITY;
+-- REVOKE ALL ON public.loc_conversation_threads,public.loc_conversation_inputs FROM PUBLIC,anon,authenticated;
+-- GRANT SELECT,INSERT,UPDATE ON public.loc_conversation_threads,public.loc_conversation_inputs TO loc_runtime;
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_threads TO loc_runtime USING(true) WITH CHECK(true);
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_inputs TO loc_runtime USING(true) WITH CHECK(true);
+-- COMMIT;
+--

@@ -1,0 +1,27 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 20261023125630 / name loc_finder_books in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202610220001_loc_finder_books.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: louis@neonrabbit.net
+-- Live statements: 1; sha256 of statements joined with newline: 3df2460ed0f16bbaf0721826525797270b60c721f69cc14176cd50b608fa6c91
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- SET LOCAL lock_timeout = '5s';
+--
+-- CREATE TABLE public.loc_finder_books (
+--   namespace text NOT NULL DEFAULT 'main',
+--   owner_id uuid NOT NULL,
+--   ledger jsonb NOT NULL,
+--   revision integer NOT NULL DEFAULT 1 CHECK (revision > 0),
+--   created_at timestamptz NOT NULL DEFAULT now(),
+--   updated_at timestamptz NOT NULL DEFAULT now(),
+--   PRIMARY KEY (namespace, owner_id)
+-- );
+-- ALTER TABLE public.loc_finder_books ENABLE ROW LEVEL SECURITY;
+-- REVOKE ALL ON public.loc_finder_books FROM PUBLIC, anon, authenticated;
+-- GRANT SELECT, INSERT, UPDATE ON public.loc_finder_books TO loc_runtime;
+-- CREATE POLICY loc_runtime_access ON public.loc_finder_books FOR ALL TO loc_runtime USING (true) WITH CHECK (true);

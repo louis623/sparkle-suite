@@ -1,0 +1,41 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 202610070001 / name home_conversation in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202610070001_home_conversation.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: (none recorded)
+-- Live statements: 1; sha256 of statements joined with newline: 8c0adad596d2602a536c6389ab2f2989794e258be0d466c0c3f8a8e26ce467f5
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- BEGIN;
+-- SET LOCAL lock_timeout = '5s';
+-- CREATE TABLE public.loc_conversation_messages (
+--   id uuid PRIMARY KEY,
+--   owner_id uuid NOT NULL,
+--   author text NOT NULL CHECK (author IN ('louis','nova','suite')),
+--   payload jsonb NOT NULL,
+--   payload_hash text NOT NULL,
+--   reply_to uuid REFERENCES public.loc_conversation_messages(id),
+--   created_at timestamptz NOT NULL DEFAULT now()
+-- );
+-- CREATE INDEX loc_conversation_owner ON public.loc_conversation_messages(owner_id,created_at,id);
+-- CREATE UNIQUE INDEX loc_conversation_one_reply ON public.loc_conversation_messages(reply_to,author) WHERE reply_to IS NOT NULL;
+-- CREATE TABLE public.loc_conversation_deliveries (
+--   message_id uuid NOT NULL REFERENCES public.loc_conversation_messages(id),
+--   recipient text NOT NULL CHECK (recipient IN ('nova','suite')),
+--   status text NOT NULL DEFAULT 'not-configured' CHECK (status IN ('not-configured','pending','claimed','accepted','replied')),
+--   claim_id uuid,
+--   PRIMARY KEY (message_id,recipient)
+-- );
+-- -- Deliberately no subscription, job, credential or execution table.
+-- ALTER TABLE public.loc_conversation_messages ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.loc_conversation_deliveries ENABLE ROW LEVEL SECURITY;
+-- REVOKE ALL ON public.loc_conversation_messages,public.loc_conversation_deliveries FROM PUBLIC,anon,authenticated;
+-- GRANT SELECT,INSERT,UPDATE ON public.loc_conversation_messages,public.loc_conversation_deliveries TO loc_runtime;
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_messages TO loc_runtime USING (true) WITH CHECK (true);
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_deliveries TO loc_runtime USING (true) WITH CHECK (true);
+-- COMMIT;
+--
