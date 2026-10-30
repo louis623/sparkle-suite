@@ -1,0 +1,26 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 202610080002 / name nova_connection_attempts in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202610080002_nova_connection_attempts.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: (none recorded)
+-- Live statements: 1; sha256 of statements joined with newline: 539aaaa156ed143623891150858bcdc7cc9745ebb829eef797fdc7887d66117f
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- BEGIN;
+-- SET LOCAL lock_timeout = '5s';
+-- -- Bounds anonymous callback-verification requests BEFORE any outbound request.
+-- -- No permission, connection, wake or historical replay is enabled here.
+-- CREATE TABLE public.loc_conversation_subscription_attempts (
+--  id uuid PRIMARY KEY, owner_id uuid NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
+-- );
+-- CREATE INDEX loc_conversation_subscription_attempt_window ON public.loc_conversation_subscription_attempts(owner_id,created_at);
+-- ALTER TABLE public.loc_conversation_subscription_attempts ENABLE ROW LEVEL SECURITY;
+-- REVOKE ALL ON public.loc_conversation_subscription_attempts FROM PUBLIC,anon,authenticated;
+-- GRANT SELECT,INSERT ON public.loc_conversation_subscription_attempts TO loc_runtime;
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_subscription_attempts TO loc_runtime USING(true) WITH CHECK(true);
+-- COMMIT;
+--

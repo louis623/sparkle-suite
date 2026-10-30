@@ -1,0 +1,9 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 202610130002 / name loc_personal_facts in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202610130002_loc_personal_facts.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file.
+-- Live created_by: (none recorded)
+-- Live statements: 0; sha256 of statements joined with newline: (none recorded)

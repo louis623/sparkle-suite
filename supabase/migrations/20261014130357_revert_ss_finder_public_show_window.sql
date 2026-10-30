@@ -1,0 +1,109 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 20261014130357 / name revert_ss_finder_public_show_window in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from a one-off Live revert of ss_finder_public_show_window. Its effect is superseded by
+-- 20261016103503_ss_finder_public_show_window, which re-applied the change on Live.
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: louis@neonrabbit.net
+-- Live statements: 1; sha256 of statements joined with newline: 9f48fa74729878f3560eccac6a6c85340a97b2b1fd87c58d34a4f401d65a9603
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- CREATE OR REPLACE FUNCTION public.list_sparkle_finder_public_reps(
+--   p_limit INTEGER DEFAULT 50,
+--   p_query TEXT DEFAULT NULL,
+--   p_as_of TIMESTAMPTZ DEFAULT statement_timestamp()
+-- )
+-- RETURNS TABLE (
+--   rep_id UUID,
+--   display_name TEXT,
+--   business_name TEXT,
+--   avatar_url TEXT,
+--   public_site_slug TEXT,
+--   next_show_id UUID,
+--   next_show_name TEXT,
+--   next_show_starts_at TIMESTAMPTZ,
+--   next_show_status TEXT,
+--   next_show_duration_minutes INTEGER
+-- )
+-- LANGUAGE sql
+-- STABLE
+-- SECURITY DEFINER
+-- SET search_path = ''
+-- AS $$
+--   SELECT
+--     rep.id AS rep_id,
+--     rep.display_name,
+--     NULLIF(BTRIM(rep.business_name), '') AS business_name,
+--     NULLIF(BTRIM(rep.profile_photo_url), '') AS avatar_url,
+--     NULLIF(LOWER(BTRIM(rep.public_site_slug)), '') AS public_site_slug,
+--     next_show.id AS next_show_id,
+--     COALESCE(
+--       NULLIF(BTRIM(next_show.title), ''),
+--       NULLIF(BTRIM(rep.business_name), ''),
+--       NULLIF(BTRIM(rep.display_name), ''),
+--       'Sparkle show'
+--     ) AS next_show_name,
+--     next_show.event_time AS next_show_starts_at,
+--     next_show.status::TEXT AS next_show_status,
+--     CASE
+--       WHEN next_show.duration_minutes IS NOT NULL
+--         AND next_show.duration_minutes > 0
+--       THEN next_show.duration_minutes
+--       ELSE NULL
+--     END AS next_show_duration_minutes
+--   FROM public.reps AS rep
+--   LEFT JOIN LATERAL (
+--     SELECT
+--       event.id,
+--       event.title,
+--       event.event_time,
+--       event.status,
+--       event.duration_minutes
+--     FROM public.calendar_events AS event
+--     WHERE event.rep_id = rep.id
+--       AND (
+--         (
+--           event.status = 'scheduled'
+--           AND event.event_time >= p_as_of
+--         )
+--         OR
+--         (
+--           event.status = 'live'
+--           AND event.event_time <= p_as_of
+--           AND event.event_time
+--             + MAKE_INTERVAL(
+--                 mins => GREATEST(COALESCE(event.duration_minutes, 60), 1)
+--               ) > p_as_of
+--         )
+--       )
+--     ORDER BY
+--       CASE WHEN event.status = 'live' THEN 0 ELSE 1 END,
+--       event.event_time,
+--       event.id
+--     LIMIT 1
+--   ) AS next_show ON true
+--   WHERE rep.status = 'active'
+--     AND rep.finder_directory_visible = true
+--     AND (
+--       NULLIF(BTRIM(p_query), '') IS NULL
+--       OR STRPOS(LOWER(rep.display_name), LOWER(BTRIM(p_query))) > 0
+--       OR STRPOS(LOWER(COALESCE(rep.business_name, '')), LOWER(BTRIM(p_query))) > 0
+--     )
+--   ORDER BY
+--     CASE
+--       WHEN next_show.status = 'live' THEN 0
+--       WHEN next_show.id IS NOT NULL THEN 1
+--       ELSE 2
+--     END,
+--     next_show.event_time NULLS LAST,
+--     LOWER(rep.display_name),
+--     rep.id
+--   LIMIT LEAST(GREATEST(COALESCE(p_limit, 50), 1), 200)
+-- $$;
+--
+-- REVOKE ALL ON FUNCTION public.list_sparkle_finder_public_reps(INTEGER, TEXT, TIMESTAMPTZ) FROM PUBLIC, anon, authenticated;
+-- GRANT EXECUTE ON FUNCTION public.list_sparkle_finder_public_reps(INTEGER, TEXT, TIMESTAMPTZ) TO service_role;
+-- COMMENT ON FUNCTION public.list_sparkle_finder_public_reps(INTEGER, TEXT, TIMESTAMPTZ) IS NULL;
+-- DELETE FROM supabase_migrations.schema_migrations WHERE version = '20261014125321' AND name = 'ss_finder_public_show_window';

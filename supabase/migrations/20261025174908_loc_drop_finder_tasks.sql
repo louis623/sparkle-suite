@@ -1,0 +1,13 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 20261025174908 / name loc_drop_finder_tasks in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/20261025174908_loc_drop_finder_tasks.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: louis@neonrabbit.net
+-- Live statements: 1; sha256 of statements joined with newline: 2f746ea8efe951e791830f37d8d9c1525c557ee18aa6dffc1d648ff2d5bdd09f
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- DROP TABLE public.loc_finder_tasks;

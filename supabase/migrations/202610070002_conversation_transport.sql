@@ -1,0 +1,40 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 202610070002 / name conversation_transport in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202610070002_conversation_transport.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: (none recorded)
+-- Live statements: 1; sha256 of statements joined with newline: 5978c7274a909333b27a9f1b2920eeb57a62b789de00b0991d598fb9dec51b22
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- BEGIN;
+-- SET LOCAL lock_timeout = '5s';
+-- ALTER TABLE public.loc_conversation_deliveries DROP CONSTRAINT loc_conversation_deliveries_status_check;
+-- ALTER TABLE public.loc_conversation_deliveries ADD CONSTRAINT loc_conversation_deliveries_status_check CHECK(status IN ('not-configured','pending','claimed','accepted','replied','uncertain','failed','cancelled'));
+-- ALTER TABLE public.loc_conversation_deliveries ADD COLUMN attempts integer NOT NULL DEFAULT 0;
+-- ALTER TABLE public.loc_conversation_deliveries ADD COLUMN attempted_at timestamptz;
+-- ALTER TABLE public.loc_conversation_deliveries ADD COLUMN retry_at timestamptz;
+-- ALTER TABLE public.loc_conversation_deliveries ADD COLUMN subscription_id text;
+-- CREATE TABLE public.loc_conversation_subscriptions (
+--  id text PRIMARY KEY, owner_id uuid NOT NULL, principal_id text NOT NULL,
+--  callback_url text NOT NULL, sealed_secret text NOT NULL,
+--  previous_secret text, rotation_until timestamptz,
+--  expires_at timestamptz NOT NULL, verified_at timestamptz NOT NULL DEFAULT now(), approved boolean NOT NULL DEFAULT false,
+--  revoked boolean NOT NULL DEFAULT false, revision integer NOT NULL DEFAULT 1
+-- );
+-- CREATE TABLE public.loc_conversation_archives (
+--  namespace text PRIMARY KEY CHECK(namespace ~ '^restore-[a-z0-9-]{1,64}$'),
+--  owner_id uuid NOT NULL, payload jsonb NOT NULL, payload_hash text NOT NULL,
+--  created_at timestamptz NOT NULL DEFAULT now()
+-- );
+-- ALTER TABLE public.loc_conversation_subscriptions ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.loc_conversation_archives ENABLE ROW LEVEL SECURITY;
+-- REVOKE ALL ON public.loc_conversation_subscriptions,public.loc_conversation_archives FROM PUBLIC,anon,authenticated;
+-- GRANT SELECT,INSERT,UPDATE ON public.loc_conversation_subscriptions,public.loc_conversation_archives TO loc_runtime;
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_subscriptions TO loc_runtime USING(true) WITH CHECK(true);
+-- CREATE POLICY loc_runtime_access ON public.loc_conversation_archives TO loc_runtime USING(true) WITH CHECK(true);
+-- COMMIT;
+--

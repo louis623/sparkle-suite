@@ -1,0 +1,44 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 20260925004058 / name outreach_tracker in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202609250001_outreach_tracker.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file. Do not re-run the SQL below.
+-- Live created_by: louis@neonrabbit.net
+-- Live statements: 1; sha256 of statements joined with newline: d7d3a33e8ea83d67623e553c79241ac531e358d2e1910c2253f33f4a3d82f211
+--
+-- Live statements, verbatim, commented out for the record:
+-- [statement 1]
+-- -- Owner outreach tracker. A row must have an email or a TikTok handle.
+-- -- Unreachable prospects (no DM path and no email) never enter this table.
+-- CREATE TABLE public.loc_outreach_prospects (
+--   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+--   namespace text NOT NULL DEFAULT 'main',
+--   owner_id uuid NOT NULL,
+--   prospect_name text NOT NULL CHECK (length(btrim(prospect_name)) BETWEEN 1 AND 160),
+--   tiktok_handle text NOT NULL DEFAULT '' CHECK (length(tiktok_handle) <= 24),
+--   tiktok_url text NOT NULL DEFAULT '' CHECK (length(tiktok_url) <= 500),
+--   linktree_url text NOT NULL DEFAULT '' CHECK (length(linktree_url) <= 500),
+--   bp_shop_url text NOT NULL DEFAULT '' CHECK (length(bp_shop_url) <= 500),
+--   email text NOT NULL DEFAULT '' CHECK (length(email) <= 320),
+--   why_on_list text NOT NULL DEFAULT '' CHECK (length(why_on_list) <= 400),
+--   status text NOT NULL CHECK (status IN ('research','ready','touched','replied','warm→Nic-Nac','closed-no','do-not-contact')),
+--   touch_n integer NOT NULL DEFAULT 0 CHECK (touch_n BETWEEN 0 AND 3),
+--   channel text NOT NULL CHECK (channel IN ('tiktok_dm','email','ig_dm')),
+--   last_touch_at text NOT NULL DEFAULT '' CHECK (last_touch_at = '' OR last_touch_at ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'),
+--   next_follow_up text NOT NULL DEFAULT '' CHECK (length(next_follow_up) <= 240),
+--   ask text NOT NULL DEFAULT '' CHECK (length(ask) <= 500),
+--   outcome text NOT NULL DEFAULT '' CHECK (outcome = '' OR outcome IN ('no reply','soft no','question','warm','booked','signup')),
+--   proof_used text NOT NULL DEFAULT '' CHECK (proof_used = '' OR proof_used IN ('looked-at-you','receipt','see-it','try-it','mockup','none')),
+--   notes text NOT NULL DEFAULT '' CHECK (length(notes) <= 4000),
+--   revision integer NOT NULL DEFAULT 1 CHECK (revision > 0),
+--   created_at timestamptz NOT NULL DEFAULT now(),
+--   updated_at timestamptz NOT NULL DEFAULT now(),
+--   CONSTRAINT loc_outreach_reachable CHECK (length(btrim(email)) > 0 OR length(btrim(tiktok_handle)) > 0)
+-- );
+-- CREATE INDEX loc_outreach_owner_updated ON public.loc_outreach_prospects (namespace, owner_id, updated_at DESC, id);
+-- ALTER TABLE public.loc_outreach_prospects ENABLE ROW LEVEL SECURITY;
+-- REVOKE ALL ON public.loc_outreach_prospects FROM PUBLIC, anon, authenticated;
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON public.loc_outreach_prospects TO loc_runtime;
+-- CREATE POLICY loc_runtime_access ON public.loc_outreach_prospects FOR ALL TO loc_runtime USING (true) WITH CHECK (true);

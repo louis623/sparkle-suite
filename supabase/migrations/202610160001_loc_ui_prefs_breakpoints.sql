@@ -1,0 +1,9 @@
+-- Remote history witness (intentional no-op).
+-- Live Supabase records version 202610160001 / name loc_ui_prefs_breakpoints in
+-- supabase_migrations.schema_migrations. It was applied to Live outside this repo,
+-- from Louis's Ops Center (repo louis623/louis-ops-center, file
+-- supabase/migrations/202610160001_loc_ui_prefs_breakpoints.sql).
+-- This file only keeps local and Live migration histories aligned.
+-- Do not add executable SQL to this file.
+-- Live created_by: (none recorded)
+-- Live statements: 0; sha256 of statements joined with newline: (none recorded)
