@@ -353,39 +353,9 @@
     ]
   },
   "focused": {
-    "passed": 460,
-    "failed": 9,
+    "passed": 466,
+    "failed": 3,
     "failures": [
-      {
-        "file": "amethyst-ssr-custom-domain.test.ts",
-        "name": "switches only the listed custom-domain home, preserving custom links and canonical",
-        "preExisting": false
-      },
-      {
-        "file": "amethyst-ssr-custom-domain.test.ts",
-        "name": "switches only the listed custom-domain trade, preserving custom links and canonical",
-        "preExisting": false
-      },
-      {
-        "file": "amethyst-ssr-custom-domain.test.ts",
-        "name": "switches only the listed custom-domain join, preserving custom links and canonical",
-        "preExisting": false
-      },
-      {
-        "file": "amethyst-ssr-mile-high-fizz.test.ts",
-        "name": "ports the complete frozen alpine_opal MHF hero and CTA tree with saved sparkle_rise",
-        "preExisting": false
-      },
-      {
-        "file": "amethyst-ssr-mile-high-fizz.test.ts",
-        "name": "ports the complete frozen alpine_opal MHF hero and CTA tree with saved still",
-        "preExisting": false
-      },
-      {
-        "file": "amethyst-ssr-mile-high-fizz.test.ts",
-        "name": "ports the complete frozen alpine_opal MHF hero and CTA tree with saved none",
-        "preExisting": false
-      },
       {
         "file": "bling-kitchen-pantry-bytes.test.ts",
         "name": "BlingKitchen pantry bytes versus the pre-allowlist base keeps the custom-domain pantry document byte-for-byte",
@@ -445,11 +415,110 @@
     }
   ],
   "remaining": [
-    "Correct six assertion-only failures after Louis authorizes continuation under the stop rule",
-    "Rerun focused checks",
-    "Full post-change suite and named baseline comparison",
-    "Full npm build",
-    "SSR visual matrix, CLS and slow-phone measurements",
-    "Logical implementation commits, push, PR; no merge or deploy"
-  ]
+    "Owner authorization to investigate/rerun the untouched flyer file",
+    "Resolve the 23 new failing names without weakening checks",
+    "Current TypeScript and full npm build",
+    "Logical implementation commits, push and draft PR; no merge/deploy"
+  ],
+  "finalSuite": {
+    "passed": 5987,
+    "failed": 100,
+    "newFailingNames": [
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders gobble_and_fizz inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders pie_please inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders amethyst inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders sparkle_suite_morganite inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders moonstone inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders emerald_garden inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders halloween_pumpkin_cat inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders halloween_pumpkin_witch inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders gilded_autumn inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders rose_gold inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders midnight_rose inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders fall_owl_harvest_moon inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders pearl_rose inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders sunset_beach inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders rose_champagne inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders garnet inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders amber inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders velvet inside the safe zones and the QR decodes"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render shrinks a long show title instead of cutting it off"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render decodes PNG and JPG for every shared theme with a tagline, without one, and with a wrapping title"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer render closes the tagline and website slots when they are absent, and prints a custom domain"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer file formats encodes JPG from one PNG and both files decode to the same URL"
+      },
+      {
+        "file": "workspace-card-qr-flyer.test.ts",
+        "name": "flyer route ignores body.appearancePreset and uses the saved theme"
+      }
+    ],
+    "unchangedSuiteLoadErrors": 4
+  },
+  "typeScriptScope": "Passed before assertion corrections; current-tree rerun pending after stop",
+  "fullBuild": "Not run: new-failure stop"
 }

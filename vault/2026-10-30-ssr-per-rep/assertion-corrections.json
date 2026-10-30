@@ -1,0 +1,48 @@
+{
+  "passed": 466,
+  "failed": 3,
+  "failures": [
+    {
+      "file": "bling-kitchen-pantry-bytes.test.ts",
+      "name": "BlingKitchen pantry bytes versus the pre-allowlist base keeps the custom-domain pantry document byte-for-byte",
+      "preExisting": true
+    },
+    {
+      "file": "bling-kitchen-pantry-bytes.test.ts",
+      "name": "BlingKitchen pantry bytes versus the pre-allowlist base keeps the public-slug pantry document byte-for-byte",
+      "preExisting": true
+    },
+    {
+      "file": "bling-kitchen-pantry-bytes.test.ts",
+      "name": "BlingKitchen pantry bytes versus the pre-allowlist base keeps the pantry template script byte-for-byte",
+      "preExisting": true
+    }
+  ],
+  "corrected": [
+    {
+      "name": "switches only the listed custom-domain home, preserving custom links and canonical",
+      "status": "passed"
+    },
+    {
+      "name": "switches only the listed custom-domain trade, preserving custom links and canonical",
+      "status": "passed"
+    },
+    {
+      "name": "switches only the listed custom-domain join, preserving custom links and canonical",
+      "status": "passed"
+    },
+    {
+      "name": "ports the complete frozen alpine_opal MHF hero and CTA tree with saved sparkle_rise",
+      "status": "passed"
+    },
+    {
+      "name": "ports the complete frozen alpine_opal MHF hero and CTA tree with saved still",
+      "status": "passed"
+    },
+    {
+      "name": "ports the complete frozen alpine_opal MHF hero and CTA tree with saved none",
+      "status": "passed"
+    }
+  ],
+  "changedCode": []
+}

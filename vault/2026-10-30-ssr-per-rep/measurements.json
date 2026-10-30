@@ -1,0 +1,1467 @@
+[
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.07382645367490247,
+    "lcp": 3472,
+    "shifts": [
+      0.04965214651183663,
+      0.02417430716306584
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 2988,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": false,
+        "currentTime": 1.8682,
+        "autoplay": true,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.05992564340599279,
+    "lcp": 1056,
+    "shifts": [
+      0.0005856602044753086,
+      0.05680208333333333,
+      0.002530595341435185,
+      0.000007304526748971194
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 424,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": false,
+        "currentTime": 2.0364,
+        "autoplay": true,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.08981162890880795,
+    "lcp": 872,
+    "shifts": [
+      0.035908857442274435,
+      0.053902771466533515
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 708,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": false,
+        "currentTime": 2.0925,
+        "autoplay": true,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.03964769216424949,
+    "lcp": 1180,
+    "shifts": [
+      0.03485773830748411,
+      0.0019500541177197277,
+      0.0028398997390456475
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 748,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": false,
+        "currentTime": 2.2709,
+        "autoplay": true,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.10720407393341692,
+    "lcp": 944,
+    "shifts": [
+      0.1046335551362633,
+      0.002570518797153635
+    ],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 944,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.15837343513059682,
+    "lcp": 944,
+    "shifts": [
+      0.04511091820987655,
+      0.002570518797153635,
+      0.0983937837995783,
+      0.01229821432398834
+    ],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 944,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.06244272534579619,
+    "lcp": 1084,
+    "shifts": [
+      0.06060816137382445,
+      0.00183456397197174
+    ],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 1084,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.15380192048658325,
+    "lcp": 1148,
+    "shifts": [
+      0.0000734244578617178,
+      0.08745311201455493,
+      0.0662753840141666
+    ],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 1016,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.09420501862200199,
+    "lcp": 1204,
+    "shifts": [
+      0.04628368404686696,
+      0.04792133457513503
+    ],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 588,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.04508068767280736,
+    "lcp": 1100,
+    "shifts": [
+      0.015553877189228073,
+      0.01396604938271605,
+      0.009726079618979875,
+      0.005834681481883359
+    ],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 1100,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.19021776940092086,
+    "lcp": 1072,
+    "shifts": [
+      0.09611970682932544,
+      0.001897980728195683,
+      0.09220008184339974
+    ],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 1072,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.22643115420287113,
+    "lcp": 1536,
+    "shifts": [
+      0.035059288973001215,
+      0.017238353810561307,
+      0.001897980728195683,
+      0.17223553069111291
+    ],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 1536,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.017335457390260628,
+    "lcp": 5768,
+    "shifts": [
+      0.0003059713648834019,
+      0.0003516975308641976,
+      0.01667778849451303
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 5336,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/amethyst/skins/gilded-autumn/hero-motion.mp4",
+        "paused": false,
+        "currentTime": 4.2944,
+        "autoplay": false,
+        "preload": "none",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.0023552116823131,
+    "lcp": 1732,
+    "shifts": [
+      0.0003059713648834019,
+      0.0003516975308641976,
+      0.0016975427865655005
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 1216,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "",
+        "paused": true,
+        "currentTime": 0,
+        "autoplay": false,
+        "preload": "none",
+        "readyState": 0
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Play animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.11417215096995426,
+    "lcp": 1268,
+    "shifts": [
+      0.055804950192044206,
+      0.05811505817047443,
+      0.0002521426074356152
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 916,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/amethyst/skins/gilded-autumn/hero-motion.mp4",
+        "paused": false,
+        "currentTime": 5.2855,
+        "autoplay": false,
+        "preload": "none",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.05737412739248951,
+    "lcp": 2672,
+    "shifts": [
+      0.055804950192044206,
+      0.0013170345930096946,
+      0.0002521426074356152
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 2424,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "",
+        "paused": true,
+        "currentTime": 0,
+        "autoplay": false,
+        "preload": "none",
+        "readyState": 0
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Play animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.07722503504707326,
+    "lcp": 692,
+    "shifts": [
+      0.002954243977864583,
+      0.07427079106920868
+    ],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 692,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.05801278824668853,
+    "lcp": 736,
+    "shifts": [
+      0.0005661168981481482,
+      0.05744667134854038
+    ],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 736,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.13066889964578082,
+    "lcp": 816,
+    "shifts": [
+      0.13066889964578082
+    ],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 816,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.10852422218803834,
+    "lcp": 720,
+    "shifts": [
+      0.0014282261784844836,
+      0.00030648889979318316,
+      0.10678950710976066
+    ],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 720,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.04019660272794496,
+    "lcp": 996,
+    "shifts": [
+      0.0006067469216177984,
+      0.03958985580632716
+    ],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 392,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.007980639966590578,
+    "lcp": 884,
+    "shifts": [
+      0.0006067469216177984,
+      0.006761513072407622,
+      0.0006123799725651578
+    ],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 384,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.08801362283424734,
+    "lcp": 992,
+    "shifts": [
+      0.013378854337466214,
+      0.07463476849678112
+    ],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 424,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.12326146172952665,
+    "lcp": 964,
+    "shifts": [
+      0.013378854337466214,
+      0.0003407208007284376,
+      0.109541886591332
+    ],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 464,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 2632,
+    "shifts": [],
+    "h1": "Mile High Fizz",
+    "firstPaint": 2632,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": false,
+        "currentTime": 1.9191,
+        "autoplay": true,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 664,
+    "shifts": [],
+    "h1": "Mile High Fizz",
+    "firstPaint": 480,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": true,
+        "currentTime": 0,
+        "autoplay": false,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 612,
+    "shifts": [],
+    "h1": "Mile High Fizz",
+    "firstPaint": 496,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": false,
+        "currentTime": 1.8833,
+        "autoplay": true,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 620,
+    "shifts": [],
+    "h1": "Mile High Fizz",
+    "firstPaint": 420,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": true,
+        "currentTime": 0,
+        "autoplay": false,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 912,
+    "shifts": [],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 912,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 572,
+    "shifts": [],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 572,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 544,
+    "shifts": [],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 544,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 468,
+    "shifts": [],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 468,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 824,
+    "shifts": [],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 824,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 524,
+    "shifts": [],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 524,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 712,
+    "shifts": [],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 712,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 580,
+    "shifts": [],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 580,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 536,
+    "shifts": [],
+    "h1": "Mile High Fizz",
+    "firstPaint": 536,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/amethyst/skins/gilded-autumn/hero-motion.mp4",
+        "paused": false,
+        "currentTime": 1.9033,
+        "autoplay": true,
+        "preload": "auto",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Consolas",
+      "Georgia"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 496,
+    "shifts": [],
+    "h1": "Mile High Fizz",
+    "firstPaint": 496,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/amethyst/skins/gilded-autumn/hero-motion.mp4",
+        "paused": false,
+        "currentTime": 1.8932,
+        "autoplay": true,
+        "preload": "auto",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Consolas",
+      "Georgia"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 660,
+    "shifts": [],
+    "h1": "Mile High Fizz",
+    "firstPaint": 496,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/amethyst/skins/gilded-autumn/hero-motion.mp4",
+        "paused": false,
+        "currentTime": 1.8862,
+        "autoplay": true,
+        "preload": "auto",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Consolas",
+      "Georgia"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 696,
+    "shifts": [],
+    "h1": "Mile High Fizz",
+    "firstPaint": 444,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/amethyst/skins/gilded-autumn/hero-motion.mp4",
+        "paused": false,
+        "currentTime": 1.8789,
+        "autoplay": true,
+        "preload": "auto",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Consolas",
+      "Georgia"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 504,
+    "shifts": [],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 504,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": false
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 448,
+    "shifts": [],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 448,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": false
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 480,
+    "shifts": [],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 480,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": false
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 272,
+    "shifts": [],
+    "h1": "Mile High Fizz Dance Floor",
+    "firstPaint": 272,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": false
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 320,
+    "shifts": [],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 300,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": false
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 400,
+    "shifts": [],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 332,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": false
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 308,
+    "shifts": [],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 260,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": false
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 304,
+    "shifts": [],
+    "h1": "Welcome to the Diamond Peak Society",
+    "firstPaint": 268,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": false
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  }
+]

@@ -1,0 +1,34 @@
+const http = require('node:http'), fs = require('node:fs'), path = require('node:path');
+const root = process.cwd();
+const types = { '.html':'text/html; charset=utf-8', '.css':'text/css', '.js':'text/javascript', '.webp':'image/webp', '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.mp4':'video/mp4', '.woff2':'font/woff2', '.svg':'image/svg+xml' };
+http.createServer((req,res) => {
+  const url = new URL(req.url,'http://127.0.0.1:4397');
+  if (url.pathname.startsWith('/api/')) {
+    res.writeHead(200, { 'Content-Type':'application/json' });
+    return res.end(JSON.stringify({ entries:[], listings:[], events:[], sourceReady:false, liveQueueEntries:[], liveQueueState:'offline', liveQueueSummary:'Local synthetic review' }));
+  }
+  let file;
+  if (url.pathname === '/review') {
+    const theme = url.searchParams.get('theme'), page = url.searchParams.get('page'), renderer = url.searchParams.get('renderer');
+    if (!['alpine_opal','gilded_autumn'].includes(theme) || !['homepage','trade','join'].includes(page) || !['legacy','ssr'].includes(renderer)) { res.writeHead(404); return res.end(); }
+    file = path.join(root, '.tmp-qa/html', `${theme}-${page}-${renderer}.html`);
+  } else if (url.pathname.startsWith('/legacy-assets/amethyst/')) {
+    const name = url.pathname.slice('/legacy-assets/amethyst/'.length);
+    file = path.join(root, 'lib/amethyst/legacy/assets', name);
+    if (!fs.existsSync(file)) file = path.join(root, 'public/amethyst', name);
+  } else if (url.pathname.startsWith('/qa-runtime/')) file = path.join(root, '.tmp-qa/runtime',url.pathname.slice('/qa-runtime/'.length));
+  else file = path.join(root,'public',decodeURIComponent(url.pathname));
+  file = path.resolve(file);
+  if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); return res.end('Local fixture not found'); }
+  const size=fs.statSync(file).size;
+  const headers={'Content-Type':types[path.extname(file)] || 'application/octet-stream','Cache-Control':'no-store','Accept-Ranges':'bytes'};
+  const range=req.headers.range?.match(/^bytes=(\d+)-(\d*)$/);
+  if(range){
+    const start=Number(range[1]),end=Math.min(range[2]?Number(range[2]):size-1,size-1);
+    if(start>=size||end<start){res.writeHead(416,{'Content-Range':`bytes */${size}`});return res.end()}
+    res.writeHead(206,{...headers,'Content-Range':`bytes ${start}-${end}/${size}`,'Content-Length':end-start+1});
+    return fs.createReadStream(file,{start,end}).pipe(res);
+  }
+  res.writeHead(200,{...headers,'Content-Length':size});
+  fs.createReadStream(file).pipe(res);
+}).listen(4397,'127.0.0.1', () => console.log('Local synthetic SSR parity harness http://127.0.0.1:4397'));

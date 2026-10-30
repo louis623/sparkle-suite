@@ -1,0 +1,11 @@
+{
+  "cls": 0,
+  "lcp": 3960,
+  "firstVideoFrame": 3896.800000000745,
+  "fcp": 3724,
+  "video": {
+    "paused": false,
+    "currentTime": 4.0111
+  },
+  "profile": "390x844; 150ms RTT; 200 KiB/s download; 4x CPU slowdown; local fixture"
+}

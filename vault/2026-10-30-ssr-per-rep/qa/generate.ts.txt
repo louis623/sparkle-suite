@@ -1,0 +1,76 @@
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { resolve, join } from 'node:path'
+import { build } from 'esbuild'
+import { renderAmethystPageFirstPaint } from '../lib/amethyst/page-first-paint'
+import { buildAmethystHomepageBootstrapScript, defaultAmethystHomepageTemplateData as homepage } from '../lib/amethyst/homepage-template-data'
+import { buildAmethystTradeBootstrapScript, defaultAmethystTradeTemplateData as trade } from '../lib/amethyst/trade-template-data'
+import { buildAmethystJoinBootstrapScript, defaultAmethystJoinTemplateData as team } from '../lib/amethyst/join-template-data'
+
+async function main() {
+mkdirSync('.tmp-qa/html', { recursive: true })
+mkdirSync('.tmp-qa/runtime', { recursive: true })
+const foot = { home: '/', tradeBoard: '/trade', joinTeam: '/join', faq: '/faq' }
+const listing = { id: 'fixture-only', name: 'Fixture Aurora Earrings', collection: 'Originals', type: 'Earrings', material: 'Silver', stone: 'CZ', size: null, note: 'Local fixture', glyph: 'S', tier: 'everyday' as const, photoUrl: null, photoSource: 'missing' as const }
+for (const page of ['homepage', 'trade', 'join']) {
+  await build({ entryPoints: [`lib/amethyst/legacy/assets/${page}.jsx`], outfile: `.tmp-qa/runtime/${page}.js`,
+    bundle: true, platform: 'browser', format: 'iife', jsxFactory: 'React.createElement', jsxFragment: 'React.Fragment',
+    tsconfigRaw: {}, minify: true, define: { 'process.env.NODE_ENV': '"production"' },
+    plugins: [{ name: 'frozen-relative-imports', setup(build) {
+      build.onResolve({ filter: /^\.\.\/\.\.\/lib\/amethyst\// }, args => {
+        const target = resolve(args.path.replace('../../', ''))
+        return { path: ['.ts', '.tsx'].map(ext => target + ext).find(existsSync)! }
+      })
+    } }],
+  })
+}
+for (const preset of ['alpine_opal', 'gilded_autumn'] as const) {
+  const publicSiteVariant = preset === 'alpine_opal' ? 'mile_high_fizz_hybrid' as const : undefined
+  const home = { ...homepage, repName: 'Lindsey', businessName: 'Mile High Fizz', heroHeadline: 'Mile High Fizz',
+    heroSub: 'REVEALING SOMETHING MAGICAL TOGETHER', heroMotion: 'sparkle_rise', publicSiteVariant,
+    footerLinks: { ...homepage.footerLinks, ...foot }, tradeBoardUrl: '/trade',
+    streamLinks: { ...homepage.streamLinks, shop: 'https://example.com/shop' },
+    aboutParagraphs: ['Synthetic local review content.', 'Same fixture in both renderers.', 'No customer data or submissions.'] as [string,string,string] }
+  const board = { ...trade, repName: 'Lindsey', businessName: 'Mile High Fizz', publicSiteVariant,
+    tradeHeroTitle: 'Mile High Fizz Dance Floor', tradeHeroSub: "Browse Lindsey's available dancers and request an item-for-item swap from a live reveal.",
+    footerLinks: { ...trade.footerLinks, ...foot }, shopUrl: 'https://example.com/shop' }
+  const joinTeam = { ...team, repName: 'Lindsey', businessName: 'Mile High Fizz', publicSiteVariant,
+    teamName: 'Diamond Peak Society', heroTitle: 'Welcome to the Diamond Peak Society',
+    footerLinks: { ...team.footerLinks, ...foot }, bpReferralUrl: 'https://example.com/join',
+    teamMembers: [{ ...team.teamMembers[0], name: 'Fixture teammate', business: 'Local review fixture' }] }
+  for (const page of ['homepage', 'trade', 'join'] as const) {
+    const file = { homepage: 'Homepage', trade: 'Trade', join: 'Join' }[page] + '.html'
+    const source = readFileSync(join('lib/amethyst/legacy/assets', file), 'utf8')
+    const runtime = { targeted: true, repId: 'local-fixture-only', publicSiteSlug: '' }
+    const bootstrap = page === 'homepage' ? buildAmethystHomepageBootstrapScript(home, [], preset, runtime)
+      : page === 'trade' ? buildAmethystTradeBootstrapScript(board, [listing], preset, runtime)
+      : buildAmethystJoinBootstrapScript(joinTeam, preset, runtime, [listing])
+    let legacy = source.replace(/<script\b[^>]*src="([^"]+)"[^>]*><\/script>/g, (tag, src) => {
+      const name = src.split('/').at(-1).split('?')[0]
+      if (tag.includes('data-template-src=')) return `<script>${bootstrap}</script>`
+      if (src.includes('unpkg.com/react@')) return '<script src="/amethyst/compiled/react.js"></script>'
+      if (/unpkg.com\/(?:react-dom|@babel)/.test(src)) return ''
+      if (name === 'tweaks-panel.jsx') return '<script src="/amethyst/compiled/tweaks-panel.js"></script>'
+      if (name === page + '.jsx') return `<script src="/qa-runtime/${page}.js"></script>`
+      if (name === 'join-runtime.js') return '<script src="/amethyst/compiled/react.js"></script><script src="/amethyst/compiled/tweaks-panel.js"></script><script src="/qa-runtime/join.js"></script>'
+      return tag.replace(src, '/legacy-assets/amethyst/' + name)
+    }).replace(/href="([^"?]+)(\?[^\"]*)?"/g, (tag, href, query = '') => {
+      if (!href.endsWith('.css') || href.startsWith('https:')) return tag
+      return `href="/legacy-assets/amethyst/${href.split('/').at(-1)}${query}"`
+    })
+    const label = '<aside style="position:fixed;bottom:0;right:0;z-index:99999;background:#fff;color:#111;font:12px sans-serif;padding:4px">Local synthetic review · no submissions</aside>'
+    legacy = legacy.replace('</body>', label + '</body>')
+    writeFileSync(`.tmp-qa/html/${preset}-${page}-legacy.html`, legacy)
+    if (process.argv.includes('--legacy-only')) continue
+    // The real public response roots static assets before calling first paint.
+    // Mirror that prerequisite so retained deferred helpers resolve correctly.
+    const rootedSource = source.replace(/\b(src|href)="(?!https?:|\/|#)([^"?]+\.(?:css|js|jsx)(?:\?[^\"]*)?)"/g,
+      (_tag, attribute, value) => `${attribute}="/amethyst/${value}"`)
+    let ssr = await renderAmethystPageFirstPaint(page, rootedSource, { homepage: home, trade: board, join: joinTeam, appearancePreset: preset },
+      new URL('http://127.0.0.1:4397/' + (page === 'homepage' ? '' : page)), bootstrap)
+    ssr = ssr.replace('</body>', label + '</body>')
+    writeFileSync(`.tmp-qa/html/${preset}-${page}-ssr.html`, ssr)
+  }
+}
+console.log('Generated local synthetic review HTML and production legacy bundles')
+}
+main().catch(error => { console.error(error); process.exitCode = 1 })

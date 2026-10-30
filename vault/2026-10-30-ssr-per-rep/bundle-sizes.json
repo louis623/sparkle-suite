@@ -1,0 +1,42 @@
+{
+  "files": [
+    {
+      "file": "lib/amethyst/generated/homepage-server.cjs",
+      "baseBytes": 212640,
+      "currentBytes": 212640,
+      "deltaBytes": 0
+    },
+    {
+      "file": "lib/amethyst/generated/page-runtimes.json",
+      "baseBytes": 356027,
+      "currentBytes": 358387,
+      "deltaBytes": 2360
+    },
+    {
+      "file": "lib/amethyst/generated/homepage-styles.json",
+      "baseBytes": 624546,
+      "currentBytes": 624548,
+      "deltaBytes": 2
+    },
+    {
+      "file": "public/amethyst/compiled/homepage.js",
+      "baseBytes": 130235,
+      "currentBytes": 130384,
+      "deltaBytes": 149
+    },
+    {
+      "file": "public/amethyst/compiled/trade.js",
+      "baseBytes": 87752,
+      "currentBytes": 88867,
+      "deltaBytes": 1115
+    },
+    {
+      "file": "public/amethyst/compiled/join.js",
+      "baseBytes": 88847,
+      "currentBytes": 89959,
+      "deltaBytes": 1112
+    }
+  ],
+  "auroraVideoBytes": 4238213,
+  "liveColdStartMeasured": false
+}
