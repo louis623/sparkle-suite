@@ -12,14 +12,17 @@ import {
   mapFinderAvailabilityRpcRows,
   mapSparkleFinderDesignRow,
   loadPublicFinderEligibleRepIds,
+  getSparkleFinderAvailability,
+  listSparkleFinderLiveShows,
   listSparkleFinderPublicReps,
   mapSparkleFinderDirectoryRows,
   parseSparkleFinderLimit,
   parseFinderAvailabilityRpcRows,
 } from '@/lib/sparkle-finder/public-api'
+import { listSparkleFinderCatalogPageV2 } from '@/lib/sparkle-finder/catalog-v2'
 
 describe('Sparkle Finder public API contract helpers', () => {
-  it('preserves availability rep eligibility without applying directory visibility', () => {
+  it('validates public status and slug for already-qualified availability reps', () => {
     const eligible = filterFinderAvailabilityEligibleRepRows([
       {
         id: 'rep-hidden-directory',
@@ -75,6 +78,22 @@ describe('Sparkle Finder public API contract helpers', () => {
         return {
           select: vi.fn(() => ({
             eq: vi.fn(() => ({ gt: trialGt })),
+          })),
+        }
+      }
+      if (table === 'reps') {
+        return {
+          select: vi.fn(() => ({
+            in: vi.fn().mockResolvedValue({
+              data: ['rep-paid', 'rep-trial'].map((id) => ({
+                id,
+                status: 'active',
+                finder_directory_visible: true,
+                account_classification: 'customer',
+                public_site_slug: 'listedstudio',
+              })),
+              error: null,
+            }),
           })),
         }
       }
@@ -1169,3 +1188,116 @@ describe('Sparkle Finder public API contract helpers', () => {
     expect(reps.find((rep) => rep.repId === 'rep-cancelled')?.nextShow).toBeNull()
   })
 })
+
+describe('Finder feeds share the listed customer boundary', () => {
+  it.each([
+    ['unlisted paid customer', { finder_directory_visible: false }, false],
+    ['paid demo classification', { account_classification: 'demo' }, false],
+    ['paid Dude demo slug', { public_site_slug: 'dudesfizzfest' }, false],
+    ['paid Louis demo slug', { public_site_slug: 'louisfizzfest' }, false],
+    ['paid studio demo slug', { public_site_slug: 'demosparklestudiod5decc' }, false],
+    ['paid beta demo slug', { public_site_slug: 'sparklebetademo' }, false],
+    ['paid reviewer slug', { public_site_slug: 'sparkle-reviewer-preview' }, false],
+    ['inactive paid customer', { status: 'suspended' }, false],
+    ['paid invalid slug', { public_site_slug: 'invalid-slug' }, false],
+    ['paid missing slug', { public_site_slug: null }, false],
+    ['paid missing classification', { account_classification: null }, false],
+    ['normal listed paid customer', {}, true],
+  ] as const)('filters %s from shows, availability and catalog counts', async (_name, overrides, included) => {
+    const { supabase, rpc } = finderFeedFixture(overrides)
+    const shows = await listSparkleFinderLiveShows({ supabase: supabase as never })
+    expect(shows).toHaveLength(included ? 1 : 0)
+    if (included) expect(shows[0].customerSiteUrl).toBe('https://www.yoursparklesuite.com/listedstudio')
+
+    const availability = await getSparkleFinderAvailability({
+      designId: FEED_DESIGN_ID,
+      supabase: supabase as never,
+    })
+    expect(availability.exactMatches).toHaveLength(included ? 1 : 0)
+    expect(availability.requestedItem?.availableListingCount).toBe(included ? 1 : 0)
+    if (included) {
+      expect(rpc).toHaveBeenCalledWith('list_sparkle_finder_availability_v2', expect.objectContaining({
+        p_eligible_rep_ids: ['rep-paid'],
+      }))
+    } else {
+      expect(rpc).not.toHaveBeenCalledWith('list_sparkle_finder_availability_v2', expect.anything())
+    }
+
+    const catalog = await listSparkleFinderCatalogPageV2({
+      filters: {}, limit: 10, position: null, supabase: supabase as never,
+    })
+    expect(catalog.items[0].availableListingCount).toBe(included ? 1 : 0)
+  })
+
+  it('fails closed when the public rep eligibility read fails', async () => {
+    const { supabase } = finderFeedFixture({})
+    const from = supabase.from
+    supabase.from = vi.fn((table: string) => table === 'reps'
+      ? { select: () => ({ in: async () => ({ data: null, error: new Error('rep read failed') }) }) } as never
+      : from(table))
+    await expect(loadPublicFinderEligibleRepIds(supabase as never)).rejects.toThrow('rep read failed')
+  })
+})
+
+const FEED_DESIGN_ID = '00000000-0000-4000-8000-000000000001'
+
+function finderFeedFixture(overrides: Record<string, unknown>) {
+  const rep = {
+    id: 'rep-paid', display_name: 'Listed Rep', business_name: 'Listed Studio',
+    profile_photo_url: null, custom_domain: null, public_site_slug: 'listedstudio',
+    status: 'active', finder_directory_visible: true, account_classification: 'customer',
+    ...overrides,
+  }
+  const listedAt = new Date(Date.now() - 5 * 60_000).toISOString()
+  const design = {
+    id: FEED_DESIGN_ID, item_number: 'ER97844', design_name: 'Public Earrings',
+    material: null, main_stone: null, bp_msrp: null, canonical_photo_url: null,
+    type_prefix: 'ER', search_tags: [], collection: null, created_at: listedAt,
+  }
+  const catalogRow = { ...design, collection_name: null, collection_year: null, catalog_label: 'standard' }
+  const tables: Record<string, Array<Record<string, unknown>>> = {
+    subscriptions: [{ rep_id: rep.id, status: 'active' }],
+    workspace_trials: [], reps: [rep], jewelry_designs: [design],
+    calendar_events: [{
+      id: 'show-1', rep_id: rep.id, event_time: listedAt, title: 'Listed Show',
+      status: 'live', duration_minutes: 60, rep,
+    }],
+    trade_listings: [{
+      id: 'listing-1', rep_id: rep.id, design_id: FEED_DESIGN_ID,
+      status: 'available', listing_source: 'catalog', listed_at: listedAt, rep,
+    }],
+  }
+  const from = vi.fn((table: string) => {
+    if (!Object.hasOwn(tables, table)) throw new Error('Unexpected table '+table)
+    let rows = [...tables[table]]
+    const query = {
+      select: () => query,
+      in: (column: string, values: unknown[]) => { rows = rows.filter(r => values.includes(r[column])); return query },
+      eq: (column: string, value: unknown) => { rows = rows.filter(r => r[column] === value); return query },
+      gt: (column: string, value: unknown) => { rows = rows.filter(r => String(r[column]) > String(value)); return query },
+      gte: (column: string, value: unknown) => { rows = rows.filter(r => String(r[column]) >= String(value)); return query },
+      lt: (column: string, value: unknown) => { rows = rows.filter(r => String(r[column]) < String(value)); return query },
+      order: () => query,
+      limit: () => query,
+      maybeSingle: async () => ({ data: rows[0] ?? null, error: null }),
+      then: (resolve: (value: { data: typeof rows; error: null }) => unknown) => Promise.resolve({ data: rows, error: null }).then(resolve),
+    }
+    return query
+  })
+  const rpc = vi.fn(async (name: string, args: Record<string, unknown>) => {
+    if (name === 'list_sparkle_finder_catalog_v2') return {
+      data: { items: [catalogRow], totalCount: 1, hasMore: false, nextPosition: null }, error: null,
+    }
+    if (name !== 'list_sparkle_finder_availability_v2') throw new Error('Unexpected RPC '+name)
+    expect(args.p_eligible_rep_ids).toEqual([rep.id])
+    return { data: [{
+      bucket: 'exact', listing_id: 'listing-1', rep_id: rep.id, design_id: FEED_DESIGN_ID,
+      net_quantity: 1, listed_at: listedAt, listing_photo_url: null, uses_canonical_photo: true,
+      ...catalogRow, collection_name: null, collection_year: null,
+      rep_display_name: rep.display_name, rep_business_name: rep.business_name,
+      rep_public_site_slug: rep.public_site_slug, rep_status: rep.status,
+      total_lead_count: 1, total_dancer_count: 1,
+    }, { bucket: 'similar', listing_id: null, total_lead_count: 0, total_dancer_count: 0 }], error: null }
+  })
+  return { supabase: { from, rpc }, rpc }
+}

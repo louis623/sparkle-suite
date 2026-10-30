@@ -1,0 +1,153 @@
+{
+  "numTotalTests": 18,
+  "numPassedTests": 14,
+  "numFailedTests": 4,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "success": false,
+  "startTime": 1793309988947,
+  "testResults": [
+    {
+      "name": "C:/Users/louis/sparkle-suite-repo/.codex-worktrees/release-ssr-finder/tests/amethyst-ssr-fallback.test.ts",
+      "status": "failed",
+      "startTime": 1793309990224,
+      "endTime": 1793310175270.1426,
+      "assertionResults": [
+        {
+          "title": "returns exact frozen Live response on bootstrap throw",
+          "fullName": "returns exact frozen Live response on bootstrap throw",
+          "ancestorTitles": [],
+          "status": "failed",
+          "duration": 7024.009000000001
+        },
+        {
+          "title": "returns exact frozen Live response on bootstrap timeout",
+          "fullName": "returns exact frozen Live response on bootstrap timeout",
+          "ancestorTitles": [],
+          "status": "failed",
+          "duration": 7013.4887
+        },
+        {
+          "title": "returns exact frozen Live response on render failure",
+          "fullName": "returns exact frozen Live response on render failure",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 14109.6765
+        },
+        {
+          "title": "rejects a non-OK data response and loads template only once",
+          "fullName": "rejects a non-OK data response and loads template only once",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 14120.951799999999
+        },
+        {
+          "title": "removing the allowlist restores the exact Live homepage without running SSR",
+          "fullName": "removing the allowlist restores the exact Live homepage without running SSR",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 14088.3744
+        },
+        {
+          "title": "hashes non-listed milehighfizz against the frozen Live renderer",
+          "fullName": "hashes non-listed milehighfizz against the frozen Live renderer",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 14111.8718
+        },
+        {
+          "title": "hashes non-listed brisglowtique against the frozen Live renderer",
+          "fullName": "hashes non-listed brisglowtique against the frozen Live renderer",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 14106.411099999998
+        },
+        {
+          "title": "hashes non-listed goforthebling against the frozen Live renderer",
+          "fullName": "hashes non-listed goforthebling against the frozen Live renderer",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 14078.372600000002
+        },
+        {
+          "title": "hashes non-listed brittwithbling against the frozen Live renderer",
+          "fullName": "hashes non-listed brittwithbling against the frozen Live renderer",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 14122.610700000005
+        },
+        {
+          "title": "hashes non-listed theblingkitchen against the frozen Live renderer",
+          "fullName": "hashes non-listed theblingkitchen against the frozen Live renderer",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 14105.264500000005
+        },
+        {
+          "title": "hashes non-listed blingwithkrissig against the frozen Live renderer",
+          "fullName": "hashes non-listed blingwithkrissig against the frozen Live renderer",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 14108.217399999994
+        },
+        {
+          "title": "hashes non-listed sparklybutterflies against the frozen Live renderer",
+          "fullName": "hashes non-listed sparklybutterflies against the frozen Live renderer",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 14109.306199999992
+        },
+        {
+          "title": "reflects a changed saved setting on the very next render without a template cache",
+          "fullName": "reflects a changed saved setting on the very next render without a template cache",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 14106.81349999999
+        },
+        {
+          "title": "keeps SSR when a cold template read exceeds the old 1.5 second total budget",
+          "fullName": "keeps SSR when a cold template read exceeds the old 1.5 second total budget",
+          "ancestorTitles": [],
+          "status": "failed",
+          "duration": 8768.428600000014
+        },
+        {
+          "title": "keeps SSR when the first renderer load takes longer than the former safety budget",
+          "fullName": "keeps SSR when the first renderer load takes longer than the former safety budget",
+          "ancestorTitles": [],
+          "status": "failed",
+          "duration": 7071.142499999987
+        }
+      ]
+    },
+    {
+      "name": "C:/Users/louis/sparkle-suite-repo/.codex-worktrees/release-ssr-finder/tests/amethyst-ssr-required-pages.test.ts",
+      "status": "passed",
+      "startTime": 1793310175725,
+      "endTime": 1793310196962.9316,
+      "assertionResults": [
+        {
+          "title": "keeps Trade in SSR when mandatory data exceeds the inherited homepage deadline",
+          "fullName": "keeps Trade in SSR when mandatory data exceeds the inherited homepage deadline",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 7125.4989000000005
+        },
+        {
+          "title": "keeps Join in SSR when mandatory data exceeds the inherited homepage deadline",
+          "fullName": "keeps Join in SSR when mandatory data exceeds the inherited homepage deadline",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 7040.7205
+        },
+        {
+          "title": "returns an explicit temporary error instead of legacy HTML on mandatory render failure",
+          "fullName": "returns an explicit temporary error instead of legacy HTML on mandatory render failure",
+          "ancestorTitles": [],
+          "status": "passed",
+          "duration": 7071.931700000001
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "deploymentId": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+  "alias": "sparkle-suite-smoke.vercel.app",
+  "profiles": {
+    "desktop": {
+      "width": 1440,
+      "height": 900,
+      "cpu": 1
+    },
+    "phone": {
+      "width": 390,
+      "height": 844,
+      "cpu": 4,
+      "latency": 150,
+      "downloadBytesPerSecond": 200000,
+      "uploadBytesPerSecond": 93750,
+      "emulated": true,
+      "cacheDisabled": true
+    }
+  },
+  "expectedLoads": 156,
+  "startedAt": "2026-10-29T22:03:19.310Z",
+  "rows": [
+    {
+      "theme": "amethyst",
+      "page": "",
+      "layout": null,
+      "profile": "desktop",
+      "emulated": false,
+      "startedAt": "2026-10-29T22:03:19.311Z",
+      "httpStatus": 200,
+      "serverRendered": true,
+      "cls": 0.00007330246913580247,
+      "shifts": [
+        {
+          "time": 5288.10000000149,
+          "value": 0.00007330246913580247
+        }
+      ],
+      "h1VisibleMs": 4044.2000000029802,
+      "h1FrameProbeMs": 4044.2000000029802,
+      "fcpMs": 3960,
+      "lcpMs": 4420,
+      "lcpTag": "SECTION",
+      "timeOrigin": 1793311399439.2,
+      "ttfbMs": 40.600000001490116,
+      "styledAtFirstPaint": true,
+      "firstStyle": {
+        "fontFamily": "Italiana, \"Playfair Display\", serif",
+        "fontSize": "68px",
+        "lineHeight": "73.44px",
+        "heroPadding": "0px",
+        "styleCount": 6
+      },
+      "videos": [
+        {
+          "tag": "VIDEO",
+          "hero": true,
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "volume": 1,
+          "time": 7.411614,
+          "readyState": 4,
+          "loop": true,
+          "autoplay": true,
+          "playsInline": true
+        }
+      ],
+      "animations": [
+        {
+          "name": "au-ribbon",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-ribbon",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-ribbon",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        },
+        {
+          "name": "au-twinkle",
+          "state": "running",
+          "time": 8216.274000001828
+        }
+      ],
+      "visitorPaused": "false",
+      "reducedMotion": false,
+      "preventedSubmits": 0,
+      "horizontalOverflowPx": 0,
+      "audioAutoplay": false,
+      "firstPaintScreenshot": "screenshots/001-amethyst-standard-home-desktop-first-paint.jpg",
+      "failures": [
+        "CLS above zero: 0.00007330246913580247"
+      ],
+      "screenshot": "screenshots/001-amethyst-standard-home-desktop-failed.jpg"
+    }
+  ],
+  "blockedRequests": [],
+  "stopped": true,
+  "rollback": {
+    "reason": "CLS above zero: 0.00007330246913580247",
+    "alias": "sparkle-suite-smoke.vercel.app",
+    "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+    "fromDeploymentId": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+    "rollbackDeploymentId": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+    "startedAt": "2026-10-29T22:03:34.582Z",
+    "startedAtET": "10/29/26, 6:03:34 PM EDT",
+    "observedBefore": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+    "observedAfter": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+    "verified": true,
+    "verifiedAt": "2026-10-29T22:03:40.955Z",
+    "verifiedAtET": "10/29/26, 6:03:40 PM EDT"
+  }
+}

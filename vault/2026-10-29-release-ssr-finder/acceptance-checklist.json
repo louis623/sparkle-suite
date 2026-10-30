@@ -1,0 +1,78 @@
+{
+  "overall": "FAIL",
+  "stopReason": "CLS above zero: 0.00007330246913580247",
+  "checklist": [
+    {
+      "number": 1,
+      "status": "PASS",
+      "check": "Exact source tree",
+      "evidence": "20/20 required commits present; 2 conflict-free merges; one allowlist commit; 0 application diff against afd18246 excluding vault/config."
+    },
+    {
+      "number": 2,
+      "status": "PASS",
+      "check": "Allowlist",
+      "evidence": "Exactly 2 semantic additions against cb4f4860: release active-branch entry and its Smoke preview rule."
+    },
+    {
+      "number": 3,
+      "status": "PASS",
+      "check": "Build and traces",
+      "evidence": "npm ci/build exit 0; local/hosted tracing warnings 0/0; 250 manifests; 0 missing inputs; maximum rep 54,046,353 bytes; largest 140,697,711 bytes."
+    },
+    {
+      "number": 4,
+      "status": "PASS",
+      "check": "TypeScript and lint",
+      "evidence": "tsc exit 0; lint 203 -> 213 errors; exactly 10 permitted new errors, all listed in local-gates.md."
+    },
+    {
+      "number": 5,
+      "status": "PASS",
+      "check": "Specified test-name/hash criterion",
+      "evidence": "Full suites once each: base 5687/5598/84/5, candidate 5987/5895/87/5 (total/pass/fail/skip). Exactly 3 permitted new names. Rerun 18 total/14 pass/4 fail; all 7 frozen hashes pass; required pages 3/3 pass. The suite remains red."
+    },
+    {
+      "number": 6,
+      "status": "PASS",
+      "check": "One draft PR",
+      "evidence": "PR #166 into codex/nic-nac-trade-hardening; draft, open and unmerged. No #160-#165 edits."
+    },
+    {
+      "number": 7,
+      "status": "PASS",
+      "check": "One Smoke preview",
+      "evidence": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j READY, preview, exact ca6af2e6607d541f662d9aeeec6986c83ef8528b; 39 override names, 3 validated Smoke bindings, 31 blanks, 5 nonsecret settings; 0 forbidden flags or nonempty inherited provider values."
+    },
+    {
+      "number": 8,
+      "status": "PASS",
+      "check": "Smoke alias and rollback",
+      "evidence": "1 unique alias affected: sparkle-suite-smoke.vercel.app. Two assignments and two restorations, all recorded below. Final target dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc verified. No other alias/domain moved."
+    },
+    {
+      "number": 9,
+      "status": "FAIL",
+      "check": "All themes and layouts",
+      "evidence": "1/156 planned loads measured; first desktop Amethyst Home failed CLS 0.00007330246913580247 (required 0). 0 full-case passes, 1 hard failure, 155 loads not run. Phone 0/78; custom layouts 0/18. Pause/Play/reduced-motion checks stopped before interaction."
+    },
+    {
+      "number": 10,
+      "status": "FAIL",
+      "check": "Warm/cold speed and Live comparison",
+      "evidence": "Formal warm samples 0 on Smoke and 0 on Live; qualifying 15-minute-idle cold samples 0. First desktop matrix sample H1 4.0442 s/FCP 3.960 s/LCP 4.420 s, over desktop target; it is not labeled a qualifying cold or formal warm sample."
+    },
+    {
+      "number": 11,
+      "status": "FAIL",
+      "check": "Legacy marker/control comparisons",
+      "evidence": "0 legacy routes compared with Live after the hard stop. The 7 offline frozen-renderer hashes pass, but do not replace these unperformed browser comparisons."
+    }
+  ],
+  "extraFinderCheck": {
+    "status": "NOT RUN",
+    "completed": 0,
+    "planned": 3,
+    "reason": "Stopped at first theme CLS failure"
+  }
+}

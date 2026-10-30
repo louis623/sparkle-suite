@@ -1,0 +1,226 @@
+[
+  {
+    "page": "trade",
+    "phone": false,
+    "bodyClass": "tradepage bg-gobble-and-fizz surface-gobble-and-fizz shape-soft",
+    "rects": [
+      {
+        "className": "hp-header",
+        "text": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 78.5,
+          "top": 0,
+          "right": 1440,
+          "bottom": 78.5,
+          "left": 0
+        }
+      },
+      {
+        "className": "tp-hero",
+        "text": null,
+        "rect": {
+          "x": 0,
+          "y": 204.5,
+          "width": 1440,
+          "height": 461.40625,
+          "top": 204.5,
+          "right": 1440,
+          "bottom": 665.90625,
+          "left": 0
+        }
+      },
+      {
+        "className": "tp-hero-title slot",
+        "text": "Find the dancer you were hoping for.",
+        "rect": {
+          "x": 311.765625,
+          "y": 268.5,
+          "width": 816.46875,
+          "height": 169.875,
+          "top": 268.5,
+          "right": 1128.234375,
+          "bottom": 438.375,
+          "left": 311.765625
+        }
+      },
+      {
+        "className": "tp-board",
+        "text": null,
+        "rect": {
+          "x": 0,
+          "y": 665.90625,
+          "width": 1440,
+          "height": 2307.296875,
+          "top": 665.90625,
+          "right": 1440,
+          "bottom": 2973.203125,
+          "left": 0
+        }
+      }
+    ]
+  },
+  {
+    "page": "trade",
+    "phone": true,
+    "bodyClass": "tradepage bg-gobble-and-fizz surface-gobble-and-fizz shape-soft",
+    "rects": [
+      {
+        "className": "hp-header",
+        "text": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 118.5,
+          "top": 0,
+          "right": 390,
+          "bottom": 118.5,
+          "left": 0
+        }
+      },
+      {
+        "className": "tp-hero",
+        "text": null,
+        "rect": {
+          "x": 0,
+          "y": 244.5,
+          "width": 390,
+          "height": 497.796875,
+          "top": 244.5,
+          "right": 390,
+          "bottom": 742.296875,
+          "left": 0
+        }
+      },
+      {
+        "className": "tp-hero-title slot",
+        "text": "Find the dancer you were hoping for.",
+        "rect": {
+          "x": 41.71875,
+          "y": 292.5,
+          "width": 306.546875,
+          "height": 131.734375,
+          "top": 292.5,
+          "right": 348.265625,
+          "bottom": 424.234375,
+          "left": 41.71875
+        }
+      },
+      {
+        "className": "tp-board",
+        "text": null,
+        "rect": {
+          "x": 0,
+          "y": 742.296875,
+          "width": 390,
+          "height": 7914.6875,
+          "top": 742.296875,
+          "right": 390,
+          "bottom": 8656.984375,
+          "left": 0
+        }
+      }
+    ]
+  },
+  {
+    "page": "join",
+    "phone": false,
+    "bodyClass": "joinpage bg-gobble-and-fizz surface-gobble-and-fizz shape-soft",
+    "rects": [
+      {
+        "className": "hp-header",
+        "text": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 78.5,
+          "top": 0,
+          "right": 1440,
+          "bottom": 78.5,
+          "left": 0
+        }
+      },
+      {
+        "className": "jp-hero",
+        "text": null,
+        "rect": {
+          "x": 0,
+          "y": 204.5,
+          "width": 1440,
+          "height": 587.046875,
+          "top": 204.5,
+          "right": 1440,
+          "bottom": 791.546875,
+          "left": 0
+        }
+      },
+      {
+        "className": "jp-hero-title slot",
+        "text": "Join Fizz Festival",
+        "rect": {
+          "x": 401,
+          "y": 361,
+          "width": 638,
+          "height": 85.671875,
+          "top": 361,
+          "right": 1039,
+          "bottom": 446.671875,
+          "left": 401
+        }
+      }
+    ]
+  },
+  {
+    "page": "join",
+    "phone": true,
+    "bodyClass": "joinpage bg-gobble-and-fizz surface-gobble-and-fizz shape-soft",
+    "rects": [
+      {
+        "className": "hp-header",
+        "text": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 118.5,
+          "top": 0,
+          "right": 390,
+          "bottom": 118.5,
+          "left": 0
+        }
+      },
+      {
+        "className": "jp-hero",
+        "text": null,
+        "rect": {
+          "x": 0,
+          "y": 244.5,
+          "width": 390,
+          "height": 658.875,
+          "top": 244.5,
+          "right": 390,
+          "bottom": 903.375,
+          "left": 0
+        }
+      },
+      {
+        "className": "jp-hero-title slot",
+        "text": "Join Fizz Festival",
+        "rect": {
+          "x": 77.09375,
+          "y": 379,
+          "width": 235.796875,
+          "height": 89.8125,
+          "top": 379,
+          "right": 312.890625,
+          "bottom": 468.8125,
+          "left": 77.09375
+        }
+      }
+    ]
+  }
+]

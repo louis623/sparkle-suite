@@ -1,0 +1,7 @@
+{
+  "alias": "sparkle-suite-smoke.vercel.app",
+  "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+  "deploymentId": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+  "expectedRollbackMatch": true,
+  "checkedAt": "2026-10-29 22:05:09 UTC"
+}

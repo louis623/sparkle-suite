@@ -1,0 +1,5 @@
+
+> neon-rabbit-core@0.1.0 lint
+> eslint --format json --output-file C:\Users\louis\sparkle-suite-repo\.codex-worktrees\release-ssr-finder\vault\2026-10-29-release-ssr-finder\lint-base.json
+
+[BABEL] Note: The code generator has deoptimised the styling of C:\Users\louis\sparkle-suite-repo\.codex-worktrees\release-ssr-finder-base\app\nic-nac\components\DashboardPlaceholder.tsx as it exceeds the max of 500KB.

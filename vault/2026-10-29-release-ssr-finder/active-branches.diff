@@ -1,0 +1,25 @@
+diff --git a/config/active-branches.json b/config/active-branches.json
+index e68b3704..c201dab4 100644
+--- a/config/active-branches.json
++++ b/config/active-branches.json
+@@ -39,7 +39,8 @@
+     "cursor/join-server-html-26e8",
+     "cursor/suite-join-ssr-rep-routes",
+     "cursor/theme-carousel-site-peeks-db80",
+-    "codex/ssr-chunk1-fizzfest-home"
++    "codex/ssr-chunk1-fizzfest-home",
++    "codex/release-ssr-finder"
+   ],
+   "previewBranches": {
+     "codex/faq-articles": {
+@@ -145,6 +146,10 @@
+     "codex/ssr-chunk1-fizzfest-home": {
+       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+       "environment": "preview"
++    },
++    "codex/release-ssr-finder": {
++      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
++      "environment": "preview"
+     }
+   },
+   "productionBranch": "codex/nic-nac-trade-hardening",

@@ -1,0 +1,79 @@
+{
+  "baseErrors": 203,
+  "branchErrors": 213,
+  "delta": 10,
+  "newErrorCount": 10,
+  "onlyPermittedNewErrors": true,
+  "newErrors": [
+    {
+      "file": "lib/amethyst/v2/join.jsx",
+      "rule": "react/no-unescaped-entities",
+      "line": 1198,
+      "column": 43,
+      "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+    },
+    {
+      "file": "lib/amethyst/v2/join.jsx",
+      "rule": "react/no-unescaped-entities",
+      "line": 1201,
+      "column": 59,
+      "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+    },
+    {
+      "file": "lib/amethyst/v2/join.jsx",
+      "rule": "react/no-unescaped-entities",
+      "line": 1203,
+      "column": 78,
+      "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+    },
+    {
+      "file": "lib/amethyst/v2/join.jsx",
+      "rule": "react/no-unescaped-entities",
+      "line": 1348,
+      "column": 17,
+      "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+    },
+    {
+      "file": "lib/amethyst/v2/join.jsx",
+      "rule": "react/jsx-no-undef",
+      "line": 1438,
+      "column": 44,
+      "message": "'window' is not defined."
+    },
+    {
+      "file": "lib/amethyst/v2/trade.jsx",
+      "rule": "react-hooks/immutability",
+      "line": 1523,
+      "column": 3,
+      "message": "Error: This value cannot be modified\n\nModifying a value returned from a hook is not allowed. Consider moving the modification into the hook where the value is constructed.\n\n  1521 |   const ref = useRef(null);\n  1522 |   const close = useRef(onClose);\n> 1523 |   close.current = onClose;\n       |   ^^^^^ value cannot be modified\n  1524 |   useEffect(() => {\n  1525 |     if (!open || !ref.current) return;\n  1526 |     const dialog = ref.current;\n\nHint: If this value is a Ref (value returned by `useRef()`), rename the variable to end in \"Ref\"."
+    },
+    {
+      "file": "lib/amethyst/v2/trade.jsx",
+      "rule": "react-hooks/immutability",
+      "line": 1733,
+      "column": 34,
+      "message": "Error: This value cannot be modified\n\nModifying a value returned from a hook is not allowed. Consider moving the modification into the hook where the value is constructed.\n\n  1731 |     setUploadState(\"idle\");\n  1732 |     setScreenshotError(\"\");\n> 1733 |     if (screenshotInput.current) screenshotInput.current.value = \"\";\n       |                                  ^^^^^^^^^^^^^^^^^^^^^^^ `screenshotInput` cannot be modified\n  1734 |   };\n  1735 |\n  1736 |   useEffect(() => {"
+    },
+    {
+      "file": "lib/amethyst/v2/trade.jsx",
+      "rule": "react/no-unescaped-entities",
+      "line": 1907,
+      "column": 33,
+      "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+    },
+    {
+      "file": "lib/amethyst/v2/trade.jsx",
+      "rule": "react/no-unescaped-entities",
+      "line": 1924,
+      "column": 40,
+      "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+    },
+    {
+      "file": "lib/amethyst/v2/trade.jsx",
+      "rule": "react/jsx-no-undef",
+      "line": 2110,
+      "column": 47,
+      "message": "'window' is not defined."
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "carried": 110,
+  "carriedMeasurementDifferences": 0,
+  "priorFileHashMatches": true,
+  "newAttemptsOverlappingCarried": 0,
+  "matrixCases": 156,
+  "matrixUniqueKeys": 156,
+  "combinedMarkdownRows": 156,
+  "newMatrix": 46,
+  "warmSmoke": 30,
+  "warmLive": 30,
+  "legacyComparisons": 8,
+  "finderGETs": 4,
+  "newAttempts": 138,
+  "retries": 0,
+  "appDiffEmpty": true,
+  "blockedRequests": 359,
+  "allBlockedAreTikTok": true,
+  "restoredAndReconfirmed": true,
+  "checkedAt": "2026-10-30T00:41:09.279Z"
+}

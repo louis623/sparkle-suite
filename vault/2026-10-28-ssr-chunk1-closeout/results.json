@@ -1,0 +1,928 @@
+{
+  "base": "https://sparkle-suite-smoke.vercel.app",
+  "profiles": {
+    "desktop": {
+      "width": 1440,
+      "height": 1000,
+      "cpu": 1
+    },
+    "phone": {
+      "width": 390,
+      "height": 900,
+      "cpu": 4,
+      "downloadBytesPerSecond": 200000,
+      "uploadBytesPerSecond": 93750,
+      "latencyMs": 150
+    }
+  },
+  "runs": [
+    {
+      "profile": "desktop",
+      "run": 1,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "blockedWriteCount": 0,
+      "ttfbMs": 265.30000000074506,
+      "status": 200,
+      "header": "deferred",
+      "before": {
+        "cls": 0,
+        "hydratedAt": 3775.2000000011176,
+        "events": [
+          {
+            "name": "playing",
+            "at": 2330.0999999996275,
+            "time": 0.0005,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 1.4537,
+          "duration": 5.041667,
+          "readyState": 4,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 34,
+          "rect": {
+            "x": 0,
+            "y": 204.5,
+            "width": 1440,
+            "height": 810.421875,
+            "top": 204.5,
+            "right": 1440,
+            "bottom": 1014.921875,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "after": {
+        "cls": 0.00006597222222222222,
+        "hydratedAt": 3775.2000000011176,
+        "events": [
+          {
+            "name": "playing",
+            "at": 2330.0999999996275,
+            "time": 0.0005,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 7375.200000001118,
+            "time": 0.0003,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 12425.800000000745,
+            "time": 0.0002,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 1.1976,
+          "duration": 5.041667,
+          "readyState": 4,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 275,
+          "rect": {
+            "x": 0,
+            "y": 204.5,
+            "width": 1440,
+            "height": 810.421875,
+            "top": 204.5,
+            "right": 1440,
+            "bottom": 1014.921875,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "hydrationErrors": [],
+      "pass": true,
+      "controls": {
+        "pausedLabel": "Play animation",
+        "resumedLabel": "Pause animation",
+        "pass": true
+      }
+    },
+    {
+      "profile": "desktop",
+      "run": 2,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "blockedWriteCount": 0,
+      "ttfbMs": 151.5,
+      "status": 200,
+      "header": "deferred",
+      "before": {
+        "cls": 0,
+        "hydratedAt": 1227.2999999988824,
+        "events": [
+          {
+            "name": "playing",
+            "at": 1283,
+            "time": 0.0286,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 0.1041,
+          "duration": 5.041667,
+          "readyState": 4,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 7,
+          "rect": {
+            "x": 0,
+            "y": 204.5,
+            "width": 1440,
+            "height": 810.421875,
+            "top": 204.5,
+            "right": 1440,
+            "bottom": 1014.921875,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "after": {
+        "cls": 0.00006597222222222222,
+        "hydratedAt": 1227.2999999988824,
+        "events": [
+          {
+            "name": "playing",
+            "at": 1283,
+            "time": 0.0286,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 6304.699999999255,
+            "time": 0.0003,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 2.0082,
+          "duration": 5.041667,
+          "readyState": 4,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 173,
+          "rect": {
+            "x": 0,
+            "y": 204.5,
+            "width": 1440,
+            "height": 810.421875,
+            "top": 204.5,
+            "right": 1440,
+            "bottom": 1014.921875,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "hydrationErrors": [],
+      "pass": true,
+      "controls": {
+        "pausedLabel": "Play animation",
+        "resumedLabel": "Pause animation",
+        "pass": true
+      }
+    },
+    {
+      "profile": "desktop",
+      "run": 3,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "blockedWriteCount": 0,
+      "ttfbMs": 145.2000000011176,
+      "status": 200,
+      "header": "deferred",
+      "before": {
+        "cls": 0,
+        "hydratedAt": 1034.800000000745,
+        "events": [
+          {
+            "name": "playing",
+            "at": 1056.9000000003725,
+            "time": 0.0004,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 0.1049,
+          "duration": 5.041667,
+          "readyState": 4,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 7,
+          "rect": {
+            "x": 0,
+            "y": 204.5,
+            "width": 1440,
+            "height": 810.421875,
+            "top": 204.5,
+            "right": 1440,
+            "bottom": 1014.921875,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "after": {
+        "cls": 0.00006597222222222222,
+        "hydratedAt": 1034.800000000745,
+        "events": [
+          {
+            "name": "playing",
+            "at": 1056.9000000003725,
+            "time": 0.0004,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 6113.60000000149,
+            "time": 0.0002,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 2.4902,
+          "duration": 5.041667,
+          "readyState": 4,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 185,
+          "rect": {
+            "x": 0,
+            "y": 204.5,
+            "width": 1440,
+            "height": 810.421875,
+            "top": 204.5,
+            "right": 1440,
+            "bottom": 1014.921875,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "hydrationErrors": [],
+      "pass": true,
+      "controls": {
+        "pausedLabel": "Play animation",
+        "resumedLabel": "Pause animation",
+        "pass": true
+      }
+    },
+    {
+      "profile": "desktop",
+      "run": 4,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "blockedWriteCount": 0,
+      "ttfbMs": 153,
+      "status": 200,
+      "header": "deferred",
+      "before": {
+        "cls": 0,
+        "hydratedAt": 930,
+        "events": [
+          {
+            "name": "playing",
+            "at": 820.8999999985099,
+            "time": 0.0003,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 0.123,
+          "duration": 5.041667,
+          "readyState": 4,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 4,
+          "rect": {
+            "x": 0,
+            "y": 204.5,
+            "width": 1440,
+            "height": 810.421875,
+            "top": 204.5,
+            "right": 1440,
+            "bottom": 1014.921875,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "after": {
+        "cls": 0.00006597222222222222,
+        "hydratedAt": 930,
+        "events": [
+          {
+            "name": "playing",
+            "at": 820.8999999985099,
+            "time": 0.0003,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 957.2999999988824,
+            "time": 0.1361,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 5866.199999999255,
+            "time": 0.0003,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 2.627,
+          "duration": 5.041667,
+          "readyState": 4,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 188,
+          "rect": {
+            "x": 0,
+            "y": 204.5,
+            "width": 1440,
+            "height": 810.421875,
+            "top": 204.5,
+            "right": 1440,
+            "bottom": 1014.921875,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "hydrationErrors": [],
+      "pass": true,
+      "controls": {
+        "pausedLabel": "Play animation",
+        "resumedLabel": "Pause animation",
+        "pass": true
+      }
+    },
+    {
+      "profile": "phone",
+      "run": 1,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "blockedWriteCount": 0,
+      "ttfbMs": 139.09999999962747,
+      "status": 200,
+      "header": "deferred",
+      "before": {
+        "cls": 0,
+        "hydratedAt": 3272.2999999988824,
+        "events": [
+          {
+            "name": "playing",
+            "at": 5357.39999999851,
+            "time": 0.0034,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 0.1205,
+          "duration": 5.041667,
+          "readyState": 3,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 5,
+          "rect": {
+            "x": 0,
+            "y": 244.5,
+            "width": 390,
+            "height": 390,
+            "top": 244.5,
+            "right": 390,
+            "bottom": 634.5,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "after": {
+        "cls": 0,
+        "hydratedAt": 3272.2999999988824,
+        "events": [
+          {
+            "name": "playing",
+            "at": 5357.39999999851,
+            "time": 0.0034,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 6025.0999999996275,
+            "time": 0.1813,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 6673.39999999851,
+            "time": 0.4413,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 7334.799999998882,
+            "time": 0.7699,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 8662.099999999627,
+            "time": 1.6038,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 9760.099999999627,
+            "time": 2.1911,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 10970.89999999851,
+            "time": 3.0163,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 3.1083,
+          "duration": 5.041667,
+          "readyState": 4,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 83,
+          "rect": {
+            "x": 0,
+            "y": 244.5,
+            "width": 390,
+            "height": 390,
+            "top": 244.5,
+            "right": 390,
+            "bottom": 634.5,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "hydrationErrors": [],
+      "pass": true,
+      "controls": {
+        "pausedLabel": "Play animation",
+        "resumedLabel": "Pause animation",
+        "pass": true
+      }
+    },
+    {
+      "profile": "phone",
+      "run": 2,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "blockedWriteCount": 0,
+      "ttfbMs": 178.7999999988824,
+      "status": 200,
+      "header": "deferred",
+      "before": {
+        "cls": 0,
+        "hydratedAt": 3254.2999999988824,
+        "events": [
+          {
+            "name": "playing",
+            "at": 5420.299999998882,
+            "time": 0.0017,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 0.1189,
+          "duration": 5.041667,
+          "readyState": 3,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 5,
+          "rect": {
+            "x": 0,
+            "y": 244.5,
+            "width": 390,
+            "height": 390,
+            "top": 244.5,
+            "right": 390,
+            "bottom": 634.5,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "after": {
+        "cls": 0,
+        "hydratedAt": 3254.2999999988824,
+        "events": [
+          {
+            "name": "playing",
+            "at": 5420.299999998882,
+            "time": 0.0017,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 6090.299999998882,
+            "time": 0.1788,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 6741.699999999255,
+            "time": 0.436,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 7726.0999999996275,
+            "time": 1.0249,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 8716.199999999255,
+            "time": 1.5963,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 9736.900000000373,
+            "time": 2.1774,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 10722,
+            "time": 2.771,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 2.9722,
+          "duration": 5.041667,
+          "readyState": 4,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 79,
+          "rect": {
+            "x": 0,
+            "y": 244.5,
+            "width": 390,
+            "height": 390,
+            "top": 244.5,
+            "right": 390,
+            "bottom": 634.5,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "hydrationErrors": [],
+      "pass": true,
+      "controls": {
+        "pausedLabel": "Play animation",
+        "resumedLabel": "Pause animation",
+        "pass": true
+      }
+    },
+    {
+      "profile": "phone",
+      "run": 3,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "blockedWriteCount": 0,
+      "ttfbMs": 148.2000000011176,
+      "status": 200,
+      "header": "deferred",
+      "before": {
+        "cls": 0,
+        "hydratedAt": 3105.10000000149,
+        "events": [
+          {
+            "name": "playing",
+            "at": 5308,
+            "time": 0.0016,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 0.1134,
+          "duration": 5.041667,
+          "readyState": 3,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 5,
+          "rect": {
+            "x": 0,
+            "y": 244.5,
+            "width": 390,
+            "height": 390,
+            "top": 244.5,
+            "right": 390,
+            "bottom": 634.5,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "after": {
+        "cls": 0,
+        "hydratedAt": 3105.10000000149,
+        "events": [
+          {
+            "name": "playing",
+            "at": 5308,
+            "time": 0.0016,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 5969.9000000003725,
+            "time": 0.1709,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 6614.700000001118,
+            "time": 0.4275,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 7604.700000001118,
+            "time": 1.0229,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 8610,
+            "time": 1.5975,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 9602.900000000373,
+            "time": 2.1811,
+            "muted": true,
+            "hidden": false
+          },
+          {
+            "name": "playing",
+            "at": 10600.400000000373,
+            "time": 2.7717,
+            "muted": true,
+            "hidden": false
+          }
+        ],
+        "taps": 0,
+        "pauseCalls": [],
+        "video": {
+          "paused": false,
+          "muted": true,
+          "defaultMuted": true,
+          "currentTime": 2.9619,
+          "duration": 5.041667,
+          "readyState": 4,
+          "autoplay": true,
+          "loop": true,
+          "playsInline": true,
+          "poster": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp",
+          "opacity": "1",
+          "frames": 79,
+          "rect": {
+            "x": 0,
+            "y": 244.5,
+            "width": 390,
+            "height": 390,
+            "top": 244.5,
+            "right": 390,
+            "bottom": 634.5,
+            "left": 0
+          }
+        },
+        "posterLoaded": true,
+        "h1": 1,
+        "ssr": true,
+        "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+        "hydrated": true
+      },
+      "hydrationErrors": [],
+      "pass": true,
+      "controls": {
+        "pausedLabel": "Play animation",
+        "resumedLabel": "Pause animation",
+        "pass": true
+      }
+    }
+  ],
+  "pantry": {
+    "status": 200,
+    "content": true,
+    "bytes": 13484
+  }
+}

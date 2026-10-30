@@ -1,3 +1,10 @@
+## October 28, 2026 — SSR chunk 2: code complete, speed acceptance failed
+
+- Draft PR #163 targets codex/ssr-all-themes; app 7fa6fbe69922f1802068e2f91efe5a40d6beb7cb. Clean worktree .codex-worktrees/ssr-dancefloor-join; primary dirty checkout preserved.
+- Demo-only Trade/Join SSR covers 23 themes × four layouts. Final candidate dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc READY; 184 protected HTTP cases and 12 local final Gnome browser checks pass. Full suite once: 5908/56/6; 52 baseline names, four harness failures fixed in focused checks.
+- NOT ready: 9.160s cold desktop and intermittent phone/data delays remain. Smoke alias restored/confirmed at dpl_8Z9xfABn8F7WkSPMHKdNYE7NpTek. Automatic approval review blocked reassigning the failed candidate; no retry. No Live, migrations, project/env changes or merge.
+- [Evidence and remaining work](2026-10-28-ssr-chunk2-closeout/closeout.md), including full page/theme/layout table, timings and screenshots. Open Brain capture confirmed separately.
+
 ## October 17, 2026 - Fall Owl and Harvest Moon community theme live
 
 - FO-01 / `fall_owl_harvest_moon` is a Community theme available to every rep, preserving all existing saved selections. Product SHA `52fd92ac5e1b2ec846a792bad2d3fb93ca86c2f1` is READY on `dpl_5a8SKJU3hKPbmijmrXpDqWUEE3L8` on both Suite domains and all existing aliases. Migration `20261017000100` applied and recorded through existing authenticated Supabase CLI; no credentials exported.
@@ -4188,3 +4195,8 @@ Louis requested automatic matching print deliverables for every new theme. Added
 
 ## October 26 — isolated SSR Chunk 1
 See [SSR Chunk 1 final report](2026-10-26-ssr-chunk1-fizzfest.md). One public preview deployed at b9d707d081ec4290ecb24372a39f1591e7fa6b25; one completed measurement round, then STOPPED without fixes. Median LCP phone 2.484 s / desktop 1.392 s, CLS 0, but overall acceptance FAIL: timezone visual mismatch, incomplete taps/custom-domain parity, analytics absent, TikTok playback unverified, console errors, signup/favorite blocked, deployed fallback checks unverified. Local TypeScript + 75 tests + 11 layout locks pass. Seven known non-demo slugs match Live bytes. Zero database writes; Live/Smoke/settings/aliases unchanged. Both Suite domains reverified at 3f175871 / dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P. Do not merge/promote; #156 remains reference-only.
+
+
+## October 28, 2026 — SSR Chunk 1 session closeout
+
+Latest accepted Smoke SSR checkpoint: application09e46db0, deployment dpl_HEaABdWqCtia5EY1YJvYKttXA5To; rollback4QeShF4D7bGWA6beRoEAqbSXoNR7. PR161 unmerged. Seven cold/warm desktop/phone loads pass autoplay/controls/deferredSSR; full suite0newfailednames (52baseline failures remain). Live3KR unchanged. See 2026-10-28-ssr-chunk1-closeout/closeout.md. Supersedes prior blocked/failed Smoke checkpoints.

@@ -1,4 +1,5 @@
 import { previewHomepageTheme } from './homepage-data-budget'
+import { homepageSmokeReview } from './homepage-smoke-review'
 import { shouldUseRepRenderV2 } from './rep-render-version'
 import { bestEffortHomepage } from './homepage-render-safety'
 import { readFile } from 'node:fs/promises'
@@ -530,6 +531,8 @@ function rewriteAmethystPublicHtml(
   )
 }
 
+let homepageSSRRequests = 0
+
 export async function renderAmethystPublicAssetResponse(
   request: Request,
   asset: string[],
@@ -539,7 +542,11 @@ export async function renderAmethystPublicAssetResponse(
     const legacy = await import('./legacy/public-asset-response')
     return legacy.renderAmethystPublicAssetResponse(request, asset, options)
   }
-  const filePath = join(process.cwd(), 'lib/amethyst/legacy/assets/Homepage.html')
+  const filePath = asset.join('/') === 'Trade.html'
+    ? join(process.cwd(), 'lib/amethyst/legacy/assets/Trade.html')
+    : asset.join('/') === 'Join.html'
+      ? join(process.cwd(), 'lib/amethyst/legacy/assets/Join.html')
+      : join(process.cwd(), 'lib/amethyst/legacy/assets/Homepage.html')
   if (!filePath) return new Response('Not found', { status: 404 })
 
   try {
@@ -561,21 +568,32 @@ export async function renderAmethystPublicAssetResponse(
     const repId = options.repIdOverride?.trim() || resolveAmethystRequestRepId(request)
     const resolvedOptions = repId ? { ...options, repIdOverride: repId } : options
     const ssrStarted = performance.now()
+    const cold = homepageSSRRequests++ === 0
+    const timings: Record<string, number> = {}
+    const rendererTask = import('./homepage-first-paint')
+    void rendererTask.catch(() => {})
+    const mark = (step: string) => { timings[step] = performance.now() - ssrStarted }
     const templatePromise =
       page && contentType.startsWith('text/html') && repId
-        ? loadAmethystPreviewTemplateData({ repId, publicSiteSlug: options.publicSiteSlugOverride || '' }).then(data => previewHomepageTheme(data, options.publicSiteSlugOverride))
+        ? loadAmethystPreviewTemplateData({ repId, publicSiteSlug: options.publicSiteSlugOverride || '' }).then(data => homepageSmokeReview(previewHomepageTheme(data, options.publicSiteSlugOverride), requestUrl, options.publicSiteSlugOverride))
         : Promise.resolve(null)
     const bootstrapUrl = new URL('/api/amethyst/homepage-template', requestUrl.origin)
     bootstrapUrl.searchParams.set('c', repId || '')
     bootstrapUrl.searchParams.set('publicSiteSlug', options.publicSiteSlugOverride || '')
     bootstrapUrl.searchParams.set('lineupPresentation', 'grouped-v1')
     // Start all data reads before waiting for the template used by metadata.
-    const bootstrapTask = import('./homepage-bootstrap-response').then(({ buildHomepageBootstrapResponse }) =>
+    const bootstrapTask = page !== 'homepage'
+      ? import('./customer-page-bootstrap-response').then(({ buildCustomerPageBootstrapResponse }) => buildCustomerPageBootstrapResponse(page as 'trade' | 'join', request, {
+        templateData: templatePromise.then(data => { if (!data) throw new Error('Missing template'); return data }),
+        repId: repId || '', publicSiteSlug: options.publicSiteSlugOverride || '',
+      })).catch(() => null)
+      : import('./homepage-bootstrap-response').then(({ buildHomepageBootstrapResponse }) =>
       buildHomepageBootstrapResponse(new Request(bootstrapUrl, { headers: request.headers }), {
         templateData: templatePromise.then(data => { if (!data) throw new Error('Missing template'); return data }),
         repId: repId || '',
       })).catch(() => null)
     const loadedTemplate = await templatePromise
+    mark('templateReadyMs')
     const templateData = loadedTemplate
       ? restrictPantryTemplateData(
           await indexPublicJoinTemplate(loadedTemplate, { repId }),
@@ -621,17 +639,35 @@ export async function renderAmethystPublicAssetResponse(
           { ...resolvedOptions, pantryRecipes, pantryEmpty, joinRuntimeContext },
           ga4Tag,
         )
-        if (page === 'homepage' && templateData) {
+        if ((page === 'homepage' || page === 'trade' || page === 'join') && templateData) {
           const original = responseBody as string
-          responseBody = await bestEffortHomepage(async () => {
+          mark('metadataReadyMs')
+          const renderFirstPaint = async () => {
             const response = await bootstrapTask
             if (!response?.ok) throw new Error('Homepage data response failed')
             pageDataState = response.headers.get('x-sparkle-page-data') || undefined
             const bootstrap = await response.text()
+            mark('bootstrapReadyMs')
             if (forceHomepageRenderFailure(request)) throw new Error('Preview render failure probe')
-            const { renderHomepageFirstPaint } = await import('./homepage-first-paint')
-            return renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
-          }, Math.max(0, 1500 - (performance.now() - ssrStarted))) ?? original
+            const renderer = await rendererTask
+            mark('rendererReadyMs')
+            return page === 'homepage' ? renderer.renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
+              : renderer.renderAmethystPageFirstPaint(page, original, templateData, requestUrl, bootstrap)
+          }
+          if (page === 'homepage') {
+            responseBody = await bestEffortHomepage(renderFirstPaint, Math.max(0, 5000 - (performance.now() - ssrStarted))) ?? original
+          } else {
+            // These demo pages require their real data in the first paint.
+            // A slow read must never switch the visitor to browser Babel.
+            try { responseBody = await renderFirstPaint() }
+            catch {
+              console.warn('customer_page_ssr_failed', JSON.stringify({ page }))
+              return new Response('This page is temporarily unavailable. Please reload.', {
+                status: 503, headers: { 'Cache-Control': 'no-store' },
+              })
+            }
+          }
+          console.info('homepage_ssr_request', JSON.stringify({ cold, ...timings, totalMs: performance.now() - ssrStarted, result: responseBody === original ? 'fallback' : 'ssr', pageDataState }))
         }
       } else if (templateScriptPage) {
         responseBody = rewriteTemplateScriptTarget(

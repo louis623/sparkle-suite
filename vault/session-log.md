@@ -1,3 +1,35 @@
+## October 29, 2026 — Checks-only SSR + Finder resume completed
+
+- Complete combined 156-load matrix: 110 prior results reused unchanged, 46 missing loads measured, no repeated prior requests. All 156 are 200/SSR/styled, max CLS 0.0001. Existing dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j at ca6af2e6 reused; no rebuild/redeploy/app edits or DB writes.
+- Overall FAIL on baseline/legacy criteria: Live dudesfizzfest lacks SSR and exceeds CLS 0.01; both origins' legacy Home/Trade/Join pages shift; max CLS 0.2516. Mile High Fizz Pantry is 404 on both. Legacy controls match 1/7 available pairs; six differ, one unavailable. No cause isolated or new SSR regression asserted.
+- Completed 30 Smoke + 30 Live warm samples, Live cold sample, eight legacy pairs, three valid Finder GETs (all 200/shape pass) plus bare availability (expected 400). Zero retries across 138 new attempts. Timing and motion findings recorded without stopping, per this run's instructions.
+- Only Smoke alias moved, at 20:06:25 EDT. Recorded rollback dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc restored 20:37:00, verified 20:37:03, independently reconfirmed 20:37:06 and via MCP 20:40:13 EDT. No Live changes or sign-in/submissions.
+- [Combined report, attempt log, screenshots and alias receipts](2026-10-29-release-ssr-finder/rerun-2/report.md). Evidence only to codex/release-ssr-finder; PR166 remains draft/unmerged. Actual Open Brain capture confirmed: "Captured as observation — SSR, Finder Checks, Smoke Tests". No further application work under this checks-only run.
+
+## October 29, 2026 — Smoke browser rerun stopped on navigation failure
+
+- Reused READY dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j at ca6af2e6 from release tip e59b624e; no rebuild, redeploy or application changes. Smoke-only CLS limit below 0.01.
+- Matrix: 110/156 fully measured, 111 attempted, 1 timed-out navigation, 45 unattempted. All 110 completed loads were 200/SSR/styled, no audio autoplay, maximum CLS 0.00007330246913580247 (0.0001 displayed). Eleven phone timing misses; ten motion failures; 38/110 reduced-motion changes left hero playback running.
+- Rose Champagne desktop Dance Floor started 18:44:16 EDT and returned net::ERR_TIMED_OUT, with no HTTP status or SSR measurement. No application SSR defect or 503 is claimed; cause not isolated. Stop rule prevented remaining themes/layouts, formal warm/Live comparison, legacy and Finder GETs. First default Smoke cold sample: H1 7.810s, LCP 7.888s, TTFB 42.5ms.
+- Only sparkle-suite-smoke.vercel.app moved: candidate verified 18:18:31 EDT; recorded rollback dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc restored/reread 18:52:39 EDT. Initial automatic CLI recovery failed; two connector requests timed out in automatic permission review; bounded local CLI fallback succeeded.
+- One read-only Smoke catalog ID query prepared availability's required designId; Louis confirmed using an existing Smoke item. Availability GET remained unrun after stop. No Live env/DB/key/project operations, sign-in, submissions, data writes, merges or production-branch push.
+- [Rerun report, every-load data, screenshots and verified rollback](2026-10-29-release-ssr-finder/rerun/report.md). PR #166 stays draft; evidence goes only to codex/release-ssr-finder. Actual Open Brain MCP capture confirmed: "Captured as observation — SSR, Performance, Quality Assurance". STOP; no further application checks or fixes under this run.
+
+## October 29, 2026 — Combined SSR + Finder Smoke RC failed acceptance
+
+- Exact cb4f4860 + afd18246 + 0c2167b4 inputs combined on `codex/release-ssr-finder`; allowlist-only c4e66b41; one draft PR #166, unmerged. One Smoke PREVIEW dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j is READY from ca6af2e6; no Live action.
+- Build/trace/tsc/lint-diff gates pass. Full suites once: base 5687/5598/84/5, candidate 5987/5895/87/5 (total/pass/fail/skip); only 3 permitted new names. The 90s rerun is 14/18, with all 7 frozen hashes passing.
+- Actual browser hard stop after 1/156 loads: desktop Amethyst Home 200/SSR, CLS 0.00007330246913580247, H1 4.044s, LCP 4.420s. Smoke alias restored/verified to dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc at 18:03:40 EDT. Remaining phone/theme/layout, warm/cold/Live, legacy and Finder checks skipped as instructed.
+- Initial QA-only cookie requirement caused a separate safety rollback before any theme load; corrected with public GETs, same preview reused. No rep sign-in, data write, Live env/DB access, production-branch push, PR merge or application fix.
+- [Full report, checklist, timestamps and screenshots](2026-10-29-release-ssr-finder/report.md). STOP; await a new scoped instruction. Actual Open Brain MCP capture succeeded, returning "Captured as observation — release candidate, browser acceptance, failed tests".
+
+## October 28, 2026 — SSR chunk 2: code complete, speed acceptance failed
+
+- Draft PR #163 targets codex/ssr-all-themes; app 7fa6fbe69922f1802068e2f91efe5a40d6beb7cb. Clean worktree .codex-worktrees/ssr-dancefloor-join; primary dirty checkout preserved.
+- Demo-only Trade/Join SSR covers 23 themes × four layouts. Final candidate dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc READY; 184 protected HTTP cases and 12 local final Gnome browser checks pass. Full suite once: 5908/56/6; 52 baseline names, four harness failures fixed in focused checks.
+- NOT ready: 9.160s cold desktop and intermittent phone/data delays remain. Smoke alias restored/confirmed at dpl_8Z9xfABn8F7WkSPMHKdNYE7NpTek. Automatic approval review blocked reassigning the failed candidate; no retry. No Live, migrations, project/env changes or merge.
+- [Evidence and remaining work](2026-10-28-ssr-chunk2-closeout/closeout.md), including full page/theme/layout table, timings and screenshots. Open Brain capture confirmed separately.
+
 ## October 24, 2026 - Rose Beach animation preview
 
 - Louis approved option 4 and its local Amethyst still treatment, then one Higgsfield motion job within $8.70. Completed single $4.622-estimated job, preserved raw footage, and finished a 9.083-second forward loop with audio crossfade. Local preview includes motion/sound controls and still fallback; no deployment or theme registration. See [motion checkpoint](2026-10-24-rose-beach-motion.md). Open Brain capture confirmed.
@@ -8037,3 +8069,8 @@ All three sample cases still decode PNG/JPG; reduced half-size and quality70 gra
 
 ## October 26 — isolated SSR Chunk 1
 See [SSR Chunk 1 final report](2026-10-26-ssr-chunk1-fizzfest.md). One public preview deployed at b9d707d081ec4290ecb24372a39f1591e7fa6b25; one completed measurement round, then STOPPED without fixes. Median LCP phone 2.484 s / desktop 1.392 s, CLS 0, but overall acceptance FAIL: timezone visual mismatch, incomplete taps/custom-domain parity, analytics absent, TikTok playback unverified, console errors, signup/favorite blocked, deployed fallback checks unverified. Local TypeScript + 75 tests + 11 layout locks pass. Seven known non-demo slugs match Live bytes. Zero database writes; Live/Smoke/settings/aliases unchanged. Both Suite domains reverified at 3f175871 / dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P. Do not merge/promote; #156 remains reference-only.
+
+
+## October 28, 2026 — SSR Chunk 1 session closeout
+
+Closed SSR Chunk1 session: bundle-size fix, default muted autoplay with working Pause/Play, and early renderer preparation/bounded5s budget accepted on Smoke09e46db0. Sevenloads pass; cold512.4/383.2ms,warmmedian313.8ms. Original silent fallback cause remains unproven. Full5632pass52knownfail6skip. Core closeout and evidence:2026-10-28-ssr-chunk1-closeout/closeout.md. No Live/DB/project-env changes. Next session catches up and stands by for a scoped theme task.

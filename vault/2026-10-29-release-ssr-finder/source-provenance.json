@@ -1,0 +1,87 @@
+{
+  "head": "c4e66b41083c7d8526ad59448011552bf5697409",
+  "requiredCommits": [
+    {
+      "sha": "cb4f4860",
+      "present": true
+    },
+    {
+      "sha": "c8de8a5b",
+      "present": true
+    },
+    {
+      "sha": "9c14619b",
+      "present": true
+    },
+    {
+      "sha": "09e46db0",
+      "present": true
+    },
+    {
+      "sha": "61799be3",
+      "present": true
+    },
+    {
+      "sha": "7759238c",
+      "present": true
+    },
+    {
+      "sha": "74ab0cf9",
+      "present": true
+    },
+    {
+      "sha": "a2a22616",
+      "present": true
+    },
+    {
+      "sha": "98d14526",
+      "present": true
+    },
+    {
+      "sha": "d527d2a8",
+      "present": true
+    },
+    {
+      "sha": "c0f01af0",
+      "present": true
+    },
+    {
+      "sha": "c4f6c374",
+      "present": true
+    },
+    {
+      "sha": "c03ed815",
+      "present": true
+    },
+    {
+      "sha": "7fa6fbe6",
+      "present": true
+    },
+    {
+      "sha": "7f8b0dd4",
+      "present": true
+    },
+    {
+      "sha": "df37ab15",
+      "present": true
+    },
+    {
+      "sha": "c042abb0",
+      "present": true
+    },
+    {
+      "sha": "234355c1",
+      "present": true
+    },
+    {
+      "sha": "afd18246",
+      "present": true
+    },
+    {
+      "sha": "0c2167b4",
+      "present": true
+    }
+  ],
+  "allRequiredCommitsPresent": true,
+  "extraApplicationDiffEmpty": true
+}

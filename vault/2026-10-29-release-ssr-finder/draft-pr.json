@@ -1,0 +1,12 @@
+{
+  "number": 166,
+  "url": "https://github.com/louis623/sparkle-suite/pull/166",
+  "draft": true,
+  "merged": false,
+  "state": "open",
+  "headRef": "codex/release-ssr-finder",
+  "baseRef": "codex/nic-nac-trade-hardening",
+  "headSha": "ca6af2e6607d541f662d9aeeec6986c83ef8528b",
+  "baseSha": "cb4f48608a6c31282df597b02ef7c4a3cd74b2c5",
+  "createdAt": "2026-10-29T21:46:56Z"
+}
