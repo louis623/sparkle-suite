@@ -5,7 +5,9 @@ import { defaultAmethystJoinTemplateData as join } from '@/lib/amethyst/join-tem
 import { defaultAmethystTradeTemplateData as trade } from '@/lib/amethyst/trade-template-data'
 const mocks = vi.hoisted(() => ({ bootstrap: vi.fn(), render: vi.fn(), template: vi.fn() }))
 vi.mock('@/lib/amethyst/homepage-bootstrap-response', () => ({ buildHomepageBootstrapResponse: mocks.bootstrap }))
-vi.mock('@/lib/amethyst/homepage-first-paint', () => ({ renderHomepageFirstPaint: mocks.render }))
+vi.mock('@/lib/amethyst/homepage-first-paint', () => ({ renderHomepageFirstPaint: mocks.render, renderAmethystPageFirstPaint: (_page: string, ...args: unknown[]) => mocks.render(...args) }))
+vi.mock('@/lib/amethyst/customer-page-bootstrap-response', () => ({ buildCustomerPageBootstrapResponse: (...args: unknown[]) => mocks.bootstrap(...args) }))
+vi.mock('@/lib/amethyst/join-page-access', () => ({ canServeTargetedAmethystJoinPage: async () => true }))
 vi.mock('@/lib/amethyst/preview-template-data', () => ({ loadAmethystPreviewTemplateData: (...args: unknown[]) => mocks.template(...args) }))
 import { renderAmethystPublicAssetResponse } from '@/lib/amethyst/public-asset-response'
 import { renderAmethystPublicAssetResponse as frozenLive } from '@/lib/amethyst/legacy/public-asset-response'
@@ -49,12 +51,14 @@ it('removing the allowlist restores the exact Live homepage without running SSR'
   expect(hash(actual)).toBe(hash(expected))
   expect(mocks.render).not.toHaveBeenCalled()
 })
-it.each(['milehighfizz', 'brisglowtique', 'goforthebling', 'brittwithbling', 'theblingkitchen', 'blingwithkrissig', 'sparklybutterflies'])('hashes non-listed %s against the frozen Live renderer', async slug => {
-  const opts = { ...options, publicSiteSlugOverride: slug }
-  const req = new Request(`https://www.yoursparklesuite.com/${slug}`)
-  const actual = await (await renderAmethystPublicAssetResponse(req, ['Homepage.html'], opts)).text()
-  const expected = await (await frozenLive(req, ['Homepage.html'], opts)).text()
-  expect(hash(actual)).toBe(hash(expected))
+it.each(['milehighfizz', 'brisglowtique', 'goforthebling', 'brittwithbling', 'blingkitchen', 'blingwithkrissig', 'sparklybutterflies'])('hashes all three non-listed %s pages against frozen Live', async slug => {
+  const opts = { ...options, publicSiteSlugOverride: slug, joinVisibilityVerified: true }
+  for (const asset of ['Homepage.html', 'Trade.html', 'Join.html']) {
+    const req = new Request('https://www.yoursparklesuite.com/' + slug)
+    const response = await renderAmethystPublicAssetResponse(req, [asset], opts)
+    expect(response.status).toBe(200)
+    expect(hash(await response.text())).toBe(hash(await (await frozenLive(req, [asset], opts)).text()))
+  }
   expect(mocks.render).not.toHaveBeenCalled()
 })
 
@@ -89,3 +93,18 @@ it('keeps SSR when the first renderer load takes longer than the former safety b
   const response = await renderAmethystPublicAssetResponse(request(), ['Homepage.html'], options)
   expect(await response.text()).toContain('data-server-rendered="true"')
 })
+
+for (const asset of ['Homepage.html', 'Trade.html', 'Join.html']) {
+  for (const failure of ['throw', 'invalid render', 'failed data response']) {
+    it('returns HTTP 200 and exact legacy bytes for ' + asset + ' on SSR ' + failure, async () => {
+      if (failure === 'throw') mocks.render.mockRejectedValue(Error('forced render failure'))
+      if (failure === 'invalid render') mocks.render.mockResolvedValue(null)
+      if (failure === 'failed data response') mocks.bootstrap.mockImplementation(async () => new Response('unavailable', { status: 503 }))
+      const opts = { ...options, joinVisibilityVerified: true }
+      const response = await renderAmethystPublicAssetResponse(request(), [asset], opts)
+      expect(response.status).toBe(200)
+      expect(response.status).not.toBe(503)
+      expect(hash(await response.text())).toBe(hash(await (await frozenLive(request(), [asset], opts)).text()))
+    })
+  }
+}

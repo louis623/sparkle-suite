@@ -47,6 +47,8 @@ interface RenderAmethystPublicAssetResponseOptions {
   canonicalPathOverride?: string | null
   canonicalOriginOverride?: string | null
   publicSiteSlugOverride?: string | null
+  /** Gate only; never used for rendering. */
+  renderGateSlug?: string | null
   joinVisibilityVerified?: boolean
   pantryRecipes?: PublicIndexRecipe[]
   /** True only when the rep's recipe list loaded and came back empty. */
@@ -536,12 +538,16 @@ let homepageSSRRequests = 0
 export async function renderAmethystPublicAssetResponse(
   request: Request,
   asset: string[],
-  options: RenderAmethystPublicAssetResponseOptions = {},
+  routeOptions: RenderAmethystPublicAssetResponseOptions = {},
 ) {
-  if (!shouldUseRepRenderV2(asset, options)) {
+  const useSSR = shouldUseRepRenderV2(asset, routeOptions)
+  // Keep the gate identity out of both renderers and every rendering helper.
+  const { renderGateSlug: _renderGateSlug, ...options } = routeOptions
+  const renderLegacy = async () => {
     const legacy = await import('./legacy/public-asset-response')
     return legacy.renderAmethystPublicAssetResponse(request, asset, options)
   }
+  if (!useSSR) return renderLegacy()
   const filePath = asset.join('/') === 'Trade.html'
     ? join(process.cwd(), 'lib/amethyst/legacy/assets/Trade.html')
     : asset.join('/') === 'Join.html'
@@ -651,20 +657,20 @@ export async function renderAmethystPublicAssetResponse(
             if (forceHomepageRenderFailure(request)) throw new Error('Preview render failure probe')
             const renderer = await rendererTask
             mark('rendererReadyMs')
-            return page === 'homepage' ? renderer.renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
-              : renderer.renderAmethystPageFirstPaint(page, original, templateData, requestUrl, bootstrap)
+            const rendered = page === 'homepage' ? await renderer.renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
+              : await renderer.renderAmethystPageFirstPaint(page, original, templateData, requestUrl, bootstrap)
+            if (typeof rendered !== 'string' || !rendered.includes('data-server-rendered=')) throw new Error('Invalid SSR render response')
+            return rendered
           }
           if (page === 'homepage') {
             responseBody = await bestEffortHomepage(renderFirstPaint, Math.max(0, 5000 - (performance.now() - ssrStarted))) ?? original
           } else {
-            // These demo pages require their real data in the first paint.
-            // A slow read must never switch the visitor to browser Babel.
+            // Retain slow successful SSR reads, but a failed render must not
+            // turn an otherwise valid legacy customer page into an outage.
             try { responseBody = await renderFirstPaint() }
             catch {
               console.warn('customer_page_ssr_failed', JSON.stringify({ page }))
-              return new Response('This page is temporarily unavailable. Please reload.', {
-                status: 503, headers: { 'Cache-Control': 'no-store' },
-              })
+              responseBody = original
             }
           }
           console.info('homepage_ssr_request', JSON.stringify({ cold, ...timings, totalMs: performance.now() - ssrStarted, result: responseBody === original ? 'fallback' : 'ssr', pageDataState }))
@@ -692,6 +698,7 @@ export async function renderAmethystPublicAssetResponse(
       },
     })
   } catch {
-    return new Response('Not found', { status: 404 })
+    console.warn('customer_page_ssr_failed', JSON.stringify({ page: asset.join('/') }))
+    return renderLegacy()
   }
 }
