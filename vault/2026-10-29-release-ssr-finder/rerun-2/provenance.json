@@ -1,0 +1,20 @@
+{
+  "repo": "louis623/sparkle-suite",
+  "worktree": "C:/Users/louis/sparkle-suite-repo/.codex-worktrees/release-ssr-finder",
+  "branch": "codex/release-ssr-finder",
+  "branchHead": "36b1a6ee4459f846c62a9da229c53baae1c91150",
+  "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+  "deploymentId": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+  "applicationSha": "ca6af2e6607d541f662d9aeeec6986c83ef8528b",
+  "readyState": "READY",
+  "alias": "sparkle-suite-smoke.vercel.app",
+  "rollbackId": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+  "oldAliasCheckedAt": "2026-10-30T00:06:07.693Z",
+  "carriedLoads": 110,
+  "pending3a": 28,
+  "pending3b": 18,
+  "forbiddenEnvFlagsSet": false,
+  "rebuild": false,
+  "redeploy": false,
+  "applicationChanges": false
+}

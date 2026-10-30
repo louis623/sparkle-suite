@@ -1,0 +1,2017 @@
+{
+  "overall": "FAIL",
+  "sections": [
+    {
+      "step": "3a",
+      "result": "PASS",
+      "covered": 138,
+      "fullyMeasured": 138,
+      "expected": 138,
+      "carried": 110,
+      "new": 28,
+      "hard": 0,
+      "exhaustedNetwork": 0,
+      "timingMisses": 12,
+      "motionFollowups": 10
+    },
+    {
+      "step": "3b",
+      "result": "PASS",
+      "covered": 18,
+      "fullyMeasured": 18,
+      "expected": 18,
+      "carried": 0,
+      "new": 18,
+      "hard": 0,
+      "exhaustedNetwork": 0,
+      "timingMisses": 7,
+      "motionFollowups": 9
+    },
+    {
+      "step": "3c",
+      "result": "FAIL",
+      "Smoke": 30,
+      "Live": 30,
+      "LiveCold": 1,
+      "warmTimingMisses": 25
+    },
+    {
+      "step": "3d",
+      "result": "FAIL",
+      "compared": 8,
+      "bothHTTP200": 7,
+      "matchingAvailableCounts": 1,
+      "empty404CountSetsMatching": 1,
+      "expected": 8
+    },
+    {
+      "step": "3e",
+      "result": "PASS",
+      "validParameterGETs": 3,
+      "bareValidationGETs": 1,
+      "expected": "3 valid + 1 bare"
+    }
+  ],
+  "matrixCovered": 156,
+  "matrixMeasured": 156,
+  "carriedMatrix": 110,
+  "newMatrix": 46,
+  "matrixMaxCLS": 0.00007330246913580247,
+  "maxCLS": 0.25156257565345297,
+  "hardFailures": [
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-cold",
+      "sample": null,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-cold",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.019597841281132115",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "CLS >= 0.01: 0.02085603610903474",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "CLS >= 0.01: 0.01959817684890475",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "CLS >= 0.01: 0.019597379875444746",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "CLS >= 0.01: 0.02085603610903474",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "CLS >= 0.01: 0.019597379875444746",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warmup",
+      "sample": null,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warmup",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.019698474388382837",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "CLS >= 0.01: 0.014144737215086915",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "CLS >= 0.01: 0.02773811303989215",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "CLS >= 0.01: 0.022160922425005142",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "CLS >= 0.01: 0.02217968517827801",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "CLS >= 0.01: 0.022165613113323355",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warmup",
+      "sample": null,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warmup",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.13738968348457326",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "CLS >= 0.01: 0.11050761197983644",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "CLS >= 0.01: 0.13738602271479017",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "CLS >= 0.01: 0.13738968348457326",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "CLS >= 0.01: 0.13738602271479017",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "CLS >= 0.01: 0.11050761197983644",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warmup",
+      "sample": null,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warmup",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.051606766599340326",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "CLS >= 0.01: 0.05160629753050851",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "CLS >= 0.01: 0.04356709701403515",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "CLS >= 0.01: 0.05160653206492442",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "CLS >= 0.01: 0.045787919483869316",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/trade phone",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "CLS >= 0.01: 0.05161145728765855",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warmup",
+      "sample": null,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warmup",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.1605081028063111",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "CLS >= 0.01: 0.10215310884117262",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "CLS >= 0.01: 0.10214883031858174",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "CLS >= 0.01: 0.1605081028063111",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "CLS >= 0.01: 0.1021466910572863",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "CLS >= 0.01: 0.10214883031858174",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warmup",
+      "sample": null,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warmup",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.08086406850048149",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 1,
+      "reason": "CLS >= 0.01: 0.09247713599907693",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 2,
+      "reason": "CLS >= 0.01: 0.08088768291029759",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 3,
+      "reason": "CLS >= 0.01: 0.09496778097803457",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 4,
+      "reason": "CLS >= 0.01: 0.08088768291029759",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "missing SSR marker",
+      "site": "Live"
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 5,
+      "reason": "CLS >= 0.01: 0.08088768291029759",
+      "site": "Live"
+    },
+    {
+      "label": "Smoke /blingkitchen desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.20240992433315116",
+      "site": "Smoke"
+    },
+    {
+      "label": "Live /blingkitchen desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.20088152586383587",
+      "site": "Live"
+    },
+    {
+      "label": "Smoke /blingkitchen/trade desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.08461862031913098",
+      "site": "Smoke"
+    },
+    {
+      "label": "Live /blingkitchen/trade desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.044361748388470935",
+      "site": "Live"
+    },
+    {
+      "label": "Smoke /blingkitchen/join desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.2509909781834062",
+      "site": "Smoke"
+    },
+    {
+      "label": "Live /blingkitchen/join desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.24298217108665018",
+      "site": "Live"
+    },
+    {
+      "label": "Smoke /milehighfizz desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.19711923238704562",
+      "site": "Smoke"
+    },
+    {
+      "label": "Live /milehighfizz desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.028629290244020063",
+      "site": "Live"
+    },
+    {
+      "label": "Smoke /milehighfizz/trade desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.08276380101165981",
+      "site": "Smoke"
+    },
+    {
+      "label": "Live /milehighfizz/trade desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.154546990782603",
+      "site": "Live"
+    },
+    {
+      "label": "Smoke /milehighfizz/join desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.25156257565345297",
+      "site": "Smoke"
+    },
+    {
+      "label": "Live /milehighfizz/join desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "CLS >= 0.01: 0.05507062891160837",
+      "site": "Live"
+    },
+    {
+      "label": "Smoke /milehighfizz/in-the-pantry desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "HTTP 404",
+      "site": "Smoke"
+    },
+    {
+      "label": "Live /milehighfizz/in-the-pantry desktop",
+      "group": "3d",
+      "sample": null,
+      "reason": "HTTP 404",
+      "site": "Live"
+    }
+  ],
+  "hardByName": [
+    {
+      "name": "Live /dudesfizzfest desktop",
+      "site": "Live",
+      "loads": 6,
+      "reasons": [
+        "missing SSR marker",
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.02085603610903474,
+      "groups": [
+        "3c-cold",
+        "3c-warm"
+      ]
+    },
+    {
+      "name": "Live /dudesfizzfest phone",
+      "site": "Live",
+      "loads": 6,
+      "reasons": [
+        "missing SSR marker",
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.02773811303989215,
+      "groups": [
+        "3c-warmup",
+        "3c-warm"
+      ]
+    },
+    {
+      "name": "Live /dudesfizzfest/trade desktop",
+      "site": "Live",
+      "loads": 6,
+      "reasons": [
+        "missing SSR marker",
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.13738968348457326,
+      "groups": [
+        "3c-warmup",
+        "3c-warm"
+      ]
+    },
+    {
+      "name": "Live /dudesfizzfest/trade phone",
+      "site": "Live",
+      "loads": 6,
+      "reasons": [
+        "missing SSR marker",
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.05161145728765855,
+      "groups": [
+        "3c-warmup",
+        "3c-warm"
+      ]
+    },
+    {
+      "name": "Live /dudesfizzfest/join desktop",
+      "site": "Live",
+      "loads": 6,
+      "reasons": [
+        "missing SSR marker",
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.1605081028063111,
+      "groups": [
+        "3c-warmup",
+        "3c-warm"
+      ]
+    },
+    {
+      "name": "Live /dudesfizzfest/join phone",
+      "site": "Live",
+      "loads": 6,
+      "reasons": [
+        "missing SSR marker",
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.09496778097803457,
+      "groups": [
+        "3c-warmup",
+        "3c-warm"
+      ]
+    },
+    {
+      "name": "Smoke /blingkitchen desktop",
+      "site": "Smoke",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.20240992433315116,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Live /blingkitchen desktop",
+      "site": "Live",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.20088152586383587,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Smoke /blingkitchen/trade desktop",
+      "site": "Smoke",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.08461862031913098,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Live /blingkitchen/trade desktop",
+      "site": "Live",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.044361748388470935,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Smoke /blingkitchen/join desktop",
+      "site": "Smoke",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.2509909781834062,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Live /blingkitchen/join desktop",
+      "site": "Live",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.24298217108665018,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Smoke /milehighfizz desktop",
+      "site": "Smoke",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.19711923238704562,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Live /milehighfizz desktop",
+      "site": "Live",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.028629290244020063,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Smoke /milehighfizz/trade desktop",
+      "site": "Smoke",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.08276380101165981,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Live /milehighfizz/trade desktop",
+      "site": "Live",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.154546990782603,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Smoke /milehighfizz/join desktop",
+      "site": "Smoke",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.25156257565345297,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Live /milehighfizz/join desktop",
+      "site": "Live",
+      "loads": 1,
+      "reasons": [
+        "CLS >= 0.01"
+      ],
+      "maxCLS": 0.05507062891160837,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Smoke /milehighfizz/in-the-pantry desktop",
+      "site": "Smoke",
+      "loads": 1,
+      "reasons": [
+        "HTTP 404"
+      ],
+      "maxCLS": 0,
+      "groups": [
+        "3d"
+      ]
+    },
+    {
+      "name": "Live /milehighfizz/in-the-pantry desktop",
+      "site": "Live",
+      "loads": 1,
+      "reasons": [
+        "HTTP 404"
+      ],
+      "maxCLS": 0,
+      "groups": [
+        "3d"
+      ]
+    }
+  ],
+  "hardFailedLoads": 50,
+  "networkFailures": [],
+  "timingMisses": [
+    {
+      "label": "Smoke /dudesfizzfest/trade [neon_butterfly] phone",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 1952,
+      "lcpMs": 3804
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [neon_butterfly] phone",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 1924,
+      "lcpMs": 3716
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_cat] phone",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 1188,
+      "lcpMs": 3688
+    },
+    {
+      "label": "Smoke /dudesfizzfest [gilded_autumn] phone",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 1200,
+      "lcpMs": 3948
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [gilded_autumn] phone",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 1864,
+      "lcpMs": 3264
+    },
+    {
+      "label": "Smoke /dudesfizzfest [midnight_rose] phone",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 1926.7000000029802,
+      "lcpMs": 3184
+    },
+    {
+      "label": "Smoke /dudesfizzfest [gobble_and_fizz] phone",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 1148,
+      "lcpMs": 3272
+    },
+    {
+      "label": "Smoke /dudesfizzfest [pie_please] phone",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 1520.5,
+      "lcpMs": 3912
+    },
+    {
+      "label": "Smoke /dudesfizzfest [pearl_rose] phone",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 1466.2999999970198,
+      "lcpMs": 3764
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [sunset_beach] phone",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 3833.89999999851,
+      "lcpMs": 4120
+    },
+    {
+      "label": "Smoke /dudesfizzfest [rose_champagne] phone",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 6108.80000000447,
+      "lcpMs": 7816
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [rose_champagne] desktop",
+      "group": "3a",
+      "sample": null,
+      "h1Ms": 8068,
+      "lcpMs": 8068
+    },
+    {
+      "label": "Smoke /dudesfizzfest [gilded_autumn / mile_high_fizz] phone",
+      "group": "3b",
+      "sample": null,
+      "h1Ms": 2570,
+      "lcpMs": 4944
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [gilded_autumn / mile_high_fizz] phone",
+      "group": "3b",
+      "sample": null,
+      "h1Ms": 2684,
+      "lcpMs": 3728
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_cat / britt_with_bling] phone",
+      "group": "3b",
+      "sample": null,
+      "h1Ms": 1701.6999999955297,
+      "lcpMs": 4508
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [halloween_pumpkin_cat / britt_with_bling] phone",
+      "group": "3b",
+      "sample": null,
+      "h1Ms": 7884,
+      "lcpMs": 7884
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [halloween_pumpkin_cat / britt_with_bling] phone",
+      "group": "3b",
+      "sample": null,
+      "h1Ms": 7745.60000000149,
+      "lcpMs": 8104
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_witch / bling_kitchen] phone",
+      "group": "3b",
+      "sample": null,
+      "h1Ms": 2779.3000000044703,
+      "lcpMs": 4140
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [halloween_pumpkin_witch / bling_kitchen] phone",
+      "group": "3b",
+      "sample": null,
+      "h1Ms": 6924.80000000447,
+      "lcpMs": 12548
+    },
+    {
+      "label": "Smoke /dudesfizzfest phone",
+      "group": "3c-warmup",
+      "sample": null,
+      "h1Ms": 1358.6999999955297,
+      "lcpMs": 3980
+    },
+    {
+      "label": "Smoke /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 1,
+      "h1Ms": 1224,
+      "lcpMs": 3704
+    },
+    {
+      "label": "Smoke /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 2,
+      "h1Ms": 972,
+      "lcpMs": 3624
+    },
+    {
+      "label": "Smoke /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 3,
+      "h1Ms": 1144,
+      "lcpMs": 3648
+    },
+    {
+      "label": "Smoke /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 4,
+      "h1Ms": 1370.4000000059605,
+      "lcpMs": 3800
+    },
+    {
+      "label": "Smoke /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 5,
+      "h1Ms": 1450.3999999985099,
+      "lcpMs": 4000
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 1,
+      "h1Ms": 720,
+      "lcpMs": 2420
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 2,
+      "h1Ms": 804,
+      "lcpMs": 2564
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 3,
+      "h1Ms": 680,
+      "lcpMs": 2612
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 4,
+      "h1Ms": 568,
+      "lcpMs": 2312
+    },
+    {
+      "label": "Live /dudesfizzfest desktop",
+      "group": "3c-warm",
+      "sample": 5,
+      "h1Ms": 624,
+      "lcpMs": 2200
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warmup",
+      "sample": null,
+      "h1Ms": 2268,
+      "lcpMs": 14428
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 1,
+      "h1Ms": 2184,
+      "lcpMs": 15272
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 2,
+      "h1Ms": 2220,
+      "lcpMs": 14256
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 3,
+      "h1Ms": 2148,
+      "lcpMs": 15484
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 4,
+      "h1Ms": 2216,
+      "lcpMs": 15080
+    },
+    {
+      "label": "Live /dudesfizzfest phone",
+      "group": "3c-warm",
+      "sample": 5,
+      "h1Ms": 2220,
+      "lcpMs": 14964
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warmup",
+      "sample": null,
+      "h1Ms": 680,
+      "lcpMs": 2048
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 1,
+      "h1Ms": 764,
+      "lcpMs": 2156
+    },
+    {
+      "label": "Live /dudesfizzfest/trade desktop",
+      "group": "3c-warm",
+      "sample": 4,
+      "h1Ms": 884,
+      "lcpMs": 2268
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 2,
+      "h1Ms": 840,
+      "lcpMs": 2388
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 4,
+      "h1Ms": 2048,
+      "lcpMs": 2252
+    },
+    {
+      "label": "Live /dudesfizzfest/join desktop",
+      "group": "3c-warm",
+      "sample": 5,
+      "h1Ms": 868,
+      "lcpMs": 2320
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warmup",
+      "sample": null,
+      "h1Ms": 1828,
+      "lcpMs": 4812
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 1,
+      "h1Ms": 1900,
+      "lcpMs": 5032
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 2,
+      "h1Ms": 1840,
+      "lcpMs": 4804
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 3,
+      "h1Ms": 1796,
+      "lcpMs": 4700
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 4,
+      "h1Ms": 1912,
+      "lcpMs": 4852
+    },
+    {
+      "label": "Live /dudesfizzfest/join phone",
+      "group": "3c-warm",
+      "sample": 5,
+      "h1Ms": 1820,
+      "lcpMs": 4668
+    },
+    {
+      "label": "Smoke /blingkitchen desktop",
+      "group": "3d",
+      "sample": null,
+      "h1Ms": 4676,
+      "lcpMs": 6580
+    },
+    {
+      "label": "Live /blingkitchen desktop",
+      "group": "3d",
+      "sample": null,
+      "h1Ms": 976,
+      "lcpMs": 3580
+    },
+    {
+      "label": "Smoke /blingkitchen/trade desktop",
+      "group": "3d",
+      "sample": null,
+      "h1Ms": 704,
+      "lcpMs": 2688
+    },
+    {
+      "label": "Live /blingkitchen/trade desktop",
+      "group": "3d",
+      "sample": null,
+      "h1Ms": 632,
+      "lcpMs": 2304
+    },
+    {
+      "label": "Live /blingkitchen/join desktop",
+      "group": "3d",
+      "sample": null,
+      "h1Ms": 1676,
+      "lcpMs": 2060
+    },
+    {
+      "label": "Smoke /blingkitchen/in-the-pantry desktop",
+      "group": "3d",
+      "sample": null,
+      "h1Ms": 868,
+      "lcpMs": 2044
+    },
+    {
+      "label": "Live /blingkitchen/in-the-pantry desktop",
+      "group": "3d",
+      "sample": null,
+      "h1Ms": 948,
+      "lcpMs": 2136
+    },
+    {
+      "label": "Smoke /milehighfizz desktop",
+      "group": "3d",
+      "sample": null,
+      "h1Ms": 664,
+      "lcpMs": 2364
+    },
+    {
+      "label": "Live /milehighfizz desktop",
+      "group": "3d",
+      "sample": null,
+      "h1Ms": 612,
+      "lcpMs": 2540
+    }
+  ],
+  "motionFollowups": [
+    {
+      "label": "Smoke /dudesfizzfest/trade [halloween_pumpkin_cat] desktop",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [halloween_pumpkin_cat] phone",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [halloween_pumpkin_cat] desktop",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [halloween_pumpkin_cat] phone",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [gilded_autumn] desktop",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [gilded_autumn] phone",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [gilded_autumn] desktop",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [gilded_autumn] phone",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest [pearl_rose] phone",
+      "findings": [
+        "Hero motion not observed"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest [sunset_beach] phone",
+      "findings": [
+        "Hero motion not observed"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [gilded_autumn / mile_high_fizz] desktop",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [gilded_autumn / mile_high_fizz] phone",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [gilded_autumn / mile_high_fizz] desktop",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [gilded_autumn / mile_high_fizz] phone",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_cat / britt_with_bling] phone",
+      "findings": [
+        "Hero motion not observed"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [halloween_pumpkin_cat / britt_with_bling] desktop",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [halloween_pumpkin_cat / britt_with_bling] phone",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [halloween_pumpkin_cat / britt_with_bling] desktop",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [halloween_pumpkin_cat / britt_with_bling] phone",
+      "findings": [
+        "Hero motion not observed",
+        "Pause/Play control unavailable"
+      ]
+    }
+  ],
+  "reducedMotionFollowups": [
+    {
+      "label": "Smoke /dudesfizzfest [amethyst] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [amethyst] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [gnome_garden] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 12,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [gnome_garden] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 8,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [gnome_garden] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 13,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [gnome_garden] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 9,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [gnome_garden] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 13,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [gnome_garden] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 9,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [neon_butterfly] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 34,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [neon_butterfly] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 22,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [neon_butterfly] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 34,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [neon_butterfly] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 22,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [neon_butterfly] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 34,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [neon_butterfly] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 22,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_witch] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_witch] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [halloween_pumpkin_witch] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [halloween_pumpkin_witch] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [halloween_pumpkin_witch] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [halloween_pumpkin_witch] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_cat] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_cat] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [gilded_autumn] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [gilded_autumn] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [midnight_rose] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [midnight_rose] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [fall_owl_harvest_moon] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [fall_owl_harvest_moon] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [gobble_and_fizz] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [gobble_and_fizz] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [pie_please] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [pie_please] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [pearl_rose] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [pearl_rose] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [sunset_beach] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [sunset_beach] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [rose_champagne] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [rose_champagne] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [gilded_autumn / mile_high_fizz] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [gilded_autumn / mile_high_fizz] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_cat / britt_with_bling] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_cat / britt_with_bling] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 0,
+        "playingHeroVideos": 1,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_witch / bling_kitchen] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest [halloween_pumpkin_witch / bling_kitchen] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [halloween_pumpkin_witch / bling_kitchen] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/trade [halloween_pumpkin_witch / bling_kitchen] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [halloween_pumpkin_witch / bling_kitchen] desktop",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    },
+    {
+      "label": "Smoke /dudesfizzfest/join [halloween_pumpkin_witch / bling_kitchen] phone",
+      "result": {
+        "requested": true,
+        "matches": true,
+        "runningHeroAnimations": 5,
+        "playingHeroVideos": 0,
+        "allPlayingMediaMuted": true,
+        "honored": false
+      }
+    }
+  ],
+  "attempts": 138,
+  "retries": 0,
+  "restore": {
+    "alias": "sparkle-suite-smoke.vercel.app",
+    "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+    "rollbackId": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+    "startedAt": "2026-10-30T00:36:54.660Z",
+    "startedAtET": "10/29/26, 8:36:54 PM EDT",
+    "attempts": [
+      {
+        "n": 1,
+        "success": true
+      }
+    ],
+    "from": "dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j",
+    "restoredAt": "2026-10-30T00:37:00.673Z",
+    "restoredAtET": "10/29/26, 8:37:00 PM EDT",
+    "verified": true,
+    "verifiedAt": "2026-10-30T00:37:03.813Z",
+    "verifiedAtET": "10/29/26, 8:37:03 PM EDT",
+    "deploymentId": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc"
+  },
+  "finalAlias": {
+    "alias": "sparkle-suite-smoke.vercel.app",
+    "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+    "deploymentId": "dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc",
+    "verified": true,
+    "checkedAt": "2026-10-30T00:37:06.955Z",
+    "checkedAtET": "10/29/26, 8:37:06 PM EDT",
+    "independentCLIInvocation": true
+  },
+  "runnerError": null,
+  "maxCLS4": "0.2516"
+}

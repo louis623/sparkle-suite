@@ -1,3 +1,11 @@
+## October 29, 2026 — Checks-only SSR + Finder resume completed
+
+- Complete combined 156-load matrix: 110 prior results reused unchanged, 46 missing loads measured, no repeated prior requests. All 156 are 200/SSR/styled, max CLS 0.0001. Existing dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j at ca6af2e6 reused; no rebuild/redeploy/app edits or DB writes.
+- Overall FAIL on baseline/legacy criteria: Live dudesfizzfest lacks SSR and exceeds CLS 0.01; both origins' legacy Home/Trade/Join pages shift; max CLS 0.2516. Mile High Fizz Pantry is 404 on both. Legacy controls match 1/7 available pairs; six differ, one unavailable. No cause isolated or new SSR regression asserted.
+- Completed 30 Smoke + 30 Live warm samples, Live cold sample, eight legacy pairs, three valid Finder GETs (all 200/shape pass) plus bare availability (expected 400). Zero retries across 138 new attempts. Timing and motion findings recorded without stopping, per this run's instructions.
+- Only Smoke alias moved, at 20:06:25 EDT. Recorded rollback dpl_EgnK4DUaNnQwn9gHbTij4MVL69nc restored 20:37:00, verified 20:37:03, independently reconfirmed 20:37:06 and via MCP 20:40:13 EDT. No Live changes or sign-in/submissions.
+- [Combined report, attempt log, screenshots and alias receipts](2026-10-29-release-ssr-finder/rerun-2/report.md). Evidence only to codex/release-ssr-finder; PR166 remains draft/unmerged. Actual Open Brain capture confirmed: "Captured as observation — SSR, Finder Checks, Smoke Tests". No further application work under this checks-only run.
+
 ## October 29, 2026 — Smoke browser rerun stopped on navigation failure
 
 - Reused READY dpl_GiWDLGcGSti6AgGUevQ5gWHYx16j at ca6af2e6 from release tip e59b624e; no rebuild, redeploy or application changes. Smoke-only CLS limit below 0.01.
