@@ -34,7 +34,7 @@ const hash = (body: string) => createHash('sha256').update(body).digest('hex')
 
 beforeEach(() => {
   vi.stubEnv('REP_RENDER_V2_SLUGS', 'dudesfizzfest')
-  mocks.site.mockReset().mockResolvedValue({ kind: 'serve', host: 'milehighfizz.com', repId: 'fixture-mhf', publicSiteSlug: 'milehighfizz' })
+  mocks.site.mockReset().mockResolvedValue({ kind: 'serve', host: 'milehighfizz.com', repId: '00000000-0000-4000-8000-000000000169', publicSiteSlug: 'milehighfizz' })
   mocks.template.mockReset().mockResolvedValue(data)
   mocks.joinAccess.mockReset().mockResolvedValue(true)
 })
@@ -44,7 +44,7 @@ for (const [page, asset, canonicalPathOverride] of cases) {
   it(`keeps the non-listed custom-domain ${page} byte-identical to frozen Live`, async () => {
     const request = new Request(`https://milehighfizz.com/customer-site/${page}`)
     const actual = await GET(request, { params: Promise.resolve({ page }) })
-    const expected = await frozenLive(request, [asset], { repIdOverride: 'fixture-mhf', canonicalPathOverride })
+    const expected = await frozenLive(request, [asset], { repIdOverride: '00000000-0000-4000-8000-000000000169', canonicalPathOverride })
     expect(actual.status).toBe(200)
     const html = await actual.text()
     expect(hash(html)).toBe(hash(await expected.text()))
@@ -60,9 +60,13 @@ for (const [page, asset, canonicalPathOverride] of cases) {
     expect(html).not.toContain('href="/milehighfizz')
     expect(html).toContain('href="/trade"')
     expect(html).toContain('href="/join"')
+    const beacon = html.match(/<script id="sparkle-site-visit">([\s\S]*?)<\/script>/)?.[1]
+    expect(beacon).toBeTruthy()
+    expect(beacon).toContain('repId: "00000000-0000-4000-8000-000000000169"')
+    expect(beacon).toContain('slug: ""')
     // CSS may define the label selector even when no review element exists.
     expect(html).not.toMatch(/<[a-z][^>]*\sdata-ssr-review-label(?:\s|=|>)/i)
-    expect(mocks.template).toHaveBeenCalledWith({ repId: 'fixture-mhf', publicSiteSlug: '' })
+    expect(mocks.template).toHaveBeenCalledWith({ repId: '00000000-0000-4000-8000-000000000169', publicSiteSlug: '' })
   })
 }
 

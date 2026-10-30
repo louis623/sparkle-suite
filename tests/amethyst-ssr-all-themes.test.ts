@@ -51,7 +51,8 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
       if (HERO_MOTION_THEMES[preset].script) expect(html).toMatch(new RegExp(`<script defer src="[^\"]*${HERO_MOTION_THEMES[preset].script}`))
       if (!bespoke && HERO_MOTION_THEMES[preset].kind === 'video') {
         const video = html.match(/<video\b[^>]*data-hero-video=""[^>]*>/)?.[0]
-        for (const attribute of ['autoplay', 'muted', 'playsinline', 'loop']) expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
+        for (const attribute of ['muted', 'playsinline', 'loop']) expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
+        expect(video).not.toMatch(/\sautoplay/)
         expect(video).toContain(`poster="${HERO_MOTION_THEMES[preset].poster}"`)
         expect(video).toContain('preload="auto"')
       }
@@ -68,7 +69,7 @@ it('starts muted before play, never inserts a loop rest, and retains early visit
     pause: vi.fn(() => { video.paused = true }) }
   const button = { textContent: '', setAttribute: vi.fn(), addEventListener: (name: string, listener: () => void) => listeners.set(name, listener) }
   const hero = { dataset: {} as Record<string, string>, querySelector: (selector: string) => selector.includes('motion-toggle') ? button : selector.includes('hero-video') ? video : null }
-  const window: { sparkleStartHeroMotion?: () => void } = {}
+  const window: { sparkleStartHeroMotion?: () => void; matchMedia: () => unknown } = { matchMedia: () => ({ matches: false, addEventListener() {} }) }
   runInNewContext(earlyHomepageControls, { window, document: { hidden: true, querySelectorAll: () => [hero] }, Promise })
   await Promise.resolve(); await Promise.resolve()
   expect(video.play).toHaveBeenCalledOnce()
@@ -80,7 +81,7 @@ it('starts muted before play, never inserts a loop rest, and retains early visit
   window.sparkleStartHeroMotion!()
   expect(button.textContent).toBe('Play animation')
   expect(video.play).toHaveBeenCalledOnce()
-  expect(earlyHomepageControls).not.toMatch(/setTimeout|setInterval|ended|IntersectionObserver|matchMedia/)
+  expect(earlyHomepageControls).not.toMatch(/setTimeout|setInterval|ended|IntersectionObserver/)
 })
 
 it('disables review overrides on Live, other projects, other databases and other reps; normal URL uses saved theme', () => {

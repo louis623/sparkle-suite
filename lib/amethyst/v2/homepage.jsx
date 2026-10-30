@@ -3145,6 +3145,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
           <source src={CONTENT.heroVideoUrl || heroVideoUrl} type="video/mp4" />
         </video>}
         <div className="mhf-hero-shade" aria-hidden="true" />
+        {t.preset !== "gilded_autumn" && <button type="button" className="mhf-video-control" data-mhf-video-toggle="" aria-label="Pause background video" suppressHydrationWarning>Pause background video</button>}
         <div className="mhf-hero-content">
           <h1 id="mhf-hero-title" className="mhf-hero-title mhf-logo-gradient">
             {CONTENT.heroHeadline || businessName}

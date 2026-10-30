@@ -26,7 +26,9 @@ it('autoplays the muted inline SSR hero even with saved still motion, retaining 
   const html = await renderHomepageFirstPaint(source, { homepage: saved, join, trade, appearancePreset: 'halloween_pumpkin_cat' }, new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
   const video = html.match(/<video\b[^>]*class="hpc-video"[^>]*>/)?.[0]
   expect(video).toBeDefined()
-  for (const attribute of ['autoplay', 'muted', 'playsinline', 'loop']) {
+  // The synchronous controller enables autoplay only after media preference is known.
+  expect(video).not.toMatch(/\sautoplay/)
+  for (const attribute of ['muted', 'playsinline', 'loop']) {
     expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
   }
   expect(video).toContain('poster="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp"')

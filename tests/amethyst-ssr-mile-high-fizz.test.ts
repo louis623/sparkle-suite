@@ -45,7 +45,9 @@ for (const motion of ['sparkle_rise', 'still', 'none']) {
       new URL('https://milehighfizz.com/'), bootstrap)
     const actual = hero(html)!
     expect(actual).toBeTruthy()
-    expect(actual.replace(/<video\b[^>]*>/, '<video>')).toBe(frozenHero(bootstrap).replace(/<video\b[^>]*>/, '<video>'))
+    // The accessible SSR-only video control is the one intentional tree addition.
+    expect(actual.replace(/<button\b[^>]*data-mhf-video-toggle[^>]*>[\s\S]*?<\/button>/, '').replace(/<video\b[^>]*>/, '<video>')).toBe(frozenHero(bootstrap).replace(/<video\b[^>]*>/, '<video>'))
+    expect(actual).toMatch(/<button type="button" class="mhf-video-control" data-mhf-video-toggle="" aria-label="Pause background video">Pause background video<\/button>/)
     expect(actual).toContain('class="mhf-hero-title mhf-logo-gradient"')
     const withLine = actual.match(/<p class="mhf-hero-with">([\s\S]*?)<\/p>/)?.[1]
     // React's boundary comments do not contribute to the paragraph's text.
@@ -73,17 +75,26 @@ it.each([
   [false, 'on', true], [true, 'on', false], [false, 'off', false], [true, 'off', false],
 ] as const)('controls the aurora before hydration: reduced=%s motion=%s plays=%s', async (reduced, motion, plays) => {
   const listeners: Record<string, () => void> = {}
+  const clicks: Record<string, () => void> = {}
+  const button = { textContent: '', setAttribute: vi.fn(), addEventListener: (name: string, fn: () => void) => { clicks[name] = fn } }
   const video = { autoplay: false, muted: false, defaultMuted: false, loop: false,
     play: vi.fn(() => Promise.resolve()), pause: vi.fn(), addEventListener: vi.fn() }
   const media = { matches: reduced, addEventListener: (name: string, fn: () => void) => { listeners[name] = fn } }
-  const element = { dataset: { heroMotion: motion }, querySelector: () => video }
+  const element = { dataset: { heroMotion: motion }, querySelector: (selector: string) => selector.includes('video-toggle') ? button : video }
   runInNewContext(earlyMileHighFizzControls, { window: { matchMedia: () => media }, document: { querySelectorAll: () => [element] }, Promise })
   await Promise.resolve()
   expect(video.autoplay).toBe(plays)
   expect(video.play).toHaveBeenCalledTimes(plays ? 1 : 0)
   expect(video.muted).toBe(true)
+  expect(button.textContent).toBe(plays ? 'Pause background video' : 'Play background video')
   if (!plays) expect(video.pause).toHaveBeenCalled()
   if (plays) {
+    clicks.click()
+    expect(video.autoplay).toBe(false)
+    expect(button.textContent).toBe('Play background video')
+    clicks.click()
+    expect(video.autoplay).toBe(true)
+    expect(button.textContent).toBe('Pause background video')
     media.matches = true
     listeners.change()
     expect(video.autoplay).toBe(false)

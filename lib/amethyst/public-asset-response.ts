@@ -543,6 +543,15 @@ export async function renderAmethystPublicAssetResponse(
   const useSSR = shouldUseRepRenderV2(asset, routeOptions)
   // Keep the gate identity out of both renderers and every rendering helper.
   const { renderGateSlug: _renderGateSlug, ...options } = routeOptions
+  const logSSRFailure = (page: string, error: unknown) => {
+    const failure = error as { name?: unknown; message?: unknown } | null
+    console.warn('customer_page_ssr_failed', JSON.stringify({
+      page, slug: routeOptions.publicSiteSlugOverride ?? routeOptions.renderGateSlug ?? null,
+      repId: options.repIdOverride?.trim() || resolveAmethystRequestRepId(request) || null,
+      errorName: typeof failure?.name === 'string' ? failure.name : 'Error',
+      errorMessage: typeof failure?.message === 'string' ? failure.message : 'Unknown SSR error',
+    }))
+  }
   const renderLegacy = async () => {
     const legacy = await import('./legacy/public-asset-response')
     return legacy.renderAmethystPublicAssetResponse(request, asset, options)
@@ -668,8 +677,8 @@ export async function renderAmethystPublicAssetResponse(
             // Retain slow successful SSR reads, but a failed render must not
             // turn an otherwise valid legacy customer page into an outage.
             try { responseBody = await renderFirstPaint() }
-            catch {
-              console.warn('customer_page_ssr_failed', JSON.stringify({ page }))
+            catch (error) {
+              logSSRFailure(page, error)
               responseBody = original
             }
           }
@@ -697,8 +706,8 @@ export async function renderAmethystPublicAssetResponse(
         ...(pantryEmpty ? { 'X-Robots-Tag': EMPTY_PANTRY_ROBOTS } : {}),
       },
     })
-  } catch {
-    console.warn('customer_page_ssr_failed', JSON.stringify({ page: asset.join('/') }))
+  } catch (error) {
+    logSSRFailure(asset.join('/'), error)
     return renderLegacy()
   }
 }

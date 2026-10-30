@@ -20,7 +20,7 @@ beforeEach(() => {
   mocks.bootstrap.mockReset().mockImplementation(async () => new Response('window.QA=true;'))
   mocks.render.mockReset().mockImplementation(async html => html.replace('id="root"', 'id="root" data-server-rendered="true"'))
 })
-afterEach(() => vi.unstubAllEnvs())
+afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks() })
 it.each(['throw', 'timeout'])('returns exact frozen Live response on bootstrap %s', async mode => {
   mocks.bootstrap.mockImplementation(() => mode === 'throw' ? Promise.reject(Error('forced')) : new Promise(() => {}))
   const expected = await (await frozenLive(request(), ['Homepage.html'], options)).text()
@@ -50,6 +50,29 @@ it('removing the allowlist restores the exact Live homepage without running SSR'
   const expected = await (await frozenLive(request(), ['Homepage.html'], options)).text()
   expect(hash(actual)).toBe(hash(expected))
   expect(mocks.render).not.toHaveBeenCalled()
+})
+
+it.each(['render', 'outer'] as const)('logs gate identity and error details for a custom-domain SSR %s failure', async mode => {
+  vi.stubEnv('REP_RENDER_V2_SLUGS', 'milehighfizz')
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  const error = new TypeError('Fixture render failure')
+  if (mode === 'render') mocks.render.mockRejectedValue(error)
+  else {
+    mocks.template.mockRejectedValueOnce(error)
+    mocks.bootstrap.mockImplementationOnce(async (...args: unknown[]) => {
+      const loaded = args.at(-1) as { templateData: Promise<unknown> }
+      await loaded.templateData
+      return new Response('window.QA=true;')
+    })
+  }
+  const response = await renderAmethystPublicAssetResponse(request(), ['Trade.html'], {
+    repIdOverride: 'test-rep', renderGateSlug: 'milehighfizz', joinVisibilityVerified: true,
+  })
+  expect(response.status).toBe(200)
+  expect(warn).toHaveBeenCalledWith('customer_page_ssr_failed', JSON.stringify({
+    page: mode === 'render' ? 'trade' : 'Trade.html', slug: 'milehighfizz', repId: 'test-rep',
+    errorName: 'TypeError', errorMessage: 'Fixture render failure',
+  }))
 })
 it.each(['milehighfizz', 'brisglowtique', 'goforthebling', 'brittwithbling', 'blingkitchen', 'blingwithkrissig', 'sparklybutterflies'])('hashes all three non-listed %s pages against frozen Live', async slug => {
   const opts = { ...options, publicSiteSlugOverride: slug, joinVisibilityVerified: true }

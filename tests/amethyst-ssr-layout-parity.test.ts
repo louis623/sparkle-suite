@@ -11,12 +11,12 @@ import baseline from './fixtures/amethyst-ssr-non-mhf-sha256.json'
 
 afterEach(() => vi.restoreAllMocks())
 
-// Captured from the unmodified application at the required PR base. Hash the
-// complete response, including styles, bootstrap and early controls, not just H1.
+// Normalize CR only, so Windows and Linux checkouts share complete-response
+// snapshots. The follow-up refresh includes the requested SSR motion fixes.
 for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
   for (const [layout, publicSiteVariant] of Object.entries(SSR_REVIEW_LAYOUTS)) {
     if (layout === 'mile_high_fizz') continue
-    it(`preserves full base SSR HTML bytes for ${preset} / ${layout}`, async () => {
+    it(`preserves CR-normalized full SSR HTML for ${preset} / ${layout}`, async () => {
       vi.spyOn(Date, 'now').mockReturnValue(baseline.clock)
       const saved = { ...homepage, heroMotion: 'still', publicSiteVariant }
       const bootstrap = buildAmethystHomepageBootstrapScript(saved, [], preset, { targeted: true })
@@ -24,7 +24,7 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
         { homepage: saved, join, trade, appearancePreset: preset },
         new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
       const key = `${preset}/${layout}` as keyof typeof baseline.hashes
-      expect(createHash('sha256').update(html).digest('hex')).toBe(baseline.hashes[key])
+      expect(createHash('sha256').update(html.replace(/\r/g, '')).digest('hex')).toBe(baseline.hashes[key])
     })
   }
 }
