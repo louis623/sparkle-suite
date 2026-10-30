@@ -1,6 +1,6 @@
-# Proposed files changed versus 968f7425
+# Files changed versus 968f7425
 
-Includes existing local checkpoint commits, uncommitted application changes and untracked scoped tests/evidence. The branch is not pushed; no PR exists. Files flagged only by checkout newline conversion with no Git diff are excluded.
+Includes retained evidence commits, the two implementation commits, and this final exception/closeout update. Publication is authorized for the requested PR only; no merge or deployment.
 
 - `app/customer-site/[page]/route.ts`
 - `config/active-branches.json`
@@ -42,6 +42,7 @@ Includes existing local checkpoint commits, uncommitted application changes and 
 - `vault/2026-10-30-ssr-per-rep/alpine_opal-trade-desktop-reduce.webp`
 - `vault/2026-10-30-ssr-per-rep/alpine_opal-trade-phone-no-preference.webp`
 - `vault/2026-10-30-ssr-per-rep/alpine_opal-trade-phone-reduce.webp`
+- `vault/2026-10-30-ssr-per-rep/approved-timing-exceptions.json`
 - `vault/2026-10-30-ssr-per-rep/assertion-corrections.json`
 - `vault/2026-10-30-ssr-per-rep/assertion-corrections.md`
 - `vault/2026-10-30-ssr-per-rep/bundle-sizes.json`

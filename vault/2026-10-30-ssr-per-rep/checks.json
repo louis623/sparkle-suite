@@ -415,8 +415,8 @@
     }
   ],
   "remaining": [
-    "Stop rule: no push or PR while three new full-suite failing names remain",
-    "No flyer/page code, assertion or timeout changes are authorized to bypass this gate"
+    "Push the verified implementation and evidence tip",
+    "Open requested draft PR; no merge/deploy/env/alias/DB changes"
   ],
   "finalSuite": {
     "passed": 6007,
@@ -602,7 +602,7 @@
     ],
     "newFailingNames": []
   },
-  "quietFullSuite": "Complete: three new 5-second flyer timeouts; stop rule blocks push",
+  "quietFullSuite": "Complete: 6007 pass/80 fail; exactly three new 5-second flyer timeouts explicitly excepted by Louis; evidence retained",
   "loadedSuite": {
     "passed": 5987,
     "failed": 100,
@@ -701,5 +701,58 @@
       }
     ],
     "unchangedSuiteLoadErrors": 4
+  },
+  "approvedTimingExceptions": {
+    "approvedBy": "Louis",
+    "scope": "Exactly the three named flyer timing failures; do not change their timeouts or code",
+    "approvedActions": [
+      "Keep evidence commit 162762d1c7ba826da511be624d69e67a5ca7f758",
+      "Small logical implementation commits on codex/ssr-per-rep-allowlist",
+      "Push and open requested PR into codex/nic-nac-trade-hardening"
+    ],
+    "prohibitedActions": [
+      "Merge",
+      "Deploy",
+      "Environment access or changes",
+      "Alias changes",
+      "Database changes"
+    ],
+    "exceptions": [
+      {
+        "file": "tests/workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders amber inside the safe zones and the QR decodes",
+        "baseStatus": "passed",
+        "baseDurationMs": 2089.8738999999987,
+        "isolatedStatus": "passed",
+        "isolatedDurationMs": 1698.3908999999985,
+        "quietStatus": "failed",
+        "quietDurationMs": 5276.085299999999,
+        "error": "Test timed out in 5000ms."
+      },
+      {
+        "file": "tests/workspace-card-qr-flyer.test.ts",
+        "name": "flyer render renders velvet inside the safe zones and the QR decodes",
+        "baseStatus": "passed",
+        "baseDurationMs": 2074.6805999999997,
+        "isolatedStatus": "passed",
+        "isolatedDurationMs": 1863.782100000004,
+        "quietStatus": "failed",
+        "quietDurationMs": 5585.9611,
+        "error": "Test timed out in 5000ms."
+      },
+      {
+        "file": "tests/workspace-card-qr-flyer.test.ts",
+        "name": "flyer render shrinks a long show title instead of cutting it off",
+        "baseStatus": "passed",
+        "baseDurationMs": 2472.358500000002,
+        "isolatedStatus": "passed",
+        "isolatedDurationMs": 1553.6268000000055,
+        "quietStatus": "failed",
+        "quietDurationMs": 5039.554600000003,
+        "error": "Test timed out in 5000ms."
+      }
+    ],
+    "noOtherNewFailingNamesApproved": true,
+    "flyerCodeAndTimeoutsUnchanged": true
   }
 }
