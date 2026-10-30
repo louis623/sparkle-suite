@@ -1,6 +1,6 @@
 import { earlyHomepageLocalTime } from './homepage-local-time'
 import { HERO_MOTION_THEMES } from './hero-motion-config'
-import { earlyHomepageControls } from './hero-motion-controls'
+import { earlyHomepageControls, earlyMileHighFizzControls } from './hero-motion-controls'
 import homepageStyles from './generated/homepage-styles.json'
 export { earlyHomepageControls } from './hero-motion-controls'
 import runtimeSources from './generated/page-runtimes.json'
@@ -80,10 +80,11 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
     if (src.startsWith('/amethyst/')) return ''
     return tag // Preserve the original analytics tags exactly once.
   })
+  const mileHighFizzControls = page === 'homepage' && data.homepage.publicSiteVariant === 'mile_high_fizz_hybrid' ? earlyMileHighFizzControls : ''
   return result
     .replace('</body>', ('ssrReview' in data ? '<aside data-ssr-review-label>Smoke demo · theme/layout review fixture · no saved changes</aside>' : '') + '</body>')
     .replace('</head>', fontMarkup + preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${escapeAttribute(style)}">`)
     .replace('<body class="' + (page === 'homepage' ? 'homepage' : page + 'page') + '">', `<body class="${escapeAttribute(body.className)}">`)
-    .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}</script>`)
+    .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}${mileHighFizzControls}</script>`)
 }

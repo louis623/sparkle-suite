@@ -28,21 +28,28 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
       const saved = { ...homepage, heroMotion: 'still', publicSiteVariant }
       const bootstrap = buildAmethystHomepageBootstrapScript(saved, [], preset, { targeted: true })
       const html = await renderHomepageFirstPaint(source, { homepage: saved, join, trade, appearancePreset: preset }, new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
-      expect(html).toContain(`data-ssr-hero="${preset}"`)
+      const bespoke = layout === 'mile_high_fizz' && preset !== 'halloween_pumpkin_cat'
+      if (bespoke) expect(html).toContain('class="mhf-hero"')
+      else expect(html).toContain(`data-ssr-hero="${preset}"`)
       expect(html).toContain('data-server-rendered="true"')
       expect(html.match(/<h1\b/g)).toHaveLength(1)
-      expect(html).toContain('data-hero-motion-toggle=""')
-      expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
-      expect(html).toContain('>Pause animation</button>')
-      if (HERO_MOTION_THEMES[preset].sound) {
-        expect(html).toContain('>Enable ' + HERO_MOTION_THEMES[preset].sound + '</button>')
+      if (bespoke) {
+        expect(html).not.toContain('data-hero-motion-toggle=""')
+        expect(html).not.toMatch(/<section class="hp-hero"/)
+        if (preset === 'gnome_garden') expect(html).toContain('class="gg-decoration"')
+        if (preset === 'gilded_autumn') expect(html).not.toContain('<video')
+        else expect(html).toMatch(/<video[^>]*class="mhf-hero-video"[^>]*preload="metadata"/)
+      } else {
+        expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
+        expect(html).toContain('>Pause animation</button>')
+        if (HERO_MOTION_THEMES[preset].sound) expect(html).toContain('>Enable ' + HERO_MOTION_THEMES[preset].sound + '</button>')
+        if (preset === 'sunset_beach') expect(html.indexOf('class="beach-motion-controls"')).toBeLessThan(html.indexOf('class="hp-hero-media"'))
       }
-      if (preset === 'sunset_beach') expect(html.indexOf('class="beach-motion-controls"')).toBeLessThan(html.indexOf('class="hp-hero-media"'))
       for (const css of HERO_MOTION_THEMES[preset].css) expect(html).toContain(css)
       expect(html).toContain('data-ssr-style="homepage.css"')
       expect(html).not.toMatch(/<link\b[^>]*rel="stylesheet"/)
       if (HERO_MOTION_THEMES[preset].script) expect(html).toMatch(new RegExp(`<script defer src="[^\"]*${HERO_MOTION_THEMES[preset].script}`))
-      if (HERO_MOTION_THEMES[preset].kind === 'video') {
+      if (!bespoke && HERO_MOTION_THEMES[preset].kind === 'video') {
         const video = html.match(/<video\b[^>]*data-hero-video=""[^>]*>/)?.[0]
         for (const attribute of ['autoplay', 'muted', 'playsinline', 'loop']) expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
         expect(video).toContain(`poster="${HERO_MOTION_THEMES[preset].poster}"`)

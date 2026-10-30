@@ -16,3 +16,22 @@ function start(){document.querySelectorAll('[data-ssr-hero]').forEach(function(h
 })}
 window.sparkleStartHeroMotion=start;start();
 })();`
+
+
+// The bespoke aurora hero has no visible Pause control in legacy. Do not emit
+// native autoplay before the browser's media preference is known. This runs
+// synchronously after its server tree, before deferred React hydration.
+export const earlyMileHighFizzControls = String.raw`(function(){
+var reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+function start(){document.querySelectorAll('body.mile-high-fizz .mhf-hero').forEach(function(hero){
+ var video=hero.querySelector('.mhf-hero-video');if(!video)return;
+ video.muted=true;video.defaultMuted=true;video.loop=true;
+ var allowed=hero.dataset.heroMotion!=='off'&&!reduced.matches;
+ video.autoplay=allowed;
+ if(!allowed){video.pause();return;}
+ Promise.resolve(video.play()).catch(function(){});
+})}
+window.sparkleStartMileHighFizzHero=start;
+if(reduced.addEventListener)reduced.addEventListener('change',start);
+start();
+})();`

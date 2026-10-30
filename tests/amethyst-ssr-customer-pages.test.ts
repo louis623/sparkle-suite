@@ -21,7 +21,8 @@ for (const page of ['trade', 'join'] as const) {
       const html = await renderAmethystPageFirstPaint(page, source, { homepage: { ...homepage, ...saved }, join: pageJoin, trade: pageTrade, appearancePreset: preset }, new URL(`https://sparkle-suite-smoke.vercel.app/dudesfizzfest/${page}`), bootstrap)
       const tree = html.split('<div id="root" data-server-rendered="true">')[1]?.split('</div><script>')[0]
       expect(tree).toBeTruthy()
-      expect(tree).toContain(`data-ssr-hero="${preset}"`)
+      if (layout === 'mile_high_fizz') expect(tree).not.toContain('data-ssr-hero=')
+      else expect(tree).toContain(`data-ssr-hero="${preset}"`)
       expect(tree?.match(/<h1\b/g)).toHaveLength(1)
       expect(tree).toContain(page === 'trade' ? 'SSR jewelry first paint' : 'SSR roster first paint')
       expect(html).toContain(`data-ssr-style="${page}.css"`)
@@ -30,10 +31,13 @@ for (const page of ['trade', 'join'] as const) {
       expect(html).toContain('/amethyst/ssr-fonts/')
       expect(html).toContain(`/amethyst/compiled/${page}.js`)
       expect(html).not.toMatch(/react\.development|babel|data-template-src=/)
-      expect(tree).toContain('data-hero-motion-toggle=""')
+      if (layout === 'mile_high_fizz') {
+        expect(tree).not.toContain('data-hero-motion-toggle=""')
+        if (preset !== 'gnome_garden') expect(tree).not.toContain('Pause animation')
+      } else expect(tree).toContain('data-hero-motion-toggle=""')
       // Utility pages retain their compact static banner; existing ornaments animate.
       expect(tree).not.toContain('<video')
-      if (HERO_MOTION_THEMES[preset].kind === 'decoration') expect(tree).toContain('data-paused="false"')
+      if (HERO_MOTION_THEMES[preset].kind === 'decoration' && (layout !== 'mile_high_fizz' || preset === 'gnome_garden')) expect(tree).toContain('data-paused="false"')
       expect(saved.heroMotion).toBe('still')
     })
   }
