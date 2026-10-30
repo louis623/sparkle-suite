@@ -1,6 +1,6 @@
-# Per-rep SSR implementation checkpoint
+# Per-rep SSR implementation — stopped on three new full-suite timeouts
 
-Work is stopped under the task's explicit new-failure rule. No push, PR, merge, deploy, alias change, Vercel environment access or hosted database access occurred. The implementation remains uncommitted in the authorized disposable clone on `codex/ssr-per-rep-allowlist`; the verified base is `968f7425272f8d2f9420623e7598343dfe7a0e1f`. Existing isolated PGlite fixtures ran with Louis's explicit approval.
+The authorized isolated flyer rerun passed all 23 earlier newly failing cases. A subsequent quiet full-suite run still has three new failing names, all five-second flyer timeouts. The task's stop rule therefore blocks pushing. No push, PR, merge, deploy, alias change, Vercel environment access or hosted database access occurred. The application implementation remains uncommitted in the authorized disposable clone on `codex/ssr-per-rep-allowlist`; the verified remote base remains `968f7425272f8d2f9420623e7598343dfe7a0e1f`. Existing isolated PGlite fixtures ran with Louis's explicit approval.
 
 For reps, the proposed behavior is an all-three-pages switch: home, Dance Floor and Join use SSR together only when their valid slug is listed. Pantry remains legacy. With the task's stated Production setting `REP_RENDER_V2_SLUGS=dudesfizzfest`, all seven real reps remain legacy and Fizzfest keeps its three SSR pages. No activation was performed. Frozen legacy remains available without an expiry change.
 
@@ -12,18 +12,29 @@ Wildcard, per-page, reserved, too-short/long, path and internal-whitespace entri
 | --- | --- |
 | Baseline full suite, before application edits | 5,894 pass / 82 fail; four existing suite-load errors |
 | Corrected focused run | 466 pass / three baseline Pantry failures; all six corrected assertions pass |
-| Full post-change suite | 5,987 pass / 100 fail; the same four suite-load errors |
-| Failing-name comparison | 23 new names, all in untouched `tests/workspace-card-qr-flyer.test.ts`; five baseline failing names passed this time |
+| Earlier loaded full suite | 5,987 pass / 100 fail; the same four suite-load errors |
+| Earlier failing-name comparison | 23 new names, all in untouched flyer tests; all 23 passed unchanged in the authorized isolated rerun |
+| Isolated flyer file | 41 pass / one known baseline failure at its unchanged 600-second limit; zero new failing names |
+| Final quiet full suite | 6,007 pass / 80 fail / five skipped; three new failing names, 77 baseline failures, five baseline failures now pass |
+| Final suite errors | Same four suite-load errors; one additional unhandled request-scope error, not classifiable against the baseline JSON-only log |
 | Frozen Live asset hashes | Pass; no frozen/shared asset edits |
 | Non-MHF full HTML comparisons | 69 pass against a freshly bundled base with the same locked Windows toolchain |
 | Nine added all-page legacy-fallback cases | All pass; HTTP 200 and exact frozen legacy bytes |
 | SSR bundle generation | Pass |
-| TypeScript | Prior checkpoint passed; not rerun after the two assertion corrections because the later full-suite stop is active |
-| Full `npm run build` | Not run; blocked by the stop rule |
+| TypeScript | Pass on the current tree after the six assertion corrections |
+| Full `npm run build` | Pass, including branch guard, layout locks and regenerated SSR bundles |
 
-The sampled new flyer failures took about 5.0–5.7 seconds, versus 2.4–2.5 seconds when passing at base. Vitest's JSON reporter provides `STACK_TRACE_ERROR`, not a useful assertion message. Timing/resource contention is plausible but not established. No timeout, check, flyer code or page code was changed to make them pass, and no isolated rerun was performed without Louis's next authorization.
+Louis authorized an isolated rerun. All 23 earlier new cases passed unchanged; the file finished 41 pass / one pre-existing exhaustive-sweep timeout at its original 600,000 ms limit. The subsequent quiet, single-worker whole-suite run had no browser work alongside it, but three of those 23 cases again exceeded their unchanged 5,000 ms limits. The verbose log explicitly reports `Test timed out in 5000ms.`; JSON alone reports `STACK_TRACE_ERROR`. No timeout, assertion, flyer code or page code was changed. This is timing-sensitive behavior, but its exact cause is not established. Passing in isolation does not waive the full-suite gate. See [isolated results](flyer-isolated.json) and [quiet-run timing details](quiet-full-suite.json).
 
-[Full named comparison](full-suite-comparison.json) contains every baseline/final failing name and the four suite-load errors. [Flyer details](flyer-failures.json) records all 23 new names, their baseline status and durations. The new names are listed at the end of this report.
+[Final named comparison](full-suite-comparison.json) contains every baseline/quiet-run failing name, the four suite-load errors and the unhandled-error caveat. The [earlier loaded comparison](full-suite-comparison-loaded.json) is preserved separately. [Flyer details](flyer-failures.json) records the original 23 new names, their baseline status and durations. All 23 names are retained at the end of this report; the three remaining blockers are listed below.
+
+| New failing name, all in `tests/workspace-card-qr-flyer.test.ts` | Base pass | Isolated pass | Quiet full-run timeout |
+| --- | --- | --- | --- |
+| `flyer render renders amber inside the safe zones and the QR decodes` | 2.090 s | 1.698 s | 5.276 s |
+| `flyer render renders velvet inside the safe zones and the QR decodes` | 2.075 s | 1.864 s | 5.586 s |
+| `flyer render shrinks a long show title instead of cutting it off` | 2.472 s | 1.554 s | 5.040 s |
+
+The quiet run also reports an unhandled `connection was called outside a request scope` error originating during the already-failing `tests/prelaunch/prelaunch-root-route.test.ts`. Its source stack reaches `readLandingFounderAvailability` and `app/page.tsx`, which this patch does not change. The baseline JSON-only log did not retain unhandled-error text, so this additional error is explicitly unclassified rather than claimed pre-existing.
 
 Louis authorized correcting only six wrong assertions. The exact before/after checks and why the pages were already correct are listed separately for all six in [assertion-corrections.md](assertion-corrections.md). Application and compiled file hashes remained unchanged throughout this continuation; only the CSS-selector/element and React-comment/text assertions were corrected.
 
@@ -55,11 +66,11 @@ Server markup omits native autoplay until the synchronous early controller knows
 - **Cold start:** no deployment or Live cold-start measurement was permitted. The generated React server bundle stayed the same size; page runtimes grew 2,360 bytes. This does not establish deployed cold-start safety. [Sizes](bundle-sizes.json).
 - **Content and interactions not certified:** visuals use synthetic fixture content, empty calendar/lineup states and fixture inventory/roster data. Lindsey's actual show times, live lineup, events, content/media slots, About/showcase TikTok playback, signup submission, provider behavior and production footer destinations were not exercised. No form was submitted and no hosted data was read. Layout-specific source order and hero/footer link structure were compared; those facts are not a claim of complete Live-content parity.
 - **Decision for Louis:** add a Pause button to the aurora hero (WCAG 2.2.2). Legacy has none; the requested port intentionally leaves this decision open.
-- **Test instability:** the three mentioned SSR timing cases passed in this run, but the untouched flyer suite produced the 23 newly failing names below. They have not been waived or repaired. Push and PR creation remain blocked.
+- **Test instability:** the three mentioned SSR timing cases passed, but the untouched flyer suite produced the 23 newly failing names below. All 23 passed in the authorized isolated rerun without repairs or waived checks; three timed out again in the quiet whole-suite run and still block pushing.
 
-No release is ready. After the check blocker is resolved, the requested deliverable is a draft PR only, with no merge or deployment. Later activation requires separate Smoke/demo/Live quality gates, Rocky review and Louis's explicit approval. A future rollback would revert this PR's code to base `968f7425`; a later per-rep rollout can return that rep's three pages to legacy by removing its allowlist entry while retaining `dudesfizzfest`. No rollback or environment action was executed.
+No release is ready, and no PR was opened. After the check blocker is resolved, the requested deliverable is a draft PR only, with no merge or deployment. Later activation requires separate Smoke/demo/Live quality gates, Rocky review and Louis's explicit approval. A future rollback would revert this PR's code to base `968f7425`; a later per-rep rollout can return that rep's three pages to legacy by removing its allowlist entry while retaining `dudesfizzfest`. No rollback or environment action was executed.
 
-## Newly failing names
+## Earlier loaded-run failing names — all 23 passed in isolation
 
 - `flyer render renders gobble_and_fizz inside the safe zones and the QR decodes`
 - `flyer render renders pie_please inside the safe zones and the QR decodes`

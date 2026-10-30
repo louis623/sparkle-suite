@@ -2,6 +2,8 @@
 
 This is synthetic local review evidence, not a Live release or a certification of Lindsey's saved content. Browser plugin was unavailable; Playwright used a fresh headless Chrome profile. No rep sign-in, form submission, hosted database access or deployment occurred. Local API responses are fixtures. Font-provider stylesheets/files were read for the legacy comparison; other external resources were blocked.
 
+The legacy reference compiles the frozen JSX with the repository's locked production React bundle instead of executing the development/Babel loader from the old HTML. This compares the frozen UI source under a production runtime; it does not certify raw Live legacy loading performance or runtime-version-specific behavior. Separate response/asset hash tests preserve the actual frozen renderer's bytes.
+
 The comparison contains 48 views in 24 side-by-side images: desktop 1440×900 and phone 390×844; motion allowed and reduced motion; home, Dance Floor and Join; Alpine Opal/MHF hybrid and Gilded Autumn/standard. Frozen legacy appears on the left, SSR on the right. Independent moving-video frames and ticker positions are not synchronized.
 
 All 24 final SSR views recorded CLS 0, no horizontal overflow and no JavaScript runtime errors. The aurora plays with motion allowed; reduced-motion arrival has `paused=true`, `currentTime=0`, `autoplay=false`, `preload=metadata`. No visible aurora Pause button was added. Full measurements are in [measurements.json](measurements.json).

@@ -1,0 +1,169 @@
+{
+  "command": "npx vitest run --maxWorkers=1 --reporter=verbose --reporter=json --outputFile=.tmp-ssr-quiet-tests.json",
+  "passed": 6007,
+  "failed": 80,
+  "skipped": 5,
+  "durationSeconds": 1595.9,
+  "newFailingNames": [
+    {
+      "file": "tests/workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders amber inside the safe zones and the QR decodes",
+      "baseStatus": "passed",
+      "baseDurationMs": 2089.8738999999987,
+      "isolatedStatus": "passed",
+      "isolatedDurationMs": 1698.3908999999985,
+      "quietStatus": "failed",
+      "quietDurationMs": 5276.085299999999,
+      "error": "Test timed out in 5000ms."
+    },
+    {
+      "file": "tests/workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders velvet inside the safe zones and the QR decodes",
+      "baseStatus": "passed",
+      "baseDurationMs": 2074.6805999999997,
+      "isolatedStatus": "passed",
+      "isolatedDurationMs": 1863.782100000004,
+      "quietStatus": "failed",
+      "quietDurationMs": 5585.9611,
+      "error": "Test timed out in 5000ms."
+    },
+    {
+      "file": "tests/workspace-card-qr-flyer.test.ts",
+      "name": "flyer render shrinks a long show title instead of cutting it off",
+      "baseStatus": "passed",
+      "baseDurationMs": 2472.358500000002,
+      "isolatedStatus": "passed",
+      "isolatedDurationMs": 1553.6268000000055,
+      "quietStatus": "failed",
+      "quietDurationMs": 5039.554600000003,
+      "error": "Test timed out in 5000ms."
+    }
+  ],
+  "unchangedSuiteLoadErrors": 4,
+  "unhandledError": {
+    "message": "connection was called outside a request scope",
+    "origin": "tests/prelaunch/prelaunch-root-route.test.ts",
+    "classification": "Not classified against base: baseline JSON-only reporter did not retain unhandled-error text"
+  },
+  "prior23QuietStatuses": [
+    {
+      "name": "flyer render renders gobble_and_fizz inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 3208.9678000000004
+    },
+    {
+      "name": "flyer render renders pie_please inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 3017.1255999999994
+    },
+    {
+      "name": "flyer render renders amethyst inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2740.0579
+    },
+    {
+      "name": "flyer render renders sparkle_suite_morganite inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2245.9439
+    },
+    {
+      "name": "flyer render renders moonstone inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2015.2605000000003
+    },
+    {
+      "name": "flyer render renders emerald_garden inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1879.0847000000012
+    },
+    {
+      "name": "flyer render renders halloween_pumpkin_cat inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2217.2363000000005
+    },
+    {
+      "name": "flyer render renders halloween_pumpkin_witch inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2078.5472999999984
+    },
+    {
+      "name": "flyer render renders gilded_autumn inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2838.3632999999973
+    },
+    {
+      "name": "flyer render renders rose_gold inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2337.6457999999984
+    },
+    {
+      "name": "flyer render renders midnight_rose inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2599.619700000003
+    },
+    {
+      "name": "flyer render renders fall_owl_harvest_moon inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2169.7698999999993
+    },
+    {
+      "name": "flyer render renders pearl_rose inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2004.3486000000012
+    },
+    {
+      "name": "flyer render renders sunset_beach inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2949.2324999999983
+    },
+    {
+      "name": "flyer render renders rose_champagne inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2680.7788
+    },
+    {
+      "name": "flyer render renders garnet inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2773.5267999999996
+    },
+    {
+      "name": "flyer render renders amber inside the safe zones and the QR decodes",
+      "status": "failed",
+      "durationMs": 5276.085299999999
+    },
+    {
+      "name": "flyer render renders velvet inside the safe zones and the QR decodes",
+      "status": "failed",
+      "durationMs": 5585.9611
+    },
+    {
+      "name": "flyer render shrinks a long show title instead of cutting it off",
+      "status": "failed",
+      "durationMs": 5039.554600000003
+    },
+    {
+      "name": "flyer render decodes PNG and JPG for every shared theme with a tagline, without one, and with a wrapping title",
+      "status": "passed",
+      "durationMs": 101221.5992
+    },
+    {
+      "name": "flyer render closes the tagline and website slots when they are absent, and prints a custom domain",
+      "status": "passed",
+      "durationMs": 2466.1450999999943
+    },
+    {
+      "name": "flyer file formats encodes JPG from one PNG and both files decode to the same URL",
+      "status": "passed",
+      "durationMs": 1611.0714000000153
+    },
+    {
+      "name": "flyer route ignores body.appearancePreset and uses the saved theme",
+      "status": "passed",
+      "durationMs": 2076.4628000000084
+    }
+  ],
+  "assertionsAndTimeoutsUnchanged": true,
+  "flyerSourceUnchanged": true,
+  "action": "Stopped; no implementation commit, push or PR",
+  "applicationHashChangesSinceAssertionCorrection": []
+}
