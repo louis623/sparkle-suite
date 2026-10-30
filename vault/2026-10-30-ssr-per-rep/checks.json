@@ -1,0 +1,455 @@
+{
+  "baseCommit": "968f7425272f8d2f9420623e7598343dfe7a0e1f",
+  "baseline": {
+    "passed": 5894,
+    "failed": 82,
+    "failures": [
+      {
+        "file": "tests/amethyst-dance-floor-photo-fallback.test.ts",
+        "name": "Dance Floor photo fallback rewrites the Dance Floor script request to the photo-frame cache tag before Babel fetches it"
+      },
+      {
+        "file": "tests/amethyst-gnome-garden-registry.test.ts",
+        "name": "Gnome Forest registry and data contract adds database acceptance without updating customers, defaults, or dropping legacy values"
+      },
+      {
+        "file": "tests/amethyst-preview-rep.test.ts",
+        "name": "Amethyst preview rep resolver serves an explicit customer site during an unexpired operator trial"
+      },
+      {
+        "file": "tests/amethyst-static-assets-route.test.ts",
+        "name": "Amethyst static asset route forwards preview rep targets through the Join.html template loader"
+      },
+      {
+        "file": "tests/bling-kitchen-pantry-bytes.test.ts",
+        "name": "BlingKitchen pantry bytes versus the pre-allowlist base keeps the custom-domain pantry document byte-for-byte"
+      },
+      {
+        "file": "tests/bling-kitchen-pantry-bytes.test.ts",
+        "name": "BlingKitchen pantry bytes versus the pre-allowlist base keeps the public-slug pantry document byte-for-byte"
+      },
+      {
+        "file": "tests/bling-kitchen-pantry-bytes.test.ts",
+        "name": "BlingKitchen pantry bytes versus the pre-allowlist base keeps the pantry template script byte-for-byte"
+      },
+      {
+        "file": "tests/fall-owl-flyer-plate.test.ts",
+        "name": "Fall Owl approved high-perch plate keeps the owl visible and decodes the centered QR for Autumn Sparkle"
+      },
+      {
+        "file": "tests/fall-owl-flyer-plate.test.ts",
+        "name": "Fall Owl approved high-perch plate keeps the owl visible and decodes the centered QR for Bling with Krissi"
+      },
+      {
+        "file": "tests/fall-owl-flyer-plate.test.ts",
+        "name": "Fall Owl approved high-perch plate keeps the owl visible and decodes the centered QR for A Very Long Autumn Jewelry Shop Name"
+      },
+      {
+        "file": "tests/gilded-autumn-integration.test.ts",
+        "name": "The Golden Leaves of Autumn Community integration applies the additive database migration without replacing any saved choice or private assignment"
+      },
+      {
+        "file": "tests/gnome-garden-preview.test.ts",
+        "name": "read-only Gnome Forest skin preview shows an honest notice on submission buttons before sandbox form handling and disables file inputs"
+      },
+      {
+        "file": "tests/help-resources.test.ts",
+        "name": "help resources documents the customer reveal screenshot flow for trade requests"
+      },
+      {
+        "file": "tests/live-lineup-archive-recovery-sql.test.ts",
+        "name": "recovers through actual services and exact additive SQL, preserving archives and fencing the source"
+      },
+      {
+        "file": "tests/live-lineup-audience.test.ts",
+        "name": "queries tenant-wide unique names and minimal chips from one SQL snapshot, invalidating inserts, edits and deletes"
+      },
+      {
+        "file": "tests/live-lineup-connection-codes.test.ts",
+        "name": "copies existing connection codes exactly and never shows a retired live_queue payload"
+      },
+      {
+        "file": "tests/live-lineup-customer-cards.test.ts",
+        "name": "smart lineup customer identity creates once across repeated/multiple orders, preserves preferences and never grants consent"
+      },
+      {
+        "file": "tests/live-lineup-customer-cards.test.ts",
+        "name": "smart lineup customer identity hides duplicate full-name details and confirms only the selected order"
+      },
+      {
+        "file": "tests/live-lineup-customer-cards.test.ts",
+        "name": "smart lineup customer identity refuses wrong-tenant selection and changed source identity"
+      },
+      {
+        "file": "tests/live-lineup-customer-cards.test.ts",
+        "name": "smart lineup customer identity does not create from stale or hidden orders; stale matches cannot be confirmed"
+      },
+      {
+        "file": "tests/live-lineup-customer-cards.test.ts",
+        "name": "smart lineup customer identity separate-person creation is idempotent and does not rename or merge anyone"
+      },
+      {
+        "file": "tests/live-lineup-customer-cards.test.ts",
+        "name": "smart lineup customer identity never exposes the reconciliation RPC to unprivileged roles"
+      },
+      {
+        "file": "tests/live-lineup-customer-cards.test.ts",
+        "name": "smart lineup customer identity keeps long preferences, strips controls, and nulls an impossible birthday without dropping the card"
+      },
+      {
+        "file": "tests/live-lineup-customer-cards.test.ts",
+        "name": "smart lineup customer identity does not relabel a separate person when the same new id is retried with another label"
+      },
+      {
+        "file": "tests/live-lineup-customer-cards.test.ts",
+        "name": "smart lineup customer identity does not auto-create while a capable publisher is still bootstrapping"
+      },
+      {
+        "file": "tests/live-lineup-customer-orders.test.ts",
+        "name": "lineup purchase tracking never blocks a show archive when order tracking fails"
+      },
+      {
+        "file": "tests/live-lineup-customer-orders.test.ts",
+        "name": "lineup purchase tracking ships no Smoke-only wording in the orders migration"
+      },
+      {
+        "file": "tests/live-lineup-customer-orders.test.ts",
+        "name": "lineup purchase tracking writes one idempotent order per unique-name match and keeps last seen without bumping the card version"
+      },
+      {
+        "file": "tests/live-lineup-customer-orders.test.ts",
+        "name": "lineup purchase tracking waits for the rep to choose between shared names, then follows that choice"
+      },
+      {
+        "file": "tests/live-lineup-customer-orders.test.ts",
+        "name": "lineup purchase tracking records a separately created person and does not duplicate the retry"
+      },
+      {
+        "file": "tests/live-lineup-customer-orders.test.ts",
+        "name": "lineup purchase tracking records archived full names, skips ambiguous and excluded rows, and backfills once"
+      },
+      {
+        "file": "tests/live-lineup-customer-orders.test.ts",
+        "name": "lineup purchase tracking creates one card and link for a revealed buyer who was not on the list yet"
+      },
+      {
+        "file": "tests/live-lineup-customer-orders.test.ts",
+        "name": "lineup purchase tracking counts recent live buyers and customers who have gone quiet"
+      },
+      {
+        "file": "tests/live-lineup-customer-orders.test.ts",
+        "name": "lineup purchase tracking lets a rep read only their own orders and keeps writes on the service role"
+      },
+      {
+        "file": "tests/live-lineup-customer-orders.test.ts",
+        "name": "lineup purchase tracking records a long show in batches of 250 without duplicating a retry"
+      },
+      {
+        "file": "tests/live-lineup-service.test.ts",
+        "name": "automatic show ending keeps the old party and its orders when a new party is detected"
+      },
+      {
+        "file": "tests/live-lineup-service.test.ts",
+        "name": "automatic show ending keeps the same generation and drops nothing when a party is added"
+      },
+      {
+        "file": "tests/login-client-google-oauth.test.ts",
+        "name": "login Google OAuth source explains when Google authenticated an email without a provisioned account"
+      },
+      {
+        "file": "tests/nic-nac-branding.test.ts",
+        "name": "Nic-Nac branding copy renders customer-facing site Look choices for required setup"
+      },
+      {
+        "file": "tests/nic-nac-dual-interface-contract.test.ts",
+        "name": "Nic-Nac/dashboard dual-interface contracts keeps every parity contract wired to the same service function from route and tool surfaces"
+      },
+      {
+        "file": "tests/nic-nac-release-scope.test.ts",
+        "name": "isolated Nic-Nac photo and rarity release scope identifies the only two paths overlapping the protected Lineup commits"
+      },
+      {
+        "file": "tests/nic-nac-shared-knowledge.test.ts",
+        "name": "shared Nic-Nac knowledge defines trade eligibility and value boundaries"
+      },
+      {
+        "file": "tests/nic-nac-shared-knowledge.test.ts",
+        "name": "shared Nic-Nac knowledge renders shared knowledge text for prompts"
+      },
+      {
+        "file": "tests/nic-nac-workspace-knowledge.test.ts",
+        "name": "workspace Nic-Nac shared knowledge includes shared Nic-Nac knowledge in the workspace prompt"
+      },
+      {
+        "file": "tests/operator-support-route-classification.test.ts",
+        "name": "operator support route classification manifest classifies every governed route and no removed route"
+      },
+      {
+        "file": "tests/photo-enhancement-queue-route.test.ts",
+        "name": "GET /api/internal/photo-enhancement/queue runs the queue with the authenticated secret and requested limit"
+      },
+      {
+        "file": "tests/photo-enhancement-queue-route.test.ts",
+        "name": "GET /api/internal/photo-enhancement/queue removes expired trade request reveal screenshots during daily maintenance"
+      },
+      {
+        "file": "tests/public-live-lineup-v2.test.ts",
+        "name": "server-ordered public lineup wires all targeted pages to the shared runtime and accessible dialogs, with no floating status"
+      },
+      {
+        "file": "tests/required-setup-look-picker-preview.test.tsx",
+        "name": "skin browsing preview keeps only community preview metadata in the unauthenticated catalog view"
+      },
+      {
+        "file": "tests/reviewer-smoke-ui.test.ts",
+        "name": "reviewer smoke UI wiring uses search and filters to browse board inventory without a default full grid"
+      },
+      {
+        "file": "tests/reviewer-smoke-ui.test.ts",
+        "name": "reviewer smoke UI wiring keeps customer board previewing inside the workspace with only primary preview actions"
+      },
+      {
+        "file": "tests/self-serve-start-page.test.ts",
+        "name": "Sparkle Suite public start route preserves the protected reviewer-smoke controls in non-production review mode"
+      },
+      {
+        "file": "tests/sparkle-finder-linked-rep-memory.test.ts",
+        "name": "Sparkle Finder linked rep memory bridge allows active ready launch-build reps before paid subscription starts"
+      },
+      {
+        "file": "tests/sparkle-finder-rep-claim.test.ts",
+        "name": "Sparkle Finder internal rep claim allows valid Secret Rep ID Numbers for ready launch-build reps before paid subscription starts"
+      },
+      {
+        "file": "tests/sparkle-suite-demo.test.ts",
+        "name": "Sparkle Suite demo page replaces Demo soon with a real Demo link and marks the page current"
+      },
+      {
+        "file": "tests/sparkle-suite-master-brand-system.test.ts",
+        "name": "Sparkle Suite master brand system contains the required core brand docs with critical language"
+      },
+      {
+        "file": "tests/sparkle-suite-master-brand-system.test.ts",
+        "name": "Sparkle Suite master brand system keeps the current core-doc contract explicit and internally consistent"
+      },
+      {
+        "file": "tests/sparkle-suite-master-brand-system.test.ts",
+        "name": "Sparkle Suite master brand system contains the required channel playbooks and review checklist"
+      },
+      {
+        "file": "tests/sparkle-suite-master-brand-system.test.ts",
+        "name": "Sparkle Suite master brand system contains the reusable template library"
+      },
+      {
+        "file": "tests/sparkle-suite-master-brand-system.test.ts",
+        "name": "Sparkle Suite master brand system contains a repo-local skill and daily-use index guidance for the brand system"
+      },
+      {
+        "file": "tests/sparkle-suite-master-brand-system.test.ts",
+        "name": "Sparkle Suite master brand system contains the official production-based design kit and retires imported kits"
+      },
+      {
+        "file": "tests/sparkle-suite-public-nic-nac-contract.test.ts",
+        "name": "public Nic-Nac knowledge pack contains exact current TradeBoard eligibility rules for public buyer answers"
+      },
+      {
+        "file": "tests/sparkle-suite-public-nic-nac-contract.test.ts",
+        "name": "public Nic-Nac prompt includes approved public knowledge but no private implementation details"
+      },
+      {
+        "file": "tests/sparkle-suite-public-nic-nac-contract.test.ts",
+        "name": "public Nic-Nac postflight guardrails corrects model output that says MSRP decides equal-value trades"
+      },
+      {
+        "file": "tests/workspace-card-qr-flyer.test.ts",
+        "name": "short-link QR on every shared theme decodes PNG and JPG for every theme and center mark, including a 30% JPEG resave"
+      },
+      {
+        "file": "tests/audits/live-lineup-2026-09-08.test.ts",
+        "name": "Live Lineup audit — reproducible current behavior unchanged alarm does not send a heartbeat"
+      },
+      {
+        "file": "tests/audits/live-lineup-2026-09-08.test.ts",
+        "name": "Live Lineup audit — reproducible current behavior present table without tbody publishes a fresh empty queue"
+      },
+      {
+        "file": "tests/audits/live-lineup-2026-09-08.test.ts",
+        "name": "Live Lineup audit — reproducible current behavior tbody observer does not observe descendant checkbox attributes or changes"
+      },
+      {
+        "file": "tests/audits/live-lineup-2026-09-08.test.ts",
+        "name": "Live Lineup audit — reproducible current behavior changing only the sync code neither publishes nor invalidates dedupe"
+      },
+      {
+        "file": "tests/audits/live-lineup-2026-09-08.test.ts",
+        "name": "Live Lineup audit — reproducible current behavior 401 leaves alarm retries latched off"
+      },
+      {
+        "file": "tests/audits/live-lineup-2026-09-08.test.ts",
+        "name": "Live Lineup audit — reproducible current behavior missing required columns stop discovery before successful validation"
+      },
+      {
+        "file": "tests/audits/live-lineup-2026-09-08.test.ts",
+        "name": "Live Lineup audit — reproducible current behavior each independent tab publishes without source coordination"
+      },
+      {
+        "file": "tests/nic-nac/model-policy-route.test.ts",
+        "name": "Suite Nic-Nac model routing does not hardcode Anthropic model IDs in route files"
+      },
+      {
+        "file": "tests/nic-nac/model-policy-route.test.ts",
+        "name": "Suite Nic-Nac model routing passes provider options through the shared model policy helper"
+      },
+      {
+        "file": "tests/nic-nac/public-site-visits.test.ts",
+        "name": "public site visit capture beacon script does not set a cookie and the table is rep-read only"
+      },
+      {
+        "file": "tests/nic-nac/site-analytics-ga4-isolation.test.ts",
+        "name": "rep GA4 dashboard isolation keeps GA columns out of site settings"
+      },
+      {
+        "file": "tests/nic-nac/system-prompt-clickwrap.test.ts",
+        "name": "Nic-Nac system prompt - listing-time trade guidance frames MSRP as reference data rather than the trade-parity engine"
+      },
+      {
+        "file": "tests/nic-nac/trade-request-notifications.test.ts",
+        "name": "notifyRepOfTradeRequest writes a complete assistant message into the rep's latest conversation"
+      },
+      {
+        "file": "tests/prelaunch/prelaunch-root-route.test.ts",
+        "name": "root route redirects to /prelaunch"
+      },
+      {
+        "file": "tests/services/workspace-message-rls-contract.test.ts",
+        "name": "Message Center RLS contract does not expose frozen audience, source, or idempotency metadata to recipient clients"
+      },
+      {
+        "file": "tests/sparkle-suite/jewelry-preferences.test.ts",
+        "name": "signup copy and migration parity keeps the database checks aligned with the shared lists"
+      },
+      {
+        "file": "tests/sparkle-suite/jewelry-preferences.test.ts",
+        "name": "signup copy and migration parity rejects comma-joined favorite values and duplicates in a forward migration"
+      }
+    ],
+    "errors": [
+      {
+        "file": "C:/Users/louis/sparkle-suite-repo/.codex-worktrees/ssr-per-rep-allowlist-disposable/tests/remy-communications-schema-contract.test.ts",
+        "message": "ENOENT: no such file or directory, open 'C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\ssr-per-rep-allowlist-disposable\\supabase\\migrations\\20260918180000_ss_waitlist_service_role_read.sql'"
+      },
+      {
+        "file": "C:/Users/louis/sparkle-suite-repo/.codex-worktrees/ssr-per-rep-allowlist-disposable/tests/sparkle-finder-public-show-window-migration.test.ts",
+        "message": "ENOENT: no such file or directory, open 'C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\ssr-per-rep-allowlist-disposable\\supabase\\migrations\\20261014133000_ss_finder_public_show_window.sql'"
+      },
+      {
+        "file": "C:/Users/louis/sparkle-suite-repo/.codex-worktrees/ssr-per-rep-allowlist-disposable/tests/thanksgiving-migration.test.ts",
+        "message": "ENOENT: no such file or directory, open 'C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\ssr-per-rep-allowlist-disposable\\supabase\\migrations\\20261019000100_add_thanksgiving_community_themes.sql'"
+      },
+      {
+        "file": "C:/Users/louis/sparkle-suite-repo/.codex-worktrees/ssr-per-rep-allowlist-disposable/tests/prelaunch/prelaunch-crawl-metadata.test.ts",
+        "message": "Cannot find package '@/app/robots' imported from C:/Users/louis/sparkle-suite-repo/.codex-worktrees/ssr-per-rep-allowlist-disposable/tests/prelaunch/prelaunch-crawl-metadata.test.ts"
+      }
+    ]
+  },
+  "focused": {
+    "passed": 460,
+    "failed": 9,
+    "failures": [
+      {
+        "file": "amethyst-ssr-custom-domain.test.ts",
+        "name": "switches only the listed custom-domain home, preserving custom links and canonical",
+        "preExisting": false
+      },
+      {
+        "file": "amethyst-ssr-custom-domain.test.ts",
+        "name": "switches only the listed custom-domain trade, preserving custom links and canonical",
+        "preExisting": false
+      },
+      {
+        "file": "amethyst-ssr-custom-domain.test.ts",
+        "name": "switches only the listed custom-domain join, preserving custom links and canonical",
+        "preExisting": false
+      },
+      {
+        "file": "amethyst-ssr-mile-high-fizz.test.ts",
+        "name": "ports the complete frozen alpine_opal MHF hero and CTA tree with saved sparkle_rise",
+        "preExisting": false
+      },
+      {
+        "file": "amethyst-ssr-mile-high-fizz.test.ts",
+        "name": "ports the complete frozen alpine_opal MHF hero and CTA tree with saved still",
+        "preExisting": false
+      },
+      {
+        "file": "amethyst-ssr-mile-high-fizz.test.ts",
+        "name": "ports the complete frozen alpine_opal MHF hero and CTA tree with saved none",
+        "preExisting": false
+      },
+      {
+        "file": "bling-kitchen-pantry-bytes.test.ts",
+        "name": "BlingKitchen pantry bytes versus the pre-allowlist base keeps the custom-domain pantry document byte-for-byte",
+        "preExisting": true
+      },
+      {
+        "file": "bling-kitchen-pantry-bytes.test.ts",
+        "name": "BlingKitchen pantry bytes versus the pre-allowlist base keeps the public-slug pantry document byte-for-byte",
+        "preExisting": true
+      },
+      {
+        "file": "bling-kitchen-pantry-bytes.test.ts",
+        "name": "BlingKitchen pantry bytes versus the pre-allowlist base keeps the pantry template script byte-for-byte",
+        "preExisting": true
+      }
+    ]
+  },
+  "typeScriptExit": 0,
+  "ssrBundleExit": 0,
+  "nonMhfFullHtmlComparisons": 69,
+  "fallback": [
+    {
+      "name": "returns HTTP 200 and exact legacy bytes for Homepage.html on SSR throw",
+      "status": "passed"
+    },
+    {
+      "name": "returns HTTP 200 and exact legacy bytes for Homepage.html on SSR invalid render",
+      "status": "passed"
+    },
+    {
+      "name": "returns HTTP 200 and exact legacy bytes for Homepage.html on SSR failed data response",
+      "status": "passed"
+    },
+    {
+      "name": "returns HTTP 200 and exact legacy bytes for Trade.html on SSR throw",
+      "status": "passed"
+    },
+    {
+      "name": "returns HTTP 200 and exact legacy bytes for Trade.html on SSR invalid render",
+      "status": "passed"
+    },
+    {
+      "name": "returns HTTP 200 and exact legacy bytes for Trade.html on SSR failed data response",
+      "status": "passed"
+    },
+    {
+      "name": "returns HTTP 200 and exact legacy bytes for Join.html on SSR throw",
+      "status": "passed"
+    },
+    {
+      "name": "returns HTTP 200 and exact legacy bytes for Join.html on SSR invalid render",
+      "status": "passed"
+    },
+    {
+      "name": "returns HTTP 200 and exact legacy bytes for Join.html on SSR failed data response",
+      "status": "passed"
+    }
+  ],
+  "remaining": [
+    "Correct six assertion-only failures after Louis authorizes continuation under the stop rule",
+    "Rerun focused checks",
+    "Full post-change suite and named baseline comparison",
+    "Full npm build",
+    "SSR visual matrix, CLS and slow-phone measurements",
+    "Logical implementation commits, push, PR; no merge or deploy"
+  ]
+}

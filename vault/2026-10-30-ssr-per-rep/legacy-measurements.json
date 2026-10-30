@@ -1,0 +1,766 @@
+[
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.07389587166240676,
+    "lcp": 7880,
+    "shifts": [
+      0.04965214651183663,
+      0.024243725150570127
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 6648,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": false,
+        "currentTime": 1.3049,
+        "autoplay": true,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.060001732226294575,
+    "lcp": 3508,
+    "shifts": [
+      0.0005856602044753086,
+      0.05680208333333333,
+      0.0026139886884859395
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 2140,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": false,
+        "currentTime": 2.4165,
+        "autoplay": true,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.090268400713125,
+    "lcp": 2780,
+    "shifts": [
+      0.035908857442274435,
+      0.054359543270850574
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 2372,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": false,
+        "currentTime": 2.5887,
+        "autoplay": true,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.03964769216424949,
+    "lcp": 4040,
+    "shifts": [
+      0.03485773830748411,
+      0.0019500541177197277,
+      0.0028398997390456475
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 3024,
+    "heroClass": "mhf-hero",
+    "titleFont": "Pacifico, \"Brush Script MT\", cursive",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/mile-high-fizz/hero.mp4",
+        "paused": false,
+        "currentTime": 3.011,
+        "autoplay": true,
+        "preload": "metadata",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [],
+    "sections": [
+      "hp-trade-preview hp-lineup-idle",
+      "mhf-hero",
+      "wibp",
+      "about",
+      "signup",
+      "hp-footer"
+    ],
+    "fonts": [
+      "Brush Script MT"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.6478841498983249,
+    "lcp": 3620,
+    "shifts": [
+      0.41013444889523853,
+      0.13714583333333333,
+      0.10060386766975309
+    ],
+    "h1": "Find the dancer you were hoping for.",
+    "firstPaint": 2900,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.6011403374733421,
+    "lcp": 5032,
+    "shifts": [
+      0.2951045049973476,
+      0.09979894332990398,
+      0.19874316915294923,
+      0.007493719993141289
+    ],
+    "h1": "Find the dancer you were hoping for.",
+    "firstPaint": 3548,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.4172840380214012,
+    "lcp": 5516,
+    "shifts": [
+      0.0000734244578617178,
+      0.41721061356353945
+    ],
+    "h1": "Find the dancer you were hoping for.",
+    "firstPaint": 5132,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 1.0704591989711785,
+    "lcp": 5048,
+    "shifts": [
+      0.5653299892257702,
+      0.0061982273994582796,
+      0.41422376518946113,
+      0.08470721715648882
+    ],
+    "h1": "Find the dancer you were hoping for.",
+    "firstPaint": 3712,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.09560629530332379,
+    "lcp": 3476,
+    "shifts": [
+      0.05026078387392565,
+      0.04534551142939814
+    ],
+    "h1": "Welcome to Sparkle by Sasha",
+    "firstPaint": 3476,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.051200664136177555,
+    "lcp": 3676,
+    "shifts": [
+      0.01483070226598669,
+      0.01396604938271605,
+      0.009726079618979875,
+      0.012677832868494943
+    ],
+    "h1": "Welcome to Sparkle by Sasha",
+    "firstPaint": 3676,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.15278306187003943,
+    "lcp": 5444,
+    "shifts": [
+      0.06029679067109789,
+      0.09248627119894155
+    ],
+    "h1": "Welcome to Sparkle by Sasha",
+    "firstPaint": 5444,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "alpine_opal",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.20766986426727316,
+    "lcp": 3804,
+    "shifts": [
+      0.018927305993671092,
+      0.017238353810561307,
+      0.17150420446304077
+    ],
+    "h1": "Welcome to Sparkle by Sasha",
+    "firstPaint": 3804,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.029570254964527604,
+    "lcp": 5892,
+    "shifts": [
+      0.0003059713648834019,
+      0.0292642835996442
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 4708,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/amethyst/skins/gilded-autumn/hero-motion.mp4",
+        "paused": false,
+        "currentTime": 2.5263,
+        "autoplay": false,
+        "preload": "none",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.0023552116823131,
+    "lcp": 4532,
+    "shifts": [
+      0.0003059713648834019,
+      0.0003516975308641976,
+      0.0016975427865655005
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 3500,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "",
+        "paused": true,
+        "currentTime": 0,
+        "autoplay": false,
+        "preload": "none",
+        "readyState": 0
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Play animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.1278358295264292,
+    "lcp": 3672,
+    "shifts": [
+      0.055804950192044206,
+      0.07203087933438497
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 3056,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "http://127.0.0.1:4397/amethyst/skins/gilded-autumn/hero-motion.mp4",
+        "paused": false,
+        "currentTime": 2.169,
+        "autoplay": false,
+        "preload": "none",
+        "readyState": 4
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Pause animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.05737412739248951,
+    "lcp": 3684,
+    "shifts": [
+      0.055804950192044206,
+      0.0013170345930096946,
+      0.0002521426074356152
+    ],
+    "h1": "Mile High Fizz",
+    "firstPaint": 2900,
+    "heroClass": "hp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [
+      {
+        "src": "",
+        "paused": true,
+        "currentTime": 0,
+        "autoplay": false,
+        "preload": "none",
+        "readyState": 0
+      }
+    ],
+    "motionButtons": [
+      {
+        "text": "Play animation",
+        "visible": true
+      }
+    ],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.5561998828024531,
+    "lcp": 3044,
+    "shifts": [
+      0.2922835738068255,
+      0.1598996913580247,
+      0.10328036185056584,
+      0.000736255787037037
+    ],
+    "h1": "Find the dancer you were hoping for.",
+    "firstPaint": 2508,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.4508758823724441,
+    "lcp": 3048,
+    "shifts": [
+      0.2922835738068255,
+      0.03192291666666667,
+      0.022929012345679012,
+      0.000736255787037037,
+      0.10300412376623587
+    ],
+    "h1": "Find the dancer you were hoping for.",
+    "firstPaint": 2528,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.5148963774981729,
+    "lcp": 3228,
+    "shifts": [
+      0.4313897558525752,
+      0.01704207651358996,
+      0.03659508995754812,
+      0.0004642468717225924,
+      0.029405208302736997
+    ],
+    "h1": "Find the dancer you were hoping for.",
+    "firstPaint": 2648,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "trade",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.9383977046052598,
+    "lcp": 2688,
+    "shifts": [
+      0.45847809618635027,
+      0.4502159093461513,
+      0.0004642468717225924,
+      0.02923945220103564
+    ],
+    "h1": "Find the dancer you were hoping for.",
+    "firstPaint": 2088,
+    "heroClass": "tp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.03504387850035365,
+    "lcp": 3896,
+    "shifts": [
+      0.00041706070762602876,
+      0.03462681779272762
+    ],
+    "h1": "Welcome to Sparkle by Sasha",
+    "firstPaint": 2944,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.007614891908329048,
+    "lcp": 4128,
+    "shifts": [
+      0.00041706070762602876,
+      0.00043233882030178325,
+      0.006765492380401235
+    ],
+    "h1": "Welcome to Sparkle by Sasha",
+    "firstPaint": 3348,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "legacy",
+    "cls": 0.07633778847035741,
+    "lcp": 4284,
+    "shifts": [
+      0.0012331041181804726,
+      0.07510468435217693
+    ],
+    "h1": "Welcome to Sparkle by Sasha",
+    "firstPaint": 3168,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "legacy",
+    "cls": 0.11111571151024091,
+    "lcp": 4388,
+    "shifts": [
+      0.0012331041181804726,
+      0.0003407208007284376,
+      0.109541886591332
+    ],
+    "h1": "Welcome to Sparkle by Sasha",
+    "firstPaint": 3852,
+    "heroClass": "jp-hero",
+    "titleFont": "\"Playfair Display\", Georgia, serif",
+    "overflow": false,
+    "videos": [],
+    "motionButtons": [],
+    "sections": [],
+    "fonts": [
+      "Playfair Display",
+      "Consolas"
+    ],
+    "errors": []
+  }
+]
