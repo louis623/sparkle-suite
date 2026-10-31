@@ -1,0 +1,826 @@
+[
+  {
+    "theme": "gnome_garden",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "animations": [
+      {
+        "name": "gg-sway",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-glow",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-sway",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-glow",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-peek",
+        "time": 166.6650000002599,
+        "state": "running",
+        "iterations": 1
+      }
+    ],
+    "advances": true,
+    "loops": true,
+    "reducedStill": false
+  },
+  {
+    "theme": "gnome_garden",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "animations": [],
+    "advances": false,
+    "loops": true,
+    "reducedStill": true
+  },
+  {
+    "theme": "gnome_garden",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "animations": [
+      {
+        "name": "gg-sway",
+        "time": 283.32899999912445,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-glow",
+        "time": 283.32899999912445,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-sway",
+        "time": 283.32899999912445,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-glow",
+        "time": 283.32899999912445,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 283.32899999912445,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 283.32899999912445,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 283.32899999912445,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-drift",
+        "time": 283.32899999912445,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "gg-peek",
+        "time": 283.32899999912445,
+        "state": "running",
+        "iterations": 1
+      }
+    ],
+    "advances": true,
+    "loops": true,
+    "reducedStill": false
+  },
+  {
+    "theme": "gnome_garden",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "animations": [],
+    "advances": false,
+    "loops": true,
+    "reducedStill": true
+  },
+  {
+    "theme": "neon_butterfly",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "animations": [
+      {
+        "name": "nb-led-color-cycle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-led-color-cycle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-curtain-breathe",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-lamp-shimmer",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-neon-breathe",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-left",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-right",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-neon-breathe",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-left",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-right",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-neon-breathe",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-left",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-right",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 150.00400000014125,
+        "state": "running",
+        "iterations": null
+      }
+    ],
+    "advances": true,
+    "loops": true,
+    "reducedStill": false
+  },
+  {
+    "theme": "neon_butterfly",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "animations": [],
+    "advances": false,
+    "loops": true,
+    "reducedStill": true
+  },
+  {
+    "theme": "neon_butterfly",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "animations": [
+      {
+        "name": "nb-led-color-cycle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-led-color-cycle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-curtain-breathe",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-lamp-shimmer",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-neon-breathe",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-left",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-right",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-neon-breathe",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-left",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-right",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-neon-breathe",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-left",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "ssr-wing-right",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "nb-sparkle-twinkle",
+        "time": 183.25200000072218,
+        "state": "running",
+        "iterations": null
+      }
+    ],
+    "advances": true,
+    "loops": true,
+    "reducedStill": false
+  },
+  {
+    "theme": "neon_butterfly",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "animations": [],
+    "advances": false,
+    "loops": true,
+    "reducedStill": true
+  },
+  {
+    "theme": "halloween_pumpkin_witch",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "animations": [
+      {
+        "name": "hpw-witch-flight",
+        "time": 133.38599999984913,
+        "state": "running",
+        "iterations": 1
+      },
+      {
+        "name": "hpw-witch-hover",
+        "time": 133.38599999984913,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hpw-sparkle-wink",
+        "time": 133.38599999984913,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hpw-sparkle-wink",
+        "time": 133.38599999984913,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hpw-sparkle-wink",
+        "time": 133.38599999984913,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hpw-sparkle-wink",
+        "time": 133.38599999984913,
+        "state": "running",
+        "iterations": null
+      }
+    ],
+    "advances": true,
+    "loops": true,
+    "reducedStill": false
+  },
+  {
+    "theme": "halloween_pumpkin_witch",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "animations": [],
+    "advances": false,
+    "loops": true,
+    "reducedStill": true
+  },
+  {
+    "theme": "halloween_pumpkin_witch",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "animations": [
+      {
+        "name": "hpw-witch-flight",
+        "time": 133.25800000065286,
+        "state": "running",
+        "iterations": 1
+      },
+      {
+        "name": "hpw-witch-hover",
+        "time": 133.25800000065286,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hpw-sparkle-wink",
+        "time": 133.25800000065286,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hpw-sparkle-wink",
+        "time": 133.25800000065286,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hpw-sparkle-wink",
+        "time": 133.25800000065286,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hpw-sparkle-wink",
+        "time": 133.25800000065286,
+        "state": "running",
+        "iterations": null
+      }
+    ],
+    "advances": true,
+    "loops": true,
+    "reducedStill": false
+  },
+  {
+    "theme": "halloween_pumpkin_witch",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "animations": [],
+    "advances": false,
+    "loops": true,
+    "reducedStill": true
+  },
+  {
+    "theme": "rose_gold",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "animations": [
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.72799999969358,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.72799999969358,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.72799999969358,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.72799999969358,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.72799999969358,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.72799999969358,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.72799999969358,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.72799999969358,
+        "state": "running",
+        "iterations": null
+      }
+    ],
+    "advances": true,
+    "loops": true,
+    "reducedStill": false
+  },
+  {
+    "theme": "rose_gold",
+    "device": "desktop",
+    "reducedMotion": "reduce",
+    "animations": [],
+    "advances": false,
+    "loops": true,
+    "reducedStill": true
+  },
+  {
+    "theme": "rose_gold",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "animations": [
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.6129999996367,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.6129999996367,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.6129999996367,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.6129999996367,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.6129999996367,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.6129999996367,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.6129999996367,
+        "state": "running",
+        "iterations": null
+      },
+      {
+        "name": "hp-fx-twinkle",
+        "time": 116.6129999996367,
+        "state": "running",
+        "iterations": null
+      }
+    ],
+    "advances": true,
+    "loops": true,
+    "reducedStill": false
+  },
+  {
+    "theme": "rose_gold",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "animations": [],
+    "advances": false,
+    "loops": true,
+    "reducedStill": true
+  }
+]

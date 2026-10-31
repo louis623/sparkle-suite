@@ -1,16 +1,16 @@
 import fonts from './generated/utility-fonts.json'
 import fontData from './generated/utility-font-data.json'
 
-/** Pinned copies of the original page fonts, shared by every SSR surface.
- * Critical Latin faces are embedded, preloaded and decoded from the head so
- * their first layout does not depend on a provider stylesheet round trip. */
-export function utilityPageFonts(properties: Map<string, string>, css: string, preset: string) {
+/** Pinned original fonts. Alpine Opal Trade embeds only its actual families,
+ * once each, and starts their decoding before the shared stylesheet payload. */
+export function utilityPageFonts(properties: Map<string, string>, css: string, preset: string, leanTrade = false) {
+  const primary = [properties.get('--hp-display-font'), properties.get('--hp-body-font')]
+    .map(value => value?.split(',')[0]?.replaceAll('"', '').trim())
   const families = Object.entries(fonts).filter(([family]) =>
+    leanTrade ? primary.includes(family) || family === 'Playfair Display' :
     [properties.get('--hp-display-font'), properties.get('--hp-body-font'), css]
       .some(value => value?.includes(`"${family}"`) || value?.includes(`'${family}'`)),
   )
-  const primary = [properties.get('--hp-display-font'), properties.get('--hp-body-font')]
-    .map(value => value?.split(',')[0]?.replaceAll('"', '').trim())
   const rules: string[] = []
   const warmFonts = new Set<string>()
   const headingPreloads = new Set<string>()
@@ -38,12 +38,10 @@ export function utilityPageFonts(properties: Map<string, string>, css: string, p
         warmFonts.add(`${face.style} ${face.weight} 16px ${JSON.stringify(family)}`)
         // Reuse the exact same embedded resource as @font-face: no duplicate
         // font download and no extra remote font stylesheet for the hero.
-        if (family === primary[0] && face.style === 'normal') headingPreloads.add(data)
+        if (!leanTrade && family === primary[0] && face.style === 'normal') headingPreloads.add(data)
       }
       rules.push(rule)
     }
   }
-  // Demand/decode embedded faces in the head, before body layout can use a
-  // substitute font. This never hides the page or waits on a provider request.
   return [...headingPreloads].map(src => `<link rel="preload" as="font" type="font/woff2" crossorigin href="${src}" data-ssr-heading-font>`).join('') + `<style data-ssr-fonts>${rules.join('\n')}</style><script>if(document.fonts){${JSON.stringify([...warmFonts])}.forEach(function(font){document.fonts.load(font).catch(function(){})})}</script>`
 }

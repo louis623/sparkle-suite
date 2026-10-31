@@ -2,6 +2,7 @@ import { earlyHomepageLocalTime } from './homepage-local-time'
 import { HERO_MOTION_THEMES } from './hero-motion-config'
 import { earlyHomepageControls, earlyMileHighFizzControls } from './hero-motion-controls'
 import homepageStyles from './generated/homepage-styles.json'
+import tradeStyles from './generated/trade-styles.json'
 export { earlyHomepageControls } from './hero-motion-controls'
 import runtimeSources from './generated/page-runtimes.json'
 import { webcrypto } from 'node:crypto'
@@ -64,13 +65,20 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
   const style = Array.from(properties, ([key, value]) => `${key}:${value}`).join(';')
   const allowedCss = new Set(['tokens.css', 'components.css', 'homepage.css', page + '.css', ...theme.css,
     ...(data.homepage.publicSiteVariant === 'britt_with_bling_hybrid' ? ['britt-hero-buttons.css'] : [])])
+  // Trade has no aurora/video. Remove unrelated home-layout font faces and the
+  // duplicated embedded heading preload. Decode the two original embedded faces
+  // before parsing the shared CSS, preserving the original first-paint metrics.
+  const leanTrade = page === 'trade' && data.appearancePreset === 'alpine_opal'
   const fontMarkup = utilityPageFonts(properties,
-    [...allowedCss].map(name => homepageStyles[name as keyof typeof homepageStyles]).join('\n'), data.appearancePreset)
+    [...allowedCss].map(name => homepageStyles[name as keyof typeof homepageStyles]).join('\n'), data.appearancePreset, leanTrade)
   let result = html.replace(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"?]+)[^"]*"[^>]*>/g,
     (_tag, href: string) => {
       const name = href.split('/').at(-1) ?? ''
-      return allowedCss.has(name) ? `<style data-ssr-style="${name}">${responsiveHeroCss(homepageStyles[name as keyof typeof homepageStyles], page === 'homepage' && data.appearancePreset === 'sunset_beach')}</style>` : ''
+      const css = leanTrade && name in tradeStyles ? tradeStyles[name as keyof typeof tradeStyles] : homepageStyles[name as keyof typeof homepageStyles]
+      return allowedCss.has(name) ? `<style data-ssr-style="${name}">${responsiveHeroCss(css, page === 'homepage' && data.appearancePreset === 'sunset_beach')}</style>` : ''
     })
+  if (leanTrade) result = result.replace('</title>', '</title>' + fontMarkup)
+    .replace(/<link\b[^>]*rel="preconnect"[^>]*>/g, '')
   // No split CSS, provider runtime loader, or third-party worker. The pinned
   // font faces above are already available when the browser lays out the hero.
   result = result.replace(/<script\b[^>]*src="[^"]+"[^>]*><\/script>/g, tag => {
@@ -87,10 +95,19 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
     return tag // Preserve the original analytics tags exactly once.
   })
   const mileHighFizzControls = page === 'homepage' && data.homepage.publicSiteVariant === 'mile_high_fizz_hybrid' ? earlyMileHighFizzControls : ''
+  // A throttled response can paint the middle of a centered hero as the HTML
+  // parser is still receiving its copy/actions. Reserve the complete first
+  // layout, including the inline label controller, with a native expectation.
+  // No hidden hero, timer, guessed fixed height or hydration dependency.
+  const completeHeroPaint = leanTrade || (page === 'homepage'
+    ? ['fall_owl_harvest_moon', 'midnight_rose', 'rose_gold', 'halloween_pumpkin_cat'].includes(data.appearancePreset)
+    : page === 'join' && ['pearl_rose', 'midnight_rose'].includes(data.appearancePreset))
+  const paintExpectation = completeHeroPaint ? '<link rel="expect" blocking="render" href="#ssr-first-paint-ready">' : ''
+  const paintReady = completeHeroPaint ? '<span hidden id="ssr-first-paint-ready"></span>' : ''
   return result
     .replace('</body>', ('ssrReview' in data ? '<aside data-ssr-review-label>Smoke demo · theme/layout review fixture · no saved changes</aside>' : '') + '</body>')
-    .replace('</head>', fontMarkup + heroImagePreload(markup, data.appearancePreset) + preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
+    .replace('</head>', paintExpectation + (leanTrade ? '' : fontMarkup) + heroImagePreload(markup, data.appearancePreset) + preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${escapeAttribute(style)}">`)
     .replace('<body class="' + (page === 'homepage' ? 'homepage' : page + 'page') + '">', `<body class="${escapeAttribute(body.className)}">`)
-    .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}${mileHighFizzControls}</script>`)
+    .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}${mileHighFizzControls}</script>${paintReady}`)
 }

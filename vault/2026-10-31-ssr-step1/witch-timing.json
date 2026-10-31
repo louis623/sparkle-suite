@@ -1,0 +1,122 @@
+[
+  {
+    "device": "desktop",
+    "renderer": "legacy",
+    "sparkles": [
+      {
+        "duration": "5.8s",
+        "delay": "-0.8s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "7.1s",
+        "delay": "-3.1s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "6.4s",
+        "delay": "-1.9s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "5.8s",
+        "delay": "-4.7s",
+        "iterations": "infinite",
+        "state": "running"
+      }
+    ]
+  },
+  {
+    "device": "desktop",
+    "renderer": "ssr",
+    "sparkles": [
+      {
+        "duration": "5.8s",
+        "delay": "-0.8s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "7.1s",
+        "delay": "-3.1s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "6.4s",
+        "delay": "-1.9s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "5.8s",
+        "delay": "-4.7s",
+        "iterations": "infinite",
+        "state": "running"
+      }
+    ]
+  },
+  {
+    "device": "phone",
+    "renderer": "legacy",
+    "sparkles": [
+      {
+        "duration": "5.8s",
+        "delay": "-0.8s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "7.1s",
+        "delay": "-3.1s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "6.4s",
+        "delay": "-1.9s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "5.8s",
+        "delay": "-4.7s",
+        "iterations": "infinite",
+        "state": "running"
+      }
+    ]
+  },
+  {
+    "device": "phone",
+    "renderer": "ssr",
+    "sparkles": [
+      {
+        "duration": "5.8s",
+        "delay": "-0.8s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "7.1s",
+        "delay": "-3.1s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "6.4s",
+        "delay": "-1.9s",
+        "iterations": "infinite",
+        "state": "running"
+      },
+      {
+        "duration": "5.8s",
+        "delay": "-4.7s",
+        "iterations": "infinite",
+        "state": "running"
+      }
+    ]
+  }
+]

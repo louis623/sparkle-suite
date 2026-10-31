@@ -1,0 +1,221 @@
+{
+  "profile": "Uncompressed local synthetic built pages; 1600kbps/80ms/4x phone, 10000kbps/20ms/1x desktop. LCP is diagnostic, not a deployed acceptance result.",
+  "cases": [
+    {
+      "theme": "fall_owl_harvest_moon",
+      "surface": "homepage",
+      "device": "desktop",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 576,
+      "errors": []
+    },
+    {
+      "theme": "fall_owl_harvest_moon",
+      "surface": "homepage",
+      "device": "desktop",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 640,
+      "errors": []
+    },
+    {
+      "theme": "fall_owl_harvest_moon",
+      "surface": "homepage",
+      "device": "phone",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 3940,
+      "errors": []
+    },
+    {
+      "theme": "fall_owl_harvest_moon",
+      "surface": "homepage",
+      "device": "phone",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 3924,
+      "errors": []
+    },
+    {
+      "theme": "midnight_rose",
+      "surface": "homepage",
+      "device": "desktop",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 656,
+      "errors": []
+    },
+    {
+      "theme": "midnight_rose",
+      "surface": "homepage",
+      "device": "desktop",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 660,
+      "errors": []
+    },
+    {
+      "theme": "midnight_rose",
+      "surface": "homepage",
+      "device": "phone",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 5540,
+      "errors": []
+    },
+    {
+      "theme": "midnight_rose",
+      "surface": "homepage",
+      "device": "phone",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 3648,
+      "errors": []
+    },
+    {
+      "theme": "pearl_rose",
+      "surface": "join",
+      "device": "desktop",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 912,
+      "errors": []
+    },
+    {
+      "theme": "pearl_rose",
+      "surface": "join",
+      "device": "desktop",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 872,
+      "errors": []
+    },
+    {
+      "theme": "pearl_rose",
+      "surface": "join",
+      "device": "phone",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 4944,
+      "errors": []
+    },
+    {
+      "theme": "pearl_rose",
+      "surface": "join",
+      "device": "phone",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 4888,
+      "errors": []
+    },
+    {
+      "theme": "rose_gold",
+      "surface": "homepage",
+      "device": "desktop",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 828,
+      "errors": []
+    },
+    {
+      "theme": "rose_gold",
+      "surface": "homepage",
+      "device": "desktop",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 728,
+      "errors": []
+    },
+    {
+      "theme": "rose_gold",
+      "surface": "homepage",
+      "device": "phone",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 2596,
+      "errors": []
+    },
+    {
+      "theme": "rose_gold",
+      "surface": "homepage",
+      "device": "phone",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 2704,
+      "errors": []
+    },
+    {
+      "theme": "halloween_pumpkin_cat",
+      "surface": "homepage",
+      "device": "desktop",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 616,
+      "errors": []
+    },
+    {
+      "theme": "halloween_pumpkin_cat",
+      "surface": "homepage",
+      "device": "desktop",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 620,
+      "errors": []
+    },
+    {
+      "theme": "halloween_pumpkin_cat",
+      "surface": "homepage",
+      "device": "phone",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 2120,
+      "errors": []
+    },
+    {
+      "theme": "halloween_pumpkin_cat",
+      "surface": "homepage",
+      "device": "phone",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 2428,
+      "errors": []
+    },
+    {
+      "theme": "midnight_rose",
+      "surface": "join",
+      "device": "desktop",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 1236,
+      "errors": []
+    },
+    {
+      "theme": "midnight_rose",
+      "surface": "join",
+      "device": "desktop",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 748,
+      "errors": []
+    },
+    {
+      "theme": "midnight_rose",
+      "surface": "join",
+      "device": "phone",
+      "reducedMotion": "no-preference",
+      "cls": 0,
+      "lcp": 4276,
+      "errors": []
+    },
+    {
+      "theme": "midnight_rose",
+      "surface": "join",
+      "device": "phone",
+      "reducedMotion": "reduce",
+      "cls": 0,
+      "lcp": 4508,
+      "errors": []
+    }
+  ]
+}

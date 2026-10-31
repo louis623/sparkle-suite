@@ -2,6 +2,11 @@
    their original stylesheets; the visitor alone owns motion intent. */
 [data-ssr-hero] .ssr-motion-control { position:absolute;left:18px;bottom:16px;z-index:6;pointer-events:auto;min-height:44px;padding:10px 16px;border:1px solid currentColor;border-radius:999px;background:var(--hp-bg-elevated,#24182c);color:var(--fg,#fff);font:600 12px/1.4 system-ui;cursor:pointer }
 [data-ssr-hero] [data-hero-motion-toggle] { display:block!important }
+/* Reserve the longer label in CSS, including streamed markup before the inline
+   controller runs. A zero-height, invisible line preserves the existing button
+   width/padding and survives hydration, font decoding and Pause/Play changes. */
+[data-ssr-hero] [data-hero-motion-toggle]::after { content:"Pause animation";display:block;height:0;visibility:hidden;pointer-events:none }
+[data-ssr-hero] [data-hero-sound-toggle]::after { content:"Enable " attr(data-hero-sound-toggle);display:block;height:0;visibility:hidden;pointer-events:none }
 [data-ssr-hero] [data-hero-motion-toggle]:focus-visible { outline:3px solid currentColor;outline-offset:3px }
 [data-ssr-hero] .beach-poster { position:absolute;inset:0;width:100%;height:100%;object-fit:cover }
 [data-ssr-hero] .beach-video { position:relative }
@@ -27,7 +32,7 @@
 [data-ssr-hero] .nb-lamp-shimmer { animation:nb-lamp-shimmer 17s ease-in-out infinite!important }
 [data-ssr-hero] .nb-sparkle { animation:nb-sparkle-twinkle 9s var(--nb-delay) ease-in-out infinite!important }
 [data-ssr-hero] .hpw-witch { animation:hpw-witch-hover 4.4s ease-in-out infinite!important }
-[data-ssr-hero] .hpw-sparkle { animation:hpw-sparkle-wink 5.8s ease-in-out var(--hpw-delay) infinite!important }
+/* The original hpw-sparkle/--1/--2 rules own each duration and delay. */
 [data-ssr-surface=utility] .gg-gnome { animation:ssr-utility-gnome 4.8s ease-in-out infinite!important }
 /* Legacy visibility helpers cannot override the SSR visitor's playback choice. */
 [data-ssr-hero]:not([data-visitor-paused=true]) :is(.nb-scene,.hpw-scene) * { animation-play-state:running!important }

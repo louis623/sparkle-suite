@@ -1,0 +1,37 @@
+const http = require('node:http'), fs = require('node:fs'), path = require('node:path');
+const root = process.cwd();
+const types = { '.html':'text/html; charset=utf-8', '.css':'text/css', '.js':'text/javascript', '.avif':'image/avif', '.webp':'image/webp', '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.mp4':'video/mp4', '.woff2':'font/woff2', '.svg':'image/svg+xml' };
+http.createServer((req,res) => {
+  const url = new URL(req.url,'http://127.0.0.1:4398');
+  if(url.pathname==='/api/amethyst/trade-board'){res.writeHead(200,{'Content-Type':'application/json'});return res.end(JSON.stringify({listings:[{id:'fixture-only',name:'Fixture Aurora Earrings',collection:'Originals',type:'Earrings',material:'Silver',stone:'CZ',size:null,note:'Local fixture',glyph:'S',tier:'everyday',photoUrl:null,photoSource:'missing'}]}))}
+  if (url.pathname.startsWith('/api/')) {
+    res.writeHead(200, { 'Content-Type':'application/json' });
+    return res.end(JSON.stringify({ entries:[], listings:[], events:[], sourceReady:false, liveQueueEntries:[], liveQueueState:'offline', liveQueueSummary:'Local synthetic review' }));
+  }
+  let file;
+  if (url.pathname === '/review') {
+    const theme = url.searchParams.get('theme'), page = url.searchParams.get('page'), renderer = url.searchParams.get('renderer');
+    if (!['amethyst','sparkle_suite_morganite','black_diamond','moonstone','alpine_opal','emerald_garden','gnome_garden','neon_butterfly','halloween_pumpkin_witch','halloween_pumpkin_cat','gilded_autumn','rose_gold','midnight_rose','fall_owl_harvest_moon','gobble_and_fizz','pie_please','pearl_rose','sunset_beach','rose_champagne','garnet','amber','velvet','rose_quartz'].includes(theme) || !['homepage','trade','join'].includes(page) || !['legacy','ssr','before'].includes(renderer)) { res.writeHead(404); return res.end(); }
+    file = path.join(root, '.tmp-qa/html', `${theme}-${page}-${renderer}.html`);
+  } else if (url.pathname.startsWith('/legacy-assets/amethyst/')) {
+    const name = url.pathname.slice('/legacy-assets/amethyst/'.length);
+    file = path.join(root, 'lib/amethyst/legacy/assets', name);
+    if (!fs.existsSync(file)) file = path.join(root, 'public/amethyst', name);
+  } else if (url.pathname.startsWith('/qa-runtime/')) file = path.join(root, '.tmp-qa/runtime',url.pathname.slice('/qa-runtime/'.length));
+  else file = path.join(root,'public',decodeURIComponent(url.pathname));
+  file = path.resolve(file);
+  if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); return res.end('Local fixture not found'); }
+  if(file.endsWith('.html')&&url.searchParams.has('gzip')){const data=require('node:zlib').gzipSync(fs.readFileSync(file));res.writeHead(200,{'Content-Type':types['.html'],'Content-Encoding':'gzip','Content-Length':data.length});return res.end(data)}
+  if(file.endsWith('.html')&&url.searchParams.has('stream')){const data=fs.readFileSync(file,'utf8'),end=data.indexOf('</h1>')+5;res.writeHead(200,{'Content-Type':types['.html'],'Cache-Control':'no-store'});res.write(data.slice(0,end));return setTimeout(()=>res.end(data.slice(end)),250)}
+  const size=fs.statSync(file).size;
+  const headers={'Content-Type':types[path.extname(file)] || 'application/octet-stream','Cache-Control':'no-store','Accept-Ranges':'bytes'};
+  const range=req.headers.range?.match(/^bytes=(\d+)-(\d*)$/);
+  if(range){
+    const start=Number(range[1]),end=Math.min(range[2]?Number(range[2]):size-1,size-1);
+    if(start>=size||end<start){res.writeHead(416,{'Content-Range':`bytes */${size}`});return res.end()}
+    res.writeHead(206,{...headers,'Content-Range':`bytes ${start}-${end}/${size}`,'Content-Length':end-start+1});
+    return fs.createReadStream(file,{start,end}).pipe(res);
+  }
+  res.writeHead(200,{...headers,'Content-Length':size});
+  fs.createReadStream(file).pipe(res);
+}).listen(4398,'127.0.0.1', () => console.log('Local synthetic SSR parity harness http://127.0.0.1:4398'));
