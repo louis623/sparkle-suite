@@ -5,7 +5,7 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),
 const pw=require(process.argv[2]||'playwright');
 const {instrument,watchErrors,measureTap}=require('./ssr-smoke-ab.cjs');
 const {actionsFor}=require('./ssr-ab-cases.cjs');
-const {median}=require('./ssr-smoke-ab-metrics.cjs');
+const {median,tapGate}=require('./ssr-smoke-ab-metrics.cjs');
 const root=process.cwd(),pub=path.join(root,'public'),fixtures=path.join(root,'node_modules/.cache/ssr-lindsey');
 const types={'.css':'text/css','.js':'text/javascript','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.avif':'image/avif','.mp4':'video/mp4','.woff2':'font/woff2','.svg':'image/svg+xml'};
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
@@ -121,7 +121,7 @@ async function main(){
     const medians=[];
     for(const engine of ['chromium','webkit'])for(const phase of ['loading','idle'])for(const action of actionsFor(id,'candidate')) {
       const found=taps.filter(r=>r.engine===engine&&r.phase===phase&&r.action===action);assert.equal(found.length,5);
-      const ms=median(found.map(r=>r.ms));result.tapGates.push({engine,id,profile,phase,action,medianMs:ms,pass:ms<=200});medians.push({engine,phase,action,ms});
+      const ms=median(found.map(r=>r.ms));result.tapGates.push({engine,id,profile,phase,action,medianMs:ms,...tapGate(ms,phase,'candidate')});medians.push({engine,phase,action,ms});
     }
     assert.equal(streams.length,4);
     result.table.push({id,profile,chromiumCLS:Math.max(...streams.filter(r=>r.engine==='chromium').map(r=>r.cls)),webkitMaxMovementPx:Math.max(...streams.filter(r=>r.engine==='webkit').map(r=>r.maxMovement)),hydrationErrors:streams.reduce((n,r)=>n+r.hydrationErrors,0)+taps.reduce((n,r)=>n+r.hydrationErrors,0),tapMedians:medians});

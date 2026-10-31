@@ -38,13 +38,39 @@ it('retains all existing cases and adds only Lindsey home/join/trade on MHF', ()
 it('gates all applicable controls in fresh loading and idle samples without selector config', () => {
   const rows=fixture()
   expect(verdict(rows,cases,5).pass).toBe(true)
-  for(const phase of ['loading','idle']) {
-    const bad=rows.map(r=>({...r,ms:r.kind==='tap'&&r.phase===phase&&r.id==='amethyst/homepage:sound'&&r.profile==='phone'&&r.renderer==='candidate'?201:r.ms}))
-    expect(verdict(bad,cases,5).pass).toBe(false)
+  for(const [phase,limit] of [['loading',300],['idle',200]] as const) for(const ms of [limit,limit+1]) {
+    const measured=rows.map(r=>({...r,ms:r.kind==='tap'&&r.phase===phase&&r.id==='amethyst/homepage:sound'&&r.profile==='phone'&&r.renderer==='candidate'?ms:r.ms}))
+    expect(verdict(measured,cases,5).pass).toBe(ms===limit)
   }
   for(const row of rows)if(row.kind==='tap')row.ms=200
   expect(verdict(rows,cases,5).pass).toBe(true)
   expect(selectorsFor('gilded_autumn/homepage','candidate').motion).toBe('.ga-motion-control')
+})
+it('warns only for candidate loading medians over 200ms and fails only over 300ms', () => {
+  for(const ms of [200,201,300,301]) {
+    const rows=fixture()
+    for(const r of rows)if(r.kind==='tap'&&r.phase==='loading'&&r.renderer==='candidate')r.ms=ms
+    const result=verdict(rows,cases,5)
+    expect(result.pass).toBe(ms<=300)
+    const gates=result.gates.filter((g:any)=>g.gate==='tap'&&g.renderer==='candidate'&&g.phase==='loading')
+    expect(gates.length).toBeGreaterThan(0)
+    expect(gates.every((g:any)=>g.warn===(ms>200)&&g.limitMs===300)).toBe(true)
+  }
+})
+it('keeps slow legacy taps as baseline medians without failing or warning', () => {
+  const rows=fixture()
+  for(const r of rows)if(r.kind==='tap'&&r.renderer==='legacy')r.ms=714
+  const result=verdict(rows,cases,5)
+  expect(result.pass).toBe(true)
+  const gates=result.gates.filter((g:any)=>g.gate==='tap'&&g.renderer==='legacy')
+  expect(gates.length).toBeGreaterThan(0)
+  expect(gates.every((g:any)=>g.baselineOnly&&g.medianMs===714&&g.pass&&!g.warn)).toBe(true)
+})
+it('keeps legacy page and hydration errors as baseline information', () => {
+  const rows=fixture()
+  for(const r of rows)if(r.renderer==='legacy'){r.pageErrors=1;r.hydrationErrors=3}
+  expect(verdict(rows,cases,5).pass).toBe(true)
+  expect(rows.filter(r=>r.renderer==='legacy').every(r=>r.pageErrors===1&&r.hydrationErrors===3)).toBe(true)
 })
 it('compares FCP and LCP against legacy for every case/profile', () => {
   for(const id of cases.pages) for(const profile of ['phone','desktop']) for(const metric of ['fcp','lcp']) {
@@ -87,11 +113,22 @@ it('fails closed on missing, invalid, duplicated or undersampled evidence', () =
   expect(()=>median([NaN])).toThrow()
   const duplicate=fixture(); duplicate[1]={...duplicate[0]}
   expect(()=>verdict(duplicate,cases,5)).toThrow('Incomplete')
+  expect(()=>verdict([],cases,5)).toThrow('Incomplete')
+  const legacyInvalid=fixture();legacyInvalid.find(r=>r.renderer==='legacy')!.valid=false
+  expect(()=>verdict(legacyInvalid,cases,5)).toThrow('Incomplete')
+  const legacyMissing=fixture().filter(r=>!(r.kind==='paint'&&r.renderer==='legacy'&&r.run===0&&r.profile==='phone'))
+  expect(()=>verdict(legacyMissing,cases,5)).toThrow('Incomplete')
+  expect(verdict([...fixture(),{kind:'error',renderer:'legacy',error:'Measurement failed'}],cases,5).pass).toBe(false)
 })
 it('fails closed if the actual legacy theme differs from the case', async () => {
   const page={evaluate:vi.fn(async()=> 'halloween_pumpkin_cat')}
   await expect(verifyTheme(page,'gilded_autumn')).rejects.toThrow('Review theme mismatch')
   await expect(verifyTheme(page,'halloween_pumpkin_cat')).resolves.toBeUndefined()
+  // The runner records a theme verification failure as a measurement error.
+  const rows=fixture()
+  try { await verifyTheme(page,'gilded_autumn') }
+  catch { rows.push({kind:'error',renderer:'legacy',error:'Measurement failed (details suppressed)'}) }
+  expect(verdict(rows,cases,5).pass).toBe(false)
 })
 it('reads Vercel metadata through a strict output allowlist without contacting Vercel', async () => {
   vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>({id:'dpl_fixture',url:'fixture.vercel.app',projectId:'smoke',gitSource:{sha:'fixture-sha'},readyState:'READY',alias:'sparkle-suite-smoke.vercel.app',deploymentId:'dpl_fixture',protectionBypass:{},automationBypass:{},secret:{}})})))

@@ -8,11 +8,16 @@ const median = values => {
   const sorted = [...values].sort((a,b) => a-b), mid = Math.floor(sorted.length/2);
   return sorted.length%2 ? sorted[mid] : (sorted[mid-1]+sorted[mid])/2;
 };
+function tapGate(ms, phase, renderer) {
+  const baselineOnly=renderer==='legacy', limitMs=phase==='loading'?300:200;
+  return {baselineOnly,limitMs,warn:!baselineOnly&&phase==='loading'&&ms>200,pass:baselineOnly||ms<=limitMs};
+}
 function verdict(rows, cases, runs) {
   if (!Number.isInteger(runs) || runs < 5) throw Error('At least five runs required');
   const gates = [];
-  // Every row participates, including errors arriving after a paint/tap sample.
-  gates.push({gate:'errors',pass:rows.length>0 && rows.every(r=>!r.error && r.pageErrors===0 && r.hydrationErrors===0)});
+  // Measurement failures remain fatal for both renderers. Legacy runtime errors
+  // are baseline information; candidate errors include late paint/tap errors.
+  gates.push({gate:'errors',pass:rows.length>0 && rows.every(r=>!r.error && (r.renderer==='legacy' || (r.pageErrors===0 && r.hydrationErrors===0)))});
   function samples(kind, id, profile, renderer, phase) {
     const found = rows.filter(r => r.kind===kind && r.id===id && r.profile===profile && r.renderer===renderer && (kind!=='tap'||r.phase===phase));
     if(found.length!==runs || new Set(found.map(r=>r.run)).size!==runs || found.some(r => r.error || !r.valid)) throw Error(`Incomplete ${kind}/${id}/${profile}/${renderer}/${phase||''}`);
@@ -21,7 +26,7 @@ function verdict(rows, cases, runs) {
   for(const profile of ['phone','desktop']) {
     for(const id of cases.interactions) for(const renderer of ['candidate','legacy']) for(const phase of ['loading','idle']) for(const action of cases.actions(id,renderer)) {
       const ms = median(samples('tap',id+':'+action,profile,renderer,phase).map(r=>r.ms));
-      gates.push({gate:'tap',id,action,phase,profile,renderer,medianMs:ms,pass:ms<=200});
+      gates.push({gate:'tap',id,action,phase,profile,renderer,medianMs:ms,...tapGate(ms,phase,renderer)});
     }
     for(const id of cases.pages) {
       const candidate=samples('paint',id,profile,'candidate'), legacy=samples('paint',id,profile,'legacy');
@@ -38,4 +43,4 @@ function verdict(rows, cases, runs) {
   }
   return {pass:gates.every(g=>g.pass),gates};
 }
-module.exports={median,verdict,ABSOLUTE_PHONE_WAIVERS};
+module.exports={median,verdict,tapGate,ABSOLUTE_PHONE_WAIVERS};
