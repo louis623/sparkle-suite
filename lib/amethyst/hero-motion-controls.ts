@@ -11,8 +11,16 @@ function start(){document.querySelectorAll('[data-ssr-hero]').forEach(function(h
  // to Play. Right-aligned controls must not move the hero after first paint.
  var labelWidth=button.getBoundingClientRect().width;if(labelWidth>0)button.style.minInlineSize=labelWidth+'px';
  var wanted=!reduced.matches,muted=true,pending=false;
+ var still=hero.querySelector('[data-hero-still]'),ready=!still,preparing=false;
+ function prepare(){if(preparing)return;preparing=true;
+  // Decode the responsive still, allow it to paint, then start the unchanged
+  // looping video automatically. Reduced motion and an early Pause keep intent.
+  function painted(){requestAnimationFrame(function(){requestAnimationFrame(function(){ready=true;update()})})}
+  function decoded(){if(still.decode)Promise.resolve(still.decode()).catch(function(){}).then(painted);else painted()}
+  if(still.complete)decoded();else{still.addEventListener('load',decoded,{once:true});still.addEventListener('error',painted,{once:true})}
+ }
  function labels(){button.textContent=wanted?'Pause animation':'Play animation';button.setAttribute('aria-pressed',String(wanted));hero.dataset.visitorPaused=String(!wanted);document.querySelectorAll('[data-hero-fx]').forEach(function(fx){fx.dataset.visitorPaused=String(!wanted)});if(sound){sound.textContent=(muted?'Enable ':'Mute ')+sound.dataset.heroSoundToggle;sound.setAttribute('aria-pressed',String(!muted))}}
- function update(){labels();if(!video)return;video.autoplay=wanted;if(!wanted){video.pause();var media=hero.querySelector('[data-hero-media]');if(media)media.removeAttribute(media.dataset.heroMedia);return}video.muted=muted;video.defaultMuted=true;if(pending||!video.paused)return;pending=true;Promise.resolve(video.play()).then(function(){if(!wanted)video.pause()}).catch(function(error){if(!muted&&error.name==='NotAllowedError'){muted=true;video.muted=true;labels()}}).finally(function(){pending=false})}
+ function update(){labels();if(!video)return;video.autoplay=wanted;if(!wanted){video.pause();var media=hero.querySelector('[data-hero-media]');if(media)media.removeAttribute(media.dataset.heroMedia);return}if(!ready){prepare();return}if(video.dataset&&video.dataset.heroVideoSrc&&!video.getAttribute('src')){video.preload='auto';video.src=video.dataset.heroVideoSrc}video.muted=muted;video.defaultMuted=true;if(pending||!video.paused)return;pending=true;Promise.resolve(video.play()).then(function(){if(!wanted)video.pause()}).catch(function(error){if(!muted&&error.name==='NotAllowedError'){muted=true;video.muted=true;labels()}}).finally(function(){pending=false})}
  button.addEventListener('click',function(event){event.preventDefault();wanted=!wanted;update()});
  if(sound)sound.addEventListener('click',function(){muted=!muted;update()});
  reduced.addEventListener('change',function(){wanted=!reduced.matches;update()});

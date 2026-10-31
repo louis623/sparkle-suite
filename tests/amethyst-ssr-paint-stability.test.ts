@@ -54,15 +54,17 @@ for (const [name, targeted, listings, empty] of [
 
 for (const [preset, className, still] of [
   ['amethyst', 'au-poster', '/amethyst/skins/am01-unicorn/opening-poster.webp'],
-  ['sunset_beach', 'beach-poster', '/amethyst/skins/sunset-beach/hero-approved.png'],
+  ['sunset_beach', 'beach-poster', '/amethyst/ssr-images/sunset-beach-hero-approved-1080.webp'],
 ] as const) {
-  it(`uses the approved legacy ${preset} still for both poster and video`, async () => {
+  it(`uses the approved ${preset} still before starting its original video`, async () => {
     const bootstrap = buildAmethystHomepageBootstrapScript(homepage, [], preset, { targeted: true })
     const html = await renderAmethystPageFirstPaint('homepage', readFileSync('public/amethyst/Homepage.html', 'utf8'),
       { homepage, trade, join, appearancePreset: preset }, new URL('https://sparkle-suite-smoke.vercel.app/milehighfizz'), bootstrap)
     const poster = html.match(new RegExp(`<img\\b[^>]*class="${className}"[^>]*>`))?.[0]
     const video = html.match(/<video\b[^>]*data-hero-video=""[^>]*>/)?.[0]
     expect(poster).toContain(`src="${still}"`)
-    expect(video).toContain(`poster="${still}"`)
+    expect(video).toContain('preload="none"')
+    expect(video).toContain(`data-hero-video-src="/amethyst/skins/${preset === 'amethyst' ? 'am01-unicorn/hero-motion' : 'sunset-beach/hero-loop'}.mp4"`)
+    expect(video).not.toMatch(/\ssrc=|\sposter=/)
   })
 }

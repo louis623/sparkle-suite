@@ -6,6 +6,7 @@ export { earlyHomepageControls } from './hero-motion-controls'
 import runtimeSources from './generated/page-runtimes.json'
 import { webcrypto } from 'node:crypto'
 import { utilityPageFonts } from './utility-page-fonts'
+import { responsiveHeroCss, heroImagePreload } from './hero-responsive-images'
 import { join } from 'node:path'
 import { Script, createContext } from 'node:vm'
 import { createRequire } from 'node:module'
@@ -68,7 +69,7 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
   let result = html.replace(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"?]+)[^"]*"[^>]*>/g,
     (_tag, href: string) => {
       const name = href.split('/').at(-1) ?? ''
-      return allowedCss.has(name) ? `<style data-ssr-style="${name}">${homepageStyles[name as keyof typeof homepageStyles]}</style>` : ''
+      return allowedCss.has(name) ? `<style data-ssr-style="${name}">${responsiveHeroCss(homepageStyles[name as keyof typeof homepageStyles], page === 'homepage' && data.appearancePreset === 'sunset_beach')}</style>` : ''
     })
   // No split CSS, provider runtime loader, or third-party worker. The pinned
   // font faces above are already available when the browser lays out the hero.
@@ -88,7 +89,7 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
   const mileHighFizzControls = page === 'homepage' && data.homepage.publicSiteVariant === 'mile_high_fizz_hybrid' ? earlyMileHighFizzControls : ''
   return result
     .replace('</body>', ('ssrReview' in data ? '<aside data-ssr-review-label>Smoke demo · theme/layout review fixture · no saved changes</aside>' : '') + '</body>')
-    .replace('</head>', fontMarkup + preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
+    .replace('</head>', fontMarkup + heroImagePreload(markup, data.appearancePreset) + preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${escapeAttribute(style)}">`)
     .replace('<body class="' + (page === 'homepage' ? 'homepage' : page + 'page') + '">', `<body class="${escapeAttribute(body.className)}">`)
     .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}${mileHighFizzControls}</script>`)

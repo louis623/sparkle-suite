@@ -1,0 +1,114 @@
+{
+  "/amethyst/skins/sunset-beach/hero-approved.png": {
+    "width": 1672,
+    "height": 941,
+    "bytes": 2753789,
+    "sha256": "28c7030955af97ef8b4ad9e1d85503d7d9a618b03cddacfffb04e76b2d53c79a",
+    "variants": [
+      {
+        "width": 640,
+        "height": 360,
+        "avif": {
+          "src": "/amethyst/ssr-images/sunset-beach-hero-approved-640.avif",
+          "bytes": 75714
+        },
+        "webp": {
+          "src": "/amethyst/ssr-images/sunset-beach-hero-approved-640.webp",
+          "bytes": 83864
+        }
+      },
+      {
+        "width": 1080,
+        "height": 608,
+        "avif": {
+          "src": "/amethyst/ssr-images/sunset-beach-hero-approved-1080.avif",
+          "bytes": 188984
+        },
+        "webp": {
+          "src": "/amethyst/ssr-images/sunset-beach-hero-approved-1080.webp",
+          "bytes": 216012
+        }
+      },
+      {
+        "width": 1600,
+        "height": 900,
+        "avif": {
+          "src": "/amethyst/ssr-images/sunset-beach-hero-approved-1600.avif",
+          "bytes": 331784
+        },
+        "webp": {
+          "src": "/amethyst/ssr-images/sunset-beach-hero-approved-1600.webp",
+          "bytes": 414220
+        }
+      },
+      {
+        "width": 1672,
+        "height": 941,
+        "avif": {
+          "src": "/amethyst/ssr-images/sunset-beach-hero-approved-1672.avif",
+          "bytes": 361944
+        },
+        "webp": {
+          "src": "/amethyst/ssr-images/sunset-beach-hero-approved-1672.webp",
+          "bytes": 454648
+        }
+      }
+    ]
+  },
+  "/amethyst/skins/halloween-pumpkin-witch/witch.webp": {
+    "width": 1659,
+    "height": 948,
+    "bytes": 424580,
+    "sha256": "7dd38f75a20e1c68a7333b1da201c43e34339f1ba1ef6a0e38fdba61cad3da85",
+    "variants": [
+      {
+        "width": 640,
+        "height": 366,
+        "avif": {
+          "src": "/amethyst/ssr-images/halloween-pumpkin-witch-witch-640.avif",
+          "bytes": 64469
+        },
+        "webp": {
+          "src": "/amethyst/ssr-images/halloween-pumpkin-witch-witch-640.webp",
+          "bytes": 73068
+        }
+      },
+      {
+        "width": 1080,
+        "height": 617,
+        "avif": {
+          "src": "/amethyst/ssr-images/halloween-pumpkin-witch-witch-1080.avif",
+          "bytes": 150880
+        },
+        "webp": {
+          "src": "/amethyst/ssr-images/halloween-pumpkin-witch-witch-1080.webp",
+          "bytes": 187730
+        }
+      },
+      {
+        "width": 1600,
+        "height": 914,
+        "avif": {
+          "src": "/amethyst/ssr-images/halloween-pumpkin-witch-witch-1600.avif",
+          "bytes": 245626
+        },
+        "webp": {
+          "src": "/amethyst/ssr-images/halloween-pumpkin-witch-witch-1600.webp",
+          "bytes": 363324
+        }
+      },
+      {
+        "width": 1659,
+        "height": 948,
+        "avif": {
+          "src": "/amethyst/ssr-images/halloween-pumpkin-witch-witch-1659.avif",
+          "bytes": 290060
+        },
+        "webp": {
+          "src": "/amethyst/ssr-images/halloween-pumpkin-witch-witch-1659.webp",
+          "bytes": 416818
+        }
+      }
+    ]
+  }
+}

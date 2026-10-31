@@ -1,3 +1,4 @@
+import { ResponsiveStill } from './responsive-still.jsx';
 /* Shared SSR scenes; existing page and theme CSS owns the composition. */
 const React = window.React;
 const { useEffect, useMemo } = React;
@@ -35,7 +36,7 @@ function NeonButterflyScene() {
 
 function PumpkinWitchScene() {
   return <div className="hpw-scene" aria-hidden="true">
-    <span className="hpw-witch-flight"><img className="hpw-witch" src="/amethyst/skins/halloween-pumpkin-witch/witch.webp" alt="" decoding="async" /></span>
+    <span className="hpw-witch-flight"><ResponsiveStill className="hpw-witch" src="/amethyst/skins/halloween-pumpkin-witch/witch.webp" sizes="(max-width: 600px) 25vw, (min-width: 1520px) 380px, (min-width: 760px) 25vw, 190px" /></span>
     {[[12,18,-.8,8],[30,12,-3.1,7],[84,50,-1.9,8],[95,72,-4.7,7]].map(([x,y,delay,size],index) => <span key={index} className={`hpw-sparkle hpw-sparkle--${index%3}`} style={{ '--hpw-x': `${x}%`, '--hpw-y': `${y}%`, '--hpw-delay': `${delay}s`, '--hpw-size': `${size}px` }} />)}
   </div>;
 }
@@ -61,8 +62,8 @@ export function HeroMotionScene({ t, host = false, surface = "homepage" }) {
   if (config.kind === 'sparkle') return <><SparkleFx level={t.sparkleLevel === 'none' ? 'subtle' : t.sparkleLevel} motion={config.motion || 'sparkle_rise'} />{motion}</>;
   return <>
     <div className={config.mediaClass} data-hero-media={config.frameAttribute} aria-hidden="true" suppressHydrationWarning>
-      {config.scene === 'pumpkin' ? <picture className="hpc-poster" aria-hidden="true"><img src={config.poster} srcSet="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-720.webp 720w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp 1200w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1672.webp 1672w" sizes="(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw" alt="" width="1672" height="941" fetchPriority="high" /></picture> : <img className={config.posterClass} src={config.poster} alt="" width={config.width} height={config.height} fetchPriority="high" />}
-      <video className={config.videoClass} data-hero-video="" muted playsInline loop preload="auto" poster={config.poster} src={config.src} aria-hidden="true" tabIndex={-1} suppressHydrationWarning />
+      {config.scene === 'pumpkin' ? <picture className="hpc-poster" aria-hidden="true"><img data-hero-still="" src={config.poster} srcSet="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-720.webp 720w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp 1200w, /amethyst/skins/halloween-pumpkin-cat/hero-desktop-1672.webp 1672w" sizes="(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw" alt="" width="1672" height="941" fetchPriority="high" /></picture> : <ResponsiveStill hero className={config.posterClass} src={config.poster} width={config.width} height={config.height} />}
+      <video className={config.videoClass} data-hero-video="" data-hero-video-src={config.src} muted playsInline loop preload="none" aria-hidden="true" tabIndex={-1} suppressHydrationWarning />
     </div>
     {config.scene === 'unicorn' && <div className="au-magic" aria-hidden="true"><svg viewBox="0 0 1400 760" preserveAspectRatio="none"><path d="M-90 190 Q250 420 680 310 T1500 200"/><path d="M-100 480 Q300 720 790 540 T1500 470"/><path d="M-80 660 Q410 500 870 660 T1510 600"/></svg>{Array.from({length:12},(_,i)=><i key={i} style={{'--x':`${(i*29+7)%97}%`,'--y':`${(i*37+9)%93}%`,'--delay':`${-i*.7}s`}}/>)}</div>}
     {!(host && config.controlsOutsideHost) && controls}

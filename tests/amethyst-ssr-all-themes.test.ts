@@ -53,8 +53,11 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
         const video = html.match(/<video\b[^>]*data-hero-video=""[^>]*>/)?.[0]
         for (const attribute of ['muted', 'playsinline', 'loop']) expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
         expect(video).not.toMatch(/\sautoplay/)
-        expect(video).toContain(`poster="${HERO_MOTION_THEMES[preset].poster}"`)
-        expect(video).toContain('preload="auto"')
+        const still = html.match(/<img\b[^>]*data-hero-still=""[^>]*>/)?.[0]
+        expect(still).toContain(`src="${preset === 'sunset_beach' ? '/amethyst/ssr-images/sunset-beach-hero-approved-1080.webp' : HERO_MOTION_THEMES[preset].poster}"`)
+        expect(video).toContain(`data-hero-video-src="${HERO_MOTION_THEMES[preset].src}"`)
+        expect(video).toContain('preload="none"')
+        expect(video).not.toMatch(/\ssrc=|\sposter=/)
       }
       expect(html).not.toMatch(/react\.development|babel|data-template-src=/)
       expect(saved.heroMotion).toBe('still')

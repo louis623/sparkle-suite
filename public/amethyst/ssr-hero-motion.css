@@ -8,6 +8,11 @@
 [data-ssr-hero] .beach-motion-layer { opacity:1 }
 [data-ssr-hero] .beach-video { opacity:0 }
 [data-ssr-hero] .beach-motion-layer[data-playing=true] .beach-video { opacity:1 }
+/* Legacy's phone placeholder is the full-width frame at the top, matching the
+   animation plane. Its transparent lower gradient remains in the theme CSS. */
+@media(max-width:600px) {
+  [data-ssr-hero] .beach-poster { height:auto;object-fit:contain;object-position:center top }
+}
 @media (prefers-reduced-motion: no-preference) {
 [data-ssr-hero] .nb-wing--left { animation:ssr-wing-left 3.2s var(--nb-flap-delay) ease-in-out infinite!important }
 [data-ssr-hero] .nb-wing--right { animation:ssr-wing-right 3.2s var(--nb-flap-delay) ease-in-out infinite!important }
