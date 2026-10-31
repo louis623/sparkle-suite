@@ -1,0 +1,82 @@
+{
+  "applicationCommit": "cd1dc1491bfe33a8a38d02003cb769919a490775",
+  "inputTip": "b0a3511b02c65dabc1777b71eb45e6abf3ac4843",
+  "baseline": {
+    "passed": 6068,
+    "failed": 75,
+    "skipped": 6
+  },
+  "full": {
+    "passed": 6106,
+    "failed": 75,
+    "skipped": 6
+  },
+  "focused": {
+    "passed": 635,
+    "failed": 0,
+    "skipped": 0
+  },
+  "newFailingNames": [],
+  "existingSuiteLoadErrors": [
+    "remy-communications-schema-contract.test.ts",
+    "sparkle-finder-public-show-window-migration.test.ts",
+    "thanksgiving-migration.test.ts",
+    "prelaunch/prelaunch-crawl-metadata.test.ts"
+  ],
+  "local": {
+    "splitSamples": 72,
+    "tapSamples": 640,
+    "clockProbes": 8,
+    "pass": false,
+    "failedTapGates": [
+      {
+        "engine": "webkit",
+        "id": "alpine_opal/homepage",
+        "profile": "phone",
+        "phase": "loading",
+        "action": "nav",
+        "medianMs": 229.0000000000001,
+        "pass": false
+      },
+      {
+        "engine": "webkit",
+        "id": "alpine_opal/homepage",
+        "profile": "phone",
+        "phase": "loading",
+        "action": "cta",
+        "medianMs": 208,
+        "pass": false
+      },
+      {
+        "engine": "webkit",
+        "id": "gilded_autumn/homepage",
+        "profile": "desktop",
+        "phase": "loading",
+        "action": "pause",
+        "medianMs": 714,
+        "pass": false
+      },
+      {
+        "engine": "webkit",
+        "id": "alpine_opal/homepage",
+        "profile": "desktop",
+        "phase": "loading",
+        "action": "cta",
+        "medianMs": 236,
+        "pass": false
+      },
+      {
+        "engine": "webkit",
+        "id": "alpine_opal/trade",
+        "profile": "desktop",
+        "phase": "loading",
+        "action": "cta",
+        "medianMs": 205,
+        "pass": false
+      }
+    ]
+  },
+  "legacyAssetSourceCommit": "3f175871674e42dbc62d18419318941ea6a49935",
+  "legacyBenchmarkSHA": null,
+  "deferredABSettleMs": 12000
+}
