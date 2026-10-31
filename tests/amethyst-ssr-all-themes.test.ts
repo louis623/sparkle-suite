@@ -67,7 +67,7 @@ it('starts muted before play, never inserts a loop rest, and retains early visit
   const video = { muted: false, defaultMuted: false, loop: false, paused: true,
     addEventListener: vi.fn(), play: vi.fn(() => { expect(video.muted).toBe(true); video.paused = false; return Promise.resolve() }),
     pause: vi.fn(() => { video.paused = true }) }
-  const button = { textContent: '', setAttribute: vi.fn(), addEventListener: (name: string, listener: () => void) => listeners.set(name, listener) }
+  const button = { textContent: '', style: { minInlineSize: '' }, getBoundingClientRect: () => ({ width: 120 }), setAttribute: vi.fn(), addEventListener: (name: string, listener: () => void) => listeners.set(name, listener) }
   const hero = { dataset: {} as Record<string, string>, querySelector: (selector: string) => selector.includes('motion-toggle') ? button : selector.includes('hero-video') ? video : null }
   const window: { sparkleStartHeroMotion?: () => void; matchMedia: () => unknown } = { matchMedia: () => ({ matches: false, addEventListener() {} }) }
   runInNewContext(earlyHomepageControls, { window, document: { hidden: true, querySelectorAll: () => [hero] }, Promise })

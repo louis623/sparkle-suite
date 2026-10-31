@@ -2390,7 +2390,7 @@ function App() {
     <>
       <SparkleFx level={t.sparkleLevel} />
 
-      <div className={isMileHighFizzHybrid ? "mhf-trade-page" : isBrittWithBlingHybrid ? "bwb-trade-page" : isBlingKitchenHybrid ? "bk-trade-page" : ""}>
+      <div data-trade-board-empty={String(boardIsEmpty)} className={isMileHighFizzHybrid ? "mhf-trade-page" : isBrittWithBlingHybrid ? "bwb-trade-page" : isBlingKitchenHybrid ? "bk-trade-page" : ""}>
         <div className="hp-sticky-stack">
           <Header businessName={t.businessName} />
           {t.showTicker && <Ticker topText={t.tickerTopText} />}

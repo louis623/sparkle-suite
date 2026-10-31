@@ -9,7 +9,7 @@ for (const [preset, config] of Object.entries(HERO_MOTION_THEMES)) {
     const preference = { matches: true, addEventListener: (name: string, listener: () => void) => { events[name] = listener } }
     const video = { paused: true, autoplay: false, muted: false, defaultMuted: false, loop: false,
       play: vi.fn(() => { video.paused = false; return Promise.resolve() }), pause: vi.fn(() => { video.paused = true }), addEventListener: vi.fn() }
-    const button = { textContent: '', setAttribute: vi.fn(), addEventListener: vi.fn() }
+    const button = { textContent: '', style: { minInlineSize: '' }, getBoundingClientRect: vi.fn(() => ({ width: 120 })), setAttribute: vi.fn(), addEventListener: vi.fn() }
     const media = { dataset: { heroMedia: 'data-playing' }, removeAttribute: vi.fn() }
     const hero = { dataset: { ssrHero: preset } as Record<string, string>, querySelector: (selector: string) =>
       selector.includes('motion-toggle') ? button : selector.includes('hero-video') ? (config.kind === 'video' ? video : null) : selector.includes('hero-media') ? media : null }
@@ -17,11 +17,13 @@ for (const [preset, config] of Object.entries(HERO_MOTION_THEMES)) {
     runInNewContext(earlyHomepageControls, { window, document: { querySelectorAll: (selector: string) => selector === '[data-ssr-hero]' ? [hero] : [] }, Promise })
     await Promise.resolve()
     expect(button.textContent).toBe('Play animation')
+    expect(button.style.minInlineSize).toBe('120px')
     expect(hero.dataset.visitorPaused).toBe('true')
     expect(video.play).not.toHaveBeenCalled()
     expect(video.autoplay).toBe(false)
     if (config.kind === 'video') expect(media.removeAttribute).toHaveBeenCalledWith('data-playing')
     window.sparkleStartHeroMotion!()
+    expect(button.getBoundingClientRect).toHaveBeenCalledOnce()
     expect(video.play).not.toHaveBeenCalled()
     preference.matches = false; events.change()
     await Promise.resolve(); await Promise.resolve(); await Promise.resolve()

@@ -56,17 +56,22 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
   const preloads = [...rendered.matchAll(/<link\b[^>]*rel="preload"[^>]*\/>/g)].map(match => match[0]).join('')
   const markup = rendered.replace(/<link\b[^>]*rel="preload"[^>]*\/>/g, '')
   new Script('window.SPARKLE_APPLY_PAGE_THEME(window.' + ({ homepage: 'HOMEPAGE', trade: 'TRADE', join: 'JOIN' }[page]) + '_TWEAK_DEFAULTS, document)').runInContext(context, { timeout: 100 })
+  // The client hides the reverse ticker for an empty board. Use the state
+  // computed by that same React tree before first paint, rather than waiting
+  // for its effect and shifting the entire page upward after hydration.
+  if (page === 'trade' && markup.includes('data-trade-board-empty="true"')) body.classList.add('dance-floor-empty')
   const style = Array.from(properties, ([key, value]) => `${key}:${value}`).join(';')
   const allowedCss = new Set(['tokens.css', 'components.css', 'homepage.css', page + '.css', ...theme.css,
     ...(data.homepage.publicSiteVariant === 'britt_with_bling_hybrid' ? ['britt-hero-buttons.css'] : [])])
-  const fontMarkup = page === 'homepage' ? '' : utilityPageFonts(properties,
+  const fontMarkup = utilityPageFonts(properties,
     [...allowedCss].map(name => homepageStyles[name as keyof typeof homepageStyles]).join('\n'), data.appearancePreset)
   let result = html.replace(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"?]+)[^"]*"[^>]*>/g,
     (_tag, href: string) => {
       const name = href.split('/').at(-1) ?? ''
       return allowedCss.has(name) ? `<style data-ssr-style="${name}">${homepageStyles[name as keyof typeof homepageStyles]}</style>` : ''
     })
-  // No split CSS, self-hosted fonts, runtime loader, or third-party worker.
+  // No split CSS, provider runtime loader, or third-party worker. The pinned
+  // font faces above are already available when the browser lays out the hero.
   result = result.replace(/<script\b[^>]*src="[^"]+"[^>]*><\/script>/g, tag => {
     if (tag.includes('data-template-src=')) return `<script>${inlineBootstrap.replace(/<\/script/gi, '<\\/script')}</script>`
     const src = tag.match(/\bsrc="([^"]+)"/)?.[1] ?? ''

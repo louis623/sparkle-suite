@@ -76,7 +76,7 @@ it.each([
 ] as const)('controls the aurora before hydration: reduced=%s motion=%s plays=%s', async (reduced, motion, plays) => {
   const listeners: Record<string, () => void> = {}
   const clicks: Record<string, () => void> = {}
-  const button = { textContent: '', setAttribute: vi.fn(), addEventListener: (name: string, fn: () => void) => { clicks[name] = fn } }
+  const button = { textContent: '', style: { minInlineSize: '' }, getBoundingClientRect: () => ({ width: 180 }), setAttribute: vi.fn(), addEventListener: (name: string, fn: () => void) => { clicks[name] = fn } }
   const video = { autoplay: false, muted: false, defaultMuted: false, loop: false,
     play: vi.fn(() => Promise.resolve()), pause: vi.fn(), addEventListener: vi.fn() }
   const media = { matches: reduced, addEventListener: (name: string, fn: () => void) => { listeners[name] = fn } }
@@ -87,6 +87,7 @@ it.each([
   expect(video.play).toHaveBeenCalledTimes(plays ? 1 : 0)
   expect(video.muted).toBe(true)
   expect(button.textContent).toBe(plays ? 'Pause background video' : 'Play background video')
+  expect(button.style.minInlineSize).toBe('180px')
   if (!plays) expect(video.pause).toHaveBeenCalled()
   if (plays) {
     clicks.click()
