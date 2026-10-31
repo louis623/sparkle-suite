@@ -1,0 +1,136 @@
+[
+  {
+    "renderer": "legacy",
+    "fonts": [
+      {
+        "selector": "h1",
+        "family": "Pacifico, \"Brush Script MT\", cursive",
+        "weight": "800",
+        "text": "Mile High Fizz",
+        "faces": [
+          {
+            "family": "Brush Script MT",
+            "glyphs": 14
+          }
+        ]
+      },
+      {
+        "selector": ".mhf-hero-with",
+        "family": "\"DM Sans\", Inter, system-ui, sans-serif",
+        "weight": "900",
+        "text": "WITH LINDSEY",
+        "faces": [
+          {
+            "family": "DM Sans 9pt",
+            "glyphs": 12
+          }
+        ]
+      },
+      {
+        "selector": ".mhf-hero-line",
+        "family": "\"DM Sans\", Inter, system-ui, sans-serif",
+        "weight": "900",
+        "text": "REVEALING SOMETHING MAGICAL TOGETHER",
+        "faces": [
+          {
+            "family": "DM Sans 9pt",
+            "glyphs": 35
+          }
+        ]
+      },
+      {
+        "selector": ".mhf-hero-instruction",
+        "family": "\"DM Sans\", Inter, system-ui, sans-serif",
+        "weight": "900",
+        "text": "PLACE YOUR ORDER AND RETURN TO THE LIVE PARTY TO WATCH YOUR REVEAL",
+        "faces": [
+          {
+            "family": "DM Sans 9pt",
+            "glyphs": 65
+          }
+        ]
+      },
+      {
+        "selector": ".mhf-cta-shop",
+        "family": "\"DM Sans\", Inter, system-ui, sans-serif",
+        "weight": "900",
+        "text": "Shop Bomb Party",
+        "faces": [
+          {
+            "family": "DM Sans 9pt",
+            "glyphs": 15
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "writes": []
+  },
+  {
+    "renderer": "ssr",
+    "fonts": [
+      {
+        "selector": "h1",
+        "family": "Pacifico, \"Brush Script MT\", cursive",
+        "weight": "800",
+        "text": "Mile High Fizz",
+        "faces": [
+          {
+            "family": "Brush Script MT",
+            "glyphs": 14
+          }
+        ]
+      },
+      {
+        "selector": ".mhf-hero-with",
+        "family": "\"DM Sans\", Inter, system-ui, sans-serif",
+        "weight": "900",
+        "text": "WITH LINDSEY",
+        "faces": [
+          {
+            "family": "Segoe UI Black",
+            "glyphs": 12
+          }
+        ]
+      },
+      {
+        "selector": ".mhf-hero-line",
+        "family": "\"DM Sans\", Inter, system-ui, sans-serif",
+        "weight": "900",
+        "text": "REVEALING SOMETHING MAGICAL TOGETHER",
+        "faces": [
+          {
+            "family": "Segoe UI Black",
+            "glyphs": 35
+          }
+        ]
+      },
+      {
+        "selector": ".mhf-hero-instruction",
+        "family": "\"DM Sans\", Inter, system-ui, sans-serif",
+        "weight": "900",
+        "text": "PLACE YOUR ORDER AND RETURN TO THE LIVE PARTY TO WATCH YOUR REVEAL",
+        "faces": [
+          {
+            "family": "Segoe UI Black",
+            "glyphs": 65
+          }
+        ]
+      },
+      {
+        "selector": ".mhf-cta-shop",
+        "family": "\"DM Sans\", Inter, system-ui, sans-serif",
+        "weight": "900",
+        "text": "Shop Bomb Party",
+        "faces": [
+          {
+            "family": "Segoe UI Black",
+            "glyphs": 15
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "writes": []
+  }
+]

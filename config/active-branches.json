@@ -4,6 +4,7 @@
   "primaryLocalWorktree": "C:\\Users\\louis\\sparkle-suite-repo",
   "activeLocalWorktrees": [
     "C:\\Users\\louis\\sparkle-suite-repo",
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\ssr-per-rep-allowlist-disposable",
     "C:\\Users\\louis\\.codex\\worktrees\\blingkitchen-google-verification\\sparkle-suite-repo",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\trade-request-completion",
     "C:\\Users\\louis\\.codex\\visualizations\\2026\\10\\05\\01a10df3-2121-7673-8f71-c58c6d0e5ab4\\section1-workspace"
@@ -40,7 +41,8 @@
     "cursor/suite-join-ssr-rep-routes",
     "cursor/theme-carousel-site-peeks-db80",
     "codex/ssr-chunk1-fizzfest-home",
-    "codex/release-ssr-finder"
+    "codex/release-ssr-finder",
+    "codex/ssr-per-rep-allowlist"
   ],
   "previewBranches": {
     "codex/faq-articles": {

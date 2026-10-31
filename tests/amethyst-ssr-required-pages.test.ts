@@ -22,9 +22,9 @@ it.each(['Trade', 'Join'])('keeps %s in SSR when mandatory data exceeds the inhe
   expect(response.headers.get('x-sparkle-page-data')).toBe('ssr')
   expect(await response.text()).toContain('data-server-rendered="true"')
 }, 8000)
-it('returns an explicit temporary error instead of legacy HTML on mandatory render failure', async () => {
+it('returns the legacy Dance Floor with HTTP 200 on mandatory render failure', async () => {
   mocks.render.mockRejectedValueOnce(Error('forced'))
   const response = await renderAmethystPublicAssetResponse(new Request('https://sparkle-suite-smoke.vercel.app/dudesfizzfest/trade'), ['Trade.html'], { repIdOverride: 'test-rep', publicSiteSlugOverride: 'dudesfizzfest' })
-  expect(response.status).toBe(503)
-  expect(await response.text()).not.toContain('babel')
+  expect(response.status).toBe(200)
+  expect(await response.text()).toContain('babel')
 })

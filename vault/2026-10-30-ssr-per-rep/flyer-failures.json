@@ -1,0 +1,232 @@
+[
+  {
+    "name": "flyer render renders gobble_and_fizz inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2518.7033,
+    "finalStatus": "failed",
+    "finalDurationMs": 5698.1476,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders pie_please inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2894.9354,
+    "finalStatus": "failed",
+    "finalDurationMs": 6399.6852,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders amethyst inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2360.5289999999995,
+    "finalStatus": "failed",
+    "finalDurationMs": 5016.1574,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders sparkle_suite_morganite inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 1608.8554000000004,
+    "finalStatus": "failed",
+    "finalDurationMs": 5051.322999999997,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders moonstone inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2198.2307999999994,
+    "finalStatus": "failed",
+    "finalDurationMs": 5270.941800000004,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders emerald_garden inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2293.5925000000007,
+    "finalStatus": "failed",
+    "finalDurationMs": 6516.018799999998,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders halloween_pumpkin_cat inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2355.7350000000006,
+    "finalStatus": "failed",
+    "finalDurationMs": 5809.545600000005,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders halloween_pumpkin_witch inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2285.859099999998,
+    "finalStatus": "failed",
+    "finalDurationMs": 5496.8317000000025,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders gilded_autumn inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2757.2907000000014,
+    "finalStatus": "failed",
+    "finalDurationMs": 5523.286899999999,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders rose_gold inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2120.797200000001,
+    "finalStatus": "failed",
+    "finalDurationMs": 5227.057500000003,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders midnight_rose inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 3120.3248999999996,
+    "finalStatus": "failed",
+    "finalDurationMs": 5170.636400000003,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders fall_owl_harvest_moon inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 3028.6193999999996,
+    "finalStatus": "failed",
+    "finalDurationMs": 6069.948100000009,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders pearl_rose inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 3749.923499999997,
+    "finalStatus": "failed",
+    "finalDurationMs": 5478.990099999995,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders sunset_beach inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 3637.383799999996,
+    "finalStatus": "failed",
+    "finalDurationMs": 6240.282799999986,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders rose_champagne inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2236.887300000002,
+    "finalStatus": "failed",
+    "finalDurationMs": 5674.601800000004,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders garnet inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2210.3598000000056,
+    "finalStatus": "failed",
+    "finalDurationMs": 5429.263299999991,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders amber inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2089.8738999999987,
+    "finalStatus": "failed",
+    "finalDurationMs": 6304.117400000003,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render renders velvet inside the safe zones and the QR decodes",
+    "baseStatus": "passed",
+    "baseDurationMs": 2074.6805999999997,
+    "finalStatus": "failed",
+    "finalDurationMs": 5967.581999999995,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render shrinks a long show title instead of cutting it off",
+    "baseStatus": "passed",
+    "baseDurationMs": 2472.358500000002,
+    "finalStatus": "failed",
+    "finalDurationMs": 9072.784899999999,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render decodes PNG and JPG for every shared theme with a tagline, without one, and with a wrapping title",
+    "baseStatus": "passed",
+    "baseDurationMs": 154280.94379999998,
+    "finalStatus": "failed",
+    "finalDurationMs": 300301.5768,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer render closes the tagline and website slots when they are absent, and prints a custom domain",
+    "baseStatus": "passed",
+    "baseDurationMs": 4603.892500000016,
+    "finalStatus": "failed",
+    "finalDurationMs": 5015.824500000046,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer file formats encodes JPG from one PNG and both files decode to the same URL",
+    "baseStatus": "passed",
+    "baseDurationMs": 3391.9694000000018,
+    "finalStatus": "failed",
+    "finalDurationMs": 5179.967400000023,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  },
+  {
+    "name": "flyer route ignores body.appearancePreset and uses the saved theme",
+    "baseStatus": "passed",
+    "baseDurationMs": 4909.199800000002,
+    "finalStatus": "failed",
+    "finalDurationMs": 5226.747000000032,
+    "reportedError": [
+      "Error: STACK_TRACE_ERROR"
+    ]
+  }
+]

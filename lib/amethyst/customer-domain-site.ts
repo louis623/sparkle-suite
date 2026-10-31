@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 export type CustomerDomainSiteState =
   | { kind: 'not_customer_host' }
-  | { kind: 'serve'; host: string; repId: string }
+  | { kind: 'serve'; host: string; repId: string; publicSiteSlug: string | null }
   | { kind: 'unavailable'; host: string }
 
 type Dependencies = {
@@ -28,8 +28,8 @@ export async function resolveCustomerDomainSiteState(
   try {
     const admin = (dependencies.createAdminClient ?? createAdminClient)()
     const rep = await (dependencies.resolveAmethystPreviewRep ??
-      resolveAmethystPreviewRep)(admin, { repId: host, select: 'id', strict: true })
-    return rep ? { kind: 'serve', host, repId: rep.id } : { kind: 'unavailable', host }
+      resolveAmethystPreviewRep)(admin, { repId: host, select: 'id, public_site_slug', strict: true })
+    return rep ? { kind: 'serve', host, repId: rep.id, publicSiteSlug: rep.public_site_slug ?? null } : { kind: 'unavailable', host }
   } catch {
     return { kind: 'unavailable', host }
   }

@@ -28,25 +28,36 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
       const saved = { ...homepage, heroMotion: 'still', publicSiteVariant }
       const bootstrap = buildAmethystHomepageBootstrapScript(saved, [], preset, { targeted: true })
       const html = await renderHomepageFirstPaint(source, { homepage: saved, join, trade, appearancePreset: preset }, new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
-      expect(html).toContain(`data-ssr-hero="${preset}"`)
+      const bespoke = layout === 'mile_high_fizz' && preset !== 'halloween_pumpkin_cat'
+      if (bespoke) expect(html).toContain('class="mhf-hero"')
+      else expect(html).toContain(`data-ssr-hero="${preset}"`)
       expect(html).toContain('data-server-rendered="true"')
       expect(html.match(/<h1\b/g)).toHaveLength(1)
-      expect(html).toContain('data-hero-motion-toggle=""')
-      expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
-      expect(html).toContain('>Pause animation</button>')
-      if (HERO_MOTION_THEMES[preset].sound) {
-        expect(html).toContain('>Enable ' + HERO_MOTION_THEMES[preset].sound + '</button>')
+      if (bespoke) {
+        expect(html).not.toContain('data-hero-motion-toggle=""')
+        expect(html).not.toMatch(/<section class="hp-hero"/)
+        if (preset === 'gnome_garden') expect(html).toContain('class="gg-decoration"')
+        if (preset === 'gilded_autumn') expect(html).not.toContain('<video')
+        else expect(html).toMatch(/<video[^>]*class="mhf-hero-video"[^>]*preload="metadata"/)
+      } else {
+        expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
+        expect(html).toContain('>Pause animation</button>')
+        if (HERO_MOTION_THEMES[preset].sound) expect(html).toContain('>Enable ' + HERO_MOTION_THEMES[preset].sound + '</button>')
+        if (preset === 'sunset_beach') expect(html.indexOf('class="beach-motion-controls"')).toBeLessThan(html.indexOf('class="hp-hero-media"'))
       }
-      if (preset === 'sunset_beach') expect(html.indexOf('class="beach-motion-controls"')).toBeLessThan(html.indexOf('class="hp-hero-media"'))
       for (const css of HERO_MOTION_THEMES[preset].css) expect(html).toContain(css)
       expect(html).toContain('data-ssr-style="homepage.css"')
       expect(html).not.toMatch(/<link\b[^>]*rel="stylesheet"/)
       if (HERO_MOTION_THEMES[preset].script) expect(html).toMatch(new RegExp(`<script defer src="[^\"]*${HERO_MOTION_THEMES[preset].script}`))
-      if (HERO_MOTION_THEMES[preset].kind === 'video') {
+      if (!bespoke && HERO_MOTION_THEMES[preset].kind === 'video') {
         const video = html.match(/<video\b[^>]*data-hero-video=""[^>]*>/)?.[0]
-        for (const attribute of ['autoplay', 'muted', 'playsinline', 'loop']) expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
-        expect(video).toContain(`poster="${HERO_MOTION_THEMES[preset].poster}"`)
-        expect(video).toContain('preload="auto"')
+        for (const attribute of ['muted', 'playsinline', 'loop']) expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
+        expect(video).not.toMatch(/\sautoplay/)
+        const still = html.match(/<img\b[^>]*data-hero-still=""[^>]*>/)?.[0]
+        expect(still).toContain(`src="${preset === 'sunset_beach' ? '/amethyst/ssr-images/sunset-beach-hero-approved-1080.webp' : HERO_MOTION_THEMES[preset].poster}"`)
+        expect(video).toContain(`data-hero-video-src="${HERO_MOTION_THEMES[preset].src}"`)
+        expect(video).toContain('preload="none"')
+        expect(video).not.toMatch(/\ssrc=|\sposter=/)
       }
       expect(html).not.toMatch(/react\.development|babel|data-template-src=/)
       expect(saved.heroMotion).toBe('still')
@@ -59,9 +70,9 @@ it('starts muted before play, never inserts a loop rest, and retains early visit
   const video = { muted: false, defaultMuted: false, loop: false, paused: true,
     addEventListener: vi.fn(), play: vi.fn(() => { expect(video.muted).toBe(true); video.paused = false; return Promise.resolve() }),
     pause: vi.fn(() => { video.paused = true }) }
-  const button = { textContent: '', setAttribute: vi.fn(), addEventListener: (name: string, listener: () => void) => listeners.set(name, listener) }
+  const button = { textContent: '', style: { minInlineSize: '' }, getBoundingClientRect: () => ({ width: 120 }), setAttribute: vi.fn(), addEventListener: (name: string, listener: () => void) => listeners.set(name, listener) }
   const hero = { dataset: {} as Record<string, string>, querySelector: (selector: string) => selector.includes('motion-toggle') ? button : selector.includes('hero-video') ? video : null }
-  const window: { sparkleStartHeroMotion?: () => void } = {}
+  const window: { sparkleStartHeroMotion?: () => void; matchMedia: () => unknown } = { matchMedia: () => ({ matches: false, addEventListener() {} }) }
   runInNewContext(earlyHomepageControls, { window, document: { hidden: true, querySelectorAll: () => [hero] }, Promise })
   await Promise.resolve(); await Promise.resolve()
   expect(video.play).toHaveBeenCalledOnce()
@@ -73,7 +84,7 @@ it('starts muted before play, never inserts a loop rest, and retains early visit
   window.sparkleStartHeroMotion!()
   expect(button.textContent).toBe('Play animation')
   expect(video.play).toHaveBeenCalledOnce()
-  expect(earlyHomepageControls).not.toMatch(/setTimeout|setInterval|ended|IntersectionObserver|matchMedia/)
+  expect(earlyHomepageControls).not.toMatch(/setTimeout|setInterval|ended|IntersectionObserver/)
 })
 
 it('disables review overrides on Live, other projects, other databases and other reps; normal URL uses saved theme', () => {

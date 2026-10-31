@@ -33,7 +33,7 @@ const video = (folder: string, prefix: string, options: Partial<HeroMotionConfig
 // One exhaustive contract supplies both server selection and the hydrated hero.
 // Saved motion settings are deliberately absent: visitor Pause alone owns playback.
 export const HERO_MOTION_THEMES: Record<AmethystAppearancePresetId, HeroMotionConfig> = {
-  amethyst: video('am01-unicorn', 'au', { scene: 'unicorn', mediaClass: 'au-art', src: '/amethyst/skins/am01-unicorn/hero-motion.mp4', frameAttribute: 'data-video', controlsClass: 'au-controls', sound: 'sound', width: 1310, height: 704 }),
+  amethyst: video('am01-unicorn', 'au', { scene: 'unicorn', mediaClass: 'au-art', poster: '/amethyst/skins/am01-unicorn/opening-poster.webp', src: '/amethyst/skins/am01-unicorn/hero-motion.mp4', frameAttribute: 'data-video', controlsClass: 'au-controls', sound: 'sound', width: 1310, height: 704 }),
   sparkle_suite_morganite: sparkle(),
   black_diamond: sparkle(),
   moonstone: sparkle(),
@@ -50,7 +50,7 @@ export const HERO_MOTION_THEMES: Record<AmethystAppearancePresetId, HeroMotionCo
   gobble_and_fizz: video('gobble-and-fizz', 'tg', { host: true, frameAttribute: 'data-has-frame', script: 'thanksgiving-motion.js' }),
   pie_please: video('pie-please', 'tg', { host: true, frameAttribute: 'data-has-frame', script: 'thanksgiving-motion.js', poster: '/amethyst/skins/pie-please/hero-poster-v4.webp', src: '/amethyst/skins/pie-please/hero-loop-v4.mp4' }),
   pearl_rose: video('pearl-rose', 'prl'),
-  sunset_beach: video('sunset-beach', 'beach', { host: true, controlsOutsideHost: true, mediaClass: 'beach-motion-layer', videoClass: 'beach-video', frameAttribute: 'data-playing', controlsClass: 'beach-motion-controls', sound: 'wave sound' }),
+  sunset_beach: video('sunset-beach', 'beach', { host: true, controlsOutsideHost: true, poster: '/amethyst/skins/sunset-beach/hero-approved.png', mediaClass: 'beach-motion-layer', videoClass: 'beach-video', frameAttribute: 'data-playing', controlsClass: 'beach-motion-controls', sound: 'wave sound' }),
   rose_champagne: video('rose-champagne', 'rgc'),
   garnet: sparkle(),
   amber: sparkle(),

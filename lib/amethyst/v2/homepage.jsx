@@ -3129,6 +3129,7 @@ function SparkleSuiteHeaderStack({ t, scheduleIsLive, effectiveLrqState, onOpenQ
 }
 
 function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queueState, onOpenQueue }) {
+  useEffect(() => { window.sparkleStartMileHighFizzHero?.(); }, [t.preset, t.heroMotion]);
   const joinTeamHref = CONTENT.footerLinks?.joinTeam || "#";
   const heroVideoUrl = CONTENT.heroVideoUrl || "/mile-high-fizz/hero.mp4";
   const heroWatchLinks = getHeroWatchLinks(liveShow, isLive);
@@ -3137,13 +3138,14 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
     <div className="mhf-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
-      {window.SPARKLE_HERO_THEMES ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
+      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="mhf-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="mhf-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-        {t.preset !== "gilded_autumn" && <video className="mhf-hero-video" autoPlay muted loop playsInline poster="">
+        {t.preset !== "gilded_autumn" && <video className="mhf-hero-video" muted loop playsInline preload="metadata" poster="" aria-hidden="true" tabIndex={-1} suppressHydrationWarning>
           <source src={CONTENT.heroVideoUrl || heroVideoUrl} type="video/mp4" />
         </video>}
         <div className="mhf-hero-shade" aria-hidden="true" />
+        {t.preset !== "gilded_autumn" && <button type="button" className="mhf-video-control" data-mhf-video-toggle="" aria-label="Pause background video" suppressHydrationWarning>Pause background video</button>}
         <div className="mhf-hero-content">
           <h1 id="mhf-hero-title" className="mhf-hero-title mhf-logo-gradient">
             {CONTENT.heroHeadline || businessName}

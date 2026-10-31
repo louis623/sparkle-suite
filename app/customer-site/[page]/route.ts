@@ -63,6 +63,6 @@ export async function GET(
 
   return renderAmethystPublicAssetResponse(request, asset, {
     canonicalPathOverride,
-    ...(site.kind === 'serve' ? { repIdOverride: site.repId } : {}),
+    ...(site.kind === 'serve' ? { repIdOverride: site.repId, renderGateSlug: site.publicSiteSlug } : {}),
   })
 }

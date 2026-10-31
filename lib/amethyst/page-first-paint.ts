@@ -1,11 +1,12 @@
 import { earlyHomepageLocalTime } from './homepage-local-time'
 import { HERO_MOTION_THEMES } from './hero-motion-config'
-import { earlyHomepageControls } from './hero-motion-controls'
+import { earlyHomepageControls, earlyMileHighFizzControls } from './hero-motion-controls'
 import homepageStyles from './generated/homepage-styles.json'
 export { earlyHomepageControls } from './hero-motion-controls'
 import runtimeSources from './generated/page-runtimes.json'
 import { webcrypto } from 'node:crypto'
 import { utilityPageFonts } from './utility-page-fonts'
+import { responsiveHeroCss, heroImagePreload } from './hero-responsive-images'
 import { join } from 'node:path'
 import { Script, createContext } from 'node:vm'
 import { createRequire } from 'node:module'
@@ -56,17 +57,22 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
   const preloads = [...rendered.matchAll(/<link\b[^>]*rel="preload"[^>]*\/>/g)].map(match => match[0]).join('')
   const markup = rendered.replace(/<link\b[^>]*rel="preload"[^>]*\/>/g, '')
   new Script('window.SPARKLE_APPLY_PAGE_THEME(window.' + ({ homepage: 'HOMEPAGE', trade: 'TRADE', join: 'JOIN' }[page]) + '_TWEAK_DEFAULTS, document)').runInContext(context, { timeout: 100 })
+  // The client hides the reverse ticker for an empty board. Use the state
+  // computed by that same React tree before first paint, rather than waiting
+  // for its effect and shifting the entire page upward after hydration.
+  if (page === 'trade' && markup.includes('data-trade-board-empty="true"')) body.classList.add('dance-floor-empty')
   const style = Array.from(properties, ([key, value]) => `${key}:${value}`).join(';')
   const allowedCss = new Set(['tokens.css', 'components.css', 'homepage.css', page + '.css', ...theme.css,
     ...(data.homepage.publicSiteVariant === 'britt_with_bling_hybrid' ? ['britt-hero-buttons.css'] : [])])
-  const fontMarkup = page === 'homepage' ? '' : utilityPageFonts(properties,
+  const fontMarkup = utilityPageFonts(properties,
     [...allowedCss].map(name => homepageStyles[name as keyof typeof homepageStyles]).join('\n'), data.appearancePreset)
   let result = html.replace(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"?]+)[^"]*"[^>]*>/g,
     (_tag, href: string) => {
       const name = href.split('/').at(-1) ?? ''
-      return allowedCss.has(name) ? `<style data-ssr-style="${name}">${homepageStyles[name as keyof typeof homepageStyles]}</style>` : ''
+      return allowedCss.has(name) ? `<style data-ssr-style="${name}">${responsiveHeroCss(homepageStyles[name as keyof typeof homepageStyles], page === 'homepage' && data.appearancePreset === 'sunset_beach')}</style>` : ''
     })
-  // No split CSS, self-hosted fonts, runtime loader, or third-party worker.
+  // No split CSS, provider runtime loader, or third-party worker. The pinned
+  // font faces above are already available when the browser lays out the hero.
   result = result.replace(/<script\b[^>]*src="[^"]+"[^>]*><\/script>/g, tag => {
     if (tag.includes('data-template-src=')) return `<script>${inlineBootstrap.replace(/<\/script/gi, '<\\/script')}</script>`
     const src = tag.match(/\bsrc="([^"]+)"/)?.[1] ?? ''
@@ -80,10 +86,11 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
     if (src.startsWith('/amethyst/')) return ''
     return tag // Preserve the original analytics tags exactly once.
   })
+  const mileHighFizzControls = page === 'homepage' && data.homepage.publicSiteVariant === 'mile_high_fizz_hybrid' ? earlyMileHighFizzControls : ''
   return result
     .replace('</body>', ('ssrReview' in data ? '<aside data-ssr-review-label>Smoke demo · theme/layout review fixture · no saved changes</aside>' : '') + '</body>')
-    .replace('</head>', fontMarkup + preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
+    .replace('</head>', fontMarkup + heroImagePreload(markup, data.appearancePreset) + preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${escapeAttribute(style)}">`)
     .replace('<body class="' + (page === 'homepage' ? 'homepage' : page + 'page') + '">', `<body class="${escapeAttribute(body.className)}">`)
-    .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}</script>`)
+    .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}${mileHighFizzControls}</script>`)
 }
