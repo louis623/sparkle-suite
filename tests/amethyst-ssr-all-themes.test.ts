@@ -34,10 +34,14 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
       expect(html).toContain('data-server-rendered="true"')
       expect(html.match(/<h1\b/g)).toHaveLength(1)
       if (bespoke) {
-        expect(html).not.toContain('data-hero-motion-toggle=""')
+        if (preset === 'gilded_autumn') expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
+        else expect(html).not.toContain('data-hero-motion-toggle=""')
         expect(html).not.toMatch(/<section class="hp-hero"/)
         if (preset === 'gnome_garden') expect(html).toContain('class="gg-decoration"')
-        if (preset === 'gilded_autumn') expect(html).not.toContain('<video')
+        if (preset === 'gilded_autumn') {
+          expect(html).toContain('data-hero-video-src="/amethyst/skins/gilded-autumn/hero-motion.mp4"')
+          expect(html).not.toContain('class="mhf-hero-video"')
+        }
         else expect(html).toMatch(/<video[^>]*class="mhf-hero-video"[^>]*preload="metadata"/)
       } else {
         expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)

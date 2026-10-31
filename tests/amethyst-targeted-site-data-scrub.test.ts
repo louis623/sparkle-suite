@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   loadAmethystHomepageUpcomingShows: vi.fn(),
@@ -364,4 +364,22 @@ describe('targeted Amethyst customer sites', () => {
     expect(html).not.toContain('repName":"Jane')
     expectNoDemoCustomerData(html)
   })
+  afterEach(() => vi.unstubAllEnvs())
+  for (const [page, get] of [['homepage',getHomepageTemplate], ['join',getJoinTemplate], ['trade',getTradeTemplate]] as const) {
+    it.each(['allowed','production','project','database','rep'])(`honors the legacy review query only in its approved context: ${page}/%s`, async context => {
+      vi.stubEnv('VERCEL_ENV', context === 'production' ? 'production' : 'preview')
+      vi.stubEnv('VERCEL_PROJECT_ID', context === 'project' ? 'other' : 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ')
+      vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+      vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', context === 'database' ? 'https://other.supabase.co' : 'https://pukemqiwlyqmyytxkdmo.supabase.co')
+      vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', undefined)
+      const slug = context === 'rep' ? 'otherrep' : 'dudesfizzfest'
+      const response = await get(new Request(`https://fixture.vercel.app/api/amethyst/${page}-template?c=rep-clean&publicSiteSlug=${slug}&ssrReviewTheme=gilded_autumn&ssrReviewLayout=mile_high_fizz`))
+      const script = await response.text()
+      expect(response.status).toBe(200)
+      expect(script.includes('"preset":"gilded_autumn"')).toBe(context === 'allowed')
+      expect(script.includes('"publicSiteVariant":"mile_high_fizz_hybrid"')).toBe(context === 'allowed')
+      expect(mocks.loadAmethystPreviewTemplateData).toHaveBeenCalledTimes(1)
+    })
+  }
+
 })

@@ -16,6 +16,14 @@ const source = readFileSync('public/amethyst/Homepage.html', 'utf8')
 const frozenCode = transformSync(readFileSync('lib/amethyst/legacy/assets/homepage.jsx', 'utf8'),
   { loader: 'jsx', jsxFactory: 'React.createElement', jsxFragment: 'React.Fragment' }).code
 const hero = (html: string) => html.match(/<section class="mhf-hero"[\s\S]*?<\/section>/)?.[0]
+// The hidden responsive copy reserves the original content's final size before
+// a streamed H1. Remove only that intentional reservation for legacy parity.
+function withoutReservation(html: string) {
+  const start = html.indexOf('<div class="ssr-hero-copy">')
+  if (start < 0) return html
+  const visible = html.indexOf('<div class="mhf-hero-content">', start)
+  return (html.slice(0, start) + html.slice(visible)).replace('</div></div></section>', '</div></section>')
+}
 
 function frozenHero(bootstrap: string) {
   const { React, renderToString } = createRequire(pathJoin(process.cwd(), 'package.json'))('./lib/amethyst/generated/homepage-server.cjs')
@@ -46,7 +54,7 @@ for (const motion of ['sparkle_rise', 'still', 'none']) {
     const actual = hero(html)!
     expect(actual).toBeTruthy()
     // The accessible SSR-only video control is the one intentional tree addition.
-    expect(actual.replace(/<button\b[^>]*data-mhf-video-toggle[^>]*>[\s\S]*?<\/button>/, '').replace(/<video\b[^>]*>/, '<video>')).toBe(frozenHero(bootstrap).replace(/<video\b[^>]*>/, '<video>'))
+    expect(withoutReservation(actual).replace(/<button\b[^>]*data-mhf-video-toggle[^>]*>[\s\S]*?<\/button>/, '').replace(/<video\b[^>]*>/, '<video>')).toBe(frozenHero(bootstrap).replace(/<video\b[^>]*>/, '<video>'))
     expect(actual).toMatch(/<button type="button" class="mhf-video-control" data-mhf-video-toggle="" aria-label="Pause background video">Pause background video<\/button>/)
     expect(actual).toContain('class="mhf-hero-title mhf-logo-gradient"')
     const withLine = actual.match(/<p class="mhf-hero-with">([\s\S]*?)<\/p>/)?.[1]

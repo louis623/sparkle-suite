@@ -24,6 +24,9 @@ export function responsiveHeroCss(css: string, pictureOwnsStill = false) {
 }
 
 export function heroImagePreload(markup: string, preset: string) {
+  if (preset === 'amethyst' && markup.includes('class="au-poster"')) {
+    return '<link rel="preload" as="image" type="image/webp" href="/amethyst/skins/am01-unicorn/opening-poster.webp" media="(prefers-reduced-motion: no-preference)" fetchpriority="high" data-ssr-hero-preload>'
+  }
   const image = images['/amethyst/skins/sunset-beach/hero-approved.png']
   if (preset !== 'sunset_beach' || !/class="(?:hp|jp)-hero-media/.test(markup)) return ''
   const srcset = image.variants.map(v => `${v.avif.src} ${v.width}w`).join(', ')

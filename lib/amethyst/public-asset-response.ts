@@ -1,5 +1,5 @@
 import { previewHomepageTheme } from './homepage-data-budget'
-import { homepageSmokeReview } from './homepage-smoke-review'
+import { homepageSmokeReview, smokeReviewSelection } from './homepage-smoke-review'
 import { shouldUseRepRenderV2 } from './rep-render-version'
 import { bestEffortHomepage } from './homepage-render-safety'
 import { readFile } from 'node:fs/promises'
@@ -554,7 +554,26 @@ export async function renderAmethystPublicAssetResponse(
   }
   const renderLegacy = async () => {
     const legacy = await import('./legacy/public-asset-response')
-    return legacy.renderAmethystPublicAssetResponse(request, asset, options)
+    const response = await legacy.renderAmethystPublicAssetResponse(request, asset, options)
+    const requestUrl = new URL(request.url)
+    const selection = smokeReviewSelection(requestUrl, options.publicSiteSlugOverride)
+    const page = AMETHYST_PUBLIC_HTML_PAGES[asset.join('/')]
+    // The frozen renderer and assets stay untouched. Only the same guarded
+    // read-only review cohort as SSR receives the theme/layout query.
+    if (!selection || !['homepage', 'join', 'trade'].includes(page) || response.status !== 200) return response
+    let html = await response.text()
+    const loader = /data-template-src="([^"<>]+)"/
+    const source = html.match(loader)?.[1]
+    if (!source) return new Response('Review fixture unavailable', { status: 503 })
+    const endpoint = new URL(source.replace(/&amp;/g, '&'), requestUrl)
+    endpoint.searchParams.set('ssrReviewTheme', selection.theme)
+    if (selection.layout !== null) endpoint.searchParams.set('ssrReviewLayout', selection.layout)
+    // Preserve the original loader, runtime and network sequence for a fair
+    // legacy comparison. Its normal API applies the same guarded selection.
+    html = html.replace(loader, () => `data-template-src="${(endpoint.pathname + endpoint.search).replace(/&/g, '&amp;')}"`)
+      .replace('</head>', `<meta name="ssr-review-theme" content="${selection.theme}"></head>`)
+      .replace('</body>', '<aside data-ssr-review-label style="position:fixed;bottom:6px;right:6px;z-index:10000;padding:4px 8px;background:#fff7df;color:#402c09;font:11px/1.3 system-ui;pointer-events:none">Smoke demo · legacy theme/layout review fixture · no saved changes</aside></body>')
+    return new Response(html, { status: response.status, headers: response.headers })
   }
   if (!useSSR) return renderLegacy()
   const filePath = asset.join('/') === 'Trade.html'

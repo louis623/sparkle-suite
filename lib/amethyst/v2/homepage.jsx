@@ -1,3 +1,4 @@
+import { initialLineup } from "./initial-lineup.jsx";
 import { HeroCopyReservation } from "./hero-copy-reservation.jsx";
 import { HeroMotionScene, GnomeGardenScene } from "./hero-motion.jsx";
 /* global React, ReactDOM */
@@ -3142,13 +3143,16 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
-      <section className="mhf-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="mhf-hero-title">
+      <section className="mhf-hero" data-ssr-hero={t.preset === "gilded_autumn" ? t.preset : undefined} data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="mhf-hero-title" suppressHydrationWarning>
+        {/* Keep the existing Gilded video eager; hydration must never wait for its poster. */}
+        {t.preset === "gilded_autumn" && <HeroMotionScene t={t} eager />}
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         {t.preset !== "gilded_autumn" && <video className="mhf-hero-video" muted loop playsInline preload="metadata" poster="" aria-hidden="true" tabIndex={-1} suppressHydrationWarning>
           <source src={CONTENT.heroVideoUrl || heroVideoUrl} type="video/mp4" />
         </video>}
         <div className="mhf-hero-shade" aria-hidden="true" />
         {t.preset !== "gilded_autumn" && <button type="button" className="mhf-video-control" data-mhf-video-toggle="" aria-label="Pause background video" suppressHydrationWarning>Pause background video</button>}
+        <HeroCopyReservation enabled={["gilded_autumn", "alpine_opal", "fall_owl_harvest_moon", "midnight_rose", "rose_gold"].includes(t.preset)}>
         <div className="mhf-hero-content">
           <h1 id="mhf-hero-title" className="mhf-hero-title mhf-logo-gradient">
             {CONTENT.heroHeadline || businessName}
@@ -3172,6 +3176,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
             </div>
           </div>
         </div>
+        </HeroCopyReservation>
       </section>
       )}
 
@@ -3534,7 +3539,7 @@ function homepageEventsView(values, loaded) {
 
 function App() {
   const [serverClock, setServerClock] = useState(() => Boolean(window.SPARKLE_FIRST_PAINT?.serverClock));
-  const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
+  const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? initialLineup(CONTENT) : null);
   window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
 
   const [pageDataRevision, setPageDataRevision] = useState(0);

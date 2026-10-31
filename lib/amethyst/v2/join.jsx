@@ -1,3 +1,4 @@
+import { initialLineup } from "./initial-lineup.jsx";
 import { HeroCopyReservation } from "./hero-copy-reservation.jsx";
 import { HeroMotionScene, SparkleFx as SharedSparkleFx } from "./hero-motion.jsx";
 /* global React, ReactDOM */
@@ -772,7 +773,7 @@ function LiveLineupUpdatedAt({ lineup }) {
 }
 
 function LiveLineupProvider({ children }) {
-  const [lineup, setLineup] = React.useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
+  const [lineup, setLineup] = React.useState(() => RUNTIME_CONTEXT.targeted ? initialLineup(CONTENT) : null);
   window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
   React.useEffect(() => {
     if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
@@ -897,7 +898,7 @@ function Hero({ teamName, title, pitch, ctaText, ctaUrl, hasRecruitingLink, show
       {isMileHighFizzHybrid ? (gnomeGarden && <GnomeGardenDecoration />) : <HeroMotionScene t={motionTweaks} surface="utility" />}
       <div className="jp-hero-media slot" data-slot="hero photo" />
       <div className="jp-hero-inner">
-        <HeroCopyReservation enabled={["pearl_rose", "midnight_rose"].includes(motionTweaks.preset)}>
+        <HeroCopyReservation enabled={["pearl_rose", "midnight_rose"].includes(motionTweaks.preset) || (isMileHighFizzHybrid && ["gilded_autumn", "alpine_opal"].includes(motionTweaks.preset))}>
         <div className="jp-hero-card">
           <div className="jp-hero-eyebrow">{isMileHighFizzHybrid ? "Join the Mile High Fizz Team" : "Join the team"}</div>
           {showPromo ? (
@@ -1397,7 +1398,7 @@ function FinalCta({ teamName, ctaUrl, ctaText, pitch, repName, locationLabel, ha
 }
 
 function Footer({ businessName }) {
-  const year = new Date().getFullYear();
+  const year = new Date(window.SPARKLE_FIRST_PAINT?.now ?? Date.now()).getFullYear();
 
   return (
     <footer className="hp-footer">

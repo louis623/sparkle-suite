@@ -1,3 +1,4 @@
+import { initialLineup } from "./initial-lineup.jsx";
 import { HeroMotionScene, SparkleFx as SharedSparkleFx } from "./hero-motion.jsx";
 /* global React, ReactDOM */
 const { useState, useEffect, useMemo, useRef } = React;
@@ -1079,7 +1080,7 @@ function LiveLineupUpdatedAt({ lineup }) {
 }
 
 function LiveLineupProvider({ children }) {
-  const [lineup, setLineup] = React.useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
+  const [lineup, setLineup] = React.useState(() => RUNTIME_CONTEXT.targeted ? initialLineup(CONTENT) : null);
   window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
   React.useEffect(() => {
     if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;

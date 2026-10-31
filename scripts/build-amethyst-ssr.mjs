@@ -5,7 +5,9 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 mkdirSync('public/amethyst/ssr-motion', { recursive: true })
 for (const name of ['neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pumpkin-cat', 'gilded-autumn', 'am01-unicorn', 'rose-champagne', 'midnight-rose', 'fall-owl', 'thanksgiving-motion', 'pearl-rose', 'sunset-beach']) {
   const source = readFileSync(`public/amethyst/${name}.js`, 'utf8')
-  writeFileSync(`public/amethyst/ssr-motion/${name}.js`, source.replace(/\.hp-hero(?![-\w])/g, '.hp-hero:not([data-ssr-hero])'))
+  const ssrSource = source.replace(/\.hp-hero(?![-\w])/g, '.hp-hero:not([data-ssr-hero])')
+  writeFileSync(`public/amethyst/ssr-motion/${name}.js`, name === 'gilded-autumn'
+    ? ssrSource.replace(/\.mhf-hero(?![-\w])/g, '.mhf-hero:not([data-ssr-hero])') : ssrSource)
 }
 // Bundle trusted CSS as immutable server data. Inlining the selected styles
 // avoids mobile stylesheet round trips without tracing the entire public tree.

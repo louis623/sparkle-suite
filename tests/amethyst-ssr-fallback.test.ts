@@ -131,3 +131,38 @@ for (const asset of ['Homepage.html', 'Trade.html', 'Join.html']) {
     })
   }
 }
+
+it.each(['Homepage.html', 'Trade.html', 'Join.html'])('applies the same guarded review theme/layout to legacy %s without editing frozen assets', async asset => {
+  vi.stubEnv('REP_RENDER_V2_SLUGS', '')
+  vi.stubEnv('VERCEL_ENV', 'preview')
+  vi.stubEnv('VERCEL_PROJECT_ID', 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ')
+  vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+  vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://pukemqiwlyqmyytxkdmo.supabase.co')
+  const reviewRequest = new Request('https://fixture.vercel.app/dudesfizzfest?ssrReviewTheme=gilded_autumn&ssrReviewLayout=mile_high_fizz')
+  const response = await renderAmethystPublicAssetResponse(reviewRequest, [asset], { ...options, joinVisibilityVerified: true })
+  const html = await response.text()
+  expect(response.status).toBe(200)
+  expect(html).toContain('<meta name="ssr-review-theme" content="gilded_autumn">')
+  expect(html).toContain('ssrReviewTheme=gilded_autumn')
+  expect(html).toContain('ssrReviewLayout=mile_high_fizz')
+  expect(html).toContain('template-loader.js')
+  expect(html).toContain('data-ssr-review-label')
+  expect(html).not.toContain('data-server-rendered="true"')
+  expect(mocks.bootstrap).not.toHaveBeenCalled()
+  expect(mocks.template).toHaveBeenCalledTimes(1)
+})
+
+it.each([
+  ['VERCEL_ENV','production'], ['VERCEL_PROJECT_ID','other'],
+  ['NEXT_PUBLIC_SPARKLE_ENVIRONMENT','live'], ['NEXT_PUBLIC_SUPABASE_URL','https://other.supabase.co'],
+])('keeps legacy byte-identical with the review query when %s disallows it', async (key,value) => {
+  vi.stubEnv('REP_RENDER_V2_SLUGS', '')
+  vi.stubEnv('VERCEL_ENV', 'preview');vi.stubEnv('VERCEL_PROJECT_ID', 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ')
+  vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke');vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://pukemqiwlyqmyytxkdmo.supabase.co')
+  vi.stubEnv(key,value)
+  const r = new Request('https://fixture.vercel.app/dudesfizzfest?ssrReviewTheme=gilded_autumn&ssrReviewLayout=mile_high_fizz')
+  const expected = await (await frozenLive(r,['Homepage.html'],options)).text()
+  const actual = await (await renderAmethystPublicAssetResponse(r,['Homepage.html'],options)).text()
+  expect(actual).toBe(expected)
+  expect(mocks.bootstrap).not.toHaveBeenCalled()
+})

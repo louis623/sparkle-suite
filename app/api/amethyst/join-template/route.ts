@@ -1,3 +1,4 @@
+import { homepageSmokeReview } from '@/lib/amethyst/homepage-smoke-review'
 import { loadAmethystHomepageUpcomingShows } from '@/lib/amethyst/homepage-upcoming-shows'
 import { buildLineupCalendar } from '@/lib/amethyst/lineup-calendar'
 import { buildPublicLiveLineup, requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
@@ -46,7 +47,7 @@ export async function GET(request: Request) {
   ])
   const customerTemplateData = restrictPantryTemplateData(
     applyCustomDomainToTemplateData(
-      await indexPublicJoinTemplate(templateData, { repId }),
+      await indexPublicJoinTemplate(homepageSmokeReview(templateData, new URL(request.url), publicSiteSlug), { repId }),
       requestCustomDomain,
     ),
     {
