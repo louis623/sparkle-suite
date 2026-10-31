@@ -1,0 +1,75 @@
+{
+  "checkedAt": "2026-10-31T17:17:08.420743+00:00",
+  "repository": "louis623/sparkle-suite",
+  "branch": "codex/ssr-per-rep-allowlist",
+  "workspace": "/workspace/ssr-smoke-resume2-0f42a0c",
+  "applicationSha": "0f42a0c63a665a9e057b6507ef58cb1851bfdd8c",
+  "verifiedOriginTip": "0f42a0c63a665a9e057b6507ef58cb1851bfdd8c",
+  "initialHead": "0f42a0c63a665a9e057b6507ef58cb1851bfdd8c",
+  "initialWorkingTreeClean": true,
+  "previousStopCommit": "6439b09429523bc0621b169a3eabc3c3385a8e3c",
+  "previousStopIsApplicationParent": true,
+  "previousStopChangesFrom9359ac8": "vault evidence only",
+  "rockyFullSuite": {
+    "baseline": {
+      "passed": 6059,
+      "failed": 75,
+      "skipped": 6
+    },
+    "final": {
+      "passed": 6068,
+      "failed": 75,
+      "skipped": 6
+    },
+    "newFailingNames": [],
+    "source": "vault/2026-10-31-ssr-rocky-review.json"
+  },
+  "branchGuardPassed": true,
+  "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+  "target": "preview",
+  "bindingCheck": {
+    "classification": "OTHER",
+    "exact": false,
+    "valuePrinted": false,
+    "credentialRefChecksReached": false,
+    "stop": true,
+    "note": "The read/selection/normalized equality check did not establish an exact Smoke binding. This receipt does not establish whether the value was unavailable, unselectable, or mismatched; it does not assert the actual configured value."
+  },
+  "deploymentAttempts": {
+    "A": 0,
+    "B": 0
+  },
+  "aliasReads": 0,
+  "aliasMutations": 0,
+  "getControlsRun": false,
+  "step3Run": false,
+  "committedHarnessInspected": true,
+  "measurementHarnessExecuted": false,
+  "databaseAccessCount": 0,
+  "liveProjectAccessed": false,
+  "liveDatabaseAccessed": false,
+  "projectEnvironmentMutated": false,
+  "projectSettingsMutated": false,
+  "protectionConfigurationMutated": false,
+  "existingProtectionKeyChanged": false,
+  "secretValuesPrinted": false,
+  "credentialOrBypassTemporaryFilesCreated": false,
+  "priorBoxReports": [
+    {
+      "name": "responsive-heroes-report.md",
+      "sha256": "6b9cf3d75735a52744ea5ae9f8e5c99ad3ac49655607801711b8b0e1e69132c2",
+      "committedCopyMatches": true
+    },
+    {
+      "name": "parity-speed-report.md",
+      "sha256": "b4347dc23f949c704ea6bf558cfb94c21b2ed7fc92047e92767aca085789d4c1",
+      "committedCopyMatches": true
+    },
+    {
+      "name": "report.md",
+      "sha256": "c64181fc68c9e485b51c8efea141f5a81b0ca4906b613f49d990d442b1d62017",
+      "committedCopyMatches": true
+    }
+  ],
+  "openBrainCloseout": "Unavailable: no Open Brain/capture_thought capability exposed by tool discovery."
+}
