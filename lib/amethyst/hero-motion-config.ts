@@ -6,6 +6,7 @@ export interface HeroMotionConfig {
   css: string[]
   script?: string
   scene?: string
+  pausedPoster?: string
   poster?: string
   src?: string
   mediaClass?: string
@@ -33,7 +34,7 @@ const video = (folder: string, prefix: string, options: Partial<HeroMotionConfig
 // One exhaustive contract supplies both server selection and the hydrated hero.
 // Saved motion settings are deliberately absent: visitor Pause alone owns playback.
 export const HERO_MOTION_THEMES: Record<AmethystAppearancePresetId, HeroMotionConfig> = {
-  amethyst: video('am01-unicorn', 'au', { scene: 'unicorn', mediaClass: 'au-art', src: '/amethyst/skins/am01-unicorn/hero-motion.mp4', frameAttribute: 'data-video', controlsClass: 'au-controls', sound: 'sound', width: 1310, height: 704 }),
+  amethyst: video('am01-unicorn', 'au', { scene: 'unicorn', poster: '/amethyst/skins/am01-unicorn/opening-poster.webp', pausedPoster: '/amethyst/skins/am01-unicorn/hero-poster.webp', mediaClass: 'au-art', src: '/amethyst/skins/am01-unicorn/hero-motion.mp4', frameAttribute: 'data-video', controlsClass: 'au-controls', sound: 'sound', width: 1310, height: 704 }),
   sparkle_suite_morganite: sparkle(),
   black_diamond: sparkle(),
   moonstone: sparkle(),

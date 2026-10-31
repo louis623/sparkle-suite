@@ -43,5 +43,14 @@ export function utilityPageFonts(properties: Map<string, string>, css: string, p
       rules.push(rule)
     }
   }
-  return [...headingPreloads].map(src => `<link rel="preload" as="font" type="font/woff2" crossorigin href="${src}" data-ssr-heading-font>`).join('') + `<style data-ssr-fonts>${rules.join('\n')}</style><script>if(document.fonts){${JSON.stringify([...warmFonts])}.forEach(function(font){document.fonts.load(font).catch(function(){})})}</script>`
+  return [...headingPreloads].map(src => `<link rel="preload" as="font" type="font/woff2" crossorigin href="${src}" data-ssr-heading-font>`).join('') + `<style data-ssr-fonts>${rules.join('\n')}</style><script>if(document.fonts){(function(){
+// A buffer-backed FontFace is decoded synchronously. Reuse the embedded bytes
+// from CSSOM so WebKit cannot paint fallback metrics while a data-URL face loads.
+// No extra payload, network request, render blocker or deferred motion startup.
+var sheet=document.querySelector('style[data-ssr-fonts]').sheet;
+if(typeof FontFace==='function')Array.from(sheet.cssRules).forEach(function(rule){
+ var s=rule.style;if(!s)return;var match=s.getPropertyValue('src').match(/base64,([^\\)"']+)/);if(!match)return;
+ try{var bytes=Uint8Array.from(atob(match[1]),function(c){return c.charCodeAt(0)});
+ var face=new FontFace(s.getPropertyValue('font-family').replace(/["']/g,''),bytes,{style:s.getPropertyValue('font-style')||'normal',weight:s.getPropertyValue('font-weight')||'400',unicodeRange:s.getPropertyValue('unicode-range')||'U+0-10FFFF',display:'block'});if(face.status==='loaded'){document.fonts.add(face);sheet.deleteRule(Array.from(sheet.cssRules).indexOf(rule))}}catch(e){}
+});})();${JSON.stringify([...warmFonts])}.forEach(function(font){document.fonts.load(font).catch(function(){})})}</script>`
 }

@@ -57,7 +57,9 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
         expect(still).toContain(`src="${preset === 'sunset_beach' ? '/amethyst/ssr-images/sunset-beach-hero-approved-1080.webp' : HERO_MOTION_THEMES[preset].poster}"`)
         expect(video).toContain(`data-hero-video-src="${HERO_MOTION_THEMES[preset].src}"`)
         expect(video).toContain('preload="none"')
-        expect(video).not.toMatch(/\ssrc=|\sposter=/)
+        expect(video).not.toMatch(/\ssrc=/)
+        if (preset === 'amethyst') expect(video).toContain('poster="/amethyst/skins/am01-unicorn/opening-poster.webp"')
+        else expect(video).not.toMatch(/\sposter=/)
       }
       expect(html).not.toMatch(/react\.development|babel|data-template-src=/)
       expect(saved.heroMotion).toBe('still')

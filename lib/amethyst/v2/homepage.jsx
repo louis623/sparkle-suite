@@ -1,3 +1,4 @@
+import { HeroCopyReservation } from "./hero-copy-reservation.jsx";
 import { HeroMotionScene, GnomeGardenScene } from "./hero-motion.jsx";
 /* global React, ReactDOM */
 const { useState, useEffect, useMemo, useRef } = React;
@@ -875,6 +876,7 @@ function Hero({ t, isLive, liveShow }) {
       <HeroMotionScene t={t} />
       <div className="hp-hero-media"><HeroMotionScene t={t} host /></div>
       <div className="hp-hero-inner">
+        <HeroCopyReservation enabled={["fall_owl_harvest_moon", "midnight_rose", "rose_gold", "halloween_pumpkin_cat"].includes(t.preset)}>
         <div>
           {isMileHighFizzHybrid && (
             <div className="hp-mhf-hero-kicker">{mileHighFizzKicker}</div>
@@ -938,6 +940,7 @@ function Hero({ t, isLive, liveShow }) {
             )}
           </div>
         </div>
+        </HeroCopyReservation>
       </div>
     </section>
     </>

@@ -1,3 +1,4 @@
+import { HeroCopyReservation } from "./hero-copy-reservation.jsx";
 import { HeroMotionScene, SparkleFx as SharedSparkleFx } from "./hero-motion.jsx";
 /* global React, ReactDOM */
 import {
@@ -896,6 +897,7 @@ function Hero({ teamName, title, pitch, ctaText, ctaUrl, hasRecruitingLink, show
       {isMileHighFizzHybrid ? (gnomeGarden && <GnomeGardenDecoration />) : <HeroMotionScene t={motionTweaks} surface="utility" />}
       <div className="jp-hero-media slot" data-slot="hero photo" />
       <div className="jp-hero-inner">
+        <HeroCopyReservation enabled={["pearl_rose", "midnight_rose"].includes(motionTweaks.preset)}>
         <div className="jp-hero-card">
           <div className="jp-hero-eyebrow">{isMileHighFizzHybrid ? "Join the Mile High Fizz Team" : "Join the team"}</div>
           {showPromo ? (
@@ -929,6 +931,7 @@ function Hero({ teamName, title, pitch, ctaText, ctaUrl, hasRecruitingLink, show
             <a {...linkProps(BP_IDS_HREF)}>Bomb Party Income Disclosure Statement</a>.
           </p>
         </div>
+        </HeroCopyReservation>
       </div>
     </section>
   );

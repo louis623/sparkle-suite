@@ -1,4 +1,5 @@
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
+import { runInNewContext } from 'node:vm'
 import { readFileSync } from 'node:fs'
 import { renderAmethystPageFirstPaint } from '@/lib/amethyst/page-first-paint'
 import { utilityPageFonts } from '@/lib/amethyst/utility-page-fonts'
@@ -30,7 +31,7 @@ for (const preset of ['amethyst', 'gilded_autumn'] as const) {
     const html = await renderAmethystPageFirstPaint('homepage', readFileSync('public/amethyst/Homepage.html', 'utf8'),
       { homepage, trade, join, appearancePreset: preset }, new URL('https://sparkle-suite-smoke.vercel.app/milehighfizz'), bootstrap)
     expect(html.indexOf('data-ssr-fonts')).toBeGreaterThan(0)
-    expect(html.indexOf('data-ssr-fonts')).toBeLessThan(html.indexOf('</head>'))
+    expect(html.indexOf('data-ssr-fonts')).toBeLessThan(html.indexOf('data-ssr-style="tokens.css"'))
     expect(html.indexOf('data-ssr-heading-font')).toBeGreaterThan(0)
     expect(html.indexOf('data-ssr-heading-font')).toBeLessThan(html.indexOf('</head>'))
     expect(html).toContain(preset === 'amethyst' ? "font-family: 'Italiana'" : "font-family: 'Playfair Display'")
@@ -53,7 +54,7 @@ for (const [name, targeted, listings, empty] of [
 }
 
 for (const [preset, className, still] of [
-  ['amethyst', 'au-poster', '/amethyst/skins/am01-unicorn/hero-poster.webp'],
+  ['amethyst', 'au-poster', '/amethyst/skins/am01-unicorn/opening-poster.webp'],
   ['sunset_beach', 'beach-poster', '/amethyst/ssr-images/sunset-beach-hero-approved-1080.webp'],
 ] as const) {
   it(`uses the approved ${preset} still before starting its original video`, async () => {
@@ -65,7 +66,12 @@ for (const [preset, className, still] of [
     expect(poster).toContain(`src="${still}"`)
     expect(video).toContain('preload="none"')
     expect(video).toContain(`data-hero-video-src="/amethyst/skins/${preset === 'amethyst' ? 'am01-unicorn/hero-motion' : 'sunset-beach/hero-loop'}.mp4"`)
-    expect(video).not.toMatch(/\ssrc=|\sposter=/)
+    expect(video).not.toMatch(/\ssrc=/)
+    if (preset === 'amethyst') {
+      expect(video).toContain('poster="/amethyst/skins/am01-unicorn/opening-poster.webp"')
+      expect(html).toContain('media="(prefers-reduced-motion: reduce)" srcSet="/amethyst/skins/am01-unicorn/hero-poster.webp"')
+    }
+    else expect(video).not.toMatch(/\sposter=/)
   })
 }
 
@@ -85,7 +91,7 @@ it('keeps Alpine Opal Trade on its two original fonts without inline home-layout
   const fontRules = html.match(/<style data-ssr-fonts>([\s\S]*?)<\/style>/)![1]
   expect(fontRules).not.toMatch(/Pacifico|Great Vibes|Cormorant Garamond/)
   expect(html).not.toMatch(/data-ssr-heading-font|<video\b|hero\.mp4/)
-  expect(html).toContain('<span hidden id="ssr-first-paint-ready"></span>')
+  expect(html).not.toMatch(/rel="expect"|ssr-first-paint-ready/)
   expect(html).toContain('font-weight: 400 700')
 })
 
@@ -107,13 +113,41 @@ for (const [page, preset] of [
       : buildAmethystJoinBootstrapScript(join, preset, { targeted: true })
     const html = await renderAmethystPageFirstPaint(page, readFileSync(`public/amethyst/${page === 'homepage' ? 'Homepage' : 'Join'}.html`, 'utf8'),
       { homepage, trade, join, appearancePreset: preset }, new URL('http://localhost/review'), bootstrap)
-    const expectation = html.indexOf('<link rel="expect" blocking="render" href="#ssr-first-paint-ready">')
-    const ready = html.indexOf('<span hidden id="ssr-first-paint-ready"></span>')
-    expect(expectation).toBeGreaterThan(0)
-    expect(expectation).toBeLessThan(html.indexOf('</head>'))
-    expect(ready).toBeGreaterThan(html.indexOf('window.sparkleStartHeroMotion=start;start();'))
-    expect(ready).toBeLessThan(html.indexOf('<script defer'))
+    expect(html).not.toMatch(/rel="expect"|blocking="render"|ssr-first-paint-ready/)
+    expect(html).toContain('data-ssr-reservation="" aria-hidden="true" inert=""')
+    const sizingEnd = html.indexOf('</h1>')
+    expect(html.indexOf('data-ssr-reservation')).toBeLessThan(sizingEnd)
     expect(html).toContain('content:"Pause animation";display:block;height:0;visibility:hidden')
     expect(html).not.toMatch(/opacity:0[^}]*ssr-first-paint|visibility:hidden[^}]*hp-hero-inner/)
+  })
+}
+
+for (const status of ['loaded', 'loading']) {
+  it(`uses ready buffer font bytes instead of a competing CSS URL face (status=${status})`, () => {
+    const face = fontFaces['DM Sans'].find(face => face.css.includes('U+0000-00FF'))!
+    const bytes = readFileSync(`public${face.src}`)
+    const properties = { src: `url("data:font/woff2;base64,${bytes.toString('base64')}")`,
+      'font-family': '"DM Sans"', 'font-style': 'normal', 'font-weight': '400 700', 'unicode-range': 'U+0-FF' }
+    const rule = { style: { getPropertyValue: (key: string) => properties[key as keyof typeof properties] || '' } }
+    const external = { style: { getPropertyValue: () => 'url("/noncritical-font.woff2")' } }
+    const sheet = { cssRules: [rule, external], deleteRule: vi.fn((index: number) => { sheet.cssRules.splice(index, 1) }) }
+    const add = vi.fn(), load = vi.fn(() => Promise.resolve()), created: { bytes: Uint8Array; family: string; options: unknown }[] = []
+    class BufferFace {
+      status = status
+      constructor(family: string, bytes: Uint8Array, options: unknown) { created.push({ family, bytes, options }) }
+    }
+    const html = utilityPageFonts(new Map([['--hp-display-font', '"DM Sans", sans-serif'], ['--hp-body-font', '"DM Sans", sans-serif']]), '', 'amethyst')
+    const script = html.match(/<script>([\s\S]*?)<\/script>/)![1]
+    runInNewContext(script, { document: { querySelector: () => ({ sheet }), fonts: { add, load } }, FontFace: BufferFace,
+      Uint8Array, atob: (value: string) => Buffer.from(value, 'base64').toString('binary') })
+    expect(created).toHaveLength(1)
+    expect(Buffer.from(created[0].bytes)).toEqual(bytes)
+    expect(created[0].family).toBe('DM Sans')
+    expect(created[0].options).toEqual({ style: 'normal', weight: '400 700', unicodeRange: 'U+0-FF', display: 'block' })
+    expect(add).toHaveBeenCalledTimes(status === 'loaded' ? 1 : 0)
+    expect(sheet.deleteRule).toHaveBeenCalledTimes(status === 'loaded' ? 1 : 0)
+    expect(sheet.cssRules).toHaveLength(status === 'loaded' ? 1 : 2)
+    expect(sheet.cssRules).toContain(external)
+    expect(load).toHaveBeenCalled()
   })
 }
