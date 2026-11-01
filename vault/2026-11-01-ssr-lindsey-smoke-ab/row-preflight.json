@@ -1,0 +1,950 @@
+{
+  "rows": [
+    {
+      "id": "fall_owl_harvest_moon/homepage",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        },
+        "paused": {
+          "label": "Play background video",
+          "pressed": null,
+          "text": "Play background video"
+        },
+        "resumed": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "fall_owl_harvest_moon/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "midnight_rose/homepage",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        },
+        "paused": {
+          "label": "Play background video",
+          "pressed": null,
+          "text": "Play background video"
+        },
+        "resumed": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "midnight_rose/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "rose_gold/homepage",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        },
+        "paused": {
+          "label": "Play background video",
+          "pressed": null,
+          "text": "Play background video"
+        },
+        "resumed": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "rose_gold/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/homepage",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        },
+        "paused": {
+          "label": null,
+          "pressed": "false",
+          "text": "Play animation"
+        },
+        "resumed": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/join",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/join",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/trade",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/trade",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/homepage",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        },
+        "paused": {
+          "label": null,
+          "pressed": "false",
+          "text": "Play animation"
+        },
+        "resumed": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/join",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/join",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/trade",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/trade",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "amethyst/homepage",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        },
+        "paused": {
+          "label": null,
+          "pressed": "false",
+          "text": "Play animation"
+        },
+        "resumed": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "amethyst/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/homepage",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        },
+        "paused": {
+          "label": "Play background video",
+          "pressed": null,
+          "text": "Play background video"
+        },
+        "resumed": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/join",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/join",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/trade",
+      "profile": "desktop",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/trade",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "fall_owl_harvest_moon/homepage",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        },
+        "paused": {
+          "label": "Play background video",
+          "pressed": null,
+          "text": "Play background video"
+        },
+        "resumed": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "fall_owl_harvest_moon/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "midnight_rose/homepage",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        },
+        "paused": {
+          "label": "Play background video",
+          "pressed": null,
+          "text": "Play background video"
+        },
+        "resumed": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "midnight_rose/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "rose_gold/homepage",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        },
+        "paused": {
+          "label": "Play background video",
+          "pressed": null,
+          "text": "Play background video"
+        },
+        "resumed": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "rose_gold/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/homepage",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        },
+        "paused": {
+          "label": null,
+          "pressed": "false",
+          "text": "Play animation"
+        },
+        "resumed": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/join",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/join",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/trade",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "gilded_autumn/trade",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/homepage",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        },
+        "paused": {
+          "label": null,
+          "pressed": "false",
+          "text": "Play animation"
+        },
+        "resumed": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/join",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/join",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/trade",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "halloween_pumpkin_witch/trade",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "amethyst/homepage",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        },
+        "paused": {
+          "label": null,
+          "pressed": "false",
+          "text": "Play animation"
+        },
+        "resumed": {
+          "label": null,
+          "pressed": "true",
+          "text": "Pause animation"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "amethyst/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "standard",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/homepage",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "autoplay": true,
+      "pausePlay": true,
+      "motionStates": {
+        "initial": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        },
+        "paused": {
+          "label": "Play background video",
+          "pressed": null,
+          "text": "Play background video"
+        },
+        "resumed": {
+          "label": "Pause background video",
+          "pressed": null,
+          "text": "Pause background video"
+        }
+      },
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/join",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/join",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/join",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/trade",
+      "profile": "phone",
+      "renderer": "candidate",
+      "layout": "mile_high_fizz",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": true,
+      "marker": "true",
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    },
+    {
+      "id": "alpine_opal/trade",
+      "profile": "phone",
+      "renderer": "legacy",
+      "layout": "mile_high_fizz",
+      "valid": false,
+      "path": "/milehighfizz/trade",
+      "themeMatched": true,
+      "layoutMatched": false,
+      "marker": null,
+      "pageErrors": 0,
+      "hydrationErrors": 0
+    }
+  ],
+  "startedAt": "2026-11-01T19:50:55.624Z",
+  "completedAt": "2026-11-01T19:52:36.330Z",
+  "valid": 38,
+  "total": 52
+}

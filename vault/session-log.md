@@ -8093,3 +8093,6 @@ Louis then authorized the current image-weight task: one additional fix commit, 
 Fresh PR169 application 320951fc; prompt committed first. Required unchanged bash binding check returned UNREADABLE for all three keys and RESULT: FAIL (stop), exit1. Stopped before deployment/alias/DB/matrix; no retry or custom decrypt/compare. Zero measured rows. Value-free receipt and blocked report: vault/2026-11-01-ssr-lindsey-smoke-ab/. No Live access or change.
 
 The normal push of the Lindsey safety-stop records was refused by the repository worktree allowlist (new checkout ssr-lindsey-smoke-ab). Records remain local; no guard/config bypass or app change.
+
+## November 1 — Lindsey continuation resumed safely
+Moved c5f34663 to approved disposable checkout and pushed through guard; rejected checkout deleted. CLI65.9.0/whoami louis-2849/Smoke team verified; unchanged binding retry passed. Exact320951fc A/B deployments READY, all three12GETsets pass, Smoke alias onA andBunaliased. Stored Pumpkin Witch/amethyst/zoom unchanged. Single fixed Chromium A/B1900load pass is IN PROGRESS; no performance reruns or Live access. See vault/2026-11-01-ssr-lindsey-smoke-ab/continuation-checkpoint.md.

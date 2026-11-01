@@ -1,0 +1,147 @@
+{
+  "explanation": "The initial local body-class check ran immediately after load/fonts, before legacy React layout effects. No performance samples were taken. Initial observations retained; this completion waits for the requested rendered layout before validation.",
+  "rows": [
+    {
+      "id": "fall_owl_harvest_moon/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz",
+      "bodyClasses": "homepage mile-high-fizz bg-fall-owl surface-fall-owl hero-motion-sparkle-rise shape-soft",
+      "mhfHeroes": 1,
+      "standardHeroes": 0
+    },
+    {
+      "id": "midnight_rose/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz",
+      "bodyClasses": "homepage mile-high-fizz bg-midnight-rose surface-midnight-rose btn-midnight-rose-lift hero-motion-sparkle-rise shape-soft",
+      "mhfHeroes": 1,
+      "standardHeroes": 0
+    },
+    {
+      "id": "rose_gold/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz",
+      "bodyClasses": "homepage mile-high-fizz bg-rose-gold-paper surface-pearl-rose btn-rose-gold-lift champagne-rose hero-motion-sparkle-rise shape-soft",
+      "mhfHeroes": 1,
+      "standardHeroes": 0
+    },
+    {
+      "id": "gilded_autumn/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz",
+      "bodyClasses": "homepage mile-high-fizz bg-gilded-autumn surface-warm-paper btn-suite-lift hero-motion-sparkle-rise shape-soft",
+      "mhfHeroes": 1,
+      "standardHeroes": 0
+    },
+    {
+      "id": "gilded_autumn/trade",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "bodyClasses": "tradepage mile-high-fizz-trade bg-gilded-autumn surface-warm-paper btn-suite-lift shape-soft dance-floor-empty",
+      "mhfHeroes": 0,
+      "standardHeroes": 0
+    },
+    {
+      "id": "alpine_opal/homepage",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz",
+      "bodyClasses": "homepage mile-high-fizz bg-alpine-opal surface-frosted-opal tex-sparkle btn-alpine-pop opal-summit hero-motion-sparkle-rise shape-soft",
+      "mhfHeroes": 1,
+      "standardHeroes": 0
+    },
+    {
+      "id": "alpine_opal/trade",
+      "profile": "desktop",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "bodyClasses": "tradepage mile-high-fizz-trade bg-alpine-opal surface-frosted-opal tex-sparkle btn-alpine-pop opal-summit shape-soft dance-floor-empty",
+      "mhfHeroes": 0,
+      "standardHeroes": 0
+    },
+    {
+      "id": "fall_owl_harvest_moon/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz",
+      "bodyClasses": "homepage mile-high-fizz bg-fall-owl surface-fall-owl hero-motion-sparkle-rise shape-soft",
+      "mhfHeroes": 1,
+      "standardHeroes": 0
+    },
+    {
+      "id": "midnight_rose/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz",
+      "bodyClasses": "homepage mile-high-fizz bg-midnight-rose surface-midnight-rose btn-midnight-rose-lift hero-motion-sparkle-rise shape-soft",
+      "mhfHeroes": 1,
+      "standardHeroes": 0
+    },
+    {
+      "id": "rose_gold/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz",
+      "bodyClasses": "homepage mile-high-fizz bg-rose-gold-paper surface-pearl-rose btn-rose-gold-lift champagne-rose hero-motion-sparkle-rise shape-soft",
+      "mhfHeroes": 1,
+      "standardHeroes": 0
+    },
+    {
+      "id": "gilded_autumn/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz",
+      "bodyClasses": "homepage mile-high-fizz bg-gilded-autumn surface-warm-paper btn-suite-lift hero-motion-sparkle-rise shape-soft",
+      "mhfHeroes": 1,
+      "standardHeroes": 0
+    },
+    {
+      "id": "gilded_autumn/trade",
+      "profile": "phone",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "bodyClasses": "tradepage mile-high-fizz-trade bg-gilded-autumn surface-warm-paper btn-suite-lift shape-soft dance-floor-empty",
+      "mhfHeroes": 0,
+      "standardHeroes": 0
+    },
+    {
+      "id": "alpine_opal/homepage",
+      "profile": "phone",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz",
+      "bodyClasses": "homepage mile-high-fizz bg-alpine-opal surface-frosted-opal tex-sparkle btn-alpine-pop opal-summit hero-motion-sparkle-rise shape-soft",
+      "mhfHeroes": 1,
+      "standardHeroes": 0
+    },
+    {
+      "id": "alpine_opal/trade",
+      "profile": "phone",
+      "renderer": "legacy",
+      "valid": true,
+      "path": "/milehighfizz/trade",
+      "bodyClasses": "tradepage mile-high-fizz-trade bg-alpine-opal surface-frosted-opal tex-sparkle btn-alpine-pop opal-summit shape-soft dance-floor-empty",
+      "mhfHeroes": 0,
+      "standardHeroes": 0
+    }
+  ],
+  "completedAt": "2026-11-01T19:53:28.575Z",
+  "allValid": true
+}
