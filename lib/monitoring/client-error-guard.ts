@@ -9,6 +9,13 @@ import { sameOriginScript } from './client-error-source'
 
 type ScriptManifest = Record<string, number[]>
 let manifest: ScriptManifest | undefined
+let reportedConfigurationFailure = false
+function configurationFailure(reason: string) {
+  if (reportedConfigurationFailure) return
+  reportedConfigurationFailure = true
+  // One generic operational diagnostic per instance, never report contents/IPs.
+  console.error('[client-error] ' + reason)
+}
 
 export async function isClientErrorHostAllowed(host: string) {
   if (isAmethystPlatformHost(host)) return true
@@ -24,8 +31,11 @@ export function clientErrorIpKey(request: Request) {
   // user-provided x-forwarded-for chain as an alternative identity.
   const ip = request.headers.get('x-vercel-forwarded-for')?.trim()
   const secret = process.env.SUPABASE_SERVICE_ROLE_KEY
-  return ip && isIP(ip) && secret
-    ? createHmac('sha256', secret).update(`client-error-ip:${ip}`).digest('hex') : null
+  if (!ip || !isIP(ip) || !secret) {
+    configurationFailure(!secret ? 'Store key unavailable' : 'Trusted platform IP unavailable')
+    return null
+  }
+  return createHmac('sha256', secret).update(`client-error-ip:${ip}`).digest('hex')
 }
 
 export function isBuiltClientErrorSource(value: unknown, origin: string, scripts?: ScriptManifest) {
@@ -39,5 +49,5 @@ export function isBuiltClientErrorSource(value: unknown, origin: string, scripts
     )))
     const length = allowed[source.file]?.[source.line - 1]
     return typeof length === 'number' && source.column <= length + 1 ? source : null
-  } catch { return null }
+  } catch { configurationFailure('Built script manifest unavailable'); return null }
 }
