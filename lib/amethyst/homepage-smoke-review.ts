@@ -14,7 +14,7 @@ export function smokeReviewSelection(url: URL, slug?: string | null) {
       process.env.VERCEL_PROJECT_ID !== 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ' ||
       process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT !== 'smoke' ||
       process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://pukemqiwlyqmyytxkdmo.supabase.co' ||
-      slug !== 'dudesfizzfest') return null
+      (slug !== 'dudesfizzfest' && slug !== 'milehighfizz')) return null
   const theme = url.searchParams.get('ssrReviewTheme')
   const layout = url.searchParams.get('ssrReviewLayout')
   if (!AMETHYST_APPEARANCE_PRESET_IDS.some(id => id === theme) ||

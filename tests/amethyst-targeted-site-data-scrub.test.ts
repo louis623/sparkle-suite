@@ -1,4 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createRequire } from 'node:module'
+import { runInNewContext } from 'node:vm'
+import { renderAmethystPublicAssetResponse } from '@/lib/amethyst/public-asset-response'
+
+const { route, verifyTheme } = createRequire(import.meta.url)('../scripts/qa/ssr-smoke-ab.cjs')
 
 const mocks = vi.hoisted(() => ({
   loadAmethystHomepageUpcomingShows: vi.fn(),
@@ -380,6 +385,66 @@ describe('targeted Amethyst customer sites', () => {
       expect(script.includes('"publicSiteVariant":"mile_high_fizz_hybrid"')).toBe(context === 'allowed')
       expect(mocks.loadAmethystPreviewTemplateData).toHaveBeenCalledTimes(1)
     })
+  }
+
+  // Exercise the real HTML renderers and bootstrap APIs with synthetic saved
+  // data. The legacy cohort follows its HTML loader URL into the actual API.
+  for (const theme of ['gilded_autumn', 'halloween_pumpkin_witch']) {
+    for (const [page, get] of [['homepage', getHomepageTemplate], ['join', getJoinTemplate], ['trade', getTradeTemplate]] as const) {
+      it.each(['candidate', 'legacy'])(`honors milehighfizz ${theme}/${page} theme and layout overrides in %s`, async renderer => {
+        vi.stubEnv('REP_RENDER_V2_SLUGS', renderer === 'candidate' ? 'milehighfizz' : '')
+        vi.stubEnv('VERCEL_ENV', 'preview')
+        vi.stubEnv('VERCEL_PROJECT_ID', 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ')
+        vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+        vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://pukemqiwlyqmyytxkdmo.supabase.co')
+        vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', undefined)
+        const saved = {
+          ...cleanTemplateData,
+          homepage: { ...cleanTemplateData.homepage, publicSiteVariant: 'britt_with_bling_hybrid' },
+          join: { ...cleanTemplateData.join, publicSiteVariant: 'britt_with_bling_hybrid' },
+          trade: { ...cleanTemplateData.trade, publicSiteVariant: 'britt_with_bling_hybrid' },
+        }
+        mocks.loadAmethystPreviewTemplateData.mockResolvedValue(saved)
+        mocks.loadAmethystHomepageUpcomingShows.mockResolvedValue([])
+        const url = new URL(route('http://localhost', theme, page))
+        const asset = { homepage: 'Homepage.html', join: 'Join.html', trade: 'Trade.html' }[page]
+        const response = await renderAmethystPublicAssetResponse(new Request(url), [asset], {
+          repIdOverride: 'rep-clean', publicSiteSlugOverride: 'milehighfizz', joinVisibilityVerified: true,
+        })
+        const html = await response.text()
+        expect(response.status).toBe(200)
+        expect(html).toContain('data-ssr-review-label')
+        expect(html.includes('data-server-rendered="true"')).toBe(renderer === 'candidate')
+        const templateKey = `AMETHYST_${page.toUpperCase()}_TEMPLATE_DATA`
+        let script: string
+        if (renderer === 'legacy') {
+          expect(html).not.toContain('data-server-rendered')
+          const source = html.match(/data-template-src="([^"<>]+)"/)![1].replace(/&amp;/g, '&')
+          const endpoint = new URL(source, url)
+          expect(endpoint.pathname).toBe(`/api/amethyst/${page}-template`)
+          expect(endpoint.searchParams.get('publicSiteSlug')).toBe('milehighfizz')
+          expect(endpoint.searchParams.get('ssrReviewTheme')).toBe(theme)
+          expect(endpoint.searchParams.get('ssrReviewLayout')).toBe(url.searchParams.get('ssrReviewLayout'))
+          const bootstrapResponse = await get(new Request(endpoint))
+          expect(bootstrapResponse.status).toBe(200)
+          script = await bootstrapResponse.text()
+        } else {
+          script = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)]
+            .map(match => match[1]).find(text => text.includes(`window.${templateKey} =`))!
+          expect(script).toBeTruthy()
+          expect(html).toMatch(/<h1\b/)
+          if (page === 'homepage') expect(html.includes('class="mhf-hero"')).toBe(theme === 'gilded_autumn')
+        }
+        const window: Record<string, { publicSiteVariant?: string }> = {}
+        runInNewContext(script, { window })
+        expect(window[templateKey].publicSiteVariant).toBe(theme === 'gilded_autumn' ? 'mile_high_fizz_hybrid' : undefined)
+        const runtimePage = { evaluate: async (fn: unknown) => runInNewContext(`(${String(fn)})()`, { window }) }
+        await expect(verifyTheme(runtimePage, theme)).resolves.toBeUndefined()
+        await expect(verifyTheme(runtimePage, 'amethyst')).rejects.toThrow('Review theme mismatch')
+        expect(saved.appearancePreset).toBe('amethyst')
+        for (const data of [saved.homepage, saved.join, saved.trade]) expect(data.publicSiteVariant).toBe('britt_with_bling_hybrid')
+      })
+    }
   }
 
 })

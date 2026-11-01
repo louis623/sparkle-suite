@@ -1,12 +1,8 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { createHash } from 'node:crypto'
-import { createRequire } from 'node:module'
-import { runInNewContext } from 'node:vm'
-import { buildAmethystHomepageBootstrapScript, defaultAmethystHomepageTemplateData as homepage } from '@/lib/amethyst/homepage-template-data'
-import { buildAmethystJoinBootstrapScript, defaultAmethystJoinTemplateData as join } from '@/lib/amethyst/join-template-data'
-import { buildAmethystTradeBootstrapScript, defaultAmethystTradeTemplateData as trade } from '@/lib/amethyst/trade-template-data'
-import { homepageSmokeReview } from '@/lib/amethyst/homepage-smoke-review'
-const { route, verifyTheme } = createRequire(import.meta.url)('../scripts/qa/ssr-smoke-ab.cjs')
+import { defaultAmethystHomepageTemplateData as homepage } from '@/lib/amethyst/homepage-template-data'
+import { defaultAmethystJoinTemplateData as join } from '@/lib/amethyst/join-template-data'
+import { defaultAmethystTradeTemplateData as trade } from '@/lib/amethyst/trade-template-data'
 const mocks = vi.hoisted(() => ({ bootstrap: vi.fn(), render: vi.fn(), template: vi.fn() }))
 vi.mock('@/lib/amethyst/homepage-bootstrap-response', () => ({ buildHomepageBootstrapResponse: mocks.bootstrap }))
 vi.mock('@/lib/amethyst/homepage-first-paint', () => ({ renderHomepageFirstPaint: mocks.render, renderAmethystPageFirstPaint: (_page: string, ...args: unknown[]) => mocks.render(...args) }))
@@ -169,34 +165,4 @@ it.each([
   const actual = await (await renderAmethystPublicAssetResponse(r,['Homepage.html'],options)).text()
   expect(actual).toBe(expected)
   expect(mocks.bootstrap).not.toHaveBeenCalled()
-})
-
-it.each(['homepage','join','trade'] as const)('fails closed on the currently unsupported milehighfizz legacy %s review query (offline blocker check)', async page => {
-  vi.stubEnv('REP_RENDER_V2_SLUGS', 'dudesfizzfest')
-  vi.stubEnv('VERCEL_ENV', 'preview')
-  vi.stubEnv('VERCEL_PROJECT_ID', 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ')
-  vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
-  vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://pukemqiwlyqmyytxkdmo.supabase.co')
-  const saved={appearancePreset:'halloween_pumpkin_witch' as const,homepage,join,trade}
-  mocks.template.mockResolvedValue(saved)
-  const url=new URL(route('https://fixture.vercel.app','gilded_autumn',page))
-  const response=await renderAmethystPublicAssetResponse(new Request(url), [{homepage:'Homepage.html',join:'Join.html',trade:'Trade.html'}[page]], {
-    ...options,publicSiteSlugOverride:'milehighfizz',joinVisibilityVerified:true,
-  })
-  const html=await response.text()
-  expect(response.status).toBe(200)
-  expect(html).not.toContain('data-server-rendered')
-  expect(html).not.toContain('ssrReviewTheme=')
-  expect(html).not.toContain('ssrReviewLayout=')
-  expect(html).not.toContain('data-ssr-review-label')
-  // The same real selection helper used by legacy template APIs rejects this
-  // slug. This documents a blocker, not a successful milehighfizz override.
-  const selected=homepageSmokeReview(saved,url,'milehighfizz')
-  expect(selected).toBe(saved)
-  const script=page==='homepage'?buildAmethystHomepageBootstrapScript(selected.homepage,[],selected.appearancePreset,{targeted:true})
-    :page==='join'?buildAmethystJoinBootstrapScript(selected.join,selected.appearancePreset,{targeted:true})
-    :buildAmethystTradeBootstrapScript(selected.trade,[],selected.appearancePreset,{targeted:true})
-  const window={}
-  runInNewContext(script,{window})
-  await expect(verifyTheme({evaluate:async(fn:unknown)=>runInNewContext(`(${String(fn)})()`,{window})},'gilded_autumn')).rejects.toThrow('Review theme mismatch')
 })

@@ -93,22 +93,27 @@ it('starts muted before play, never inserts a loop rest, and retains early visit
   expect(earlyHomepageControls).not.toMatch(/setTimeout|setInterval|ended|IntersectionObserver/)
 })
 
-it('disables review overrides on Live, other projects, other databases and other reps; normal URL uses saved theme', () => {
+it.each(['dudesfizzfest', 'milehighfizz'])('guards review overrides for %s; normal URL uses saved theme', slug => {
   const data = { appearancePreset: 'sunset_beach' as const, homepage, join, trade }
-  const url = new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest?ssrReviewTheme=pearl_rose&ssrReviewLayout=mile_high_fizz')
+  const url = new URL(`https://fixture.vercel.app/${slug}?ssrReviewTheme=pearl_rose&ssrReviewLayout=mile_high_fizz`)
   vi.stubEnv('VERCEL_ENV', 'preview'); vi.stubEnv('VERCEL_PROJECT_ID', 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ')
   vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke'); vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://pukemqiwlyqmyytxkdmo.supabase.co')
-  expect(homepageSmokeReview(data, url, 'dudesfizzfest').appearancePreset).toBe('pearl_rose')
-  const themeOnly = homepageSmokeReview(data, new URL(url.origin + url.pathname + '?ssrReviewTheme=neon_butterfly'), 'dudesfizzfest')
+  expect(homepageSmokeReview(data, url, slug).appearancePreset).toBe('pearl_rose')
+  const themeOnly = homepageSmokeReview(data, new URL(url.origin + url.pathname + '?ssrReviewTheme=neon_butterfly'), slug)
   expect(themeOnly.appearancePreset).toBe('neon_butterfly')
   expect(themeOnly.homepage.publicSiteVariant).toBe(homepage.publicSiteVariant)
   expect(themeOnly.trade.publicSiteVariant).toBe(homepage.publicSiteVariant)
   expect(themeOnly.join.publicSiteVariant).toBe(homepage.publicSiteVariant)
-  expect(homepageSmokeReview(data, new URL(url.origin + url.pathname), 'dudesfizzfest')).toBe(data)
-  expect(homepageSmokeReview(data, url, 'blingkitchen')).toBe(data)
+  expect(homepageSmokeReview(data, new URL(url.origin + url.pathname), slug)).toBe(data)
+  for (const otherSlug of ['blingkitchen', 'brittwithbling', 'otherrep', 'MileHighFizz', 'milehighfizz-extra', '', null, undefined]) {
+    expect(homepageSmokeReview(data, url, otherSlug)).toBe(data)
+  }
+  for (const query of ['ssrReviewTheme=invalid', 'ssrReviewTheme=gilded_autumn&ssrReviewLayout=invalid', 'ssrReviewLayout=mile_high_fizz']) {
+    expect(homepageSmokeReview(data, new URL(url.origin + url.pathname + '?' + query), slug)).toBe(data)
+  }
   for (const [key, value] of [['VERCEL_ENV', 'production'], ['VERCEL_PROJECT_ID', 'other'], ['NEXT_PUBLIC_SUPABASE_URL', 'https://other.supabase.co'], ['NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'live']]) {
     const original = process.env[key]; vi.stubEnv(key, value)
-    expect(homepageSmokeReview(data, url, 'dudesfizzfest')).toBe(data)
+    expect(homepageSmokeReview(data, url, slug)).toBe(data)
     vi.stubEnv(key, original)
   }
 })
