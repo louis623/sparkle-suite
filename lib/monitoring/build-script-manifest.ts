@@ -1,7 +1,7 @@
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 
-/** Runs after compilation, before Next traces server files. No script contents are published. */
+/** Runs after compilation. No script contents are published. */
 export function writeClientScriptManifest(distDir: string, projectDir: string) {
   const scripts: Record<string, number[]> = {}
   function visit(directory: string, prefix: string) {
@@ -17,6 +17,16 @@ export function writeClientScriptManifest(distDir: string, projectDir: string) {
   visit(join(projectDir, 'public', 'amethyst'), '/amethyst')
   const destination = join(projectDir, 'lib', 'monitoring', 'generated')
   mkdirSync(destination, { recursive: true })
-  writeFileSync(join(destination, 'client-scripts.json'), JSON.stringify(scripts))
+  const manifestFile = join(destination, 'client-scripts.json')
+  writeFileSync(manifestFile, JSON.stringify(scripts))
+  // Next 16 Turbopack emits NFT traces DURING compilation, before this hook.
+  // Explicitly include this newly generated asset in the route's existing trace.
+  // Fail the build if the expected trace is absent, rather than silently ship
+  // a monitoring endpoint that cannot validate any scripts.
+  const traceFile = join(distDir, 'server', 'app', 'api', 'public', 'client-error', 'route.js.nft.json')
+  const trace = JSON.parse(readFileSync(traceFile, 'utf8'))
+  if (trace.version !== 1 || !Array.isArray(trace.files)) throw new Error('Unsupported client-error file trace')
+  trace.files = [...new Set([...trace.files, relative(dirname(traceFile), manifestFile).replaceAll('\\', '/')])]
+  writeFileSync(traceFile, JSON.stringify(trace))
   console.log(`Client error script manifest: ${Object.keys(scripts).length} own scripts (${relative(projectDir, destination)})`)
 }
