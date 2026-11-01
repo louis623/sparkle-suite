@@ -1,0 +1,17 @@
+{
+  "readAt": "2026-11-01T20:37:52.767Z",
+  "writePerformed": false,
+  "before": {
+    "rep_id": "a0683f86-a19b-4ee5-a8d1-16dd015371ee",
+    "appearance_preset": "halloween_pumpkin_witch",
+    "customer_site_template": "amethyst",
+    "hero_animation_type": "zoom"
+  },
+  "after": {
+    "rep_id": "a0683f86-a19b-4ee5-a8d1-16dd015371ee",
+    "appearance_preset": "halloween_pumpkin_witch",
+    "customer_site_template": "amethyst",
+    "hero_animation_type": "zoom"
+  },
+  "restored": true
+}

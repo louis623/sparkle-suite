@@ -1,0 +1,7 @@
+{
+  "stoppedAt": "2026-11-01T20:22:03.277Z",
+  "reason": "Louis: over-testing; replaced by one 94-load check",
+  "completedLoads": 99,
+  "measurementErrors": 8,
+  "notRestarted": true
+}

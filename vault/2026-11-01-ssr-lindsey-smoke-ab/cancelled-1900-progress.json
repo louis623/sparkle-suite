@@ -1,0 +1,13 @@
+{
+  "updatedAt": "2026-11-01T20:21:17.830Z",
+  "completedLoads": 96,
+  "totalLoads": 1900,
+  "errors": 8,
+  "last": {
+    "kind": "tap",
+    "id": "amethyst/homepage:sound",
+    "profile": "phone",
+    "renderer": "candidate",
+    "run": 0
+  }
+}

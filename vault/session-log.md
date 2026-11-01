@@ -8096,3 +8096,6 @@ The normal push of the Lindsey safety-stop records was refused by the repository
 
 ## November 1 — Lindsey continuation resumed safely
 Moved c5f34663 to approved disposable checkout and pushed through guard; rejected checkout deleted. CLI65.9.0/whoami louis-2849/Smoke team verified; unchanged binding retry passed. Exact320951fc A/B deployments READY, all three12GETsets pass, Smoke alias onA andBunaliased. Stored Pumpkin Witch/amethyst/zoom unchanged. Single fixed Chromium A/B1900load pass is IN PROGRESS; no performance reruns or Live access. See vault/2026-11-01-ssr-lindsey-smoke-ab/continuation-checkpoint.md.
+
+## November 1 — Lindsey revised94-load check complete
+Louis stopped oversized matrix at99loads; no restart. Exactly52works +42phone-speed loads completed, no reruns. NewSSR A13/13rows/26viewsPASS, CLS0; B3/13rows/12viewsPASS,8missingPausecontrols+6bigCLS shifts. Zero page/console/hydration errors all52works. A fasteronall7home medians. PumpkinWitch/amethyst/zoom independentlyreadback unchanged, zeroDBwrites. Smoke alias remainsA, Bunaliased, noLiveaccess. Report: vault/2026-11-01-ssr-lindsey-smoke-ab/report.md.

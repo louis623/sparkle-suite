@@ -10,3 +10,5 @@
 - Candidate home hero autoplay and Pause/Play passed all14theme/device checks (Alpine Opal last in functional checks). Three compressed phone screenshots retained.
 - ONE unchanged committed Chromium performance pass started 2026-11-01T19:53:47.552Z; five samples/cohort/device, planned1900loads, fixed12ssettle. No reruns. Status remains IN PROGRESS; not a completed or passing benchmark. Raw partial ab-results.json/progress.json are updated durably.
 - No Live project/DB/key access, provider sends/checkout, merge, project env/settings/protection changes or new bypass tokens. Existing scoped credentials are kept only outside repo and must be deleted after the run.
+
+SUPERSEDED: Louis stopped the1900-load pass at99loads. The single replacement94-load check is COMPLETE; read report.md. Do not resume the old harness.
