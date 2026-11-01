@@ -69,9 +69,12 @@ describe('endpoint admission', () => {
       { ...payload.source, url: 'chrome-extension://abc/script.js' },
       { ...payload.source, url: 'https://other.example/_next/static/chunks/abcdef123.js' },
       { ...payload.source, url: origin + '/_next/static/chunks/not-in-build.js' },
+      { ...payload.source, url: payload.source.url + '?private=person@example.test' },
       { ...payload.source, line: 3 }, { ...payload.source, column: 9999 },
     ]) expect((await POST(req(JSON.stringify({ ...payload, source })))).status).toBe(204)
     expect(mocks.rpc).not.toHaveBeenCalled()
+    expect((await POST(req(JSON.stringify({ ...payload, source: { ...payload.source, url: payload.source.url + '?dpl=dpl_synthetic' } })))).status).toBe(204)
+    expect(mocks.rpc).toHaveBeenCalledTimes(1)
   })
   it('uses a hashed platform IP; payload/x-forwarded-for cannot replace a missing Vercel IP', async () => {
     const { POST } = await import('@/app/api/public/client-error/route')

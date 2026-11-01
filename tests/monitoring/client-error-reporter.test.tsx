@@ -13,9 +13,9 @@ it('reports own-script errors privately and cleans up listeners; ignores extensi
   vi.stubGlobal('navigator', { userAgent: 'Firefox/120.9', sendBeacon })
   expect(ClientErrorReporter()).toBeNull(); const cleanup = effects[0]()
   const error = new TypeError('Cannot read properties of null private@example.test')
-  error.stack = 'TypeError\n    at privateName (' + source + ':1:22)'
+  error.stack = 'TypeError\n    at privateName (' + source + '?dpl=dpl_synthetic:1:22)'
   await reportClientError(error)
-  listeners.get('error')?.({ error, filename: source, lineno: 1, colno: 22 })
+  listeners.get('error')?.({ error, filename: source + '?dpl=dpl_synthetic', lineno: 1, colno: 22 })
   await vi.waitFor(() => expect(sendBeacon).toHaveBeenCalledTimes(2))
   const data = JSON.parse(await sendBeacon.mock.calls[0][1].text())
   expect(data.messageHash).toMatch(/^[a-f0-9]{64}$/); expect(data.source).toEqual({ url: source, line: 1, column: 22 })

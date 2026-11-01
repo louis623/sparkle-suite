@@ -10,10 +10,15 @@ export function sameOriginScript(source: { url: string; line: number; column: nu
   if (!source) return null
   try {
     const url = new URL(source.url, origin)
-    if (url.origin !== origin || url.search || url.hash || url.username || url.password ||
+    // Vercel appends its deployment selector to real Next script URLs.
+    // It is not part of the source identity; accept only that known selector.
+    if (url.search && (Array.from(url.searchParams.keys()).length !== 1 ||
+        !/^dpl_[a-zA-Z0-9]+$/.test(url.searchParams.get('dpl') ?? ''))) return null
+    if (url.origin !== origin || url.hash || url.username || url.password ||
         !/^\/(?:_next\/static\/chunks|amethyst)\/.+\.js$/.test(url.pathname) ||
         !Number.isSafeInteger(source.line) || source.line < 1 ||
         !Number.isSafeInteger(source.column) || source.column < 0) return null
+    url.search = ''
     return { url: url.href, file: url.pathname, line: source.line, column: source.column }
   } catch { return null }
 }
