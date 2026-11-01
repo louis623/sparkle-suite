@@ -23,3 +23,7 @@ BINDING_EXIT=1
 - Resume requires a binding-check run that actually prints RESULT: SMOKE BINDING OK and exits 0. This report does not authorize changing or bypassing the check.
 
 Rollback: unnecessary; no deployment, alias or database state changed.
+
+## Push blocked by worktree policy
+
+The normal git push was attempted and refused by scripts/check-active-branch.mjs because this newly chosen checkout path is absent from activeLocalWorktrees. No hook or branch guard was bypassed and no config/application file was changed. The commits remain local; remote PR169 stays at 320951fc. Publishing these vault-only records requires an authorized worktree/policy resolution.

@@ -8091,3 +8091,5 @@ Louis then authorized the current image-weight task: one additional fix commit, 
 
 ## November 1, 2026 — Lindsey Smoke A/B stopped at binding gate
 Fresh PR169 application 320951fc; prompt committed first. Required unchanged bash binding check returned UNREADABLE for all three keys and RESULT: FAIL (stop), exit1. Stopped before deployment/alias/DB/matrix; no retry or custom decrypt/compare. Zero measured rows. Value-free receipt and blocked report: vault/2026-11-01-ssr-lindsey-smoke-ab/. No Live access or change.
+
+The normal push of the Lindsey safety-stop records was refused by the repository worktree allowlist (new checkout ssr-lindsey-smoke-ab). Records remain local; no guard/config bypass or app change.

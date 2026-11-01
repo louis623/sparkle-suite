@@ -422,5 +422,11 @@
   "presetRestore": "Not required; no Smoke DB access or write after the gate failure",
   "liveAccessed": false,
   "harnessModified": false,
-  "repeatedGate": false
+  "repeatedGate": false,
+  "push": {
+    "attempted": true,
+    "succeeded": false,
+    "reason": "New checkout path is not in activeLocalWorktrees; normal pre-push guard refused",
+    "remoteHead": "320951fc4e8dd08391d259630a2b8fc47f1e8305"
+  }
 }
