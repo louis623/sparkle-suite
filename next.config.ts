@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { writeClientScriptManifest } from './lib/monitoring/build-script-manifest'
 
 const nextConfig: NextConfig = {
   // These two non-secret values are needed by the global error boundary too.
@@ -8,6 +9,11 @@ const nextConfig: NextConfig = {
   },
   // Keep disposable checkouts isolated from unrelated parent lockfiles.
   turbopack: { root: __dirname },
+  compiler: {
+    runAfterProductionCompile: async ({ distDir, projectDir }) => {
+      writeClientScriptManifest(distDir, projectDir)
+    },
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
@@ -27,6 +33,7 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ['@resvg/resvg-js'],
   outputFileTracingIncludes: {
+    '/api/public/client-error': ['./lib/monitoring/generated/client-scripts.json'],
     '/*': ['./lib/amethyst/generated/homepage-server.cjs', './lib/amethyst/legacy/assets/**/*', './public/amethyst/compiled/*.js'],
     // Server-rendered email shells read with readFileSync (official notice + Weekly Fizz).
     '/api/**/*': [
