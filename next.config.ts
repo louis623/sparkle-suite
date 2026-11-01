@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // These two non-secret values are needed by the global error boundary too.
+  env: {
+    CLIENT_ERROR_ALERTS: process.env.CLIENT_ERROR_ALERTS === 'on' ? 'on' : '',
+    VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA || '',
+  },
   // Keep disposable checkouts isolated from unrelated parent lockfiles.
   turbopack: { root: __dirname },
   images: {

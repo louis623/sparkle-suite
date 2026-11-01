@@ -40,7 +40,8 @@
     "cursor/suite-join-ssr-rep-routes",
     "cursor/theme-carousel-site-peeks-db80",
     "codex/ssr-chunk1-fizzfest-home",
-    "codex/release-ssr-finder"
+    "codex/release-ssr-finder",
+    "codex/monitoring-ci"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -148,6 +149,10 @@
       "environment": "preview"
     },
     "codex/release-ssr-finder": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/monitoring-ci": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }
