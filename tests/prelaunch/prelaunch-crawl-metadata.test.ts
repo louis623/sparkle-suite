@@ -8,8 +8,8 @@ vi.mock('next/font/google', () => ({
   Playfair_Display: () => ({ variable: '--font-prelaunch-display' }),
 }))
 
-import robots from '@/app/robots'
-import sitemap from '@/app/sitemap'
+import { GET as robots } from '@/app/robots.txt/route'
+import { buildSparkleSitemap } from '@/lib/seo/sparkle-crawl'
 import { metadata as rootMetadata } from '@/app/layout'
 import { metadata as prelaunchMetadata } from '@/app/prelaunch/page'
 import { metadata as loginMetadata } from '@/app/login/page'
@@ -28,7 +28,7 @@ describe('Sparkle Suite crawl and metadata signals', () => {
 
   it('sets the prelaunch canonical and sharing metadata', () => {
     expect(prelaunchMetadata.title).toEqual({
-      absolute: 'Sparkle Suite | Coming Soon',
+      absolute: 'Join the build queue | Sparkle Suite',
     })
     expect(prelaunchMetadata.alternates).toEqual({
       canonical: '/prelaunch',
@@ -46,7 +46,7 @@ describe('Sparkle Suite crawl and metadata signals', () => {
             url: '/opengraph-image',
             width: 1200,
             height: 630,
-            alt: 'Sparkle Suite coming soon: a better customer experience starts with a better rep setup.',
+            alt: 'Sparkle Suite: now building sites for Bomb Party reps.',
           },
         ],
       }),
@@ -57,7 +57,7 @@ describe('Sparkle Suite crawl and metadata signals', () => {
         images: [
           {
             url: '/opengraph-image',
-            alt: 'Sparkle Suite coming soon: a better customer experience starts with a better rep setup.',
+            alt: 'Sparkle Suite: now building sites for Bomb Party reps.',
           },
         ],
       }),
@@ -65,7 +65,7 @@ describe('Sparkle Suite crawl and metadata signals', () => {
   })
 
   it('generates a focused sitemap for public prelaunch pages', async () => {
-    await expect(sitemap()).resolves.toEqual(
+    expect(buildSparkleSitemap()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           url: 'https://www.yoursparklesuite.com/prelaunch',
@@ -82,16 +82,10 @@ describe('Sparkle Suite crawl and metadata signals', () => {
   })
 
   it('allows public crawl paths while keeping utility paths out', async () => {
-    await expect(robots()).resolves.toEqual(
-      expect.objectContaining({
-        sitemap: 'https://www.yoursparklesuite.com/sitemap.xml',
-        rules: expect.arrayContaining([
-          expect.objectContaining({
-            allow: '/',
-            disallow: ['/api/', '/internal/'],
-          }),
-        ]),
-      }),
+    const response = await robots(new Request('https://www.yoursparklesuite.com/robots.txt'))
+    expect(response.headers.get('content-type')).toBe('text/plain; charset=utf-8')
+    expect(await response.text()).toBe(
+      'User-Agent: *\nAllow: /\nDisallow: /api/\nDisallow: /internal/\nDisallow: /onboarding/\nSitemap: https://www.yoursparklesuite.com/sitemap.xml\n',
     )
     expect(loginMetadata.robots).toEqual({
       index: false,
@@ -104,8 +98,6 @@ describe('Sparkle Suite crawl and metadata signals', () => {
       width: 1200,
       height: 630,
     })
-    expect(openGraphImageAlt).toBe(
-      'Sparkle Suite coming soon: a better customer experience starts with a better rep setup.',
-    )
+    expect(openGraphImageAlt).toBe('Sparkle Suite: a polished website for your live-selling business.')
   })
 })

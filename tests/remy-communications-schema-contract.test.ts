@@ -9,10 +9,8 @@ const replyApprovalService = readFileSync(
   'lib/remy-communications/reply-approvals.ts',
   'utf8',
 )
-const waitlistReadMigration = readFileSync(
-  'supabase/migrations/20260918180000_ss_waitlist_service_role_read.sql',
-  'utf8',
-)
+const waitlistMigration = readFileSync('supabase/migrations/20260509142343_ss_prelaunch_waitlist.sql', 'utf8')
+const intakeMigration = readFileSync('supabase/migrations/20260509175843_ss_prelaunch_intake.sql', 'utf8')
 
 describe('Remy Communications schema contract', () => {
   it('keeps raw request data out of the audit log and gates sends with one-time approvals', () => {
@@ -26,12 +24,17 @@ describe('Remy Communications schema contract', () => {
     expect(replyApprovalService).not.toContain('randomUUID')
   })
 
-  it('gives classic waitlist and intake service_role policies so MCP reads cannot false-empty', () => {
-    expect(waitlistReadMigration).toContain('sparkle_suite_waitlist_service_role_only')
-    expect(waitlistReadMigration).toContain('on public.sparkle_suite_waitlist')
-    expect(waitlistReadMigration).toContain('sparkle_suite_intake_submissions_service_role_only')
-    expect(waitlistReadMigration).toContain('to service_role')
-    expect(waitlistReadMigration).toContain('using (true)')
-    expect(waitlistReadMigration).toContain("notify pgrst, 'reload schema'")
+  it('keeps classic waitlist and intake private with service-role table grants', () => {
+    // The redundant policy proposal was retired in 743d5951. Check the actual
+    // executable migrations rather than requiring a deliberately removed policy.
+    for (const [sql, table] of [
+      [waitlistMigration, 'sparkle_suite_waitlist'],
+      [intakeMigration, 'sparkle_suite_intake_submissions'],
+    ]) {
+      expect(sql).toContain('alter table public.' + table + ' enable row level security')
+      expect(sql).toContain('revoke all on table public.' + table + ' from anon, authenticated')
+      expect(sql).toContain('grant select, insert, update on table public.' + table + ' to service_role')
+      expect(sql).not.toContain('force row level security')
+    }
   })
 })
