@@ -19,7 +19,17 @@ function safeOrigin(input) {
   return u.origin;
 }
 function route(origin,theme,page) {
-  return origin+'/dudesfizzfest'+({homepage:'',join:'/join',trade:'/trade'}[page])+'?ssrReviewTheme='+theme+'&ssrReviewLayout='+layoutFor(theme)+'&lineupPresentation=grouped-v1';
+  return origin+'/milehighfizz'+({homepage:'',join:'/join',trade:'/trade'}[page])+'?ssrReviewTheme='+theme+'&ssrReviewLayout='+layoutFor(theme)+'&lineupPresentation=grouped-v1';
+}
+async function openCase(page,origin,theme,pageName,renderer) {
+  const response=await page.goto(route(origin,theme,pageName),{waitUntil:'commit',timeout:60000});
+  if(response?.status()!==200)throw Error('Page did not return 200');
+  // Check the response's root as soon as parsed, before any loading tap or
+  // paint sample. Waiting for load here would invalidate loading samples.
+  const root=page.locator('#root');
+  await root.waitFor({state:'attached',timeout:30000});
+  const ssr=await root.getAttribute('data-server-rendered');
+  if((renderer==='candidate'&&ssr!=='true')||(renderer==='legacy'&&ssr!==null))throw Error('Renderer mismatch');
 }
 function allowedAssetRequest(url,origin,renderer,method='GET') {
   if(!['GET','HEAD'].includes(method))return false;
@@ -68,7 +78,7 @@ async function measureTap(page,id,renderer,action) {
   // A rendered SSR button is interactive only after its inline controller binds.
   if(renderer==='candidate'&&['[data-hero-motion-toggle]','.ga-motion-control'].includes(selector))await page.waitForFunction(()=>document.querySelector('[data-ssr-hero][data-motion-bound]'));
   if(selector==='[data-mhf-video-toggle]')await page.waitForFunction(()=>document.querySelector('[data-mhf-motion-bound]'));
-  const state=()=>el.evaluate(el=>el.hasAttribute('data-mhf-video-toggle')?String(el.getAttribute('aria-label').startsWith('Pause')):el.getAttribute('aria-pressed'));
+  const state=()=>el.evaluate(el=>el.hasAttribute('data-mhf-video-toggle')?String(el.getAttribute('aria-label').startsWith('Pause')):el.classList.contains('hpw-motion-control')?String(el.getAttribute('aria-pressed')==='false'):el.getAttribute('aria-pressed'));
   if((action==='pause'&&await state()!=='true') || (action==='play'&&await state()!=='false')) {
     const n=await page.evaluate(()=>window.__ab.taps.length);await el.tap({force:true});
     await page.waitForFunction(n=>window.__ab.taps.length>n,n);
@@ -115,16 +125,13 @@ async function main(){
       try{
         const cdp=await context.newCDPSession(page);await cdp.send('Network.enable');await cdp.send('Network.setCacheDisabled',{cacheDisabled:true});await cdp.send('Emulation.setCPUThrottlingRate',{rate:profile==='phone'?4:1});
         await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:profile==='phone'?80:20,downloadThroughput:(profile==='phone'?1600:10000)*1000/8,uploadThroughput:750*1000/8});
-        const response=await page.goto(route(origin,theme,pageName),{waitUntil:'commit',timeout:60000});
-        if(response?.status()!==200)throw Error('Page did not return 200');
+        await openCase(page,origin,theme,pageName,renderer);
         let measured;
         if(experiment!=='paint'&&experiment.phase==='loading')measured=await measureTap(page,id,renderer,experiment.action);
         await page.waitForLoadState(experiment!=='paint'&&experiment.phase==='loading'?'domcontentloaded':'load',{timeout:60000});await page.evaluate(()=>document.fonts.ready);
         if(renderer==='candidate')await page.waitForFunction(()=>window.SPARKLE_FIRST_PAINT===null);
         await verifyTheme(page,theme);
         if(!(await page.locator('[data-ssr-review-label]').count()))throw Error('Missing review label');
-        const ssr=await page.locator('#root').getAttribute('data-server-rendered');
-        if((renderer==='candidate'&&ssr!=='true')||(renderer==='legacy'&&ssr==='true'))throw Error('Renderer mismatch');
         await page.waitForTimeout(SETTLE_MS);
         if(experiment==='paint') {
           const paint=await page.evaluate(()=>({fcp:window.__ab.fcp,lcp:window.__ab.lcp,cls:window.__ab.cls}));
@@ -145,4 +152,4 @@ async function main(){
   }finally{await browser.close();}
 }
 if(require.main===module)main().catch(()=>{console.error('Smoke A/B failed; metadata/errors suppressed to protect credentials.');process.exitCode=1});
-module.exports={safeOrigin,vercelRecord,route,median,targetsFor,instrument,watchErrors,verifyTheme,measureTap,SETTLE_MS,hydrationError,allowedAssetRequest};
+module.exports={safeOrigin,vercelRecord,route,openCase,median,targetsFor,instrument,watchErrors,verifyTheme,measureTap,SETTLE_MS,hydrationError,allowedAssetRequest};

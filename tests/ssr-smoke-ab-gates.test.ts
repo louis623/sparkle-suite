@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 const { verdict, median, ABSOLUTE_PHONE_WAIVERS } = require('../scripts/qa/ssr-smoke-ab-metrics.cjs')
-const { safeOrigin, vercelRecord, targetsFor, route, verifyTheme, hydrationError, SETTLE_MS, allowedAssetRequest } = require('../scripts/qa/ssr-smoke-ab.cjs')
-const { cases, actionsFor, selectorsFor } = require('../scripts/qa/ssr-ab-cases.cjs')
+const { safeOrigin, vercelRecord, targetsFor, route, openCase, verifyTheme, measureTap, hydrationError, SETTLE_MS, allowedAssetRequest } = require('../scripts/qa/ssr-smoke-ab.cjs')
+const { cases, actionsFor, selectorsFor, layoutFor } = require('../scripts/qa/ssr-ab-cases.cjs')
 afterEach(() => vi.unstubAllGlobals())
 function fixture() {
   const rows: Record<string, any>[] = []
@@ -14,13 +14,19 @@ function fixture() {
   }
   return rows
 }
-it('retains all existing cases and adds only Lindsey home/join/trade on MHF', () => {
+it('covers only the reviewed Lindsey rows and her saved standard Pumpkin Witch layout', () => {
   const targets=targetsFor().map((p: string[])=>p.join('/'))
-  expect(targets).toHaveLength(13)
+  expect(targets).toEqual([
+    'fall_owl_harvest_moon/homepage','midnight_rose/homepage','rose_gold/homepage',
+    ...['gilded_autumn','alpine_opal','halloween_pumpkin_witch'].flatMap(theme=>['homepage','join','trade'].map(page=>theme+'/'+page)),
+    'amethyst/homepage',
+  ])
   expect(new Set(targets).size).toBe(targets.length)
-  for(const theme of ['gilded_autumn','alpine_opal'])for(const page of ['homepage','join','trade']) {
-    expect(targets).toContain(theme+'/'+page)
-    expect(route('https://fixture.vercel.app',theme,page)).toContain('ssrReviewLayout=mile_high_fizz')
+  expect(cases.interactions).toEqual(targets)
+  for(const [theme,page] of targetsFor()) {
+    const layout=['halloween_pumpkin_witch','amethyst'].includes(theme)?'standard':'mile_high_fizz'
+    expect(layoutFor(theme)).toBe(layout)
+    expect(new URL(route('https://fixture.vercel.app',theme,page)).searchParams.get('ssrReviewLayout')).toBe(layout)
   }
   expect(SETTLE_MS).toBe(12000)
   const legacyHTML=readFileSync('lib/amethyst/legacy/assets/Homepage.html','utf8')
@@ -34,6 +40,50 @@ it('retains all existing cases and adds only Lindsey home/join/trade on MHF', ()
   expect(allowedAssetRequest('https://shop.example/','https://fixture.vercel.app','legacy')).toBe(false)
   expect(allowedAssetRequest('https://fixture.vercel.app/','https://fixture.vercel.app','candidate','POST')).toBe(false)
 
+})
+it('routes both cohorts to milehighfizz with identical theme/layout/lineup queries before measuring', async () => {
+  for(const [theme,pageName] of targetsFor())for(const renderer of ['candidate','legacy']) {
+    const root={waitFor:vi.fn(async()=>{}),getAttribute:vi.fn(async()=>renderer==='candidate'?'true':null)}
+    const page={goto:vi.fn(async(_url:string,_options:{waitUntil:string;timeout:number})=>({status:()=>200})),locator:vi.fn(()=>root)}
+    const origin=`https://${renderer}.vercel.app`
+    await openCase(page,origin,theme,pageName,renderer)
+    const url=new URL(page.goto.mock.calls[0][0])
+    expect(url.origin).toBe(origin)
+    expect(url.pathname).toBe('/milehighfizz'+({homepage:'',join:'/join',trade:'/trade'}[pageName as 'homepage'|'join'|'trade']))
+    expect(Object.fromEntries(url.searchParams)).toEqual({ssrReviewTheme:theme,ssrReviewLayout:layoutFor(theme),lineupPresentation:'grouped-v1'})
+    expect(page.goto.mock.calls[0][1]).toEqual({waitUntil:'commit',timeout:60000})
+    expect(root.waitFor).toHaveBeenCalledWith({state:'attached',timeout:30000})
+  }
+})
+it('rejects missing candidate markers or any legacy SSR marker before a measurement can run', async () => {
+  for(const [renderer,marker] of [['candidate',null],['candidate','false'],['legacy','true'],['legacy','false'],['legacy','']] as const) {
+    const page={goto:vi.fn(async()=>({status:()=>200})),locator:()=>({waitFor:async()=>{},getAttribute:async()=>marker})}
+    const measure=vi.fn()
+    await expect(openCase(page,'https://fixture.vercel.app','amethyst','homepage',renderer).then(measure)).rejects.toThrow('Renderer mismatch')
+    expect(measure).not.toHaveBeenCalled()
+  }
+})
+it('uses the controls actually present in the new MHF and Pumpkin Witch rows', () => {
+  for(const theme of ['alpine_opal','fall_owl_harvest_moon','midnight_rose','rose_gold']) {
+    expect(selectorsFor(theme+'/homepage','candidate')).toMatchObject({motion:'[data-mhf-video-toggle]',sound:undefined,cta:'.mhf-hero-content:not([data-ssr-reservation]) .mhf-cta-shop'})
+    expect(actionsFor(theme+'/homepage','legacy')).toEqual(['nav','cta'])
+  }
+  for(const page of ['homepage','join','trade']) {
+    expect(selectorsFor('halloween_pumpkin_witch/'+page,'candidate').motion).toBe('[data-hero-motion-toggle]')
+    expect(selectorsFor('halloween_pumpkin_witch/'+page,'legacy').motion).toBe('.hpw-motion-control')
+  }
+})
+it('measures the new legacy witch Pause/Play control using its paused aria-pressed semantics', async () => {
+  let pressed='false'
+  const taps: unknown[]=[]
+  const button={hasAttribute:()=>false,classList:{contains:(name:string)=>name==='hpw-motion-control'},getAttribute:()=>pressed}
+  const el:any={filter:()=>el,first:()=>el,waitFor:async()=>{},evaluate:async(fn:any)=>fn(button),tap:async()=>{pressed=pressed==='true'?'false':'true';taps.push({ms:25,trusted:true})}}
+  const page={locator:()=>el,waitForFunction:async()=>{},evaluate:async(fn:any)=>{
+    vi.stubGlobal('window',{__ab:{taps}});vi.stubGlobal('document',{readyState:'loading'})
+    return fn()
+  }}
+  for(const action of ['pause','play'])expect(await measureTap(page,'halloween_pumpkin_witch/homepage','legacy',action)).toEqual({ms:25,valid:true,duringLoad:true})
+  expect(taps).toHaveLength(2)
 })
 it('gates all applicable controls in fresh loading and idle samples without selector config', () => {
   const rows=fixture()
