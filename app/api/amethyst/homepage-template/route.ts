@@ -27,6 +27,7 @@ import {
 } from '@/lib/bling-kitchen/pantry-access'
 import { applyBlingKitchenHomepage } from '@/lib/bling-kitchen/profile'
 import { getEffectiveLiveQueueSnapshot } from '@/lib/live-lineup/service'
+import { applySavedSignupDiscount } from '@/lib/public-site/signup-discount-settings'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { LiveQueueSnapshot } from '@/lib/services/types'
 
@@ -140,16 +141,21 @@ export async function GET(request: Request) {
     requestCustomDomain,
   )
 
+  const homepage = await applySavedSignupDiscount(
+    {
+      ...enrichAmethystHomepageFeatureData(customerTemplateData.homepage, {
+        liveQueueSnapshot,
+        lineupPresentation: requestedLineupPresentation(request),
+        tradeBoardListings,
+      }),
+      ...buildLineupCalendar(customerTemplateData.homepage, linkedEvents),
+    },
+    featureRepId,
+  )
+
   return new NextResponse(
     buildAmethystHomepageBootstrapScript(
-      {
-        ...enrichAmethystHomepageFeatureData(customerTemplateData.homepage, {
-          liveQueueSnapshot,
-          lineupPresentation: requestedLineupPresentation(request),
-          tradeBoardListings,
-        }),
-        ...buildLineupCalendar(customerTemplateData.homepage, linkedEvents),
-      },
+      homepage,
       linkedEvents,
       customerTemplateData.appearancePreset,
       { publicSiteSlug, repId, targeted },

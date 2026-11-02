@@ -1,5 +1,9 @@
 # Sparkle Suite Branch Register
 
+## November 2 — signup discount Smoke only
+
+Louis approved `codex/signup-discount-smoke` from production `a94bae3b`, isolated in `.codex-worktrees/signup-discount-smoke`. Only PR #158 discount work plus SSR v2 parity is authorized. Deployments are restricted to `sparkle-suite-smoke` (`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`) / preview; only Smoke database `pukemqiwlyqmyytxkdmo` may be used. No Live access, env, merge, promotion, or branch-setting changes. GitHub default and Live production branches stay unchanged.
+
 ## October 30 — per-rep SSR allowlist local review
 
 Louis explicitly authorized `codex/ssr-per-rep-allowlist`, fresh from verified base `968f7425`, for one PR targeting `codex/nic-nac-trade-hardening`. The disposable clean clone `C:\Users\louis\sparkle-suite-repo\.codex-worktrees\ssr-per-rep-allowlist-disposable` is allowlisted for local implementation, tests and build only. No merge, deployment on Live or Smoke, environment, alias or database change is authorized. GitHub default and Vercel production branches stay unchanged.

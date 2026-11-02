@@ -10,8 +10,8 @@
     },
     "Homepage.html": {
       "blob": "12d3234202a2e0bda415c5a6aebcc2a9cc1ae6e8",
-      "sha256": "14b9706169717407fcc578b890dca3de9fa4d2b94340a4ac4a2cbb2a95e21454",
-      "bytes": 5870,
+      "sha256": "55d59787c9191a1e06edee68f16e96e968997074a767746812c4e34b546317fa",
+      "bytes": 5868,
       "source": "snapshot"
     },
     "Join.html": {
@@ -232,8 +232,8 @@
     },
     "homepage.jsx": {
       "blob": "cb64e48ab84690ef37235bdb3655f90c681b8e00",
-      "sha256": "49aa1ecae1229427f953adea0b79f3b270ea45e5a36d767397cd20533c35f15a",
-      "bytes": 173135,
+      "sha256": "0294c43c51258eb661be7fe62a8eceecbb4e49f6e53e7632515260e084c057d7",
+      "bytes": 180342,
       "source": "snapshot"
     },
     "join-runtime.js": {
@@ -842,5 +842,13 @@
       "bytes": 18442,
       "source": "snapshot"
     }
+  },
+  "approvedSignupDiscountChange": {
+    "date": "2026-11-02",
+    "scope": "PR #158 signup confirmation only, approved for Smoke by Louis. All other frozen assets unchanged.",
+    "sourceCommits": [
+      "5a3c3a44",
+      "274fd399"
+    ]
   }
 }

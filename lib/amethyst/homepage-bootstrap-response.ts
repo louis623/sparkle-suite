@@ -1,3 +1,4 @@
+import { applySavedSignupDiscount, loadSavedSignupDiscount } from '@/lib/public-site/signup-discount-settings'
 import { delayPreviewHomepageData, withinHomepageDataBudget } from './homepage-data-budget'
 import { buildLineupCalendar } from '@/lib/amethyst/lineup-calendar'
 import { requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
@@ -68,6 +69,7 @@ export async function buildHomepageBootstrapResponse(request: Request, loaded: {
     ...(publicSiteSlug ? { publicSiteSlug } : {}),
     repId,
   }
+  const savedDiscount = loadSavedSignupDiscount(loaded.repId)
   let events: Awaited<ReturnType<typeof loadAmethystHomepageUpcomingShows>> = []
   let tradeBoardListings: Awaited<ReturnType<typeof loadAmethystTradeBoardPreviewListings>> = []
   let liveQueueSnapshot: LiveQueueSnapshot | null = null
@@ -113,8 +115,7 @@ export async function buildHomepageBootstrapResponse(request: Request, loaded: {
     requestCustomDomain,
   )
 
-  return new NextResponse(
-    buildAmethystHomepageBootstrapScript(
+  const homepage = await applySavedSignupDiscount(
       {
         ...enrichAmethystHomepageFeatureData(customerTemplateData.homepage, {
           liveQueueSnapshot,
@@ -122,7 +123,11 @@ export async function buildHomepageBootstrapResponse(request: Request, loaded: {
           tradeBoardListings,
         }),
         ...buildLineupCalendar(customerTemplateData.homepage, linkedEvents),
-      },
+      }, loaded.repId, () => savedDiscount)
+
+  return new NextResponse(
+    buildAmethystHomepageBootstrapScript(
+      homepage,
       linkedEvents,
       customerTemplateData.appearancePreset,
       { publicSiteSlug, repId, targeted },
