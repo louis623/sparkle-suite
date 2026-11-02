@@ -1,0 +1,56 @@
+const {chromium}=require('./node_modules/playwright'), fs=require('node:fs'), sharp=require('sharp');
+const out='vault/2026-10-30-ssr-per-rep';
+fs.mkdirSync(out,{recursive:true});
+(async()=>{
+ const browser=await chromium.launch({channel:'chrome',headless:true});
+ const legacyOnly=process.argv.includes('--legacy-only');
+ fs.mkdirSync('.tmp-qa/legacy-cache',{recursive:true});
+ const results=legacyOnly?[]:JSON.parse(fs.readFileSync('.tmp-qa/legacy-measurements.json','utf8'));
+ for(const theme of ['alpine_opal','gilded_autumn']) for(const surface of ['homepage','trade','join']) for(const [device,width,height] of [['desktop',1440,900],['phone',390,844]]) for(const reducedMotion of ['no-preference','reduce']) {
+  const name=`${theme}-${surface}-${device}-${reducedMotion}`;
+  const buffers=legacyOnly?[]:[fs.readFileSync(`.tmp-qa/legacy-cache/${name}.png`)];
+  for(const renderer of [legacyOnly?'legacy':'ssr']) {
+   const context=await browser.newContext({viewport:{width,height},reducedMotion,timezoneId:'America/Denver'});
+   await context.route('**/*', route=>{
+    const url=new URL(route.request().url()),host=url.hostname;
+    if(host==='127.0.0.1'&&url.pathname==='/api/amethyst/trade-board') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({listings:[{id:'fixture-only',name:'Fixture Aurora Earrings',collection:'Originals',type:'Earrings',material:'Silver',stone:'CZ',size:null,note:'Local fixture',glyph:'S',tier:'everyday',photoUrl:null,photoSource:'missing'}]})});
+    if(host==='127.0.0.1'||['fonts.googleapis.com','fonts.gstatic.com','api.fontshare.com','cdn.fontshare.com'].includes(host)) return route.continue();
+    return route.abort();
+   });
+   await context.addInitScript(()=>{
+    window.__qa={cls:0,lcp:0,shifts:[]};
+    new PerformanceObserver(list=>list.getEntries().forEach(e=>{if(!e.hadRecentInput){window.__qa.cls+=e.value;window.__qa.shifts.push(e.value)}})).observe({type:'layout-shift',buffered:true});
+    new PerformanceObserver(list=>{for(const e of list.getEntries()) window.__qa.lcp=e.startTime}).observe({type:'largest-contentful-paint',buffered:true});
+   });
+   const page=await context.newPage(),errors=[];
+   page.on('pageerror',e=>errors.push(e.message));
+   await page.goto(`http://127.0.0.1:4397/review?theme=${theme}&page=${surface}&renderer=${renderer}`,{waitUntil:'load',timeout:30000});
+   await page.locator('h1').waitFor();
+   await page.evaluate(()=>document.fonts.ready);
+   await page.waitForTimeout(1800);
+   const state=await page.evaluate(()=>({ ...window.__qa, h1:document.querySelector('h1')?.textContent,
+    firstPaint:performance.getEntriesByName('first-contentful-paint')[0]?.startTime,
+    heroClass:document.querySelector('.mhf-hero,.hp-hero,.tp-hero,.jp-hero')?.className,
+    titleFont:getComputedStyle(document.querySelector('h1')).fontFamily,
+    overflow:document.documentElement.scrollWidth>innerWidth,
+    videos:[...document.querySelectorAll('video')].map(v=>({src:v.currentSrc,paused:v.paused,currentTime:v.currentTime,autoplay:v.autoplay,preload:v.preload,readyState:v.readyState})),
+    motionButtons:[...document.querySelectorAll('button')].filter(b=>/^(Pause|Play) animation$/.test(b.textContent)).map(b=>({text:b.textContent,visible:!!b.getClientRects().length})),
+    sections:[...document.querySelectorAll('main section,.mhf-page section,.mhf-page footer')].map(e=>e.id||e.className)
+   }));
+   const cdp=await context.newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');
+   const doc=await cdp.send('DOM.getDocument'),node=await cdp.send('DOM.querySelector',{nodeId:doc.root.nodeId,selector:'h1'});
+   const fonts=node.nodeId?(await cdp.send('CSS.getPlatformFontsForNode',{nodeId:node.nodeId})).fonts.map(f=>f.familyName):[];
+   results.push({theme,surface,device,reducedMotion,renderer,...state,fonts,errors});
+   const screenshot=await page.screenshot();
+   buffers.push(screenshot);
+   if(legacyOnly)fs.writeFileSync(`.tmp-qa/legacy-cache/${name}.png`,screenshot);
+   await context.close();
+  }
+  if(legacyOnly){fs.writeFileSync('.tmp-qa/legacy-measurements.json',JSON.stringify(results,null,2));console.log(name);continue;}
+  const labels=Buffer.from(`<svg width="${width*2}" height="28"><rect width="100%" height="100%" fill="white"/><g font-family="Arial" font-size="17" fill="black"><text x="12" y="20">Frozen legacy · ${device} · ${reducedMotion}</text><text x="${width+12}" y="20">SSR · ${device} · ${reducedMotion}</text></g></svg>`);
+  await sharp({create:{width:width*2,height:height+28,channels:3,background:'#fff'}}).composite([{input:labels,top:0,left:0},{input:buffers[0],top:28,left:0},{input:buffers[1],top:28,left:width}]).webp({quality:88}).toFile(`${out}/${name}.webp`);
+  fs.writeFileSync(`${out}/measurements.json`,JSON.stringify(results,null,2));
+  console.log(name);
+ }
+ await browser.close();
+})().catch(e=>{console.error(e.message);process.exitCode=1});

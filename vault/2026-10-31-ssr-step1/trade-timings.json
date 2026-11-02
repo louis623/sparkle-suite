@@ -1,0 +1,1718 @@
+[
+  {
+    "device": "desktop",
+    "trial": 0,
+    "renderer": "legacy",
+    "cls": 0.11161612890424061,
+    "lcp": 1140,
+    "lcpElement": "H1.tp-hero-title slot",
+    "heading": {
+      "x": 402.484375,
+      "y": 282.5,
+      "width": 635.03125,
+      "height": 169.875,
+      "top": 282.5,
+      "right": 1037.515625,
+      "bottom": 452.375,
+      "left": 402.484375
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "https://api.fontshare.com/v2/css?f[]=vend-sans@400,500,600&f[]=boska@400,500,600,700&f[]=switzer@400,500,600,700&f[]=melodrama@400,500,600,700&f[]=sharpie@400,500,600,700&f[]=ranade@400,500,600,700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Bitter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;500;600;700&family=Great+Vibes&family=Italiana&family=Lato:wght@300;400;700;900&family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/tokens.css?v=20260725-emerald-garden",
+        "bytes": 9002
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/components.css?v=20260725-emerald-garden",
+        "bytes": 50330
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/homepage.css?v=20261021-ticker-edge",
+        "bytes": 182459
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gnome-garden.css?v=20260905-gnome1",
+        "bytes": 12588
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.css?v=20260914-nb1",
+        "bytes": 23000
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.css?v=20261021-ticker-edge",
+        "bytes": 16727
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.css?v=20260928-hpc2",
+        "bytes": 11115
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/rose-champagne.css?v=20261021-ticker-edge",
+        "bytes": 10758
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.css?v=20261021-ticker-edge",
+        "bytes": 34061
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.css?v=20261024-sb01",
+        "bytes": 20954
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/midnight-rose.css?v=20261021-ticker-edge",
+        "bytes": 12590
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/fall-owl.css?v=20261021-ticker-edge",
+        "bytes": 18017
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pearl-rose.css?v=20261021-ticker-edge",
+        "bytes": 12255
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gobble-and-fizz.css?v=20261021-ticker-edge",
+        "bytes": 22024
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pie-please.css?v=20261021-ticker-edge",
+        "bytes": 20787
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/live-lineup.js",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/responsive-image.js",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.js",
+        "bytes": 4327
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.js",
+        "bytes": 3997
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sparkle-suite-footer-credit.js",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/dance-floor-ticker-label.js",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.js",
+        "bytes": 4826
+      },
+      {
+        "url": "http://127.0.0.1:4398/qa-runtime/trade.js",
+        "bytes": 82554
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.js",
+        "bytes": 4158
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.js",
+        "bytes": 6144
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 3805
+  },
+  {
+    "device": "desktop",
+    "trial": 0,
+    "renderer": "before",
+    "cls": 0,
+    "lcp": 660,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 402.484375,
+      "y": 282.5,
+      "width": 635.03125,
+      "height": 169.875,
+      "top": 282.5,
+      "right": 1037.515625,
+      "bottom": 452.375,
+      "left": 402.484375
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 178481
+  },
+  {
+    "device": "desktop",
+    "trial": 0,
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 612,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 402.484375,
+      "y": 282.5,
+      "width": 635.03125,
+      "height": 169.875,
+      "top": 282.5,
+      "right": 1037.515625,
+      "bottom": 452.375,
+      "left": 402.484375
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 130525
+  },
+  {
+    "device": "desktop",
+    "trial": 1,
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 456,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 402.484375,
+      "y": 282.5,
+      "width": 635.03125,
+      "height": 169.875,
+      "top": 282.5,
+      "right": 1037.515625,
+      "bottom": 452.375,
+      "left": 402.484375
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 130525
+  },
+  {
+    "device": "desktop",
+    "trial": 1,
+    "renderer": "before",
+    "cls": 0,
+    "lcp": 604,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 402.484375,
+      "y": 282.5,
+      "width": 635.03125,
+      "height": 169.875,
+      "top": 282.5,
+      "right": 1037.515625,
+      "bottom": 452.375,
+      "left": 402.484375
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 178481
+  },
+  {
+    "device": "desktop",
+    "trial": 1,
+    "renderer": "legacy",
+    "cls": 0.01027937913431552,
+    "lcp": 2020,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 402.484375,
+      "y": 282.5,
+      "width": 635.03125,
+      "height": 169.875,
+      "top": 282.5,
+      "right": 1037.515625,
+      "bottom": 452.375,
+      "left": 402.484375
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "https://api.fontshare.com/v2/css?f[]=vend-sans@400,500,600&f[]=boska@400,500,600,700&f[]=switzer@400,500,600,700&f[]=melodrama@400,500,600,700&f[]=sharpie@400,500,600,700&f[]=ranade@400,500,600,700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Bitter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;500;600;700&family=Great+Vibes&family=Italiana&family=Lato:wght@300;400;700;900&family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/tokens.css?v=20260725-emerald-garden",
+        "bytes": 9002
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/components.css?v=20260725-emerald-garden",
+        "bytes": 50330
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/homepage.css?v=20261021-ticker-edge",
+        "bytes": 182459
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gnome-garden.css?v=20260905-gnome1",
+        "bytes": 12588
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.css?v=20260914-nb1",
+        "bytes": 23000
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.css?v=20261021-ticker-edge",
+        "bytes": 16727
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.css?v=20260928-hpc2",
+        "bytes": 11115
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/rose-champagne.css?v=20261021-ticker-edge",
+        "bytes": 10758
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.css?v=20261021-ticker-edge",
+        "bytes": 34061
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.css?v=20261024-sb01",
+        "bytes": 20954
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/midnight-rose.css?v=20261021-ticker-edge",
+        "bytes": 12590
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/fall-owl.css?v=20261021-ticker-edge",
+        "bytes": 18017
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gobble-and-fizz.css?v=20261021-ticker-edge",
+        "bytes": 22024
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pie-please.css?v=20261021-ticker-edge",
+        "bytes": 20787
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pearl-rose.css?v=20261021-ticker-edge",
+        "bytes": 12255
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/responsive-image.js",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.js",
+        "bytes": 4327
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/live-lineup.js",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sparkle-suite-footer-credit.js",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.js",
+        "bytes": 3997
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/dance-floor-ticker-label.js",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.js",
+        "bytes": 4826
+      },
+      {
+        "url": "http://127.0.0.1:4398/qa-runtime/trade.js",
+        "bytes": 82554
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.js",
+        "bytes": 4158
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.js",
+        "bytes": 6144
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 3805
+  },
+  {
+    "device": "desktop",
+    "trial": 2,
+    "renderer": "legacy",
+    "cls": 0.006312830268012152,
+    "lcp": 1992,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 402.484375,
+      "y": 282.5,
+      "width": 635.03125,
+      "height": 169.875,
+      "top": 282.5,
+      "right": 1037.515625,
+      "bottom": 452.375,
+      "left": 402.484375
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "https://api.fontshare.com/v2/css?f[]=vend-sans@400,500,600&f[]=boska@400,500,600,700&f[]=switzer@400,500,600,700&f[]=melodrama@400,500,600,700&f[]=sharpie@400,500,600,700&f[]=ranade@400,500,600,700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Bitter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;500;600;700&family=Great+Vibes&family=Italiana&family=Lato:wght@300;400;700;900&family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/tokens.css?v=20260725-emerald-garden",
+        "bytes": 9002
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/components.css?v=20260725-emerald-garden",
+        "bytes": 50330
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/homepage.css?v=20261021-ticker-edge",
+        "bytes": 182459
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gnome-garden.css?v=20260905-gnome1",
+        "bytes": 12588
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.css?v=20260914-nb1",
+        "bytes": 23000
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.css?v=20261021-ticker-edge",
+        "bytes": 16727
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.css?v=20260928-hpc2",
+        "bytes": 11115
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/rose-champagne.css?v=20261021-ticker-edge",
+        "bytes": 10758
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.css?v=20261021-ticker-edge",
+        "bytes": 34061
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.css?v=20261024-sb01",
+        "bytes": 20954
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/midnight-rose.css?v=20261021-ticker-edge",
+        "bytes": 12590
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/fall-owl.css?v=20261021-ticker-edge",
+        "bytes": 18017
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gobble-and-fizz.css?v=20261021-ticker-edge",
+        "bytes": 22024
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pearl-rose.css?v=20261021-ticker-edge",
+        "bytes": 12255
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pie-please.css?v=20261021-ticker-edge",
+        "bytes": 20787
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/live-lineup.js",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/responsive-image.js",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.js",
+        "bytes": 4327
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.js",
+        "bytes": 3997
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sparkle-suite-footer-credit.js",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/dance-floor-ticker-label.js",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/qa-runtime/trade.js",
+        "bytes": 82554
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.js",
+        "bytes": 4826
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.js",
+        "bytes": 4158
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.js",
+        "bytes": 6144
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 3805
+  },
+  {
+    "device": "desktop",
+    "trial": 2,
+    "renderer": "before",
+    "cls": 0,
+    "lcp": 648,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 402.484375,
+      "y": 282.5,
+      "width": 635.03125,
+      "height": 169.875,
+      "top": 282.5,
+      "right": 1037.515625,
+      "bottom": 452.375,
+      "left": 402.484375
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 178481
+  },
+  {
+    "device": "desktop",
+    "trial": 2,
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 432,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 402.484375,
+      "y": 282.5,
+      "width": 635.03125,
+      "height": 169.875,
+      "top": 282.5,
+      "right": 1037.515625,
+      "bottom": 452.375,
+      "left": 402.484375
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 130525
+  },
+  {
+    "device": "phone",
+    "trial": 0,
+    "renderer": "legacy",
+    "cls": 0.014113263371390856,
+    "lcp": 5896,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 29.96875,
+      "y": 300.5,
+      "width": 330.046875,
+      "height": 89.8125,
+      "top": 300.5,
+      "right": 360.015625,
+      "bottom": 390.3125,
+      "left": 29.96875
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "https://api.fontshare.com/v2/css?f[]=vend-sans@400,500,600&f[]=boska@400,500,600,700&f[]=switzer@400,500,600,700&f[]=melodrama@400,500,600,700&f[]=sharpie@400,500,600,700&f[]=ranade@400,500,600,700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Bitter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;500;600;700&family=Great+Vibes&family=Italiana&family=Lato:wght@300;400;700;900&family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/tokens.css?v=20260725-emerald-garden",
+        "bytes": 9002
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/components.css?v=20260725-emerald-garden",
+        "bytes": 50330
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/homepage.css?v=20261021-ticker-edge",
+        "bytes": 182459
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gnome-garden.css?v=20260905-gnome1",
+        "bytes": 12588
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.css?v=20260914-nb1",
+        "bytes": 23000
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.css?v=20260928-hpc2",
+        "bytes": 11115
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.css?v=20261021-ticker-edge",
+        "bytes": 16727
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.css?v=20261021-ticker-edge",
+        "bytes": 34061
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/rose-champagne.css?v=20261021-ticker-edge",
+        "bytes": 10758
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.css?v=20261024-sb01",
+        "bytes": 20954
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/midnight-rose.css?v=20261021-ticker-edge",
+        "bytes": 12590
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/fall-owl.css?v=20261021-ticker-edge",
+        "bytes": 18017
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gobble-and-fizz.css?v=20261021-ticker-edge",
+        "bytes": 22024
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pie-please.css?v=20261021-ticker-edge",
+        "bytes": 20787
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pearl-rose.css?v=20261021-ticker-edge",
+        "bytes": 12255
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/live-lineup.js",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/responsive-image.js",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.js",
+        "bytes": 4327
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.js",
+        "bytes": 3997
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sparkle-suite-footer-credit.js",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/dance-floor-ticker-label.js",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/qa-runtime/trade.js",
+        "bytes": 82554
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.js",
+        "bytes": 4826
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.js",
+        "bytes": 4158
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.js",
+        "bytes": 6144
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 3805
+  },
+  {
+    "device": "phone",
+    "trial": 0,
+    "renderer": "before",
+    "cls": 0,
+    "lcp": 1156,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 29.96875,
+      "y": 300.5,
+      "width": 330.046875,
+      "height": 89.8125,
+      "top": 300.5,
+      "right": 360.015625,
+      "bottom": 390.3125,
+      "left": 29.96875
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 178481
+  },
+  {
+    "device": "phone",
+    "trial": 0,
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 996,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 29.96875,
+      "y": 300.5,
+      "width": 330.046875,
+      "height": 89.8125,
+      "top": 300.5,
+      "right": 360.015625,
+      "bottom": 390.3125,
+      "left": 29.96875
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 130525
+  },
+  {
+    "device": "phone",
+    "trial": 1,
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 968,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 29.96875,
+      "y": 300.5,
+      "width": 330.046875,
+      "height": 89.8125,
+      "top": 300.5,
+      "right": 360.015625,
+      "bottom": 390.3125,
+      "left": 29.96875
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 130525
+  },
+  {
+    "device": "phone",
+    "trial": 1,
+    "renderer": "before",
+    "cls": 0,
+    "lcp": 1176,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 29.96875,
+      "y": 300.5,
+      "width": 330.046875,
+      "height": 89.8125,
+      "top": 300.5,
+      "right": 360.015625,
+      "bottom": 390.3125,
+      "left": 29.96875
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 178481
+  },
+  {
+    "device": "phone",
+    "trial": 1,
+    "renderer": "legacy",
+    "cls": 0.01407955115822611,
+    "lcp": 5976,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 29.96875,
+      "y": 300.5,
+      "width": 330.046875,
+      "height": 89.8125,
+      "top": 300.5,
+      "right": 360.015625,
+      "bottom": 390.3125,
+      "left": 29.96875
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "https://api.fontshare.com/v2/css?f[]=vend-sans@400,500,600&f[]=boska@400,500,600,700&f[]=switzer@400,500,600,700&f[]=melodrama@400,500,600,700&f[]=sharpie@400,500,600,700&f[]=ranade@400,500,600,700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Bitter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;500;600;700&family=Great+Vibes&family=Italiana&family=Lato:wght@300;400;700;900&family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/tokens.css?v=20260725-emerald-garden",
+        "bytes": 9002
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/components.css?v=20260725-emerald-garden",
+        "bytes": 50330
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gnome-garden.css?v=20260905-gnome1",
+        "bytes": 12588
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.css?v=20260914-nb1",
+        "bytes": 23000
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/homepage.css?v=20261021-ticker-edge",
+        "bytes": 182459
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.css?v=20261021-ticker-edge",
+        "bytes": 16727
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.css?v=20260928-hpc2",
+        "bytes": 11115
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.css?v=20261021-ticker-edge",
+        "bytes": 34061
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/rose-champagne.css?v=20261021-ticker-edge",
+        "bytes": 10758
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.css?v=20261024-sb01",
+        "bytes": 20954
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/midnight-rose.css?v=20261021-ticker-edge",
+        "bytes": 12590
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/fall-owl.css?v=20261021-ticker-edge",
+        "bytes": 18017
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gobble-and-fizz.css?v=20261021-ticker-edge",
+        "bytes": 22024
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pie-please.css?v=20261021-ticker-edge",
+        "bytes": 20787
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pearl-rose.css?v=20261021-ticker-edge",
+        "bytes": 12255
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/live-lineup.js",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/responsive-image.js",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.js",
+        "bytes": 4327
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.js",
+        "bytes": 3997
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sparkle-suite-footer-credit.js",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/dance-floor-ticker-label.js",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/qa-runtime/trade.js",
+        "bytes": 82554
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.js",
+        "bytes": 4826
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.js",
+        "bytes": 4158
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.js",
+        "bytes": 6144
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 3805
+  },
+  {
+    "device": "phone",
+    "trial": 2,
+    "renderer": "legacy",
+    "cls": 0.014113263371390856,
+    "lcp": 6032,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 29.96875,
+      "y": 300.5,
+      "width": 330.046875,
+      "height": 89.8125,
+      "top": 300.5,
+      "right": 360.015625,
+      "bottom": 390.3125,
+      "left": 29.96875
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "https://api.fontshare.com/v2/css?f[]=vend-sans@400,500,600&f[]=boska@400,500,600,700&f[]=switzer@400,500,600,700&f[]=melodrama@400,500,600,700&f[]=sharpie@400,500,600,700&f[]=ranade@400,500,600,700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Bitter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;500;600;700&family=Great+Vibes&family=Italiana&family=Lato:wght@300;400;700;900&family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap",
+        "bytes": 0
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/tokens.css?v=20260725-emerald-garden",
+        "bytes": 9002
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/components.css?v=20260725-emerald-garden",
+        "bytes": 50330
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/homepage.css?v=20261021-ticker-edge",
+        "bytes": 182459
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gnome-garden.css?v=20260905-gnome1",
+        "bytes": 12588
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.css?v=20260914-nb1",
+        "bytes": 23000
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.css?v=20261021-ticker-edge",
+        "bytes": 16727
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.css?v=20260928-hpc2",
+        "bytes": 11115
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.css?v=20261021-ticker-edge",
+        "bytes": 34061
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/rose-champagne.css?v=20261021-ticker-edge",
+        "bytes": 10758
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.css?v=20261024-sb01",
+        "bytes": 20954
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/midnight-rose.css?v=20261021-ticker-edge",
+        "bytes": 12590
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/fall-owl.css?v=20261021-ticker-edge",
+        "bytes": 18017
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gobble-and-fizz.css?v=20261021-ticker-edge",
+        "bytes": 22024
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pie-please.css?v=20261021-ticker-edge",
+        "bytes": 20787
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/pearl-rose.css?v=20261021-ticker-edge",
+        "bytes": 12255
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/live-lineup.js",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/responsive-image.js",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/neon-butterfly.js",
+        "bytes": 4327
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sparkle-suite-footer-credit.js",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-witch.js",
+        "bytes": 3997
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/dance-floor-ticker-label.js",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/qa-runtime/trade.js",
+        "bytes": 82554
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/halloween-pumpkin-cat.js",
+        "bytes": 4826
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/gilded-autumn.js",
+        "bytes": 4158
+      },
+      {
+        "url": "http://127.0.0.1:4398/legacy-assets/amethyst/sunset-beach.js",
+        "bytes": 6144
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/trade.css?v=20261021-photo-frame",
+        "bytes": 64918
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=legacy&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 3805
+  },
+  {
+    "device": "phone",
+    "trial": 2,
+    "renderer": "before",
+    "cls": 0,
+    "lcp": 1188,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 29.96875,
+      "y": 300.5,
+      "width": 330.046875,
+      "height": 89.8125,
+      "top": 300.5,
+      "right": 360.015625,
+      "bottom": 390.3125,
+      "left": 29.96875
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=before&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 178481
+  },
+  {
+    "device": "phone",
+    "trial": 2,
+    "renderer": "ssr",
+    "cls": 0,
+    "lcp": 1036,
+    "lcpElement": "P.tp-hero-sub slot",
+    "heading": {
+      "x": 29.96875,
+      "y": 300.5,
+      "width": 330.046875,
+      "height": 89.8125,
+      "top": 300.5,
+      "right": 360.015625,
+      "bottom": 390.3125,
+      "left": 29.96875
+    },
+    "font": "\"Playfair Display\", Georgia, serif",
+    "resources": [
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/react.js",
+        "bytes": 193541
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/tweaks-panel.js",
+        "bytes": 12354
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/live-lineup.js?v=20261002-compact-lineup",
+        "bytes": 15610
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/responsive-image.js?v=20261021-react18-fetchpriority",
+        "bytes": 2623
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/sparkle-suite-footer-credit.js?v=20260927-powered-by",
+        "bytes": 931
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26",
+        "bytes": 682
+      },
+      {
+        "url": "http://127.0.0.1:4398/amethyst/compiled/trade.js",
+        "bytes": 91790
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/trade-board?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 550
+      },
+      {
+        "url": "http://127.0.0.1:4398/api/amethyst/live-lineup?theme=alpine_opal&page=trade&renderer=ssr&gzip=1&c=local-fixture-only",
+        "bytes": 453
+      },
+      {
+        "url": "http://127.0.0.1:4398/favicon.ico",
+        "bytes": 0
+      }
+    ],
+    "bytes": 130525
+  }
+]

@@ -1,17 +1,19 @@
 import fonts from './generated/utility-fonts.json'
 import fontData from './generated/utility-font-data.json'
 
-/** Pinned copies of the original utility-page fonts. No provider stylesheet
- * round trip, no font substitution, and no change to the reviewed homepage. */
-export function utilityPageFonts(properties: Map<string, string>, css: string, preset: string) {
+/** Pinned original fonts. Alpine Opal Trade embeds only its actual families,
+ * once each, and starts their decoding before the shared stylesheet payload. */
+export function utilityPageFonts(properties: Map<string, string>, css: string, preset: string, leanTrade = false) {
+  const primary = [properties.get('--hp-display-font'), properties.get('--hp-body-font')]
+    .map(value => value?.split(',')[0]?.replaceAll('"', '').trim())
   const families = Object.entries(fonts).filter(([family]) =>
+    leanTrade ? primary.includes(family) || family === 'Playfair Display' :
     [properties.get('--hp-display-font'), properties.get('--hp-body-font'), css]
       .some(value => value?.includes(`"${family}"`) || value?.includes(`'${family}'`)),
   )
-  const primary = [properties.get('--hp-display-font'), properties.get('--hp-body-font')]
-    .map(value => value?.split(',')[0]?.replaceAll('"', '').trim())
   const rules: string[] = []
   const warmFonts = new Set<string>()
+  const headingPreloads = new Set<string>()
   for (const [family, faces] of families) {
     // Variable faces often share the same bytes across several weight rules.
     // Merge only identical file/style/range groups so inline data occurs once.
@@ -31,13 +33,24 @@ export function utilityPageFonts(properties: Map<string, string>, css: string, p
       const critical = primary.includes(family) || family === 'Playfair Display' ||
         (preset === 'emerald_garden' && family === 'Cormorant Garamond')
       if (critical && latin) {
-        rule = rule.replace(face.src, fontData[face.src as keyof typeof fontData])
+        const data = fontData[face.src as keyof typeof fontData]
+        rule = rule.replace(face.src, data)
         warmFonts.add(`${face.style} ${face.weight} 16px ${JSON.stringify(family)}`)
+        // Reuse the exact same embedded resource as @font-face: no duplicate
+        // font download and no extra remote font stylesheet for the hero.
+        if (!leanTrade && family === primary[0] && face.style === 'normal') headingPreloads.add(data)
       }
       rules.push(rule)
     }
   }
-  // Demand/decode embedded faces in the head, before body layout can use a
-  // substitute font. This never hides the page or waits on a provider request.
-  return `<style data-ssr-fonts>${rules.join('\n')}</style><script>if(document.fonts){${JSON.stringify([...warmFonts])}.forEach(function(font){document.fonts.load(font).catch(function(){})})}</script>`
+  return [...headingPreloads].map(src => `<link rel="preload" as="font" type="font/woff2" crossorigin href="${src}" data-ssr-heading-font>`).join('') + `<style data-ssr-fonts>${rules.join('\n')}</style><script>if(document.fonts){(function(){
+// A buffer-backed FontFace is decoded synchronously. Reuse the embedded bytes
+// from CSSOM so WebKit cannot paint fallback metrics while a data-URL face loads.
+// No extra payload, network request, render blocker or deferred motion startup.
+var sheet=document.querySelector('style[data-ssr-fonts]').sheet;
+if(typeof FontFace==='function')Array.from(sheet.cssRules).forEach(function(rule){
+ var s=rule.style;if(!s)return;var match=s.getPropertyValue('src').match(/base64,([^\\)"']+)/);if(!match)return;
+ try{var bytes=Uint8Array.from(atob(match[1]),function(c){return c.charCodeAt(0)});
+ var face=new FontFace(s.getPropertyValue('font-family').replace(/["']/g,''),bytes,{style:s.getPropertyValue('font-style')||'normal',weight:s.getPropertyValue('font-weight')||'400',unicodeRange:s.getPropertyValue('unicode-range')||'U+0-10FFFF',display:'block'});if(face.status==='loaded'){document.fonts.add(face);sheet.deleteRule(Array.from(sheet.cssRules).indexOf(rule))}}catch(e){}
+});})();${JSON.stringify([...warmFonts])}.forEach(function(font){document.fonts.load(font).catch(function(){})})}</script>`
 }

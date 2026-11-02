@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-10-31T15:26:05.720191+00:00",
+  "repository": "louis623/sparkle-suite",
+  "branch": "codex/ssr-per-rep-allowlist",
+  "expectedHead": "9359ac881716a1765d0f9119091a69d503bfe608",
+  "remoteHead": "9359ac881716a1765d0f9119091a69d503bfe608",
+  "cleanCloneHead": "9359ac881716a1765d0f9119091a69d503bfe608",
+  "cleanClonePath": "/workspace/suite-ssr-final-2X0HGenS",
+  "initialTrackedStatusClean": true,
+  "branchGuardPassed": true,
+  "smokeProjectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+  "cliSmokeProjectAccessConfirmed": true,
+  "alias": "sparkle-suite-smoke.vercel.app",
+  "aliasBefore": "dpl_2tsBNUCP3cFyvf9Au155cMTX3s51",
+  "aliasBeforeUrl": "https://sparkle-suite-smoke-hfum0jomi-louis-2849s-projects.vercel.app",
+  "aliasBeforeMatchedExpected": true,
+  "aliasMutated": false,
+  "deploymentAttempts": 0,
+  "environmentPulls": 0,
+  "databaseAccesses": 0,
+  "stopReason": "Alias metadata tool unexpectedly included a protection-bypass value in tool output, violating the no-print rule. Value omitted from all evidence files.",
+  "openBrainCloseout": "Unavailable: tool discovery found no Open Brain or capture_thought tool."
+}

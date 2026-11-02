@@ -1,0 +1,18 @@
+const {chromium}=require('./node_modules/playwright'),fs=require('node:fs');
+(async()=>{
+const browser=await chromium.launch({channel:'chrome',headless:true}),results=[];
+try {for(const renderer of ['legacy','ssr']){
+ const context=await browser.newContext({viewport:{width:390,height:844}}),writes=[],errors=[];
+ await context.route('**/*',route=>{const request=route.request(),host=new URL(request.url()).hostname;if(request.method()!=='GET'){writes.push(request.method());return route.abort()}return host==='127.0.0.1'||['fonts.googleapis.com','fonts.gstatic.com','api.fontshare.com','cdn.fontshare.com'].includes(host)?route.continue():route.abort()});
+ const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(`http://127.0.0.1:4397/review?theme=alpine_opal&page=homepage&renderer=${renderer}`,{waitUntil:'load'});await page.locator('h1').waitFor();await page.evaluate(()=>document.fonts.ready);
+ const cdp=await context.newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');const doc=await cdp.send('DOM.getDocument'),fonts=[];
+ for(const selector of ['h1','.mhf-hero-with','.mhf-hero-line','.mhf-hero-instruction','.mhf-cta-shop']){
+  const node=await cdp.send('DOM.querySelector',{nodeId:doc.root.nodeId,selector});const faces=await cdp.send('CSS.getPlatformFontsForNode',{nodeId:node.nodeId});
+  const style=await page.locator(selector).evaluate(el=>({family:getComputedStyle(el).fontFamily,weight:getComputedStyle(el).fontWeight,text:el.textContent}));
+  fonts.push({selector,...style,faces:faces.fonts.map(f=>({family:f.familyName,glyphs:f.glyphCount}))});
+ }
+ results.push({renderer,fonts,errors,writes});await context.close();
+}}finally{await browser.close()}
+fs.writeFileSync('vault/2026-10-30-ssr-per-rep/typography.json',JSON.stringify(results,null,2));console.log(JSON.stringify(results));
+})().catch(e=>{console.error(e.message);process.exitCode=1});

@@ -1,0 +1,17 @@
+Note from Gus: the main clone /workspace/repos/sparkle-suite is dirty and detached, so you are running in the clean worktree /workspace/repos/sparkle-suite-ssr, which is on the same repo and branch (codex/ssr-per-rep-allowlist). Treat every mention of /workspace/repos/sparkle-suite below as this worktree.
+# Suite SSR: Lindsey (milehighfizz) remaining blockers, CODE ONLY
+Model: GPT-6.1 Sol, reasoning high. Repo: /workspace/repos/sparkle-suite, branch codex/ssr-per-rep-allowlist (PR #169, draft). Start from the current branch tip (app code 0f42a0c + vault-only commits).
+Scope: code and tests only. NO deploys, alias reads/moves, Smoke or Live access, DB access or env changes. Don't touch legacy/frozen assets, flyer code or VM limits. Never print secret values (including any Vercel tool output). First commit this prompt file into vault/2026-10-31-ssr-lindsey-blockers/prompt.md.
+Animations: HARD RULE. Never stop, gate, delay or replace any hero animation/video.
+Source: Rocky's review, /workspace/release-ssr-finder-rocky-review/pr169/NOTES.md. Only the items below; no other scope.
+
+1. Harness legacy cohort: legacy must honour the review theme. Add the ssrReviewTheme override to renderLegacy (allowed only where the SSR override is allowed). Fail closed if the legacy page's theme marker doesn't match the case.
+2. Harness gates, per case vs legacy: FCP and LCP medians no slower than legacy (state the legacy SHA and settle time); CLS exactly 0; FAIL on any page error or React hydration error (#418/#423/#425). Absolute targets: desktop LCP < 2s, phone < 2.5s, with a hard-coded waiver table, phone only: milehighfizz gilded_autumn home+join, alpine_opal home+join, alpine_opal trade. The waiver never skips vs-legacy, CLS, taps or errors.
+3. Harness cases (Lindsey's scope only): gilded_autumn on the mile_high_fizz layout (home, join, trade) and alpine_opal (home, join, trade), plus the cases already in the harness. Other reps' themes are NOT added now.
+4. Taps: measure tap-to-next-paint during load/hydration (first interactive moment) as well as idle, for Pause/Play, sound, nav and primary CTA. Remove config.selectors (or limit it to a hard-coded allowlist) so the gate can't be bypassed. Medians > 200 ms FAIL.
+5. Layout shift: stop the post-H1 streaming shift on gilded_autumn (MHF layout) home and join, and on fall_owl, midnight_rose and rose_gold on the MHF layout (regression from removing the gate), using reserved sizes/aspect-ratio. No paint holding. Add a test that splits the HTML stream right before and right after the H1, in Chromium and Playwright WebKit, requiring 0 shift on those pages.
+6. Hydration: make getLiveQueueSummary and any other time-dependent hero/lineup text identical between server and browser (pass the server timestamp down, or render it after hydration in a fixed-size slot so nothing shifts). Add a test with the client clock skewed that fails on any hydration error, on milehighfizz home.
+7. Restore an image preload for amethyst's opening poster.
+8. Update hash fixtures; typecheck, build, focused tests, full suite. Report passed/failed/skipped vs 6068/75/6 and list new failing names (must be zero).
+
+Report: NEW_HEAD; one line per item; test counts; a local table for Lindsey's pages (gilded_autumn and alpine_opal, home/join/trade, phone/desktop): CLS (Chromium + WebKit split-stream), hydration errors, tap medians. Push; PR stays draft. Then STOP; the Smoke A/B is a separate run.

@@ -1,0 +1,705 @@
+[
+  {
+    "theme": "fall_owl_harvest_moon",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "before",
+    "cls": 0.025280746547871654,
+    "shifts": [
+      {
+        "time": 331.29999999981374,
+        "value": 0.025280746547871654,
+        "sources": [
+          {
+            "node": "DIV.hp-hero-inner",
+            "prev": {
+              "x": 0,
+              "y": 413.453125,
+              "width": 806.390625,
+              "height": 392.09375,
+              "top": 413.453125,
+              "right": 806.390625,
+              "bottom": 805.546875,
+              "left": 0
+            },
+            "next": {
+              "x": 0,
+              "y": 313.5625,
+              "width": 806.390625,
+              "height": 586.4375,
+              "top": 313.5625,
+              "right": 806.390625,
+              "bottom": 900,
+              "left": 0
+            }
+          }
+        ]
+      }
+    ],
+    "lcp": 184,
+    "supportsExpect": false,
+    "h1": {
+      "x": 148.1875,
+      "y": 385.5625,
+      "width": 510,
+      "height": 230.09375,
+      "top": 385.5625,
+      "right": 658.1875,
+      "bottom": 615.65625,
+      "left": 148.1875
+    },
+    "hero": {
+      "x": 0,
+      "y": 204.5,
+      "width": 1440,
+      "height": 810,
+      "top": 204.5,
+      "right": 1440,
+      "bottom": 1014.5,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  },
+  {
+    "theme": "fall_owl_harvest_moon",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "shifts": [],
+    "lcp": 368,
+    "supportsExpect": false,
+    "h1": {
+      "x": 148.1875,
+      "y": 385.5625,
+      "width": 510,
+      "height": 230.09375,
+      "top": 385.5625,
+      "right": 658.1875,
+      "bottom": 615.65625,
+      "left": 148.1875
+    },
+    "hero": {
+      "x": 0,
+      "y": 204.5,
+      "width": 1440,
+      "height": 810,
+      "top": 204.5,
+      "right": 1440,
+      "bottom": 1014.5,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  },
+  {
+    "theme": "midnight_rose",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "before",
+    "cls": 0.045903099279835394,
+    "shifts": [
+      {
+        "time": 296.29999999981374,
+        "value": 0.045903099279835394,
+        "sources": [
+          {
+            "node": "DIV.hp-hero-inner",
+            "prev": {
+              "x": 80,
+              "y": 329.921875,
+              "width": 1280,
+              "height": 509.15625,
+              "top": 329.921875,
+              "right": 1360,
+              "bottom": 839.078125,
+              "left": 80
+            },
+            "next": {
+              "x": 80,
+              "y": 230.03125,
+              "width": 1280,
+              "height": 669.96875,
+              "top": 230.03125,
+              "right": 1360,
+              "bottom": 900,
+              "left": 80
+            }
+          }
+        ]
+      }
+    ],
+    "lcp": 164,
+    "supportsExpect": false,
+    "h1": {
+      "x": 410,
+      "y": 326.03125,
+      "width": 620,
+      "height": 299.15625,
+      "top": 326.03125,
+      "right": 1030,
+      "bottom": 625.1875,
+      "left": 410
+    },
+    "hero": {
+      "x": 0,
+      "y": 204.5,
+      "width": 1440,
+      "height": 760,
+      "top": 204.5,
+      "right": 1440,
+      "bottom": 964.5,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  },
+  {
+    "theme": "midnight_rose",
+    "surface": "homepage",
+    "device": "desktop",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "shifts": [],
+    "lcp": 368,
+    "supportsExpect": false,
+    "h1": {
+      "x": 410,
+      "y": 326.03125,
+      "width": 620,
+      "height": 299.15625,
+      "top": 326.03125,
+      "right": 1030,
+      "bottom": 625.1875,
+      "left": 410
+    },
+    "hero": {
+      "x": 0,
+      "y": 204.5,
+      "width": 1440,
+      "height": 760,
+      "top": 204.5,
+      "right": 1440,
+      "bottom": 964.5,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  },
+  {
+    "theme": "pearl_rose",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "before",
+    "cls": 0.23785213807107883,
+    "shifts": [
+      {
+        "time": 308.90000000037253,
+        "value": 0.23785213807107883,
+        "sources": [
+          {
+            "node": "DIV.jp-hero-card",
+            "prev": {
+              "x": 0,
+              "y": 296.5,
+              "width": 390,
+              "height": 445.734375,
+              "top": 296.5,
+              "right": 390,
+              "bottom": 742.234375,
+              "left": 0
+            },
+            "next": {
+              "x": 0,
+              "y": 266.5,
+              "width": 390,
+              "height": 577.5,
+              "top": 266.5,
+              "right": 390,
+              "bottom": 844,
+              "left": 0
+            }
+          },
+          {
+            "node": "BUTTON.ssr-utility-motion-control",
+            "prev": {
+              "x": 251.640625,
+              "y": 718.5,
+              "width": 120.359375,
+              "height": 36,
+              "top": 718.5,
+              "right": 372,
+              "bottom": 754.5,
+              "left": 251.640625
+            },
+            "next": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        ]
+      }
+    ],
+    "lcp": 108,
+    "supportsExpect": false,
+    "h1": {
+      "x": 77.125,
+      "y": 465.5,
+      "width": 235.75,
+      "height": 131.734375,
+      "top": 465.5,
+      "right": 312.875,
+      "bottom": 597.234375,
+      "left": 77.125
+    },
+    "hero": {
+      "x": 0,
+      "y": 244.5,
+      "width": 390,
+      "height": 813.640625,
+      "top": 244.5,
+      "right": 390,
+      "bottom": 1058.140625,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  },
+  {
+    "theme": "pearl_rose",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "shifts": [],
+    "lcp": 364,
+    "supportsExpect": false,
+    "h1": {
+      "x": 77.125,
+      "y": 465.5,
+      "width": 235.75,
+      "height": 131.734375,
+      "top": 465.5,
+      "right": 312.875,
+      "bottom": 597.234375,
+      "left": 77.125
+    },
+    "hero": {
+      "x": 0,
+      "y": 244.5,
+      "width": 390,
+      "height": 813.640625,
+      "top": 244.5,
+      "right": 390,
+      "bottom": 1058.140625,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  },
+  {
+    "theme": "rose_gold",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "before",
+    "cls": 0.07910965646829586,
+    "shifts": [
+      {
+        "time": 310.40000000037253,
+        "value": 0.07910965646829586,
+        "sources": [
+          {
+            "node": "DIV.hp-hero-inner",
+            "prev": {
+              "x": 0,
+              "y": 462.359375,
+              "width": 390,
+              "height": 290.109375,
+              "top": 462.359375,
+              "right": 390,
+              "bottom": 752.46875,
+              "left": 0
+            },
+            "next": {
+              "x": 0,
+              "y": 348.515625,
+              "width": 390,
+              "height": 495.484375,
+              "top": 348.515625,
+              "right": 390,
+              "bottom": 844,
+              "left": 0
+            }
+          }
+        ]
+      }
+    ],
+    "lcp": 412,
+    "supportsExpect": false,
+    "h1": {
+      "x": 53.15625,
+      "y": 420.515625,
+      "width": 283.6875,
+      "height": 144.109375,
+      "top": 420.515625,
+      "right": 336.84375,
+      "bottom": 564.625,
+      "left": 53.15625
+    },
+    "hero": {
+      "x": 0,
+      "y": 244.5,
+      "width": 390,
+      "height": 725.828125,
+      "top": 244.5,
+      "right": 390,
+      "bottom": 970.328125,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  },
+  {
+    "theme": "rose_gold",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "no-preference",
+    "renderer": "ssr",
+    "cls": 0,
+    "shifts": [],
+    "lcp": 508,
+    "supportsExpect": false,
+    "h1": {
+      "x": 53.15625,
+      "y": 420.515625,
+      "width": 283.6875,
+      "height": 144.109375,
+      "top": 420.515625,
+      "right": 336.84375,
+      "bottom": 564.625,
+      "left": 53.15625
+    },
+    "hero": {
+      "x": 0,
+      "y": 244.5,
+      "width": 390,
+      "height": 725.828125,
+      "top": 244.5,
+      "right": 390,
+      "bottom": 970.328125,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  },
+  {
+    "theme": "fall_owl_harvest_moon",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "before",
+    "cls": 0.0009438915746472855,
+    "shifts": [
+      {
+        "time": 338,
+        "value": 0.00047194578732364273,
+        "sources": [
+          {
+            "node": "DIV.fow-controls",
+            "prev": {
+              "x": 101.828125,
+              "y": 580.5,
+              "width": 278.171875,
+              "height": 44,
+              "top": 580.5,
+              "right": 380,
+              "bottom": 624.5,
+              "left": 101.828125
+            },
+            "next": {
+              "x": 112.546875,
+              "y": 580.5,
+              "width": 267.453125,
+              "height": 44,
+              "top": 580.5,
+              "right": 380,
+              "bottom": 624.5,
+              "left": 112.546875
+            }
+          }
+        ]
+      },
+      {
+        "time": 352.79999999981374,
+        "value": 0.00047194578732364273,
+        "sources": [
+          {
+            "node": "DIV.fow-controls",
+            "prev": {
+              "x": 112.546875,
+              "y": 580.5,
+              "width": 267.453125,
+              "height": 44,
+              "top": 580.5,
+              "right": 380,
+              "bottom": 624.5,
+              "left": 112.546875
+            },
+            "next": {
+              "x": 101.828125,
+              "y": 580.5,
+              "width": 278.171875,
+              "height": 44,
+              "top": 580.5,
+              "right": 380,
+              "bottom": 624.5,
+              "left": 101.828125
+            }
+          }
+        ]
+      }
+    ],
+    "lcp": 108,
+    "supportsExpect": false,
+    "h1": {
+      "x": 20,
+      "y": 666.5,
+      "width": 350,
+      "height": 138.390625,
+      "top": 666.5,
+      "right": 370,
+      "bottom": 804.890625,
+      "left": 20
+    },
+    "hero": {
+      "x": 0,
+      "y": 244.5,
+      "width": 390,
+      "height": 840.78125,
+      "top": 244.5,
+      "right": 390,
+      "bottom": 1085.28125,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  },
+  {
+    "theme": "fall_owl_harvest_moon",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "shifts": [],
+    "lcp": 332,
+    "supportsExpect": false,
+    "h1": {
+      "x": 20,
+      "y": 666.5,
+      "width": 350,
+      "height": 138.390625,
+      "top": 666.5,
+      "right": 370,
+      "bottom": 804.890625,
+      "left": 20
+    },
+    "hero": {
+      "x": 0,
+      "y": 244.5,
+      "width": 390,
+      "height": 840.78125,
+      "top": 244.5,
+      "right": 390,
+      "bottom": 1085.28125,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  },
+  {
+    "theme": "halloween_pumpkin_cat",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "before",
+    "cls": 0,
+    "shifts": [],
+    "lcp": 108,
+    "supportsExpect": false,
+    "h1": {
+      "x": 25,
+      "y": 710.5,
+      "width": 340,
+      "height": 138.5625,
+      "top": 710.5,
+      "right": 365,
+      "bottom": 849.0625,
+      "left": 25
+    },
+    "hero": {
+      "x": 0,
+      "y": 244.5,
+      "width": 390,
+      "height": 855.34375,
+      "top": 244.5,
+      "right": 390,
+      "bottom": 1099.84375,
+      "left": 0
+    },
+    "titleFont": "Georgia, \"Times New Roman\", serif"
+  },
+  {
+    "theme": "halloween_pumpkin_cat",
+    "surface": "homepage",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "shifts": [],
+    "lcp": 320,
+    "supportsExpect": false,
+    "h1": {
+      "x": 25,
+      "y": 710.5,
+      "width": 340,
+      "height": 138.5625,
+      "top": 710.5,
+      "right": 365,
+      "bottom": 849.0625,
+      "left": 25
+    },
+    "hero": {
+      "x": 0,
+      "y": 244.5,
+      "width": 390,
+      "height": 855.34375,
+      "top": 244.5,
+      "right": 390,
+      "bottom": 1099.84375,
+      "left": 0
+    },
+    "titleFont": "Georgia, \"Times New Roman\", serif"
+  },
+  {
+    "theme": "midnight_rose",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "before",
+    "cls": 0.23785213807107883,
+    "shifts": [
+      {
+        "time": 295.19999999925494,
+        "value": 0.23785213807107883,
+        "sources": [
+          {
+            "node": "DIV.jp-hero-card",
+            "prev": {
+              "x": 0,
+              "y": 296.5,
+              "width": 390,
+              "height": 445.734375,
+              "top": 296.5,
+              "right": 390,
+              "bottom": 742.234375,
+              "left": 0
+            },
+            "next": {
+              "x": 0,
+              "y": 266.5,
+              "width": 390,
+              "height": 577.5,
+              "top": 266.5,
+              "right": 390,
+              "bottom": 844,
+              "left": 0
+            }
+          },
+          {
+            "node": "BUTTON.ssr-utility-motion-control",
+            "prev": {
+              "x": 251.640625,
+              "y": 718.5,
+              "width": 120.359375,
+              "height": 36,
+              "top": 718.5,
+              "right": 372,
+              "bottom": 754.5,
+              "left": 251.640625
+            },
+            "next": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        ]
+      }
+    ],
+    "lcp": 92,
+    "supportsExpect": false,
+    "h1": {
+      "x": 77.125,
+      "y": 465.5,
+      "width": 235.75,
+      "height": 131.734375,
+      "top": 465.5,
+      "right": 312.875,
+      "bottom": 597.234375,
+      "left": 77.125
+    },
+    "hero": {
+      "x": 0,
+      "y": 244.5,
+      "width": 390,
+      "height": 813.640625,
+      "top": 244.5,
+      "right": 390,
+      "bottom": 1058.140625,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  },
+  {
+    "theme": "midnight_rose",
+    "surface": "join",
+    "device": "phone",
+    "reducedMotion": "reduce",
+    "renderer": "ssr",
+    "cls": 0,
+    "shifts": [],
+    "lcp": 352,
+    "supportsExpect": false,
+    "h1": {
+      "x": 77.125,
+      "y": 465.5,
+      "width": 235.75,
+      "height": 131.734375,
+      "top": 465.5,
+      "right": 312.875,
+      "bottom": 597.234375,
+      "left": 77.125
+    },
+    "hero": {
+      "x": 0,
+      "y": 244.5,
+      "width": 390,
+      "height": 813.640625,
+      "top": 244.5,
+      "right": 390,
+      "bottom": 1058.140625,
+      "left": 0
+    },
+    "titleFont": "\"Playfair Display\", Georgia, serif"
+  }
+]

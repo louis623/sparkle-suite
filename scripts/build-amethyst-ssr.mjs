@@ -1,16 +1,24 @@
-import { buildSync } from 'esbuild'
+import { buildSync, transformSync } from 'esbuild'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 // Keep frozen legacy scripts byte-identical. Only SSR-owned copies skip the
 // scene already present in the React tree (Sunset's card paint still runs).
 mkdirSync('public/amethyst/ssr-motion', { recursive: true })
 for (const name of ['neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pumpkin-cat', 'gilded-autumn', 'am01-unicorn', 'rose-champagne', 'midnight-rose', 'fall-owl', 'thanksgiving-motion', 'pearl-rose', 'sunset-beach']) {
   const source = readFileSync(`public/amethyst/${name}.js`, 'utf8')
-  writeFileSync(`public/amethyst/ssr-motion/${name}.js`, source.replace(/\.hp-hero(?![-\w])/g, '.hp-hero:not([data-ssr-hero])'))
+  const ssrSource = source.replace(/\.hp-hero(?![-\w])/g, '.hp-hero:not([data-ssr-hero])')
+  writeFileSync(`public/amethyst/ssr-motion/${name}.js`, name === 'gilded-autumn'
+    ? ssrSource.replace(/\.mhf-hero(?![-\w])/g, '.mhf-hero:not([data-ssr-hero])') : ssrSource)
 }
 // Bundle trusted CSS as immutable server data. Inlining the selected styles
 // avoids mobile stylesheet round trips without tracing the entire public tree.
 const styles = Object.fromEntries(['tokens', 'components', 'homepage', 'trade', 'join', 'britt-hero-buttons', 'gnome-garden', 'neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pumpkin-cat', 'gilded-autumn', 'am01-unicorn', 'rose-champagne', 'sunset-beach', 'midnight-rose', 'fall-owl', 'gobble-and-fizz', 'pie-please', 'pearl-rose', 'ssr-hero-motion'].map(name => [name + '.css', readFileSync(`public/amethyst/${name}.css`, 'utf8')]))
 writeFileSync('lib/amethyst/generated/homepage-styles.json', JSON.stringify(styles))
+// Alpine Opal Trade needs the shared rules, but not their authoring whitespace
+// on its critical HTML path. Preserve every selector, value and rule order.
+writeFileSync('lib/amethyst/generated/trade-styles.json', JSON.stringify(Object.fromEntries(
+  ['tokens.css', 'components.css', 'homepage.css', 'trade.css'].map(name =>
+    [name, transformSync(styles[name], { loader: 'css', minifyWhitespace: true }).code]),
+)))
 const production = { 'process.env.NODE_ENV': '"production"' }
 buildSync({ entryPoints: ['scripts/amethyst-server-entry.ts'], outfile: 'lib/amethyst/generated/homepage-server.cjs', bundle: true, platform: 'node', format: 'cjs', minify: true, define: production })
 buildSync({ entryPoints: ['scripts/amethyst-browser-entry.ts'], outfile: 'public/amethyst/compiled/react.js', bundle: true, platform: 'browser', format: 'iife', minify: true, define: production })

@@ -1,0 +1,631 @@
+{
+  "base": "6439b09429523bc0621b169a3eabc3c3385a8e3c",
+  "scope": "Code only. No Smoke A/B execution, deploys, aliases, env/settings changes, service DB access or Live requests.",
+  "browsers": {
+    "chromium": "Google Chrome 156.0.8078.47",
+    "webkit": "Playwright WebKit 26.5; native Layout Instability API unavailable"
+  },
+  "method": {
+    "url": "http://127.0.0.1:4398/review",
+    "viewports": {
+      "desktop": "1440x900",
+      "phone": "390x844"
+    },
+    "streamPauseAfterVisibleH1Ms": 250,
+    "timingRuns": 5,
+    "reducedMotionRuns": 1,
+    "network": "Loopback fixtures only, external application/provider hosts blocked; no CPU/network emulation. Browser plugin unavailable; regular Playwright used.",
+    "baselineProvenance": {
+      "sha": "6439b09429523bc0621b169a3eabc3c3385a8e3c",
+      "rebuilt": 69,
+      "differences": []
+    }
+  },
+  "samples": 336,
+  "results": [
+    {
+      "engine": "chromium",
+      "surface": "halloween_pumpkin_cat/homepage",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 132,
+        "gatedMedianMs": 380,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "halloween_pumpkin_cat/homepage",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 72,
+        "gatedMedianMs": 324,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "fall_owl_harvest_moon/homepage",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 136,
+        "gatedMedianMs": 372,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "fall_owl_harvest_moon/homepage",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 104,
+        "gatedMedianMs": 332,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "midnight_rose/homepage",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 132,
+        "gatedMedianMs": 368,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "midnight_rose/homepage",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 104,
+        "gatedMedianMs": 336,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "rose_gold/homepage",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 132,
+        "gatedMedianMs": 500,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "rose_gold/homepage",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 108,
+        "gatedMedianMs": 408,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "pearl_rose/join",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 128,
+        "gatedMedianMs": 376,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "pearl_rose/join",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 92,
+        "gatedMedianMs": 356,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "midnight_rose/join",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 172,
+        "gatedMedianMs": 376,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "midnight_rose/join",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 104,
+        "gatedMedianMs": 376,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "alpine_opal/trade",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 164,
+        "gatedMedianMs": 512,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "surface": "alpine_opal/trade",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": true,
+      "nativeCLS": 0,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 84,
+        "gatedMedianMs": 364,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "halloween_pumpkin_cat/homepage",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 104,
+        "gatedMedianMs": 385,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "halloween_pumpkin_cat/homepage",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 118,
+        "gatedMedianMs": 383,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "fall_owl_harvest_moon/homepage",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 142,
+        "gatedMedianMs": 351,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "fall_owl_harvest_moon/homepage",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 129,
+        "gatedMedianMs": 349,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "midnight_rose/homepage",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 133,
+        "gatedMedianMs": 351,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "midnight_rose/homepage",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 132,
+        "gatedMedianMs": 345,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "rose_gold/homepage",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 161,
+        "gatedMedianMs": 340,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "rose_gold/homepage",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 153,
+        "gatedMedianMs": 344,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "pearl_rose/join",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 158,
+        "gatedMedianMs": 315,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "pearl_rose/join",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 147,
+        "gatedMedianMs": 305,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "midnight_rose/join",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 151,
+        "gatedMedianMs": 308,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "midnight_rose/join",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 170,
+        "gatedMedianMs": 313,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "alpine_opal/trade",
+      "device": "desktop",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 107,
+        "gatedMedianMs": 300,
+        "runs": 5,
+        "pass": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "surface": "alpine_opal/trade",
+      "device": "phone",
+      "candidateSamples": 6,
+      "nativeCLSSupported": false,
+      "nativeCLS": null,
+      "observedGeometryShifts": 0,
+      "fcp": {
+        "candidateMedianMs": 104,
+        "gatedMedianMs": 294,
+        "runs": 5,
+        "pass": true
+      }
+    }
+  ],
+  "tests": {
+    "recordedBaseline": {
+      "passed": 6059,
+      "failed": 75,
+      "skipped": 6
+    },
+    "final": {
+      "passed": 6068,
+      "failed": 75,
+      "skipped": 6
+    },
+    "focused": {
+      "passed": 516,
+      "failed": 0,
+      "skipped": 0
+    },
+    "newFailingNames": [],
+    "existingSuiteLoadErrors": [
+      "remy-communications-schema-contract.test.ts",
+      "sparkle-finder-public-show-window-migration.test.ts",
+      "thanksgiving-migration.test.ts",
+      "prelaunch/prelaunch-crawl-metadata.test.ts"
+    ]
+  },
+  "amethyst": [
+    {
+      "engine": "chromium",
+      "reducedMotion": "no-preference",
+      "initial": {
+        "poster": "opening-poster.webp",
+        "still": "opening-poster.webp",
+        "time": 0.575349,
+        "paused": false,
+        "loop": true,
+        "src": "/amethyst/skins/am01-unicorn/hero-motion.mp4",
+        "pressed": "true"
+      },
+      "playing": {
+        "poster": "opening-poster.webp",
+        "still": "opening-poster.webp",
+        "time": 0.600143,
+        "paused": false,
+        "loop": true,
+        "src": "/amethyst/skins/am01-unicorn/hero-motion.mp4",
+        "pressed": "true"
+      },
+      "paused": {
+        "poster": "hero-poster.webp",
+        "still": "hero-poster.webp",
+        "time": 0.650841,
+        "paused": true,
+        "loop": true,
+        "src": "/amethyst/skins/am01-unicorn/hero-motion.mp4",
+        "pressed": "false"
+      },
+      "errors": [],
+      "pass": true
+    },
+    {
+      "engine": "chromium",
+      "reducedMotion": "reduce",
+      "initial": {
+        "poster": "hero-poster.webp",
+        "still": "hero-poster.webp",
+        "time": 0,
+        "paused": true,
+        "loop": true,
+        "src": null,
+        "pressed": "false"
+      },
+      "playing": {
+        "poster": "opening-poster.webp",
+        "still": "opening-poster.webp",
+        "time": 0.013671,
+        "paused": false,
+        "loop": true,
+        "src": "/amethyst/skins/am01-unicorn/hero-motion.mp4",
+        "pressed": "true"
+      },
+      "paused": {
+        "poster": "hero-poster.webp",
+        "still": "hero-poster.webp",
+        "time": 0.015753,
+        "paused": true,
+        "loop": true,
+        "src": "/amethyst/skins/am01-unicorn/hero-motion.mp4",
+        "pressed": "false"
+      },
+      "errors": [],
+      "pass": true
+    },
+    {
+      "engine": "webkit",
+      "reducedMotion": "no-preference",
+      "initial": {
+        "poster": "opening-poster.webp",
+        "still": "opening-poster.webp",
+        "time": 0,
+        "paused": false,
+        "loop": true,
+        "src": "/amethyst/skins/am01-unicorn/hero-motion.mp4",
+        "pressed": "true"
+      },
+      "playing": {
+        "poster": "opening-poster.webp",
+        "still": "opening-poster.webp",
+        "time": 0.032833,
+        "paused": false,
+        "loop": true,
+        "src": "/amethyst/skins/am01-unicorn/hero-motion.mp4",
+        "pressed": "true"
+      },
+      "paused": {
+        "poster": "hero-poster.webp",
+        "still": "hero-poster.webp",
+        "time": 0.194111,
+        "paused": true,
+        "loop": true,
+        "src": "/amethyst/skins/am01-unicorn/hero-motion.mp4",
+        "pressed": "false"
+      },
+      "errors": [],
+      "pass": true
+    },
+    {
+      "engine": "webkit",
+      "reducedMotion": "reduce",
+      "initial": {
+        "poster": "hero-poster.webp",
+        "still": "hero-poster.webp",
+        "time": 0,
+        "paused": true,
+        "loop": true,
+        "src": null,
+        "pressed": "false"
+      },
+      "playing": {
+        "poster": "opening-poster.webp",
+        "still": "opening-poster.webp",
+        "time": 0.01816,
+        "paused": false,
+        "loop": true,
+        "src": "/amethyst/skins/am01-unicorn/hero-motion.mp4",
+        "pressed": "true"
+      },
+      "paused": {
+        "poster": "hero-poster.webp",
+        "still": "hero-poster.webp",
+        "time": 0.048853,
+        "paused": true,
+        "loop": true,
+        "src": "/amethyst/skins/am01-unicorn/hero-motion.mp4",
+        "pressed": "false"
+      },
+      "errors": [],
+      "pass": true
+    }
+  ],
+  "filesChanged": [
+    "lib/amethyst/generated/homepage-styles.json",
+    "lib/amethyst/generated/page-runtimes.json",
+    "lib/amethyst/hero-motion-config.ts",
+    "lib/amethyst/hero-motion-controls.ts",
+    "lib/amethyst/page-first-paint.ts",
+    "lib/amethyst/utility-page-fonts.ts",
+    "lib/amethyst/v2/hero-copy-reservation.jsx",
+    "lib/amethyst/v2/hero-motion.jsx",
+    "lib/amethyst/v2/homepage.jsx",
+    "lib/amethyst/v2/join.jsx",
+    "public/amethyst/compiled/homepage.js",
+    "public/amethyst/compiled/join.js",
+    "public/amethyst/compiled/trade.js",
+    "public/amethyst/ssr-hero-motion.css",
+    "scripts/qa/ssr-smoke-ab-metrics.cjs",
+    "scripts/qa/ssr-smoke-ab.cjs",
+    "scripts/qa/ssr-smoke-ab.md",
+    "tests/amethyst-ssr-all-themes.test.ts",
+    "tests/amethyst-ssr-paint-stability.test.ts",
+    "tests/amethyst-ssr-reduced-motion.test.ts",
+    "tests/fixtures/amethyst-ssr-non-mhf-sha256.json",
+    "tests/ssr-smoke-ab-gates.test.ts",
+    "vault/2026-10-31-ssr-rocky-review.json",
+    "vault/2026-10-31-ssr-rocky-review.md"
+  ]
+}

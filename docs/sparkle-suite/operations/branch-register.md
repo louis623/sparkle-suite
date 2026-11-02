@@ -1,5 +1,9 @@
 # Sparkle Suite Branch Register
 
+## October 30 — per-rep SSR allowlist local review
+
+Louis explicitly authorized `codex/ssr-per-rep-allowlist`, fresh from verified base `968f7425`, for one PR targeting `codex/nic-nac-trade-hardening`. The disposable clean clone `C:\Users\louis\sparkle-suite-repo\.codex-worktrees\ssr-per-rep-allowlist-disposable` is allowlisted for local implementation, tests and build only. No merge, deployment on Live or Smoke, environment, alias or database change is authorized. GitHub default and Vercel production branches stay unchanged.
+
 **Reviewed:** September 15, 2026
 
 **Repository:** `louis623/sparkle-suite`

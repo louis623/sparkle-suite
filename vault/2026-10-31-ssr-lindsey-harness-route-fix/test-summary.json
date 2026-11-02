@@ -1,0 +1,41 @@
+{
+  "inputTip": "b7ba3acd87472cdd2d90860eb55eb70def399c7d",
+  "promptCommit": "e0932201",
+  "focused": {
+    "passed": 68,
+    "failed": 0,
+    "skipped": 0
+  },
+  "baseline": {
+    "passed": 6109,
+    "failed": 75,
+    "skipped": 6
+  },
+  "full": {
+    "passed": 6116,
+    "failed": 75,
+    "skipped": 6
+  },
+  "fullSuiteInvocations": 1,
+  "testFiles": 733,
+  "newFailingNames": [],
+  "resolvedFailingNames": [],
+  "suiteLoadErrors": [
+    "remy-communications-schema-contract.test.ts",
+    "sparkle-finder-public-show-window-migration.test.ts",
+    "thanksgiving-migration.test.ts",
+    "prelaunch/prelaunch-crawl-metadata.test.ts"
+  ],
+  "newSuiteLoadErrors": [],
+  "failureNameReference": {
+    "artifact": ".tmp-qa/full-exact.json",
+    "counts": [
+      6068,
+      75,
+      6
+    ],
+    "attestation": "The tracked Lindsey blockers and pause/tap reports attest unchanged failing names through 6109/75/6."
+  },
+  "legacyMileHighFizzOverrideCheck": "BLOCKED: app guard only permits dudesfizzfest; three real-wrapper offline checks demonstrate dropped queries and runtime-theme mismatch rejection. No app code changed.",
+  "externalAccess": "No deploy, alias operation, Smoke/Live or external DB access; tests ran behind existing socket/fetch guard."
+}

@@ -28,25 +28,42 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
       const saved = { ...homepage, heroMotion: 'still', publicSiteVariant }
       const bootstrap = buildAmethystHomepageBootstrapScript(saved, [], preset, { targeted: true })
       const html = await renderHomepageFirstPaint(source, { homepage: saved, join, trade, appearancePreset: preset }, new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
-      expect(html).toContain(`data-ssr-hero="${preset}"`)
+      const bespoke = layout === 'mile_high_fizz' && preset !== 'halloween_pumpkin_cat'
+      if (bespoke) expect(html).toContain('class="mhf-hero"')
+      else expect(html).toContain(`data-ssr-hero="${preset}"`)
       expect(html).toContain('data-server-rendered="true"')
       expect(html.match(/<h1\b/g)).toHaveLength(1)
-      expect(html).toContain('data-hero-motion-toggle=""')
-      expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
-      expect(html).toContain('>Pause animation</button>')
-      if (HERO_MOTION_THEMES[preset].sound) {
-        expect(html).toContain('>Enable ' + HERO_MOTION_THEMES[preset].sound + '</button>')
+      if (bespoke) {
+        if (preset === 'gilded_autumn') expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
+        else expect(html).not.toContain('data-hero-motion-toggle=""')
+        expect(html).not.toMatch(/<section class="hp-hero"/)
+        if (preset === 'gnome_garden') expect(html).toContain('class="gg-decoration"')
+        if (preset === 'gilded_autumn') {
+          expect(html).toContain('data-hero-video-src="/amethyst/skins/gilded-autumn/hero-motion.mp4"')
+          expect(html).not.toContain('class="mhf-hero-video"')
+        }
+        else expect(html).toMatch(/<video[^>]*class="mhf-hero-video"[^>]*preload="metadata"/)
+      } else {
+        expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
+        expect(html).toContain('>Pause animation</button>')
+        if (HERO_MOTION_THEMES[preset].sound) expect(html).toContain('>Enable ' + HERO_MOTION_THEMES[preset].sound + '</button>')
+        if (preset === 'sunset_beach') expect(html.indexOf('class="beach-motion-controls"')).toBeLessThan(html.indexOf('class="hp-hero-media"'))
       }
-      if (preset === 'sunset_beach') expect(html.indexOf('class="beach-motion-controls"')).toBeLessThan(html.indexOf('class="hp-hero-media"'))
       for (const css of HERO_MOTION_THEMES[preset].css) expect(html).toContain(css)
       expect(html).toContain('data-ssr-style="homepage.css"')
       expect(html).not.toMatch(/<link\b[^>]*rel="stylesheet"/)
       if (HERO_MOTION_THEMES[preset].script) expect(html).toMatch(new RegExp(`<script defer src="[^\"]*${HERO_MOTION_THEMES[preset].script}`))
-      if (HERO_MOTION_THEMES[preset].kind === 'video') {
+      if (!bespoke && HERO_MOTION_THEMES[preset].kind === 'video') {
         const video = html.match(/<video\b[^>]*data-hero-video=""[^>]*>/)?.[0]
-        for (const attribute of ['autoplay', 'muted', 'playsinline', 'loop']) expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
-        expect(video).toContain(`poster="${HERO_MOTION_THEMES[preset].poster}"`)
-        expect(video).toContain('preload="auto"')
+        for (const attribute of ['muted', 'playsinline', 'loop']) expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
+        expect(video).not.toMatch(/\sautoplay/)
+        const still = html.match(/<img\b[^>]*data-hero-still=""[^>]*>/)?.[0]
+        expect(still).toContain(`src="${preset === 'sunset_beach' ? '/amethyst/ssr-images/sunset-beach-hero-approved-1080.webp' : HERO_MOTION_THEMES[preset].poster}"`)
+        expect(video).toContain(`data-hero-video-src="${HERO_MOTION_THEMES[preset].src}"`)
+        expect(video).toContain('preload="none"')
+        expect(video).not.toMatch(/\ssrc=/)
+        if (preset === 'amethyst') expect(video).toContain('poster="/amethyst/skins/am01-unicorn/opening-poster.webp"')
+        else expect(video).not.toMatch(/\sposter=/)
       }
       expect(html).not.toMatch(/react\.development|babel|data-template-src=/)
       expect(saved.heroMotion).toBe('still')
@@ -59,9 +76,9 @@ it('starts muted before play, never inserts a loop rest, and retains early visit
   const video = { muted: false, defaultMuted: false, loop: false, paused: true,
     addEventListener: vi.fn(), play: vi.fn(() => { expect(video.muted).toBe(true); video.paused = false; return Promise.resolve() }),
     pause: vi.fn(() => { video.paused = true }) }
-  const button = { textContent: '', setAttribute: vi.fn(), addEventListener: (name: string, listener: () => void) => listeners.set(name, listener) }
+  const button = { textContent: '', style: { minInlineSize: '' }, getBoundingClientRect: () => ({ width: 120 }), setAttribute: vi.fn(), addEventListener: (name: string, listener: () => void) => listeners.set(name, listener) }
   const hero = { dataset: {} as Record<string, string>, querySelector: (selector: string) => selector.includes('motion-toggle') ? button : selector.includes('hero-video') ? video : null }
-  const window: { sparkleStartHeroMotion?: () => void } = {}
+  const window: { sparkleStartHeroMotion?: () => void; matchMedia: () => unknown } = { matchMedia: () => ({ matches: false, addEventListener() {} }) }
   runInNewContext(earlyHomepageControls, { window, document: { hidden: true, querySelectorAll: () => [hero] }, Promise })
   await Promise.resolve(); await Promise.resolve()
   expect(video.play).toHaveBeenCalledOnce()
@@ -73,25 +90,30 @@ it('starts muted before play, never inserts a loop rest, and retains early visit
   window.sparkleStartHeroMotion!()
   expect(button.textContent).toBe('Play animation')
   expect(video.play).toHaveBeenCalledOnce()
-  expect(earlyHomepageControls).not.toMatch(/setTimeout|setInterval|ended|IntersectionObserver|matchMedia/)
+  expect(earlyHomepageControls).not.toMatch(/setTimeout|setInterval|ended|IntersectionObserver/)
 })
 
-it('disables review overrides on Live, other projects, other databases and other reps; normal URL uses saved theme', () => {
+it.each(['dudesfizzfest', 'milehighfizz'])('guards review overrides for %s; normal URL uses saved theme', slug => {
   const data = { appearancePreset: 'sunset_beach' as const, homepage, join, trade }
-  const url = new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest?ssrReviewTheme=pearl_rose&ssrReviewLayout=mile_high_fizz')
+  const url = new URL(`https://fixture.vercel.app/${slug}?ssrReviewTheme=pearl_rose&ssrReviewLayout=mile_high_fizz`)
   vi.stubEnv('VERCEL_ENV', 'preview'); vi.stubEnv('VERCEL_PROJECT_ID', 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ')
   vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke'); vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://pukemqiwlyqmyytxkdmo.supabase.co')
-  expect(homepageSmokeReview(data, url, 'dudesfizzfest').appearancePreset).toBe('pearl_rose')
-  const themeOnly = homepageSmokeReview(data, new URL(url.origin + url.pathname + '?ssrReviewTheme=neon_butterfly'), 'dudesfizzfest')
+  expect(homepageSmokeReview(data, url, slug).appearancePreset).toBe('pearl_rose')
+  const themeOnly = homepageSmokeReview(data, new URL(url.origin + url.pathname + '?ssrReviewTheme=neon_butterfly'), slug)
   expect(themeOnly.appearancePreset).toBe('neon_butterfly')
   expect(themeOnly.homepage.publicSiteVariant).toBe(homepage.publicSiteVariant)
   expect(themeOnly.trade.publicSiteVariant).toBe(homepage.publicSiteVariant)
   expect(themeOnly.join.publicSiteVariant).toBe(homepage.publicSiteVariant)
-  expect(homepageSmokeReview(data, new URL(url.origin + url.pathname), 'dudesfizzfest')).toBe(data)
-  expect(homepageSmokeReview(data, url, 'blingkitchen')).toBe(data)
+  expect(homepageSmokeReview(data, new URL(url.origin + url.pathname), slug)).toBe(data)
+  for (const otherSlug of ['blingkitchen', 'brittwithbling', 'otherrep', 'MileHighFizz', 'milehighfizz-extra', '', null, undefined]) {
+    expect(homepageSmokeReview(data, url, otherSlug)).toBe(data)
+  }
+  for (const query of ['ssrReviewTheme=invalid', 'ssrReviewTheme=gilded_autumn&ssrReviewLayout=invalid', 'ssrReviewLayout=mile_high_fizz']) {
+    expect(homepageSmokeReview(data, new URL(url.origin + url.pathname + '?' + query), slug)).toBe(data)
+  }
   for (const [key, value] of [['VERCEL_ENV', 'production'], ['VERCEL_PROJECT_ID', 'other'], ['NEXT_PUBLIC_SUPABASE_URL', 'https://other.supabase.co'], ['NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'live']]) {
     const original = process.env[key]; vi.stubEnv(key, value)
-    expect(homepageSmokeReview(data, url, 'dudesfizzfest')).toBe(data)
+    expect(homepageSmokeReview(data, url, slug)).toBe(data)
     vi.stubEnv(key, original)
   }
 })

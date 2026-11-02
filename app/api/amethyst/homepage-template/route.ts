@@ -1,3 +1,4 @@
+import { homepageSmokeReview } from '@/lib/amethyst/homepage-smoke-review'
 import { delayPreviewHomepageData, previewHomepageTheme } from '@/lib/amethyst/homepage-data-budget'
 import { buildLineupCalendar } from '@/lib/amethyst/lineup-calendar'
 import { requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
@@ -121,19 +122,19 @@ export async function GET(request: Request) {
     requestCustomDomain,
   )
   // Smoke-only design preview of Heather's BlingKitchen kitchen hero. Never on Live.
-  const previewTemplateData = isSmokeBlingKitchenPreview(request)
+  const previewTemplateData: typeof domainTemplateData = isSmokeBlingKitchenPreview(request)
     ? {
         ...domainTemplateData,
         homepage: applyBlingKitchenHomepage(domainTemplateData.homepage),
         appearancePreset: DEFAULT_AMETHYST_APPEARANCE_PRESET,
       }
     : domainTemplateData
-  const customerTemplateData = previewHomepageTheme(restrictPantryTemplateData(previewTemplateData, {
+  const customerTemplateData = homepageSmokeReview(previewHomepageTheme(restrictPantryTemplateData(previewTemplateData, {
     repId,
     publicSiteSlug,
     customDomain: requestCustomDomain,
     requestHost: pantryRequestHost(request),
-  }), publicSiteSlug)
+  }), publicSiteSlug), new URL(request.url), publicSiteSlug)
   const linkedEvents = applyCustomDomainToHomepageEvents(
     applyPublicSiteSlugToHomepageEvents(events, publicSiteSlug),
     requestCustomDomain,

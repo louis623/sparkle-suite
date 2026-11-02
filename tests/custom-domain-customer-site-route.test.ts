@@ -11,6 +11,7 @@ vi.mock('@/lib/amethyst/customer-domain-site', async (importOriginal) => ({
   resolveCustomerDomainSiteState: vi.fn().mockResolvedValue({
     kind: 'serve',
     host: 'brisglowtique.com',
+    publicSiteSlug: 'brisglowtique',
     repId: '2b5a27c5-9c05-4014-8d0b-754e19815bf6',
   }),
 }))
@@ -38,7 +39,7 @@ describe('custom-domain customer-site route', () => {
     expect(renderAmethystPublicAssetResponseMock).toHaveBeenCalledWith(
       request,
       asset,
-      { canonicalPathOverride, repIdOverride: RESOLVED_REP_ID },
+      { canonicalPathOverride, repIdOverride: RESOLVED_REP_ID, renderGateSlug: 'brisglowtique' },
     )
   })
 

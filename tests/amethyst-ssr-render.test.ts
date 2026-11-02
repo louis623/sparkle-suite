@@ -16,7 +16,7 @@ it('renders finished Pumpkin Cat markup with one H1, production hydration and on
   expect(html).not.toMatch(/react\.development|babel|data-template-src=/)
   expect(html).not.toMatch(/(?:unicorn|sunset-beach|neon-butterfly)\.(?:css|js)/)
   expect(html).toContain('window.SPARKLE_FIRST_PAINT=')
-  expect(html).not.toContain('data-ssr-fonts')
+  expect(html).toContain('data-ssr-fonts')
 })
 
 it('autoplays the muted inline SSR hero even with saved still motion, retaining its poster', async () => {
@@ -26,10 +26,15 @@ it('autoplays the muted inline SSR hero even with saved still motion, retaining 
   const html = await renderHomepageFirstPaint(source, { homepage: saved, join, trade, appearancePreset: 'halloween_pumpkin_cat' }, new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
   const video = html.match(/<video\b[^>]*class="hpc-video"[^>]*>/)?.[0]
   expect(video).toBeDefined()
-  for (const attribute of ['autoplay', 'muted', 'playsinline', 'loop']) {
+  // The synchronous controller enables autoplay only after media preference is known.
+  expect(video).not.toMatch(/\sautoplay/)
+  for (const attribute of ['muted', 'playsinline', 'loop']) {
     expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
   }
-  expect(video).toContain('poster="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-1200.webp"')
+  expect(video).toContain('data-hero-video-src="/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4"')
+  expect(video).toContain('preload="none"')
+  expect(video).not.toMatch(/\ssrc=|\sposter=/)
+  expect(html).toMatch(/<img\b[^>]*data-hero-still=""[^>]*src="\/amethyst\/skins\/halloween-pumpkin-cat\/hero-desktop-1200.webp"/)
   expect(html).toContain('class="hpc-poster"')
   expect(html).toMatch(/class="hpc-motion-control"[^>]*aria-pressed="true"[^>]*>Pause animation/)
 })

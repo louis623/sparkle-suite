@@ -1,0 +1,14 @@
+[
+  {
+    "file": "scripts/qa/ssr-smoke-ab.cjs",
+    "sha256": "b6a4afd84f873e01ab847f0d1c0919a2df162cca85d4928ca31fef342cdd62ab"
+  },
+  {
+    "file": "scripts/qa/ssr-ab-cases.cjs",
+    "sha256": "0001cb7dc4cd1fae964762b70e9046c20f9c8bc7a9ea4f810fda34dab560fe0b"
+  },
+  {
+    "file": "scripts/qa/ssr-smoke-ab-metrics.cjs",
+    "sha256": "7853eac50cea96b4532bb54b5b3340520f9f0f9ee2c08ac1d9b61aebc55c8e79"
+  }
+]

@@ -1,3 +1,4 @@
+import { initialLineup } from "./initial-lineup.jsx";
 import { HeroMotionScene, SparkleFx as SharedSparkleFx } from "./hero-motion.jsx";
 /* global React, ReactDOM */
 const { useState, useEffect, useMemo, useRef } = React;
@@ -1079,7 +1080,7 @@ function LiveLineupUpdatedAt({ lineup }) {
 }
 
 function LiveLineupProvider({ children }) {
-  const [lineup, setLineup] = React.useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
+  const [lineup, setLineup] = React.useState(() => RUNTIME_CONTEXT.targeted ? initialLineup(CONTENT) : null);
   window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
   React.useEffect(() => {
     if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
@@ -1205,8 +1206,8 @@ function GnomeGardenScene() {
 
 function TradeHero({ tweakRepName, tweakHeroTitle, tweakHeroSub, gnomeGarden, motionTweaks }) {
   return (
-    <section className="tp-hero" data-ssr-hero={motionTweaks.preset} data-ssr-surface="utility" suppressHydrationWarning>
-      <HeroMotionScene t={motionTweaks} surface="utility" />
+    <section className="tp-hero" data-ssr-hero={isMileHighFizzHybrid ? undefined : motionTweaks.preset} data-ssr-surface={isMileHighFizzHybrid ? undefined : "utility"} suppressHydrationWarning>
+      {isMileHighFizzHybrid ? (gnomeGarden && <GnomeGardenDecoration />) : <HeroMotionScene t={motionTweaks} surface="utility" />}
       <div className="tp-hero-inner">
         <h1 className="tp-hero-title slot" data-slot="trade hero title">{tweakHeroTitle}</h1>
         <p className="tp-hero-sub slot" data-slot="trade hero sub">
@@ -2390,7 +2391,7 @@ function App() {
     <>
       <SparkleFx level={t.sparkleLevel} />
 
-      <div className={isMileHighFizzHybrid ? "mhf-trade-page" : isBrittWithBlingHybrid ? "bwb-trade-page" : isBlingKitchenHybrid ? "bk-trade-page" : ""}>
+      <div data-trade-board-empty={String(boardIsEmpty)} className={isMileHighFizzHybrid ? "mhf-trade-page" : isBrittWithBlingHybrid ? "bwb-trade-page" : isBlingKitchenHybrid ? "bk-trade-page" : ""}>
         <div className="hp-sticky-stack">
           <Header businessName={t.businessName} />
           {t.showTicker && <Ticker topText={t.tickerTopText} />}

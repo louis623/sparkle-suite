@@ -1,0 +1,1129 @@
+{
+  "status": "COMPLETE",
+  "applicationSha": "320951fc4e8dd08391d259630a2b8fc47f1e8305",
+  "startedAt": "2026-11-01T20:23:13.842Z",
+  "finishedAt": "2026-11-01T20:37:14.811Z",
+  "loads": {
+    "works": 52,
+    "speed": 42,
+    "total": 94,
+    "reruns": 0
+  },
+  "criteria": "Louis revised check: page/URL/SSR marker/theme, page+console+hydration errors, CLS<0.1, home Pause/Play; speed medians only, no absolute speed waiver/gate.",
+  "counts": {
+    "A": {
+      "rowsPassed": 13,
+      "rows": 13,
+      "viewsPassed": 26,
+      "views": 26
+    },
+    "B": {
+      "rowsPassed": 3,
+      "rows": 13,
+      "viewsPassed": 12,
+      "views": 26
+    }
+  },
+  "errors": {
+    "page": 0,
+    "console": 0,
+    "hydration": 0
+  },
+  "rows": [
+    {
+      "id": "fall_owl_harvest_moon/homepage",
+      "layout": "mile_high_fizz",
+      "A": "PASS",
+      "B": "FAIL",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": false,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "Pause/Play control missing"
+          ],
+          "extraBodyClassDiagnostic": false
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": false,
+          "cls": 0.07178023373534487,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "Pause/Play control missing"
+          ],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "midnight_rose/homepage",
+      "layout": "mile_high_fizz",
+      "A": "PASS",
+      "B": "FAIL",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": false,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "Pause/Play control missing"
+          ],
+          "extraBodyClassDiagnostic": false
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": false,
+          "cls": 0.07177399391624335,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "Pause/Play control missing"
+          ],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "rose_gold/homepage",
+      "layout": "mile_high_fizz",
+      "A": "PASS",
+      "B": "FAIL",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": false,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "Pause/Play control missing"
+          ],
+          "extraBodyClassDiagnostic": false
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": false,
+          "cls": 0.07178959346399712,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "Pause/Play control missing"
+          ],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "gilded_autumn/homepage",
+      "layout": "mile_high_fizz",
+      "A": "PASS",
+      "B": "PASS",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": false
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0.07179271337354788,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "gilded_autumn/join",
+      "layout": "mile_high_fizz",
+      "A": "PASS",
+      "B": "FAIL",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": false,
+          "cls": 0.19577707994433913,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "CLS >= 0.1"
+          ],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0.0524665829421725,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "gilded_autumn/trade",
+      "layout": "mile_high_fizz",
+      "A": "PASS",
+      "B": "FAIL",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": true,
+          "cls": 0.009257371485308863,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": false
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": false,
+          "cls": 0.29913008504901567,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "CLS >= 0.1"
+          ],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "halloween_pumpkin_witch/homepage",
+      "layout": "standard",
+      "A": "PASS",
+      "B": "FAIL",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": false,
+          "cls": 0.18687144060383445,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "CLS >= 0.1"
+          ],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "halloween_pumpkin_witch/join",
+      "layout": "standard",
+      "A": "PASS",
+      "B": "FAIL",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": true,
+          "cls": 0.0878518272707953,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": false,
+          "cls": 0.2520305620860661,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "CLS >= 0.1"
+          ],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "halloween_pumpkin_witch/trade",
+      "layout": "standard",
+      "A": "PASS",
+      "B": "PASS",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0.0845665964971681,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "amethyst/homepage",
+      "layout": "standard",
+      "A": "PASS",
+      "B": "PASS",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0.0005976283195087448,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "alpine_opal/homepage",
+      "layout": "mile_high_fizz",
+      "A": "PASS",
+      "B": "FAIL",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": false,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "Pause/Play control missing"
+          ],
+          "extraBodyClassDiagnostic": false
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": false,
+          "cls": 0.07177399391624335,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "Pause/Play control missing"
+          ],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "alpine_opal/join",
+      "layout": "mile_high_fizz",
+      "A": "PASS",
+      "B": "FAIL",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": false,
+          "cls": 0.23977256166187638,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "CLS >= 0.1"
+          ],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0.05416599767446845,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    },
+    {
+      "id": "alpine_opal/trade",
+      "layout": "mile_high_fizz",
+      "A": "PASS",
+      "B": "FAIL",
+      "samples": [
+        {
+          "cohort": "A",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "phone",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": false
+        },
+        {
+          "cohort": "A",
+          "device": "desktop",
+          "pass": true,
+          "cls": 0,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [],
+          "extraBodyClassDiagnostic": true
+        },
+        {
+          "cohort": "B",
+          "device": "desktop",
+          "pass": false,
+          "cls": 0.29460822933913916,
+          "errors": {
+            "page": 0,
+            "console": 0,
+            "hydration": 0,
+            "safetyBlockedRequests": 0
+          },
+          "failures": [
+            "CLS >= 0.1"
+          ],
+          "extraBodyClassDiagnostic": true
+        }
+      ]
+    }
+  ],
+  "speed": [
+    {
+      "id": "fall_owl_harvest_moon/homepage",
+      "AmedianMs": 4232,
+      "BmedianMs": 12152,
+      "Afaster": true,
+      "AsamplesMs": [
+        3664,
+        4572,
+        4232
+      ],
+      "BsamplesMs": [
+        12152,
+        16976,
+        12052
+      ]
+    },
+    {
+      "id": "midnight_rose/homepage",
+      "AmedianMs": 3776,
+      "BmedianMs": 11964,
+      "Afaster": true,
+      "AsamplesMs": [
+        3720,
+        3776,
+        3856
+      ],
+      "BsamplesMs": [
+        11632,
+        11964,
+        12148
+      ]
+    },
+    {
+      "id": "rose_gold/homepage",
+      "AmedianMs": 3724,
+      "BmedianMs": 13580,
+      "Afaster": true,
+      "AsamplesMs": [
+        3848,
+        3724,
+        3664
+      ],
+      "BsamplesMs": [
+        14484,
+        11824,
+        13580
+      ]
+    },
+    {
+      "id": "gilded_autumn/homepage",
+      "AmedianMs": 2520,
+      "BmedianMs": 12492,
+      "Afaster": true,
+      "AsamplesMs": [
+        2520,
+        2816,
+        2496
+      ],
+      "BsamplesMs": [
+        12492,
+        13112,
+        12464
+      ]
+    },
+    {
+      "id": "halloween_pumpkin_witch/homepage",
+      "AmedianMs": 2172,
+      "BmedianMs": 13284,
+      "Afaster": true,
+      "AsamplesMs": [
+        2432,
+        2172,
+        2156
+      ],
+      "BsamplesMs": [
+        2236,
+        13748,
+        13284
+      ]
+    },
+    {
+      "id": "amethyst/homepage",
+      "AmedianMs": 1900,
+      "BmedianMs": 12812,
+      "Afaster": true,
+      "AsamplesMs": [
+        1900,
+        1832,
+        1912
+      ],
+      "BsamplesMs": [
+        13176,
+        12168,
+        12812
+      ]
+    },
+    {
+      "id": "alpine_opal/homepage",
+      "AmedianMs": 3800,
+      "BmedianMs": 12380,
+      "Afaster": true,
+      "AsamplesMs": [
+        3784,
+        3800,
+        3912
+      ],
+      "BsamplesMs": [
+        12380,
+        12276,
+        17500
+      ]
+    }
+  ],
+  "baselineFailures": [
+    {
+      "id": "fall_owl_harvest_moon/homepage",
+      "device": "phone",
+      "cls": 0,
+      "failures": [
+        "Pause/Play control missing"
+      ]
+    },
+    {
+      "id": "fall_owl_harvest_moon/homepage",
+      "device": "desktop",
+      "cls": 0.07178023373534487,
+      "failures": [
+        "Pause/Play control missing"
+      ]
+    },
+    {
+      "id": "midnight_rose/homepage",
+      "device": "phone",
+      "cls": 0,
+      "failures": [
+        "Pause/Play control missing"
+      ]
+    },
+    {
+      "id": "midnight_rose/homepage",
+      "device": "desktop",
+      "cls": 0.07177399391624335,
+      "failures": [
+        "Pause/Play control missing"
+      ]
+    },
+    {
+      "id": "rose_gold/homepage",
+      "device": "phone",
+      "cls": 0,
+      "failures": [
+        "Pause/Play control missing"
+      ]
+    },
+    {
+      "id": "rose_gold/homepage",
+      "device": "desktop",
+      "cls": 0.07178959346399712,
+      "failures": [
+        "Pause/Play control missing"
+      ]
+    },
+    {
+      "id": "gilded_autumn/join",
+      "device": "phone",
+      "cls": 0.19577707994433913,
+      "failures": [
+        "CLS >= 0.1"
+      ]
+    },
+    {
+      "id": "gilded_autumn/trade",
+      "device": "desktop",
+      "cls": 0.29913008504901567,
+      "failures": [
+        "CLS >= 0.1"
+      ]
+    },
+    {
+      "id": "halloween_pumpkin_witch/homepage",
+      "device": "desktop",
+      "cls": 0.18687144060383445,
+      "failures": [
+        "CLS >= 0.1"
+      ]
+    },
+    {
+      "id": "halloween_pumpkin_witch/join",
+      "device": "desktop",
+      "cls": 0.2520305620860661,
+      "failures": [
+        "CLS >= 0.1"
+      ]
+    },
+    {
+      "id": "alpine_opal/homepage",
+      "device": "phone",
+      "cls": 0,
+      "failures": [
+        "Pause/Play control missing"
+      ]
+    },
+    {
+      "id": "alpine_opal/homepage",
+      "device": "desktop",
+      "cls": 0.07177399391624335,
+      "failures": [
+        "Pause/Play control missing"
+      ]
+    },
+    {
+      "id": "alpine_opal/join",
+      "device": "phone",
+      "cls": 0.23977256166187638,
+      "failures": [
+        "CLS >= 0.1"
+      ]
+    },
+    {
+      "id": "alpine_opal/trade",
+      "device": "desktop",
+      "cls": 0.29460822933913916,
+      "failures": [
+        "CLS >= 0.1"
+      ]
+    }
+  ],
+  "extraDiagnosticNote": "Raw data retains an additional early body-class check. It is informational, not one of Louis revised pass/fail criteria. Layout readiness was independently validated before the cancelled old benchmark. No measurement samples were discarded.",
+  "oldPass": {
+    "cancelled": true,
+    "completedLoads": 99,
+    "restarted": false,
+    "usedForNewMedians": false
+  }
+}

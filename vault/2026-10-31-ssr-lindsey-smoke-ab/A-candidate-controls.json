@@ -1,0 +1,107 @@
+{
+  "cohort": "A",
+  "target": "candidate",
+  "host": "sparkle-suite-smoke-hf5bdeh4u-louis-2849s-projects.vercel.app",
+  "deploymentId": "dpl_JEF6TBQswcfF13s4xFSPKCu3DfQY",
+  "sha": "5eaefb1f0e903c7d0b2b0a78389672c7920aab6c",
+  "rows": [
+    {
+      "slug": "milehighfizz",
+      "page": "home",
+      "expectedSSR": true,
+      "status": 200,
+      "serverRendered": true,
+      "pass_": true
+    },
+    {
+      "slug": "milehighfizz",
+      "page": "trade",
+      "expectedSSR": true,
+      "status": 200,
+      "serverRendered": true,
+      "pass_": true
+    },
+    {
+      "slug": "milehighfizz",
+      "page": "join",
+      "expectedSSR": true,
+      "status": 200,
+      "serverRendered": true,
+      "pass_": true
+    },
+    {
+      "slug": "dudesfizzfest",
+      "page": "home",
+      "expectedSSR": true,
+      "status": 200,
+      "serverRendered": true,
+      "pass_": true
+    },
+    {
+      "slug": "dudesfizzfest",
+      "page": "trade",
+      "expectedSSR": true,
+      "status": 200,
+      "serverRendered": true,
+      "pass_": true
+    },
+    {
+      "slug": "dudesfizzfest",
+      "page": "join",
+      "expectedSSR": true,
+      "status": 200,
+      "serverRendered": true,
+      "pass_": true
+    },
+    {
+      "slug": "blingkitchen",
+      "page": "home",
+      "expectedSSR": false,
+      "status": 200,
+      "serverRendered": false,
+      "pass_": true
+    },
+    {
+      "slug": "blingkitchen",
+      "page": "trade",
+      "expectedSSR": false,
+      "status": 200,
+      "serverRendered": false,
+      "pass_": true
+    },
+    {
+      "slug": "blingkitchen",
+      "page": "join",
+      "expectedSSR": false,
+      "status": 200,
+      "serverRendered": false,
+      "pass_": true
+    },
+    {
+      "slug": "smokecodex",
+      "page": "home",
+      "expectedSSR": false,
+      "status": 200,
+      "serverRendered": false,
+      "pass_": true
+    },
+    {
+      "slug": "smokecodex",
+      "page": "trade",
+      "expectedSSR": false,
+      "status": 200,
+      "serverRendered": false,
+      "pass_": true
+    },
+    {
+      "slug": "smokecodex",
+      "page": "join",
+      "expectedSSR": false,
+      "status": 200,
+      "serverRendered": false,
+      "pass_": true
+    }
+  ],
+  "passed": 12,
+  "total": 12
+}

@@ -1,0 +1,26 @@
+const {chromium}=require('./node_modules/playwright'),fs=require('node:fs');
+const out='vault/2026-10-30-ssr-per-rep';
+(async()=>{
+ const browser=await chromium.launch({channel:'chrome',headless:true});
+ const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'no-preference',timezoneId:'America/Denver'});
+ await context.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
+ await context.addInitScript(()=>{
+  window.__slow={cls:0,lcp:0,firstVideoFrame:null};
+  new PerformanceObserver(list=>list.getEntries().forEach(e=>{if(!e.hadRecentInput)window.__slow.cls+=e.value})).observe({type:'layout-shift',buffered:true});
+  new PerformanceObserver(list=>{for(const e of list.getEntries())window.__slow.lcp=e.startTime}).observe({type:'largest-contentful-paint',buffered:true});
+  new MutationObserver(()=>{const v=document.querySelector('.mhf-hero-video');if(v&&!v.__observed){v.__observed=true;v.requestVideoFrameCallback(()=>window.__slow.firstVideoFrame=performance.now())}}).observe(document,{childList:true,subtree:true});
+ });
+ const page=await context.newPage(),session=await context.newCDPSession(page);
+ await session.send('Network.enable');
+ await session.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:200*1024,uploadThroughput:93.75*1024});
+ await session.send('Emulation.setCPUThrottlingRate',{rate:4});
+ await page.goto('http://127.0.0.1:4397/review?theme=alpine_opal&page=homepage&renderer=ssr',{waitUntil:'domcontentloaded'});
+ const start=Date.now();
+ for(const ms of [0,250,500,1000,2000,3000,5000,10000,15000,22000]){
+  await page.waitForTimeout(Math.max(0,ms-(Date.now()-start)));
+  await page.screenshot({path:`${out}/slow-phone-${ms}ms.jpg`,type:'jpeg',quality:75});
+ }
+ const result=await page.evaluate(()=>({...window.__slow,fcp:performance.getEntriesByName('first-contentful-paint')[0]?.startTime,video:document.querySelector('video')&&{paused:document.querySelector('video').paused,currentTime:document.querySelector('video').currentTime},profile:'390x844; 150ms RTT; 200 KiB/s download; 4x CPU slowdown; local fixture'}));
+ fs.writeFileSync(`${out}/slow-phone.json`,JSON.stringify(result,null,2));
+ console.log(JSON.stringify(result));await browser.close();
+})().catch(e=>{console.error(e.message);process.exitCode=1});

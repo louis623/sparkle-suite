@@ -1,0 +1,53 @@
+[
+  {
+    "theme": "alpine_opal",
+    "states": [
+      {
+        "path": "/trade",
+        "h1": "Find the dancer you were hoping for.",
+        "serverRendered": "true"
+      },
+      {
+        "path": "/join",
+        "h1": "Welcome to Sparkle by Sasha",
+        "serverRendered": "true"
+      },
+      {
+        "path": "/",
+        "h1": "Mile High Fizz",
+        "serverRendered": "true"
+      }
+    ],
+    "controls": {
+      "reducedMotionChangePaused": true,
+      "normalMotionResumed": true
+    },
+    "errors": [],
+    "writes": []
+  },
+  {
+    "theme": "gilded_autumn",
+    "states": [
+      {
+        "path": "/trade",
+        "h1": "Find the dancer you were hoping for.",
+        "serverRendered": "true"
+      },
+      {
+        "path": "/join",
+        "h1": "Welcome to Sparkle by Sasha",
+        "serverRendered": "true"
+      },
+      {
+        "path": "/",
+        "h1": "Mile High Fizz",
+        "serverRendered": "true"
+      }
+    ],
+    "controls": {
+      "pauseAndPlay": true
+    },
+    "errors": [],
+    "writes": []
+  }
+]

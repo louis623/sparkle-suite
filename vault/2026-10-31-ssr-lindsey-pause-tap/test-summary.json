@@ -1,0 +1,79 @@
+{
+  "inputTip": "dc644c83b7df4cb0d8d88491dc3e31ffad3f580a",
+  "codeCommit": "d0c858ffbe179340f5d13322c1151c166646e8d2",
+  "focused": {
+    "passed": 24,
+    "failed": 0,
+    "skipped": 0
+  },
+  "baseline": {
+    "passed": 6106,
+    "failed": 75,
+    "skipped": 6
+  },
+  "full": {
+    "passed": 6109,
+    "failed": 75,
+    "skipped": 6
+  },
+  "fullSuiteInvocations": 1,
+  "newFailingNames": [],
+  "newSuiteLoadErrors": [],
+  "existingSuiteLoadErrors": [
+    "prelaunch/prelaunch-crawl-metadata.test.ts",
+    "remy-communications-schema-contract.test.ts",
+    "sparkle-finder-public-show-window-migration.test.ts",
+    "thanksgiving-migration.test.ts"
+  ],
+  "optionalPauseTweak": false,
+  "browser": {
+    "splitSamples": 72,
+    "tapSamples": 640,
+    "clockProbes": 8,
+    "rawGatePass": false,
+    "failedTapGates": [
+      {
+        "engine": "webkit",
+        "id": "gilded_autumn/homepage",
+        "profile": "phone",
+        "phase": "loading",
+        "action": "pause",
+        "medianMs": 726,
+        "baselineOnly": false,
+        "limitMs": 300,
+        "warn": true,
+        "pass": false
+      },
+      {
+        "engine": "webkit",
+        "id": "gilded_autumn/homepage",
+        "profile": "desktop",
+        "phase": "loading",
+        "action": "pause",
+        "medianMs": 729,
+        "baselineOnly": false,
+        "limitMs": 300,
+        "warn": true,
+        "pass": false
+      }
+    ],
+    "warningsWithoutFailure": [
+      {
+        "engine": "webkit",
+        "id": "alpine_opal/trade",
+        "profile": "desktop",
+        "phase": "loading",
+        "action": "cta",
+        "medianMs": 260,
+        "baselineOnly": false,
+        "limitMs": 300,
+        "warn": true,
+        "pass": true
+      }
+    ],
+    "positivePageErrors": 0,
+    "positiveHydrationErrors": 0,
+    "chromiumCLS": 0,
+    "webkitMovementPx": 0
+  }
+}

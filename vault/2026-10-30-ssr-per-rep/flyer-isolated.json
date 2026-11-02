@@ -1,0 +1,157 @@
+{
+  "command": "npx vitest run tests/workspace-card-qr-flyer.test.ts --maxWorkers=1 --reporter=verbose --reporter=json",
+  "passed": 41,
+  "failed": 1,
+  "flyerSourceUnchanged": true,
+  "applicationHashChanges": [],
+  "assertionsAndTimeoutsUnchanged": true,
+  "longSweepTimeoutMs": 600000,
+  "failures": [
+    {
+      "name": "short-link QR on every shared theme decodes PNG and JPG for every theme and center mark, including a 30% JPEG resave",
+      "preExisting": true,
+      "durationMs": 600386.0305999999
+    }
+  ],
+  "previouslyNewCases": [
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders gobble_and_fizz inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2698.0169000000005
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders pie_please inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2463.231500000001
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders amethyst inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2512.5740000000005
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders sparkle_suite_morganite inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1516.8024999999998
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders moonstone inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1538.7445000000007
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders emerald_garden inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1557.8017
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders halloween_pumpkin_cat inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1782.9267000000018
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders halloween_pumpkin_witch inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1439.5917999999983
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders gilded_autumn inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1816.3179000000018
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders rose_gold inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1205.6594000000005
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders midnight_rose inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1448.8653999999988
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders fall_owl_harvest_moon inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1523.9435999999987
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders pearl_rose inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1621.4479000000028
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders sunset_beach inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2024.5240999999987
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders rose_champagne inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1294.0038999999997
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders garnet inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 2136.085600000002
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders amber inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1698.3908999999985
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render renders velvet inside the safe zones and the QR decodes",
+      "status": "passed",
+      "durationMs": 1863.782100000004
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render shrinks a long show title instead of cutting it off",
+      "status": "passed",
+      "durationMs": 1553.6268000000055
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render decodes PNG and JPG for every shared theme with a tagline, without one, and with a wrapping title",
+      "status": "passed",
+      "durationMs": 104524.5994
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer render closes the tagline and website slots when they are absent, and prints a custom domain",
+      "status": "passed",
+      "durationMs": 2920.2141999999876
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer file formats encodes JPG from one PNG and both files decode to the same URL",
+      "status": "passed",
+      "durationMs": 1990.2163999999757
+    },
+    {
+      "file": "workspace-card-qr-flyer.test.ts",
+      "name": "flyer route ignores body.appearancePreset and uses the saved theme",
+      "status": "passed",
+      "durationMs": 2499.9256999999925
+    }
+  ],
+  "newFailingNames": []
+}

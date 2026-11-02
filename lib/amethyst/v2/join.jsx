@@ -1,3 +1,5 @@
+import { initialLineup } from "./initial-lineup.jsx";
+import { HeroCopyReservation } from "./hero-copy-reservation.jsx";
 import { HeroMotionScene, SparkleFx as SharedSparkleFx } from "./hero-motion.jsx";
 /* global React, ReactDOM */
 import {
@@ -771,7 +773,7 @@ function LiveLineupUpdatedAt({ lineup }) {
 }
 
 function LiveLineupProvider({ children }) {
-  const [lineup, setLineup] = React.useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
+  const [lineup, setLineup] = React.useState(() => RUNTIME_CONTEXT.targeted ? initialLineup(CONTENT) : null);
   window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
   React.useEffect(() => {
     if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
@@ -892,10 +894,11 @@ function GnomeGardenScene() {
 
 function Hero({ teamName, title, pitch, ctaText, ctaUrl, hasRecruitingLink, showPromo, promoText, repName, locationLabel, gnomeGarden, motionTweaks }) {
   return (
-    <section className="jp-hero" data-ssr-hero={motionTweaks.preset} data-ssr-surface="utility" suppressHydrationWarning>
-      <HeroMotionScene t={motionTweaks} surface="utility" />
+    <section className="jp-hero" data-ssr-hero={isMileHighFizzHybrid ? undefined : motionTweaks.preset} data-ssr-surface={isMileHighFizzHybrid ? undefined : "utility"} suppressHydrationWarning>
+      {isMileHighFizzHybrid ? (gnomeGarden && <GnomeGardenDecoration />) : <HeroMotionScene t={motionTweaks} surface="utility" />}
       <div className="jp-hero-media slot" data-slot="hero photo" />
       <div className="jp-hero-inner">
+        <HeroCopyReservation enabled={["pearl_rose", "midnight_rose"].includes(motionTweaks.preset) || (isMileHighFizzHybrid && ["gilded_autumn", "alpine_opal"].includes(motionTweaks.preset))}>
         <div className="jp-hero-card">
           <div className="jp-hero-eyebrow">{isMileHighFizzHybrid ? "Join the Mile High Fizz Team" : "Join the team"}</div>
           {showPromo ? (
@@ -929,6 +932,7 @@ function Hero({ teamName, title, pitch, ctaText, ctaUrl, hasRecruitingLink, show
             <a {...linkProps(BP_IDS_HREF)}>Bomb Party Income Disclosure Statement</a>.
           </p>
         </div>
+        </HeroCopyReservation>
       </div>
     </section>
   );
@@ -1394,7 +1398,7 @@ function FinalCta({ teamName, ctaUrl, ctaText, pitch, repName, locationLabel, ha
 }
 
 function Footer({ businessName }) {
-  const year = new Date().getFullYear();
+  const year = new Date(window.SPARKLE_FIRST_PAINT?.now ?? Date.now()).getFullYear();
 
   return (
     <footer className="hp-footer">

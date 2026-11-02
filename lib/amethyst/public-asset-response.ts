@@ -1,5 +1,5 @@
 import { previewHomepageTheme } from './homepage-data-budget'
-import { homepageSmokeReview } from './homepage-smoke-review'
+import { homepageSmokeReview, smokeReviewSelection } from './homepage-smoke-review'
 import { shouldUseRepRenderV2 } from './rep-render-version'
 import { bestEffortHomepage } from './homepage-render-safety'
 import { readFile } from 'node:fs/promises'
@@ -47,6 +47,8 @@ interface RenderAmethystPublicAssetResponseOptions {
   canonicalPathOverride?: string | null
   canonicalOriginOverride?: string | null
   publicSiteSlugOverride?: string | null
+  /** Gate only; never used for rendering. */
+  renderGateSlug?: string | null
   joinVisibilityVerified?: boolean
   pantryRecipes?: PublicIndexRecipe[]
   /** True only when the rep's recipe list loaded and came back empty. */
@@ -536,12 +538,44 @@ let homepageSSRRequests = 0
 export async function renderAmethystPublicAssetResponse(
   request: Request,
   asset: string[],
-  options: RenderAmethystPublicAssetResponseOptions = {},
+  routeOptions: RenderAmethystPublicAssetResponseOptions = {},
 ) {
-  if (!shouldUseRepRenderV2(asset, options)) {
-    const legacy = await import('./legacy/public-asset-response')
-    return legacy.renderAmethystPublicAssetResponse(request, asset, options)
+  const useSSR = shouldUseRepRenderV2(asset, routeOptions)
+  // Keep the gate identity out of both renderers and every rendering helper.
+  const { renderGateSlug: _renderGateSlug, ...options } = routeOptions
+  const logSSRFailure = (page: string, error: unknown) => {
+    const failure = error as { name?: unknown; message?: unknown } | null
+    console.warn('customer_page_ssr_failed', JSON.stringify({
+      page, slug: routeOptions.publicSiteSlugOverride ?? routeOptions.renderGateSlug ?? null,
+      repId: options.repIdOverride?.trim() || resolveAmethystRequestRepId(request) || null,
+      errorName: typeof failure?.name === 'string' ? failure.name : 'Error',
+      errorMessage: typeof failure?.message === 'string' ? failure.message : 'Unknown SSR error',
+    }))
   }
+  const renderLegacy = async () => {
+    const legacy = await import('./legacy/public-asset-response')
+    const response = await legacy.renderAmethystPublicAssetResponse(request, asset, options)
+    const requestUrl = new URL(request.url)
+    const selection = smokeReviewSelection(requestUrl, options.publicSiteSlugOverride)
+    const page = AMETHYST_PUBLIC_HTML_PAGES[asset.join('/')]
+    // The frozen renderer and assets stay untouched. Only the same guarded
+    // read-only review cohort as SSR receives the theme/layout query.
+    if (!selection || !['homepage', 'join', 'trade'].includes(page) || response.status !== 200) return response
+    let html = await response.text()
+    const loader = /data-template-src="([^"<>]+)"/
+    const source = html.match(loader)?.[1]
+    if (!source) return new Response('Review fixture unavailable', { status: 503 })
+    const endpoint = new URL(source.replace(/&amp;/g, '&'), requestUrl)
+    endpoint.searchParams.set('ssrReviewTheme', selection.theme)
+    if (selection.layout !== null) endpoint.searchParams.set('ssrReviewLayout', selection.layout)
+    // Preserve the original loader, runtime and network sequence for a fair
+    // legacy comparison. Its normal API applies the same guarded selection.
+    html = html.replace(loader, () => `data-template-src="${(endpoint.pathname + endpoint.search).replace(/&/g, '&amp;')}"`)
+      .replace('</head>', `<meta name="ssr-review-theme" content="${selection.theme}"></head>`)
+      .replace('</body>', '<aside data-ssr-review-label style="position:fixed;bottom:6px;right:6px;z-index:10000;padding:4px 8px;background:#fff7df;color:#402c09;font:11px/1.3 system-ui;pointer-events:none">Smoke demo · legacy theme/layout review fixture · no saved changes</aside></body>')
+    return new Response(html, { status: response.status, headers: response.headers })
+  }
+  if (!useSSR) return renderLegacy()
   const filePath = asset.join('/') === 'Trade.html'
     ? join(process.cwd(), 'lib/amethyst/legacy/assets/Trade.html')
     : asset.join('/') === 'Join.html'
@@ -651,20 +685,20 @@ export async function renderAmethystPublicAssetResponse(
             if (forceHomepageRenderFailure(request)) throw new Error('Preview render failure probe')
             const renderer = await rendererTask
             mark('rendererReadyMs')
-            return page === 'homepage' ? renderer.renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
-              : renderer.renderAmethystPageFirstPaint(page, original, templateData, requestUrl, bootstrap)
+            const rendered = page === 'homepage' ? await renderer.renderHomepageFirstPaint(original, templateData, requestUrl, bootstrap)
+              : await renderer.renderAmethystPageFirstPaint(page, original, templateData, requestUrl, bootstrap)
+            if (typeof rendered !== 'string' || !rendered.includes('data-server-rendered=')) throw new Error('Invalid SSR render response')
+            return rendered
           }
           if (page === 'homepage') {
             responseBody = await bestEffortHomepage(renderFirstPaint, Math.max(0, 5000 - (performance.now() - ssrStarted))) ?? original
           } else {
-            // These demo pages require their real data in the first paint.
-            // A slow read must never switch the visitor to browser Babel.
+            // Retain slow successful SSR reads, but a failed render must not
+            // turn an otherwise valid legacy customer page into an outage.
             try { responseBody = await renderFirstPaint() }
-            catch {
-              console.warn('customer_page_ssr_failed', JSON.stringify({ page }))
-              return new Response('This page is temporarily unavailable. Please reload.', {
-                status: 503, headers: { 'Cache-Control': 'no-store' },
-              })
+            catch (error) {
+              logSSRFailure(page, error)
+              responseBody = original
             }
           }
           console.info('homepage_ssr_request', JSON.stringify({ cold, ...timings, totalMs: performance.now() - ssrStarted, result: responseBody === original ? 'fallback' : 'ssr', pageDataState }))
@@ -691,7 +725,8 @@ export async function renderAmethystPublicAssetResponse(
         ...(pantryEmpty ? { 'X-Robots-Tag': EMPTY_PANTRY_ROBOTS } : {}),
       },
     })
-  } catch {
-    return new Response('Not found', { status: 404 })
+  } catch (error) {
+    logSSRFailure(asset.join('/'), error)
+    return renderLegacy()
   }
 }
