@@ -2924,10 +2924,11 @@ function Signup({ repName, businessName }) {
                 {submitState.message}
               </p>
             ) : null}
-            {submitState.status === "success" ? (
-              <SignupDiscountConfirmation content={CONTENT} />
-            ) : null}
           </div>
+          {submitState.status === "success" ? (
+            <SignupDiscountConfirmation content={CONTENT} />
+          ) : null}
+
           {submitState.status === "success" ? null : (
           <form className="hp-signup-form" onSubmit={handleSubmit}>
             <div className="hp-signup-progress-wrap">
