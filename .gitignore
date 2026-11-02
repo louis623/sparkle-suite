@@ -71,3 +71,6 @@ spike/benchmark-results-*.json
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Per-build allowlist; generated before Next server file tracing.
+lib/monitoring/generated/client-scripts.json

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   currentBranch,
@@ -8,6 +8,13 @@ import {
 } from "../scripts/check-active-branch.mjs";
 
 describe("Sparkle Suite active branch policy", () => {
+  beforeEach(() => {
+    // Manual Vercel fixtures must not inherit the GitHub runner's branch.
+    vi.stubEnv("GITHUB_HEAD_REF", undefined);
+    vi.stubEnv("GITHUB_REF_NAME", undefined);
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
   it("accepts the verified repository, production branch, and primary worktree", () => {
     expect(
       evaluateBranchPolicy({

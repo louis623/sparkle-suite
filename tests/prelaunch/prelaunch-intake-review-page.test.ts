@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   normalizePrelaunchIntakeReviewLane,
@@ -191,6 +191,10 @@ function restoreGateEnv(snapshot: ReturnType<typeof snapshotGateEnv>) {
 }
 
 describe('PrelaunchIntakeReviewPageContent', () => {
+  // The fixture's 4:26 PM display is explicitly Eastern, independent of the runner.
+  beforeEach(() => vi.stubEnv('TZ', 'America/New_York'))
+  afterEach(() => vi.unstubAllEnvs())
+
   it('normalizes supported operator lane filters', () => {
     expect(normalizePrelaunchIntakeReviewLane('failed_scout')).toBe(
       'failed_scout',

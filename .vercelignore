@@ -2,3 +2,5 @@ artifacts/
 public/amethyst/__team-photo-review-*.html
 test-results/
 apps/finder/
+.tmp*
+.local/
