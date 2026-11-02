@@ -1,0 +1,253 @@
+{
+  "started": "2026-11-02T16:14:28.998Z",
+  "loads": 8,
+  "rows": [
+    {
+      "name": "lindsey-phone",
+      "url": "https://sparkle-suite-smoke.vercel.app/milehighfizz",
+      "errors": [],
+      "consoleErrors": [],
+      "blockedLiveRequests": [],
+      "badResponses": [],
+      "responseHeaders": {
+        "x-sparkle-page-data": "complete",
+        "x-vercel-id": "iad1::iad1::bngnb-1793636715457-2eb8b5c58a72"
+      },
+      "serverSSR": true,
+      "interceptedFaviconReferences": [
+        "https://www.yoursparklesuite.com/icon"
+      ],
+      "ssr": true,
+      "title": "Mile High Fizz | Live jewelry reveals and Dance Floor",
+      "theme": "homepage bg-halloween-pumpkin-witch surface-midnight-glass hero-motion-witch-flight shape-soft",
+      "metrics": {
+        "cls": 0,
+        "lcp": 3420,
+        "fcp": 2784
+      },
+      "signup": {
+        "email": "signup-discount-phone-20261102@example.com",
+        "status": 201,
+        "confirmation": "You're on the list. We'll use the channels you selected."
+      },
+      "clipboard": "MILEHIGHFIZZCUSTOMER",
+      "discountHeading": "Your 15% off code",
+      "passed": true
+    },
+    {
+      "name": "lindsey-desktop",
+      "url": "https://sparkle-suite-smoke.vercel.app/milehighfizz",
+      "errors": [],
+      "consoleErrors": [],
+      "blockedLiveRequests": [],
+      "badResponses": [],
+      "responseHeaders": {
+        "x-sparkle-page-data": "complete",
+        "x-vercel-id": "iad1::iad1::fchzh-1793636728913-2ec9dc3905a2"
+      },
+      "serverSSR": true,
+      "interceptedFaviconReferences": [
+        "https://www.yoursparklesuite.com/icon"
+      ],
+      "ssr": true,
+      "title": "Mile High Fizz | Live jewelry reveals and Dance Floor",
+      "theme": "homepage bg-halloween-pumpkin-witch surface-midnight-glass hero-motion-witch-flight shape-soft",
+      "metrics": {
+        "cls": 0,
+        "lcp": 1120,
+        "fcp": 868
+      },
+      "signup": {
+        "email": "signup-discount-desktop-20261102@example.com",
+        "status": 201,
+        "confirmation": "You're on the list. We'll use the channels you selected."
+      },
+      "clipboard": "MILEHIGHFIZZCUSTOMER",
+      "discountHeading": "Your 15% off code",
+      "passed": true
+    },
+    {
+      "name": "no-code-phone",
+      "url": "https://sparkle-suite-smoke.vercel.app/qap3amethyst",
+      "errors": [],
+      "consoleErrors": [],
+      "blockedLiveRequests": [],
+      "badResponses": [],
+      "responseHeaders": {
+        "x-vercel-id": "iad1::iad1::l7fjg-1793636889364-601b308bea8e"
+      },
+      "serverSSR": false,
+      "interceptedFaviconReferences": [
+        "https://www.yoursparklesuite.com/icon"
+      ],
+      "ssr": false,
+      "title": "QA Preview amethyst | Live jewelry reveals and Dance Floor",
+      "theme": "homepage fx-confetti fx-holographic tex-sparkle holo-unicorn hero-motion-still cursor-sparkle shape-soft",
+      "metrics": {
+        "cls": 0.03209301123571259,
+        "lcp": 18756,
+        "fcp": 2624
+      },
+      "signup": {
+        "email": "signup-discount-no-code-20261102@example.com",
+        "status": 201,
+        "confirmation": "You're on the list. We'll use the channels you selected."
+      },
+      "passed": true
+    },
+    {
+      "name": "fizzfest-phone",
+      "url": "https://sparkle-suite-smoke.vercel.app/dudesfizzfest",
+      "errors": [],
+      "consoleErrors": [],
+      "blockedLiveRequests": [],
+      "badResponses": [],
+      "responseHeaders": {
+        "x-sparkle-page-data": "complete",
+        "x-vercel-id": "iad1::iad1::8pwzv-1793636917467-d8be457ff5ef"
+      },
+      "serverSSR": true,
+      "ssr": true,
+      "title": "Fizz Festival | Live jewelry reveals and Dance Floor",
+      "theme": "homepage bg-halloween-pumpkin-cat surface-pumpkin-cat-glass shape-soft",
+      "interceptedFaviconReferences": [
+        "https://www.yoursparklesuite.com/icon"
+      ],
+      "metrics": {
+        "cls": 0,
+        "lcp": 2480,
+        "fcp": 1916
+      },
+      "hero": {
+        "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4",
+        "paused": false,
+        "time": 1.630136,
+        "muted": true
+      },
+      "motionControls": 1,
+      "passed": true
+    }
+  ],
+  "browser": "Anonymous Playwright Chromium; Browser skill not listed; no personal Chrome session used",
+  "failedAttempts": [
+    {
+      "name": "lindsey-phone",
+      "url": "https://sparkle-suite-smoke.vercel.app/milehighfizz",
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"
+      ],
+      "blockedLiveRequests": [
+        "https://www.yoursparklesuite.com/icon"
+      ],
+      "badResponses": [],
+      "ssr": false,
+      "failure": "Unexpected renderer: SSR=false"
+    },
+    {
+      "name": "lindsey-phone",
+      "url": "https://sparkle-suite-smoke.vercel.app/milehighfizz",
+      "errors": [],
+      "consoleErrors": [],
+      "blockedLiveRequests": [],
+      "badResponses": [],
+      "responseHeaders": {
+        "x-vercel-id": "iad1::iad1::bf5xs-1793636276134-baa06b00fa31"
+      },
+      "serverSSR": false,
+      "interceptedFaviconReferences": [
+        "https://www.yoursparklesuite.com/icon"
+      ],
+      "ssr": false,
+      "failure": "Unexpected renderer: SSR=false"
+    },
+    {
+      "name": "lindsey-phone",
+      "url": "https://sparkle-suite-smoke.vercel.app/milehighfizz",
+      "errors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 ()"
+      ],
+      "blockedLiveRequests": [],
+      "badResponses": [
+        {
+          "path": "/api/amethyst/customer-audience",
+          "status": 500
+        }
+      ],
+      "responseHeaders": {
+        "x-sparkle-page-data": "complete",
+        "x-vercel-id": "iad1::iad1::r4rbt-1793636632197-697374fbde17"
+      },
+      "serverSSR": true,
+      "interceptedFaviconReferences": [
+        "https://www.yoursparklesuite.com/icon"
+      ],
+      "ssr": true,
+      "title": "Mile High Fizz | Live jewelry reveals and Dance Floor",
+      "theme": "homepage bg-halloween-pumpkin-witch surface-midnight-glass hero-motion-witch-flight shape-soft",
+      "metrics": {
+        "cls": 0,
+        "lcp": 3980,
+        "fcp": 3612
+      },
+      "failure": "Signup failed: 500 {\"error\":\"Failed to save signup right now.\"}"
+    },
+    {
+      "name": "no-code-phone",
+      "url": "https://sparkle-suite-smoke.vercel.app/blingkitchen",
+      "errors": [],
+      "consoleErrors": [
+        "Permissions policy violation: accelerometer is not allowed in this document.",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Permissions policy violation: accelerometer is not allowed in this document.",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Permissions policy violation: accelerometer is not allowed in this document.",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Permissions policy violation: accelerometer is not allowed in this document.",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "Permissions policy violation: accelerometer is not allowed in this document.",
+        "Permissions policy violation: accelerometer is not allowed in this document.",
+        "Permissions policy violation: accelerometer is not allowed in this document.",
+        "Failed to load resource: the server responded with a status of 403 ()"
+      ],
+      "blockedLiveRequests": [],
+      "badResponses": [],
+      "responseHeaders": {
+        "x-vercel-id": "iad1::iad1::mcgsg-1793636739643-474c5c83ac22"
+      },
+      "serverSSR": false,
+      "interceptedFaviconReferences": [
+        "https://www.yoursparklesuite.com/icon"
+      ],
+      "ssr": false,
+      "title": "BlingKitchen | Live jewelry reveals and Dance Floor",
+      "theme": "homepage bg-halloween-pumpkin-witch surface-midnight-glass hero-motion-sparkle-rise shape-soft",
+      "metrics": {
+        "cls": 0.0812028078509767,
+        "lcp": 2456,
+        "fcp": 2456
+      },
+      "signup": {
+        "email": "signup-discount-no-code-20261102@example.com",
+        "status": 201,
+        "confirmation": "You're on the list. We'll use the channels you selected."
+      },
+      "failure": "Console errors"
+    }
+  ],
+  "completed": "2026-11-02T16:28:45.817Z",
+  "finalDeployment": "dpl_CtNKmL7hNtJs5msptKUuXGpAGniA",
+  "finalSourceCommit": "595547ba4383d34c6ca23a9ac9ec34de8ebb0c50",
+  "cleanup": {
+    "audienceRowsDeleted": 4,
+    "changeLogsDeleted": 4,
+    "outboxRowsDeleted": 4,
+    "remainingSignups": 0,
+    "remainingChangeLogs": 0,
+    "remainingOutbox": 0
+  }
+}

@@ -9,6 +9,13 @@ import { defaultAmethystJoinTemplateData as join } from '@/lib/amethyst/join-tem
 import { defaultAmethystTradeTemplateData as trade } from '@/lib/amethyst/trade-template-data'
 import baseline from './fixtures/amethyst-ssr-non-mhf-sha256.json'
 
+// Louis approved PR #158's additive confirmation styles on November 2.
+// Remove only those exact rules when comparing the older no-discount fixture;
+// preserve the full existing HTML/CSS comparison instead of refreshing hashes.
+const approvedDiscountRules = readFileSync('public/amethyst/homepage.jsx', 'utf8')
+  .split(/\r?\n/).filter(line => line.includes('.hp-signup-discount'))
+const approvedDiscountCssHash = createHash('sha256').update(approvedDiscountRules.join('\n')).digest('hex')
+
 afterEach(() => vi.restoreAllMocks())
 
 // Normalize CR only, so Windows and Linux checkouts share complete-response
@@ -24,7 +31,13 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
         { homepage: saved, join, trade, appearancePreset: preset },
         new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
       const key = `${preset}/${layout}` as keyof typeof baseline.hashes
-      expect(createHash('sha256').update(html.replace(/\r/g, '')).digest('hex')).toBe(baseline.hashes[key])
+      expect(html).not.toContain('class="hp-signup-discount"')
+      expect(approvedDiscountRules).toHaveLength(8)
+      // The exact CSS fingerprint below prevents new styles being silently exempted.
+      expect(approvedDiscountCssHash).toBe('9d6f93e9fc3a190f7e9ee48ed03cab270eedc104f6a4c90302503c0556bddaff')
+      let comparable = html.replace(/\r/g, '')
+      for (const rule of approvedDiscountRules) comparable = comparable.replace(rule + '\n', '')
+      expect(createHash('sha256').update(comparable).digest('hex')).toBe(baseline.hashes[key])
     })
   }
 }

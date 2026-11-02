@@ -27,6 +27,10 @@ import {
   ABOUT_TITLE_MAX_LENGTH,
 } from '@/lib/public-site/about-section'
 import { normalizeTeamPhotoFraming } from '@/lib/amethyst/team-photo-framing'
+import {
+  normalizeSignupDiscountCode,
+  normalizeSignupDiscountOffer,
+} from '@/lib/public-site/signup-discount'
 
 type SiteSettingsRow = {
   banner_text: string | null
@@ -52,6 +56,8 @@ type SiteSettingsRow = {
   about_narrative: string | null
   homepage_media_slots: unknown
   social_visibility?: unknown
+  signup_discount_code?: string | null
+  signup_discount_offer?: string | null
 }
 
 type RepProfileRow = {
@@ -399,7 +405,20 @@ function buildDashboardResult(args: {
     homepageMediaSlots: normalizePublicSiteMediaSlots(
       args.siteSettings?.homepage_media_slots,
     ),
+    ...signupDiscountFields(args.siteSettings),
   }
+}
+
+function signupDiscountFields(row: SiteSettingsRow | null) {
+  if (!row) return {}
+  const fields: { signupDiscountCode?: string; signupDiscountOffer?: string } = {}
+  if ('signup_discount_code' in row) {
+    fields.signupDiscountCode = normalizeSignupDiscountCode(row.signup_discount_code) ?? ''
+  }
+  if ('signup_discount_offer' in row) {
+    fields.signupDiscountOffer = normalizeSignupDiscountOffer(row.signup_discount_offer) ?? ''
+  }
+  return fields
 }
 
 function toServiceError(
@@ -453,8 +472,31 @@ export async function getSiteSettingsDashboard(
     )
   }
 
+  let siteSettings = (siteSettingsResult.data as SiteSettingsRow | null) ?? null
+  if (siteSettings) {
+    try {
+      const discount = await supabase
+        .from('site_settings')
+        .select('signup_discount_code, signup_discount_offer')
+        .eq('rep_id', repId)
+        .maybeSingle()
+      const discountRow = discount.data as
+        | { signup_discount_code?: string | null; signup_discount_offer?: string | null }
+        | null
+      if (!discount.error && discountRow) {
+        siteSettings = {
+          ...siteSettings,
+          signup_discount_code: discountRow.signup_discount_code ?? null,
+          signup_discount_offer: discountRow.signup_discount_offer ?? null,
+        }
+      }
+    } catch {
+      // The signup columns are not on this database yet. Leave the confirmation unchanged.
+    }
+  }
+
   return buildDashboardResult({
-    siteSettings: (siteSettingsResult.data as SiteSettingsRow | null) ?? null,
+    siteSettings,
     repProfile: repProfileResult.data as RepProfileRow,
   })
 }
@@ -590,6 +632,40 @@ export async function updateSiteSettingsDashboard(
       input.homepageMediaSlots,
     )
   }
+  if (input.signupDiscountCode !== undefined) {
+    if (typeof input.signupDiscountCode !== 'string') {
+      throw errors.INVALID_INPUT(
+        'signupDiscountCode must be a string',
+        'The signup discount code needs to be plain text.',
+      )
+    }
+    const trimmed = input.signupDiscountCode.trim()
+    const code = normalizeSignupDiscountCode(trimmed)
+    if (trimmed && !code) {
+      throw errors.INVALID_INPUT(
+        'signupDiscountCode is invalid',
+        'Use 1 to 40 letters, numbers, or hyphens for the signup discount code.',
+      )
+    }
+    siteSettingsPatch.signup_discount_code = code
+  }
+  if (input.signupDiscountOffer !== undefined) {
+    if (typeof input.signupDiscountOffer !== 'string') {
+      throw errors.INVALID_INPUT(
+        'signupDiscountOffer must be a string',
+        'The signup offer needs to be plain text.',
+      )
+    }
+    const trimmed = input.signupDiscountOffer.trim()
+    const offer = normalizeSignupDiscountOffer(input.signupDiscountOffer)
+    if (trimmed && !offer) {
+      throw errors.INVALID_INPUT(
+        'signupDiscountOffer is invalid',
+        'Keep the signup offer to 40 characters, like 15% off.',
+      )
+    }
+    siteSettingsPatch.signup_discount_offer = offer
+  }
 
   if (input.displayName !== undefined) {
     repPatch.display_name = normalizeText(input.displayName)
@@ -653,7 +729,15 @@ export async function updateSiteSettingsDashboard(
       )
     }
 
-    siteSettingsRow = data as SiteSettingsRow
+    siteSettingsRow = {
+      ...(data as SiteSettingsRow),
+      ...('signup_discount_code' in siteSettingsPatch
+        ? { signup_discount_code: siteSettingsPatch.signup_discount_code as string | null }
+        : {}),
+      ...('signup_discount_offer' in siteSettingsPatch
+        ? { signup_discount_offer: siteSettingsPatch.signup_discount_offer as string | null }
+        : {}),
+    }
   }
 
   if (Object.keys(repPatch).length > 0) {
