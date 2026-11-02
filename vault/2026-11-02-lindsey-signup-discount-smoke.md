@@ -109,3 +109,7 @@ Restore only `sparkle-suite-smoke.vercel.app` to recorded previous `dpl_3HV4hEoo
 ## Louis’s final testing direction
 
 Louis objected to overtesting after the feature/browser checks and cleanup were complete. Stop further tests and cancel the remaining CI run. The 13 figure referred to CI minutes, and 6,206 was the number of individual automated tests that passed, not browser visits. Actual browser loads remain eight. Future checks should stay narrow and follow Louis’s stated load/test limits; do not expand into unrelated suites or fixes. Closeout/evidence-only commit uses [skip ci] so recording the receipt does not launch another full test run. No further deployment is needed for documentation.
+
+## Final explicit test limit
+
+Louis’s explicit testing limit: maximum 20 individual focused tests total per change, covering only the feature and immediate affected area. Do not count files as tests, run the full Sparkle Suite suite, or add broad matrices unless Louis explicitly requests an exception. No further tests for this completed Smoke task.
