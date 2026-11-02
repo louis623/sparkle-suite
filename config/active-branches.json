@@ -7,7 +7,8 @@
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\ssr-per-rep-allowlist-disposable",
     "C:\\Users\\louis\\.codex\\worktrees\\blingkitchen-google-verification\\sparkle-suite-repo",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\trade-request-completion",
-    "C:\\Users\\louis\\.codex\\visualizations\\2026\\10\\05\\01a10df3-2121-7673-8f71-c58c6d0e5ab4\\section1-workspace"
+    "C:\\Users\\louis\\.codex\\visualizations\\2026\\10\\05\\01a10df3-2121-7673-8f71-c58c6d0e5ab4\\section1-workspace",
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\monitoring-ci"
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
@@ -42,7 +43,8 @@
     "cursor/theme-carousel-site-peeks-db80",
     "codex/ssr-chunk1-fizzfest-home",
     "codex/release-ssr-finder",
-    "codex/ssr-per-rep-allowlist"
+    "codex/ssr-per-rep-allowlist",
+    "codex/monitoring-ci"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -150,6 +152,10 @@
       "environment": "preview"
     },
     "codex/release-ssr-finder": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/monitoring-ci": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }

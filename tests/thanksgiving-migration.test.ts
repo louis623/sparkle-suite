@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
 import { describe, expect, it } from 'vitest'
 
-const migration = readFileSync('supabase/migrations/20261019000100_add_thanksgiving_community_themes.sql', 'utf8')
+const migration = readFileSync('supabase/migrations/20261022115616_add_thanksgiving_community_themes.sql', 'utf8')
 const baseline = readFileSync('supabase/migrations/20261017000100_add_fall_owl_harvest_moon.sql', 'utf8')
 const previousCheck = baseline.match(/CHECK\s*\([\s\S]*?\n  \);/)![0].replace(/;$/, '')
 const legacyIds = [...previousCheck.matchAll(/'([a-z_]+)'/g)].map(match => match[1])

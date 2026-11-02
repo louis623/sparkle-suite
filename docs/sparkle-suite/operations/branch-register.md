@@ -237,3 +237,6 @@ Louis explicitly approved codex/ssr-all-themes from application 09e46db0, one PR
 
 ## October 28 — demo Dance Floor and Join SSR
 Louis approved codex/ssr-dancefloor-join from PR162 tip 98d14526 for one PR targeting codex/ssr-all-themes, Smoke preview project prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ only and its normal alias. Same 41 Smoke-only overrides; no Live data/keys/settings, migrations, other reps or merge. Roll back to dpl_8Z9xfABn8F7WkSPMHKdNYE7NpTek on acceptance failure. Disposable worktree ssr-dancefloor-join authorized; deployment guard unchanged.
+
+## November 1 — monitoring CI continuation
+Louis explicitly requested continuing draft PR #170 on `codex/monitoring-ci`. The isolated worktree `C:/Users/louis/sparkle-suite-repo/.codex-worktrees/monitoring-ci` is authorized to preserve the dirty primary workbench. The existing branch rule remains Smoke project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` / preview only. No aliases, Live, Live data/keys, production/default branch settings, or merge are authorized.

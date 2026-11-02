@@ -7,7 +7,7 @@ const migration = readFileSync(
     process.cwd(),
     'supabase',
     'migrations',
-    '20261014133000_ss_finder_public_show_window.sql',
+    '20261016103503_ss_finder_public_show_window.sql',
   ),
   'utf8',
 ).toLowerCase()
