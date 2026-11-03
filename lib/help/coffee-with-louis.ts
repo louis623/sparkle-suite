@@ -1,7 +1,7 @@
 const TIME_ZONE = 'America/New_York'
 const ANCHOR_YEAR = 2026
-const ANCHOR_MONTH = 10
-const ANCHOR_DAY = 8
+const ANCHOR_MONTH = 11
+const ANCHOR_DAY = 12
 const SESSION_HOUR = 20
 const INTERVAL_DAYS = 14
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -139,7 +139,7 @@ function sessionView(index: number): CoffeeWithLouisSession {
 
 /**
  * Next session is the first 8:00 PM America/New_York occurrence in the
- * 2026-10-08 + 14-day series that is still strictly in the future.
+ * 2026-11-12 + 14-day series that is still strictly in the future.
  * At 8:00 PM on a session Thursday, including the rest of the 8–9 PM window
  * and any time after it, the following session is next.
  */

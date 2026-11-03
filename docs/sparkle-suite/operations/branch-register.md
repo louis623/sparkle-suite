@@ -1,5 +1,16 @@
 # Sparkle Suite Branch Register
 
+## November 2 — Coffee with Louis November 12 Smoke only
+
+Louis explicitly approved `codex/coffee-nov12-smoke` from verified production tip
+`cb7b691a30ea3a1f0b8b9b63406c9f1c4510288c`, in disposable clean clone
+`C:\Users\louis\sparkle-suite-repo\.codex-worktrees\coffee-nov12-smoke`.
+Scope: only the Coffee anchor/comment and the two named test files. Run those
+two files once; no full suite or browser checks. One PR, unmerged, and deployment
+only to `sparkle-suite-smoke` (`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`) / preview.
+GitHub default branch, Live production branch, Live project and customer data stay
+unchanged. The allowlist entries are this task's Smoke-only review exception.
+
 ## November 2 — signup discount Smoke only
 
 Louis approved `codex/signup-discount-smoke` from production `a94bae3b`, isolated in `.codex-worktrees/signup-discount-smoke`. Only PR #158 discount work plus SSR v2 parity is authorized. Deployments are restricted to `sparkle-suite-smoke` (`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`) / preview; only Smoke database `pukemqiwlyqmyytxkdmo` may be used. No Live access, env, merge, promotion, or branch-setting changes. GitHub default and Live production branches stay unchanged.

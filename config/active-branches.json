@@ -9,7 +9,8 @@
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\trade-request-completion",
     "C:\\Users\\louis\\.codex\\visualizations\\2026\\10\\05\\01a10df3-2121-7673-8f71-c58c6d0e5ab4\\section1-workspace",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\monitoring-ci",
-    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\signup-discount-smoke"
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\signup-discount-smoke",
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\coffee-nov12-smoke"
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
@@ -46,7 +47,8 @@
     "codex/release-ssr-finder",
     "codex/ssr-per-rep-allowlist",
     "codex/monitoring-ci",
-    "codex/signup-discount-smoke"
+    "codex/signup-discount-smoke",
+    "codex/coffee-nov12-smoke"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -162,6 +164,10 @@
       "environment": "preview"
     },
     "codex/signup-discount-smoke": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/coffee-nov12-smoke": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }
