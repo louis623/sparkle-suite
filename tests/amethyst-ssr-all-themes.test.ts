@@ -28,17 +28,18 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
       const saved = { ...homepage, heroMotion: 'still', publicSiteVariant }
       const bootstrap = buildAmethystHomepageBootstrapScript(saved, [], preset, { targeted: true })
       const html = await renderHomepageFirstPaint(source, { homepage: saved, join, trade, appearancePreset: preset }, new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
-      const bespoke = layout === 'mile_high_fizz' && preset !== 'halloween_pumpkin_cat'
-      if (bespoke) expect(html).toContain('class="mhf-hero"')
+      const bespoke = (layout === 'mile_high_fizz' || layout === 'britt_with_bling') && preset !== 'halloween_pumpkin_cat'
+      if (bespoke) expect(html).toContain(`class="${layout === 'britt_with_bling' ? 'bwb' : 'mhf'}-hero"`)
       else expect(html).toContain(`data-ssr-hero="${preset}"`)
       expect(html).toContain('data-server-rendered="true"')
       expect(html.match(/<h1\b/g)).toHaveLength(1)
       if (bespoke) {
-        if (preset === 'gilded_autumn') expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
+        if (layout === 'mile_high_fizz' && preset === 'gilded_autumn') expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
         else expect(html).not.toContain('data-hero-motion-toggle=""')
         expect(html).not.toMatch(/<section class="hp-hero"/)
         if (preset === 'gnome_garden') expect(html).toContain('class="gg-decoration"')
-        if (preset === 'gilded_autumn') {
+        if (layout === 'britt_with_bling') expect(html).toContain('class="bwb-hero-image"')
+        else if (preset === 'gilded_autumn') {
           expect(html).toContain('data-hero-video-src="/amethyst/skins/gilded-autumn/hero-motion.mp4"')
           expect(html).not.toContain('class="mhf-hero-video"')
         }

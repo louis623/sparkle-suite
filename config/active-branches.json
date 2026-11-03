@@ -12,6 +12,7 @@
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\signup-discount-smoke",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\coffee-nov12-smoke",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\about-headline-smoke",
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\britt-ssr-smoke-20261103",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\landing-preview-images"
   ],
   "policy": "deny-unlisted",
@@ -53,6 +54,7 @@
     "codex/coffee-nov12-smoke",
     "codex/about-headline-smoke",
     "codex/signup-consent-punctuation",
+    "codex/britt-ssr-smoke",
     "codex/landing-preview-images"
   ],
   "previewBranches": {
@@ -185,6 +187,10 @@
       "environment": "preview"
     },
     "codex/signup-consent-punctuation": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/britt-ssr-smoke": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }

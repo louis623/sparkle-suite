@@ -290,3 +290,6 @@ Louis approved codex/ssr-dancefloor-join from PR162 tip 98d14526 for one PR targ
 
 ## November 1 — monitoring CI continuation
 Louis explicitly requested continuing draft PR #170 on `codex/monitoring-ci`. The isolated worktree `C:/Users/louis/sparkle-suite-repo/.codex-worktrees/monitoring-ci` is authorized to preserve the dirty primary workbench. The existing branch rule remains Smoke project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` / preview only. No aliases, Live, Live data/keys, production/default branch settings, or merge are authorized.
+
+## November 3 — Britt SSR Smoke parity
+Louis authorized one PR from 0750fcbf on codex/britt-ssr-smoke in the disposable britt-ssr-smoke-20261103 clone. Preview only: prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ. Candidate/legacy same-SHA deployment overrides only; no shared settings, aliases, Live, DB writes or production/default branch changes. Existing push guard remains mandatory.
