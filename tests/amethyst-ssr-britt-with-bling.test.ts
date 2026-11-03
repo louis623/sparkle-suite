@@ -60,3 +60,42 @@ it('uses the repository profile and roster through the same guarded legacy API f
     vi.stubEnv(key, saved)
   }
 })
+
+it('keeps review parameters in the actual deferred URL only while the Smoke guard passes', async () => {
+  fixture()
+  vi.stubEnv('REP_RENDER_V2_SLUGS', 'dudesfizzfest')
+  vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', '')
+  vi.resetModules()
+  vi.doMock('@/lib/amethyst/preview-template-data', () => ({ loadAmethystPreviewTemplateData: async () => original }))
+  vi.doMock('@/lib/amethyst/homepage-upcoming-shows', async () => ({
+    ...await vi.importActual<object>('@/lib/amethyst/homepage-upcoming-shows'),
+    loadAmethystHomepageUpcomingShows: async () => [],
+  }))
+  vi.doMock('@/lib/amethyst/trade-board-listings', async () => ({
+    ...await vi.importActual<object>('@/lib/amethyst/trade-board-listings'),
+    loadAmethystTradeBoardPreviewListings: async () => [],
+  }))
+  vi.doMock('@/lib/amethyst/public-join-index', () => ({ indexPublicJoinTemplate: async (data: unknown) => data }))
+  vi.doMock('@/lib/amethyst/rep-ga4-tag', () => ({ injectRepGa4Tag: (html: string) => html, resolveRepGa4TagHtml: async () => '' }))
+  vi.doMock('@/lib/public-site/signup-discount-settings', () => ({
+    loadSavedSignupDiscount: async () => null, applySavedSignupDiscount: async (data: unknown) => data,
+  }))
+  vi.doMock('@/lib/amethyst/homepage-data-budget', async () => ({
+    ...await vi.importActual<object>('@/lib/amethyst/homepage-data-budget'),
+    // Exercise the real bootstrap/deferred script without slow or external reads.
+    withinHomepageDataBudget: async () => undefined,
+  }))
+  const { renderAmethystPublicAssetResponse } = await import('@/lib/amethyst/public-asset-response')
+  const parameters = []
+  for (const environment of ['preview', 'production']) {
+    vi.stubEnv('VERCEL_ENV', environment)
+    const response = await renderAmethystPublicAssetResponse(new Request(url), ['Homepage.html'], {
+      repIdOverride: 'fixture-rep', publicSiteSlugOverride: 'dudesfizzfest',
+    })
+    const html = await response.text()
+    const match = html.match(/window\.SPARKLE_DEFERRED_PAGE_DATA=("[^"]+")/)
+    const deferred = new URL(JSON.parse(match?.[1] ?? 'null'), url)
+    parameters.push([Boolean(match), deferred.searchParams.get('ssrReviewTheme'), deferred.searchParams.get('ssrReviewLayout')])
+  }
+  expect(parameters).toEqual([[true, 'black_diamond', 'britt_with_bling'], [true, null, null]])
+})

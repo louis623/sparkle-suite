@@ -615,6 +615,11 @@ export async function renderAmethystPublicAssetResponse(
     bootstrapUrl.searchParams.set('c', repId || '')
     bootstrapUrl.searchParams.set('publicSiteSlug', options.publicSiteSlugOverride || '')
     bootstrapUrl.searchParams.set('lineupPresentation', 'grouped-v1')
+    const reviewSelection = smokeReviewSelection(requestUrl, options.publicSiteSlugOverride)
+    if (reviewSelection) {
+      bootstrapUrl.searchParams.set('ssrReviewTheme', reviewSelection.theme)
+      if (reviewSelection.layout !== null) bootstrapUrl.searchParams.set('ssrReviewLayout', reviewSelection.layout)
+    }
     // Start all data reads before waiting for the template used by metadata.
     const bootstrapTask = page !== 'homepage'
       ? import('./customer-page-bootstrap-response').then(({ buildCustomerPageBootstrapResponse }) => buildCustomerPageBootstrapResponse(page as 'trade' | 'join', request, {
