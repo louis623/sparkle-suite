@@ -102,6 +102,11 @@ function clean(value: string | null | undefined) {
   return value?.trim() || ''
 }
 
+function withFinalPunctuation(value: string) {
+  const name = value.trim()
+  return /[.!?]$/.test(name) ? name : `${name}.`
+}
+
 function socialKeyForUrl(value: string) {
   const normalized = value.toLowerCase()
   if (normalized.includes('tiktok.com')) return 'tiktok'
@@ -209,7 +214,7 @@ function applyRequiredSetupDraftToHomepage(
     heroHeadline: firstDraftText(draft.welcomeHeadline, homepage.heroHeadline),
     heroSub: firstDraftText(draft.welcomeSupportingLine, homepage.heroSub),
     aboutHeadline: draft.customerFacingDisplayName
-      ? `Meet the story behind ${draft.customerFacingDisplayName}.`
+      ? `Meet the story behind ${withFinalPunctuation(draft.customerFacingDisplayName)}`
       : homepage.aboutHeadline,
     aboutParagraphs,
     footerTagline: firstDraftText(draft.welcomeSupportingLine, homepage.footerTagline),
@@ -595,7 +600,7 @@ export function mapPreviewSettingsToHomepageTemplateData(
     ),
     aboutHeadline: firstText(
       settings.aboutHeading,
-      `Meet ${repName} and the story behind ${businessName}.`,
+      `Meet ${repName} and the story behind ${withFinalPunctuation(businessName)}`,
     ),
     aboutSubheading: settings.aboutSubheading?.trim() || undefined,
     ...(aboutParagraphs ? { aboutParagraphs } : {}),

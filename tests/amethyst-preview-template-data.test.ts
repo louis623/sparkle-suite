@@ -84,6 +84,40 @@ const repExtras = {
 }
 
 describe('Amethyst preview template data', () => {
+  it.each([
+    { name: 'Main Gem Co.   ', ending: 'Main Gem Co.' },
+    { name: 'Main Gem Company', ending: 'Main Gem Company.' },
+  ])('uses one final punctuation mark for "$name" in both generated About headlines', async ({ name, ending }) => {
+    const settings = { ...demoSettings, displayName: 'Katelin Lawrence', businessName: name }
+    const homepage = mapPreviewSettingsToHomepageTemplateData(settings, repExtras)
+    expect(homepage.aboutHeadline).toBe(`Meet Katelin and the story behind ${ending}`)
+
+    const draft = await loadAmethystPreviewTemplateData({
+      repId: 'rep-headline',
+      env: {
+        NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+        SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
+      },
+      dependencies: {
+        createAdminClient: vi.fn(() => ({ from: vi.fn() })) as unknown as typeof createAdminClient,
+        resolveAmethystPreviewRep: vi.fn(async () => ({
+          id: 'rep-headline', email: 'headline@example.com', shop_link: null, streaming_links: {},
+        })),
+        getSiteSettingsDashboard: vi.fn(async () => settings),
+        getJoinTeamRoster: vi.fn(async () => []),
+        getRequiredSetupState: vi.fn(async () => ({
+          id: 'setup-headline', repId: 'rep-headline', status: 'required_setup',
+          currentStep: 'final_preview_approval', completedSteps: [], steps: [],
+          answers: { account_basics: { customerFacingDisplayName: name } },
+          generatedCopy: {}, supportState: {}, dashboardUnlockedAt: null,
+          createdAt: '2026-11-02T18:00:00Z', updatedAt: '2026-11-02T18:00:00Z',
+          nextStep: 'final_preview_approval', canUnlockDashboard: false,
+        })),
+      },
+    })
+    expect(draft.homepage.aboutHeadline).toBe(`Meet the story behind ${ending}`)
+  })
+
   it('uses one polished demo identity when preview data cannot load', async () => {
     const data = await loadAmethystPreviewTemplateData({
       env: {},
