@@ -1,5 +1,17 @@
 # Sparkle Suite Branch Register
 
+## November 3 — Landing preview images, Smoke only
+
+Louis approved `codex/landing-preview-images` from exact source `0750fcbf32d8b80e96bd499eb87529302d96d9fd`
+in disposable clean clone `C:\Users\louis\sparkle-suite-repo\.codex-worktrees\landing-preview-images`.
+Restore only five missing WebP posters from `b110c19a7d04f288c3ed49cc5386362a7e44e845`
+and record each in `public/marketing/demo-themes/PROVENANCE.md`. Louis separately
+approved these two policy files, for an eight-file draft PR. Keep the normal
+push guard. Deploy only to `sparkle-suite-smoke` (`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`)
+/ preview. Verification is exactly five page loads and five image requests,
+with no other tests or reruns unless a check fails. No Live, database writes,
+merge, default-branch or production-branch changes. This is a Smoke-only review exception.
+
 ## November 2 — Signup consent punctuation, Smoke only
 
 Louis approved `codex/signup-consent-punctuation` from exact production tip
