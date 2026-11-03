@@ -1,5 +1,17 @@
 # Sparkle Suite Branch Register
 
+## November 2 — About headline punctuation, Smoke only
+
+Louis explicitly approved `codex/about-headline-smoke` from verified production
+tip `0192efc941e1eb353e9d9794ef64948209e968d8` after PR #172 merged. Disposable
+clean clone: `C:\Users\louis\sparkle-suite-repo\.codex-worktrees\about-headline-smoke`.
+Scope: one shared punctuation helper for the two generated About headlines and
+two cases in the existing preview-template-data test file. Run that file once;
+no full suite or browser checks. One unmerged PR and deployment only to
+`sparkle-suite-smoke` (`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`) / preview. No saved data,
+Live, production-branch or GitHub default-branch changes. These guard entries
+are this explicitly authorized Smoke-only review exception.
+
 ## November 2 — Coffee with Louis November 12 Smoke only
 
 Louis explicitly approved `codex/coffee-nov12-smoke` from verified production tip

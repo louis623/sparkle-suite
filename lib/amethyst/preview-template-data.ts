@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { resolveSocialHeroLinks, resolveSocialPlatformUrl } from '@/lib/public-site/social-hero'
 import { isSocialHeroEnabled } from '@/lib/public-site/social-visibility'
 import { resolvePublicSiteVisibility } from '@/lib/public-site/visibility'
+import { withFinalPunctuation } from '@/lib/public-site/final-punctuation'
 import {
   getSiteSettingsDashboard,
 } from '@/lib/services/site-settings'
@@ -209,7 +210,7 @@ function applyRequiredSetupDraftToHomepage(
     heroHeadline: firstDraftText(draft.welcomeHeadline, homepage.heroHeadline),
     heroSub: firstDraftText(draft.welcomeSupportingLine, homepage.heroSub),
     aboutHeadline: draft.customerFacingDisplayName
-      ? `Meet the story behind ${draft.customerFacingDisplayName}.`
+      ? `Meet the story behind ${withFinalPunctuation(draft.customerFacingDisplayName)}`
       : homepage.aboutHeadline,
     aboutParagraphs,
     footerTagline: firstDraftText(draft.welcomeSupportingLine, homepage.footerTagline),
@@ -595,7 +596,7 @@ export function mapPreviewSettingsToHomepageTemplateData(
     ),
     aboutHeadline: firstText(
       settings.aboutHeading,
-      `Meet ${repName} and the story behind ${businessName}.`,
+      `Meet ${repName} and the story behind ${withFinalPunctuation(businessName)}`,
     ),
     aboutSubheading: settings.aboutSubheading?.trim() || undefined,
     ...(aboutParagraphs ? { aboutParagraphs } : {}),
