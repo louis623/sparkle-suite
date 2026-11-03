@@ -1,5 +1,9 @@
 import { AMETHYST_APPEARANCE_PRESET_IDS } from './appearance-presets'
 import type { AmethystPreviewTemplateData } from './preview-template-data'
+import {
+  applyBrittWithBlingHomepage, applyBrittWithBlingTrade, applyBrittWithBlingJoin,
+  BRITT_WITH_BLING_PROFILE, BRITT_WITH_BLING_TEAM_MEMBERS,
+} from '@/lib/britt-with-bling/profile'
 
 export const SSR_REVIEW_LAYOUTS = {
   standard: undefined,
@@ -26,6 +30,19 @@ export function homepageSmokeReview(data: AmethystPreviewTemplateData, url: URL,
   const selection = smokeReviewSelection(url, slug)
   if (!selection) return data
   const { theme, layout } = selection
+  if (layout === 'britt_with_bling') {
+    const profile = BRITT_WITH_BLING_PROFILE
+    const identity = { repName: profile.publicName, businessName: profile.businessName, teamName: profile.teamName }
+    data = { ...data,
+      homepage: applyBrittWithBlingHomepage({ ...data.homepage, ...identity,
+        tagline: '', heroHeadlineOverride: '',
+        streamLinks: { ...data.homepage.streamLinks, shop: profile.shopUrl, watch: profile.tiktokUrl, tiktok: profile.tiktokUrl, facebook: profile.facebookVipUrl },
+        socialLinks: [{ label: 'TikTok', shortLabel: 'TT', href: profile.tiktokUrl }, { label: 'Facebook', shortLabel: 'FB', href: profile.facebookVipUrl }],
+      }),
+      trade: applyBrittWithBlingTrade({ ...data.trade, ...identity }),
+      join: applyBrittWithBlingJoin({ ...data.join, ...identity }, BRITT_WITH_BLING_TEAM_MEMBERS),
+    }
+  }
   const variant = layout === null ? data.homepage.publicSiteVariant : SSR_REVIEW_LAYOUTS[layout as keyof typeof SSR_REVIEW_LAYOUTS]
   return { ...data, ssrReview: true, appearancePreset: theme as AmethystPreviewTemplateData['appearancePreset'],
     homepage: { ...data.homepage, publicSiteVariant: variant },
