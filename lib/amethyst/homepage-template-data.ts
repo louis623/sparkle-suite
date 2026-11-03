@@ -8,6 +8,7 @@ import {
   type AmethystAppearancePresetId,
 } from './appearance-presets'
 import { getPublicRepName, redactPublicRepFullName } from './public-rep-name'
+import { withFinalPunctuation } from '@/lib/public-site/final-punctuation'
 import type { AmethystTradeBoardListing } from './trade-board-listings'
 import type { LiveQueueSnapshot } from '@/lib/services/types'
 import { buildPublicLiveLineup } from './public-live-lineup'
@@ -94,6 +95,7 @@ export interface AmethystHomepageTemplateData {
   danceFloorComingSoon?: boolean
   repName: string
   businessName: string
+  businessNameWithFinalPunctuation?: string
   teamName: string
   /** The upline or other team this rep belongs to, shown in the public footer. */
   memberTeamName?: string
@@ -472,6 +474,7 @@ export function buildAmethystHomepageBootstrapScript(
   const targeted = publicRuntimeContext.targeted
   const publicData: AmethystHomepageTemplateData = {
     ...data,
+    businessNameWithFinalPunctuation: withFinalPunctuation(data.businessName),
     repName: getPublicRepName(data.repName),
     heroSub: redactPublicRepFullName(data.heroSub, data.repName),
     aboutHeadline: redactPublicRepFullName(data.aboutHeadline, data.repName),

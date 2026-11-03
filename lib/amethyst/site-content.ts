@@ -1,4 +1,5 @@
 import { getPublicRepName, redactPublicRepFullName } from './public-rep-name'
+import { withFinalPunctuation } from '@/lib/public-site/final-punctuation'
 
 export type AmethystTier = 'everyday' | 'diamond' | 'unicorn'
 export type AmethystEventPlatform = 'tiktok' | 'facebook' | 'shop'
@@ -306,7 +307,7 @@ export function makeAmethystSiteContent(
     signupSub,
     signupConsent:
       overrides.signupConsent ??
-      `Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from ${businessName}. Message and data rates may apply. Reply STOP to unsubscribe.`,
+      `Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from ${withFinalPunctuation(businessName)} Message and data rates may apply. Reply STOP to unsubscribe.`,
     legalDisclaimer:
       overrides.legalDisclaimer ??
       `${businessName} is operated by an independent Bomb Party Representative. Bomb Party and related marks belong to Bomb Party LLC. Dance Floor listings, show schedules, and rep communications are managed by the individual rep.`,

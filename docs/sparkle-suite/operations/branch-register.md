@@ -1,5 +1,16 @@
 # Sparkle Suite Branch Register
 
+## November 2 — Signup consent punctuation, Smoke only
+
+Louis approved `codex/signup-consent-punctuation` from exact production tip
+`ed16f389935c25013064c0aff0c19ffbb540ca59`, using the verified clean disposable
+clone at `.codex-worktrees/about-headline-smoke`. Fix only consent punctuation,
+reuse the shared helper, and preserve all other wording. Run the single related
+test file once with two added cases; no full suite or browser checks. One new,
+unmerged PR; deploy only to `sparkle-suite-smoke`
+(`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`) / preview. No Live, data, project environment,
+GitHub default or production-branch changes. This is a Smoke-only review exception.
+
 ## November 2 — About headline punctuation, Smoke only
 
 Louis explicitly approved `codex/about-headline-smoke` from verified production

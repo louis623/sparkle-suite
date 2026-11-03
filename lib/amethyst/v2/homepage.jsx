@@ -3176,7 +3176,7 @@ function Signup({ repName, businessName }) {
               </div>
               {step === SIGNUP_LAST_STEP ? (
                 <p className="hp-signup-consent slot" data-slot="consent — pending legal">
-                  Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from <span className="slot" data-slot="business name">{businessName}</span>.
+                  Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from <span className="slot" data-slot="business name">{CONTENT.businessNameWithFinalPunctuation || `${businessName}.`}</span>{' '}
                   Msg & data rates may apply. Reply STOP to unsubscribe. <a {...linkProps(getUnsubscribeHref())}>Manage or unsubscribe</a>.
                 </p>
               ) : null}
