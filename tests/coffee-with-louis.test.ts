@@ -8,9 +8,9 @@ import {
   getNextCoffeeWithLouisSession,
 } from '@/lib/help/coffee-with-louis'
 
-const FIRST_SESSION = 'Thursday, Oct 8, 2026 · 8 PM ET'
-const SECOND_SESSION = 'Thursday, Oct 22, 2026 · 8 PM ET'
-const THIRD_SESSION = 'Thursday, Nov 5, 2026 · 8 PM ET'
+const FIRST_SESSION = 'Thursday, Nov 12, 2026 · 8 PM ET'
+const SECOND_SESSION = 'Thursday, Nov 26, 2026 · 8 PM ET'
+const THIRD_SESSION = 'Thursday, Dec 10, 2026 · 8 PM ET'
 
 describe('Coffee with Louis next session', () => {
   it('keeps every session on Thursday at 8:00 PM America/New_York', () => {
@@ -32,35 +32,38 @@ describe('Coffee with Louis next session', () => {
     }
   })
 
-  it('anchors the first session at 8 PM Eastern on Oct 8, 2026', () => {
+  it('anchors the first session at 8 PM Eastern on Nov 12, 2026', () => {
     expect(getCoffeeWithLouisSessionStart(0).toISOString()).toBe(
-      '2026-10-09T00:00:00.000Z',
+      '2026-11-13T01:00:00.000Z',
     )
     expect(formatCoffeeWithLouisLabel(getCoffeeWithLouisSessionStart(0))).toBe(
       FIRST_SESSION,
     )
     expect(formatCoffeeWithLouisReminderDate(getCoffeeWithLouisSessionStart(0))).toBe(
-      'Thursday, Oct 8',
+      'Thursday, Nov 12',
     )
   })
 
-  it('keeps 8 PM Eastern after the November daylight-saving change', () => {
-    expect(getCoffeeWithLouisSessionStart(2).toISOString()).toBe(
-      '2026-11-06T01:00:00.000Z',
+  it('keeps 8 PM Eastern across the March daylight-saving change', () => {
+    expect(getCoffeeWithLouisSessionStart(8).toISOString()).toBe(
+      '2027-03-05T01:00:00.000Z',
     )
-    expect(formatCoffeeWithLouisLabel(getCoffeeWithLouisSessionStart(2))).toBe(
-      THIRD_SESSION,
+    expect(getCoffeeWithLouisSessionStart(9).toISOString()).toBe(
+      '2027-03-19T00:00:00.000Z',
+    )
+    expect(formatCoffeeWithLouisLabel(getCoffeeWithLouisSessionStart(9))).toBe(
+      'Thursday, Mar 18, 2027 · 8 PM ET',
     )
     expect(
       formatCoffeeWithLouisReminderDate(
-        getNextCoffeeWithLouisSession(new Date('2026-10-09T00:00:00.000Z')).startsAt,
+        getNextCoffeeWithLouisSession(new Date('2026-11-13T01:00:00.000Z')).startsAt,
       ),
-    ).toBe('Thursday, Oct 22')
+    ).toBe('Thursday, Nov 26')
   })
 
   it('shows the first session before it starts', () => {
     const session = getNextCoffeeWithLouisSession(
-      new Date('2026-10-01T16:00:00.000Z'),
+      new Date('2026-11-05T16:00:00.000Z'),
     )
 
     expect(session.label).toBe(FIRST_SESSION)
@@ -74,17 +77,17 @@ describe('Coffee with Louis next session', () => {
   it('shows the same session on Thursday before 8 PM ET', () => {
     expect(
       getNextCoffeeWithLouisSession(
-        new Date('2026-10-08T23:59:00.000Z'),
+        new Date('2026-11-13T00:59:00.000Z'),
       ).label,
     ).toBe(FIRST_SESSION)
   })
 
   it('advances at 8:00 PM ET, during the 8–9 PM window, and after it', () => {
     for (const now of [
-      '2026-10-09T00:00:00.000Z',
-      '2026-10-09T00:30:00.000Z',
-      '2026-10-09T01:00:00.000Z',
-      '2026-10-09T01:01:00.000Z',
+      '2026-11-13T01:00:00.000Z',
+      '2026-11-13T01:30:00.000Z',
+      '2026-11-13T02:00:00.000Z',
+      '2026-11-13T02:01:00.000Z',
     ]) {
       expect(getNextCoffeeWithLouisSession(new Date(now)).label).toBe(
         SECOND_SESSION,
@@ -95,30 +98,30 @@ describe('Coffee with Louis next session', () => {
   it('shows the following session between Thursdays', () => {
     expect(
       getNextCoffeeWithLouisSession(
-        new Date('2026-10-15T16:00:00.000Z'),
+        new Date('2026-11-19T16:00:00.000Z'),
       ).label,
     ).toBe(SECOND_SESSION)
     expect(
       getNextCoffeeWithLouisSession(
-        new Date('2026-10-22T23:59:00.000Z'),
+        new Date('2026-11-27T00:59:00.000Z'),
       ).label,
     ).toBe(SECOND_SESSION)
     expect(
       getNextCoffeeWithLouisSession(
-        new Date('2026-10-23T00:00:00.000Z'),
+        new Date('2026-11-27T01:00:00.000Z'),
       ).label,
     ).toBe(THIRD_SESSION)
   })
 
-  it('shows Nov 5 at 8 PM ET when that session is still upcoming', () => {
+  it('shows Dec 10 at 8 PM ET when that session is still upcoming', () => {
     expect(
       getNextCoffeeWithLouisSession(
-        new Date('2026-11-06T00:59:00.000Z'),
+        new Date('2026-12-11T00:59:00.000Z'),
       ).label,
     ).toBe(THIRD_SESSION)
     expect(
       getNextCoffeeWithLouisSession(
-        new Date('2026-11-06T01:00:00.000Z'),
+        new Date('2026-12-11T01:00:00.000Z'),
       ).startsAt.toISOString(),
     ).toBe(getCoffeeWithLouisSessionStart(3).toISOString())
   })

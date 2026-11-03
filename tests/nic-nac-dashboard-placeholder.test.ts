@@ -1001,7 +1001,7 @@ describe('DashboardPlaceholder', () => {
 
   it('shows the next Coffee with Louis session on Help & Resources', () => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-10-08T23:59:00.000Z'))
+    vi.setSystemTime(new Date('2026-11-13T00:59:00.000Z'))
 
     try {
       const html = renderToStaticMarkup(
@@ -1014,7 +1014,7 @@ describe('DashboardPlaceholder', () => {
       )
 
       expect(html).toContain('Coffee with Louis')
-      expect(html).toContain('Thursday, Oct 8, 2026 · 8 PM ET')
+      expect(html).toContain('Thursday, Nov 12, 2026 · 8 PM ET')
       expect(html).toContain('Every 14 days · Thursdays, 8–9 PM ET.')
       expect(html).toContain('href="https://meet.google.com/ydu-jgut-drf"')
       expect(html).toContain('>https://meet.google.com/ydu-jgut-drf<')
@@ -1033,11 +1033,11 @@ describe('DashboardPlaceholder', () => {
     vi.useFakeTimers()
 
     try {
-      vi.setSystemTime(new Date('2026-10-08T23:59:00.000Z'))
+      vi.setSystemTime(new Date('2026-11-13T00:59:00.000Z'))
       const beforeSession = renderToStaticMarkup(createElement(DashboardPlaceholder))
 
       expect(beforeSession).toContain('Coffee with Louis')
-      expect(beforeSession).toContain('Next session · Thursday, Oct 8 · 8–9 PM ET')
+      expect(beforeSession).toContain('Next session · Thursday, Nov 12 · 8–9 PM ET')
       expect(beforeSession).toContain('>Help &amp; Resources<')
       expect(beforeSession).toContain('>Get the meeting link<')
       expect(beforeSession).not.toContain('Need help?')
@@ -1058,11 +1058,11 @@ describe('DashboardPlaceholder', () => {
       expect(beforeSession).not.toContain('meet.google.com')
       expect(beforeSession).not.toContain('Every 14 days')
 
-      vi.setSystemTime(new Date('2026-10-09T00:00:00.000Z'))
+      vi.setSystemTime(new Date('2026-11-13T01:00:00.000Z'))
       const duringSession = renderToStaticMarkup(createElement(DashboardPlaceholder))
 
-      expect(duringSession).toContain('Next session · Thursday, Oct 22 · 8–9 PM ET')
-      expect(duringSession).not.toContain('Next session · Thursday, Oct 8 · 8–9 PM ET')
+      expect(duringSession).toContain('Next session · Thursday, Nov 26 · 8–9 PM ET')
+      expect(duringSession).not.toContain('Next session · Thursday, Nov 12 · 8–9 PM ET')
     } finally {
       vi.useRealTimers()
       vi.unstubAllEnvs()
