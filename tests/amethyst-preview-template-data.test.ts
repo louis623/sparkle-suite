@@ -1,9 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { runInNewContext } from 'node:vm'
+import * as React from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { transformSync } from 'esbuild'
+import { makeAmethystSiteContent } from '@/lib/amethyst/site-content'
 
 import {
   defaultAmethystHomepageTemplateData,
+  buildAmethystHomepageBootstrapScript,
 } from '@/lib/amethyst/homepage-template-data'
 import {
   defaultAmethystTradeTemplateData,
@@ -84,6 +90,34 @@ const repExtras = {
 }
 
 describe('Amethyst preview template data', () => {
+  it.each([
+    { businessName: 'Main Gem Co.   ', punctuatedName: 'Main Gem Co.' },
+    { businessName: 'Main Gem Company', punctuatedName: 'Main Gem Company.' },
+  ])('keeps signup consent wording and one sentence ending for "$businessName"', ({ businessName, punctuatedName }) => {
+    const consent = `Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from ${punctuatedName} Msg & data rates may apply. Reply STOP to unsubscribe.`
+    const homepage = mapPreviewSettingsToHomepageTemplateData({ ...demoSettings, businessName }, repExtras)
+    expect(homepage.signupConsent).toBe(consent)
+    expect(makeAmethystSiteContent({ businessName }).signupConsent).toBe(
+      `Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from ${punctuatedName} Message and data rates may apply. Reply STOP to unsubscribe.`,
+    )
+
+    const bootstrap = buildAmethystHomepageBootstrapScript(homepage, [])
+    const payload = JSON.parse(bootstrap.match(/window\.AMETHYST_HOMEPAGE_TEMPLATE_DATA = (.*);/)![1])
+    expect(payload.businessNameWithFinalPunctuation).toBe(punctuatedName)
+    for (const file of ['lib/amethyst/v2/homepage.jsx', 'lib/amethyst/legacy/assets/homepage.jsx']) {
+      const source = readFileSync(resolve(process.cwd(), file), 'utf8')
+      const consentJsx = source.match(/<p className="hp-signup-consent slot"[\s\S]*?<\/p>/)![0]
+      const element = runInNewContext(transformSync(`(${consentJsx})`, {
+        loader: 'jsx', jsx: 'transform', jsxFactory: 'React.createElement', jsxFragment: 'React.Fragment',
+      }).code, {
+        React, CONTENT: payload, businessName: businessName.trim(),
+        linkProps: (href: string) => ({ href }), getUnsubscribeHref: () => '/amethyst/unsubscribe',
+      })
+      const text = renderToStaticMarkup(element).replace(/<[^>]*>/g, '').replaceAll('&amp;', '&').replace(/\s+/g, ' ').trim()
+      expect(text).toBe(`${consent} Manage or unsubscribe.`)
+    }
+  })
+
   it.each([
     { name: 'Main Gem Co.   ', ending: 'Main Gem Co.' },
     { name: 'Main Gem Company', ending: 'Main Gem Company.' },

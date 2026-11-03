@@ -50,7 +50,8 @@
     "codex/monitoring-ci",
     "codex/signup-discount-smoke",
     "codex/coffee-nov12-smoke",
-    "codex/about-headline-smoke"
+    "codex/about-headline-smoke",
+    "codex/signup-consent-punctuation"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -174,6 +175,10 @@
       "environment": "preview"
     },
     "codex/about-headline-smoke": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/signup-consent-punctuation": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }
