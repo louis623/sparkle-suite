@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { resolveSocialHeroLinks, resolveSocialPlatformUrl } from '@/lib/public-site/social-hero'
 import { isSocialHeroEnabled } from '@/lib/public-site/social-visibility'
 import { resolvePublicSiteVisibility } from '@/lib/public-site/visibility'
+import { withFinalPunctuation } from '@/lib/public-site/final-punctuation'
 import {
   getSiteSettingsDashboard,
 } from '@/lib/services/site-settings'
@@ -100,11 +101,6 @@ const defaultPreviewTemplateData: AmethystPreviewTemplateData = {
 
 function clean(value: string | null | undefined) {
   return value?.trim() || ''
-}
-
-function withFinalPunctuation(value: string) {
-  const name = value.trim()
-  return /[.!?]$/.test(name) ? name : `${name}.`
 }
 
 function socialKeyForUrl(value: string) {

@@ -2,6 +2,7 @@ import {
   SPARKLE_PUBLIC_ORIGIN,
   normalizeSparkleOrigin,
 } from './sparkle-crawl'
+import { withFinalPunctuation } from '@/lib/public-site/final-punctuation'
 
 export type AmethystPublicPage = 'homepage' | 'trade' | 'join' | 'pantry'
 
@@ -235,6 +236,9 @@ export function buildRepPublicPageText(input: {
   const teamName = input.teamName.trim() || businessName
   const location = publicRepLocationLabel(input.city, input.state)
   const place = location ? ` in ${location}` : ''
+  const businessNameSentence = place
+    ? `${businessName}${place}.`
+    : withFinalPunctuation(businessName)
 
   if (input.page === 'trade') {
     return {
@@ -247,19 +251,19 @@ export function buildRepPublicPageText(input: {
     // /join title and description belong to cursor/rep-join-unique-content.
     return {
       title: `Join ${teamName}`,
-      description: `Learn how to join ${teamName} with ${repName}.`,
+      description: `Learn how to join ${teamName} with ${withFinalPunctuation(repName)}`,
     }
   }
 
   if (input.page === 'pantry') {
     return {
       title: `In the Pantry | ${businessName}`,
-      description: `Browse recipes, kitchen notes, and live-show favorites from ${businessName}${place}.`,
+      description: `Browse recipes, kitchen notes, and live-show favorites from ${businessNameSentence}`,
     }
   }
 
   return {
     title: `${businessName} | Live jewelry reveals and Dance Floor${place}`,
-    description: `Independent Bomb Party rep site for ${businessName}${place}. Watch live jewelry reveals, follow the Live Lineup, and browse dancers on the Dance Floor.`,
+    description: `Independent Bomb Party rep site for ${businessNameSentence} Watch live jewelry reveals, follow the Live Lineup, and browse dancers on the Dance Floor.`,
   }
 }
