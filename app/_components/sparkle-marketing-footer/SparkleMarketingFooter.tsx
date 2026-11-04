@@ -1,9 +1,11 @@
 // Duplicated for the two Smoke roots. Suite Vercel ignores apps/finder, and Finder Smoke only receives apps/finder.
 // Shared approved structure; Suite's social styling was separately approved on October 6, 2026.
+import { sparkleSuiteTikTokChannelUrl } from "@/lib/sparkle-suite/public-landing-content";
 import styles from "./sparkle-marketing-footer.module.css";
 
 export const sparkleMarketingYouTubeUrl = "https://www.youtube.com/@SparkleSuite";
-export const sparkleMarketingTikTokUrl = "https://www.tiktok.com/@yoursparklesuite.com";
+/** Defined once in public-landing-content.ts; re-exported for existing imports. */
+export const sparkleMarketingTikTokUrl = sparkleSuiteTikTokChannelUrl;
 export const sparkleMarketingDisclaimer =
   "Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.";
 

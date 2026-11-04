@@ -116,9 +116,11 @@ describe('Sparkle Suite public landing page', () => {
   it('sends Watch traffic to the correct channels', () => {
     const html = renderLanding()
     expect(html).not.toContain('Watch the featured TikTok demo')
-    expect(html).toContain('href="https://www.tiktok.com/@yoursparklesuite.com"')
+    expect(html).toContain('href="https://www.tiktok.com/@sparklesuiteandfinder"')
     expect(html).toContain('href="https://www.youtube.com/@SparkleSuite"')
-    expect(html).not.toContain('tiktok.com/@sparklesuite')
+    // tiktok.com/@sparklesuite (no suffix) is an unrelated Mary Kay account.
+    expect(html).not.toMatch(/tiktok\.com\/@sparklesuite(?!andfinder)/)
+    expect(html).not.toContain('@yoursparklesuite')
     expect(html).not.toContain('href="/demo"')
     expect(html).not.toContain('Play the quick tour')
   })

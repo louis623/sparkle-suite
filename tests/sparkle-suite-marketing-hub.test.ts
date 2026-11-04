@@ -141,7 +141,7 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(html).toContain('href="/faq"')
     expect(html).toContain(sparkleSuitePublicLandingSafety.disclaimer)
     expect(html).toContain('href="https://www.youtube.com/@SparkleSuite"')
-    expect(html).toContain('href="https://www.tiktok.com/@yoursparklesuite.com"')
+    expect(html).toContain('href="https://www.tiktok.com/@sparklesuiteandfinder"')
     expect(html).not.toContain('href="/finder')
     expect(sparkleSuiteMarketingHubContent.finder.deepLinks).toEqual([])
   })

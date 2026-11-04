@@ -5,8 +5,13 @@
  * Embeds are individual listed videos, not this profile.
  */
 export const sparkleSuiteYouTubeChannelUrl = 'https://www.youtube.com/@SparkleSuite' as const
-/** Official TikTok profile for icons and footer social. Not an embed. */
-export const sparkleSuiteTikTokChannelUrl = 'https://www.tiktok.com/@yoursparklesuite.com' as const
+/**
+ * Official TikTok profile for icons and footer social. Not an embed.
+ * This is the one place the Suite TikTok profile link is defined; the footer,
+ * /faq and /demo all read it from here. Renamed from @yoursparklesuite.com
+ * on 2026-10-18. The old handle is dead and must never be linked again.
+ */
+export const sparkleSuiteTikTokChannelUrl = 'https://www.tiktok.com/@sparklesuiteandfinder' as const
 
 export const sparkleSuitePublicLandingSafety = {
   disclaimer:
