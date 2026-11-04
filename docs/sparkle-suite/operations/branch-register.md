@@ -293,3 +293,7 @@ Louis explicitly requested continuing draft PR #170 on `codex/monitoring-ci`. Th
 
 ## November 3 — Britt SSR Smoke parity
 Louis authorized one PR from 0750fcbf on codex/britt-ssr-smoke in the disposable britt-ssr-smoke-20261103 clone. Preview only: prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ. Candidate/legacy same-SHA deployment overrides only; no shared settings, aliases, Live, DB writes or production/default branch changes. Existing push guard remains mandatory.
+
+## November 3 — Heather SSR Smoke review
+
+Louis authorized one draft PR on `codex/heather-ssr-smoke` from verified `5a1ba1a1e0afe4413603b519c2816070db9b49bf`, in disposable clone `/workspace/codex-runs/heather-ssr-clean`. Preview only: `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`. Deployment-only Pantry allowlist override; no shared settings, aliases, Live, database writes, merge, or production/default branch changes. Existing push guard remains mandatory.

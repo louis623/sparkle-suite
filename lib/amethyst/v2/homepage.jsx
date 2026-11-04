@@ -3488,7 +3488,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
 }
 
 function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queueState, onOpenQueue }) {
-  const pantryHref = CONTENT.pantryPageUrl || "#";
+  const pantryHref = CONTENT.pantryPageUrl;
   const heroImageUrl = CONTENT.heroImageUrl || "";
   const heroWatchLinks = getHeroWatchLinks(liveShow, isLive);
   const tiktokLink = heroWatchLinks.find((link) => link.id === "tiktok") || { href: "https://www.tiktok.com/@blingkitchen" };
@@ -3499,7 +3499,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
     <div className="bk-home-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
-      {window.SPARKLE_HERO_THEMES ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : useFramedKitchenHero ? (
+      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : useFramedKitchenHero ? (
       <section className="bkf-hero" aria-labelledby="bkf-hero-title">
         <div className="bkf-hero-inner">
           <div className="bkf-hero-copy">
@@ -3513,7 +3513,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
             </div>
             <div className="bkf-links">
               <a {...linkProps(getTradeBoardHref())}>Browse the Dance Floor →</a>
-              <a {...linkProps(pantryHref)}>In the Pantry →</a>
+              {pantryHref && <a {...linkProps(pantryHref)}>In the Pantry →</a>}
             </div>
             <p className="bkf-live"><i aria-hidden="true"></i>Live M / W / F · 7 PM EST</p>
           </div>
@@ -3536,7 +3536,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
             <div className="bk-home-hero-cta-stack">
               <div className="bk-home-hero-cta-primary-row">
                 <a {...linkProps(getShopHref())}><span className="bk-home-cta-label">Shop Bomb Party</span></a>
-                <a {...linkProps(pantryHref)}><span className="bk-home-cta-label">In the Pantry</span></a>
+                {pantryHref && <a {...linkProps(pantryHref)}><span className="bk-home-cta-label">In the Pantry</span></a>}
                 {heroWatchLinks.map((link) => (
                   <a key={link.id} {...linkProps(link.href)} className={isLive && link.id === "tiktok" ? "is-live" : ""}>
                     <span className="bk-home-cta-label">{link.label}</span>
@@ -3552,14 +3552,14 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
       )}
 
       <div className="bk-home-below-shell">
-        <section className="bk-home-pantry-callout">
+        {pantryHref && <section className="bk-home-pantry-callout">
           <div>
             <p>Recipes with Heather</p>
             <h2>In the Pantry</h2>
             <span>Family recipes, kitchen notes, and favorite treats preserved from Heather's original BlingKitchen site.</span>
           </div>
           <a {...linkProps(pantryHref)}>Open Recipes</a>
-        </section>
+        </section>}
         <div className="bk-home-automation-panel">
           {(t.showEvents || Boolean(window.SPARKLE_PENDING_PAGE_DATA?.events)) && <Events count={t.eventCount} />}
           {t.showWibp && <BlingKitchenRevealGuide repName={repName} />}

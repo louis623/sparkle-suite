@@ -28,8 +28,15 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
       const saved = { ...homepage, heroMotion: 'still', publicSiteVariant }
       const bootstrap = buildAmethystHomepageBootstrapScript(saved, [], preset, { targeted: true })
       const html = await renderHomepageFirstPaint(source, { homepage: saved, join, trade, appearancePreset: preset }, new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
+      const kitchenBespoke = layout === 'bling_kitchen' && preset !== 'halloween_pumpkin_cat'
       const bespoke = (layout === 'mile_high_fizz' || layout === 'britt_with_bling') && preset !== 'halloween_pumpkin_cat'
-      if (bespoke) expect(html).toContain(`class="${layout === 'britt_with_bling' ? 'bwb' : 'mhf'}-hero"`)
+      if (kitchenBespoke) {
+        const framed = Boolean(saved.heroImageUrl) && !/halloween|gnome|neon|gilded|unicorn|am01|rose|pearl|witch/i.test(preset)
+        expect(html).toContain(`class="${framed ? 'bkf-hero' : 'bk-home-hero'}"`)
+        expect(html).not.toContain('data-ssr-hero=')
+        expect(html).not.toMatch(/<section class="hp-hero"/)
+        expect(html).not.toContain('data-hero-motion-toggle=""')
+      } else if (bespoke) expect(html).toContain(`class="${layout === 'britt_with_bling' ? 'bwb' : 'mhf'}-hero"`)
       else expect(html).toContain(`data-ssr-hero="${preset}"`)
       expect(html).toContain('data-server-rendered="true"')
       expect(html.match(/<h1\b/g)).toHaveLength(1)
@@ -44,7 +51,7 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
           expect(html).not.toContain('class="mhf-hero-video"')
         }
         else expect(html).toMatch(/<video[^>]*class="mhf-hero-video"[^>]*preload="metadata"/)
-      } else {
+      } else if (!kitchenBespoke) {
         expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
         expect(html).toContain('>Pause animation</button>')
         if (HERO_MOTION_THEMES[preset].sound) expect(html).toContain('>Enable ' + HERO_MOTION_THEMES[preset].sound + '</button>')
@@ -54,7 +61,7 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
       expect(html).toContain('data-ssr-style="homepage.css"')
       expect(html).not.toMatch(/<link\b[^>]*rel="stylesheet"/)
       if (HERO_MOTION_THEMES[preset].script) expect(html).toMatch(new RegExp(`<script defer src="[^\"]*${HERO_MOTION_THEMES[preset].script}`))
-      if (!bespoke && HERO_MOTION_THEMES[preset].kind === 'video') {
+      if (!bespoke && !kitchenBespoke && HERO_MOTION_THEMES[preset].kind === 'video') {
         const video = html.match(/<video\b[^>]*data-hero-video=""[^>]*>/)?.[0]
         for (const attribute of ['muted', 'playsinline', 'loop']) expect(video).toMatch(new RegExp(`\\s${attribute}=""`, 'i'))
         expect(video).not.toMatch(/\sautoplay/)

@@ -1,3 +1,4 @@
+import { isBlingKitchenPantryAllowed } from '@/lib/bling-kitchen/pantry-access'
 import { validatePublicSiteSlug } from '@/lib/public-site/show-link'
 
 /** Valid rep slugs only; no wildcard or per-page syntax is accepted. */
@@ -17,6 +18,8 @@ export function shouldUseRepRenderV2(asset: string[], options: {
   publicSiteSlugOverride?: string | null
   renderGateSlug?: string | null
 }) {
-  return ['Homepage.html', 'Trade.html', 'Join.html'].includes(asset.join('/')) &&
-    repRenderV2Enabled(options.publicSiteSlugOverride ?? options.renderGateSlug)
+  const gateSlug = options.publicSiteSlugOverride ?? options.renderGateSlug
+  return (['Homepage.html', 'Trade.html', 'Join.html'].includes(asset.join('/')) ||
+    (asset.join('/') === 'Pantry.html' && isBlingKitchenPantryAllowed({ publicSiteSlug: gateSlug }))) &&
+    repRenderV2Enabled(gateSlug)
 }
