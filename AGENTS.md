@@ -10,6 +10,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 GitHub `louis623/sparkle-suite`, tip branch `codex/nic-nac-trade-hardening`, is the sole source of truth for Sparkle Suite and Sparkle Finder code. Work only from that verified remote tip in a GitHub Codespace or a disposable clean clone of the verified SHA. A clean clone may edit, build, test, commit, and push. It never becomes a competing source of truth. Do not sync any persistent Windows checkout afterward.
 
+## Production Quality Standard
+
+All work must meet [PRODUCTION_STANDARD.md](PRODUCTION_STANDARD.md). Never call anything ready unless it does. Flag anything below it to Louis in plain English.
+
 ## Three systems — do not confuse them
 
 | System | What it is | What it is not |
