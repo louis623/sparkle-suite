@@ -56,7 +56,8 @@
     "codex/signup-consent-punctuation",
     "codex/britt-ssr-smoke",
     "codex/landing-preview-images",
-    "codex/heather-ssr-smoke"
+    "codex/heather-ssr-smoke",
+    "codex/favorites-form-v2"
   ],
   "previewBranches": {
     "codex/landing-preview-images": {
@@ -198,6 +199,10 @@
     "codex/heather-ssr-smoke": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
+    },
+    "codex/favorites-form-v2": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
@@ -209,5 +214,8 @@
   "environmentModel": "single-live-surface",
   "reviewerMode": "safe-data-on-production-domain",
   "temporaryDeploymentUrls": "provenance-only",
-  "lastReviewed": "2026-10-18"
+  "lastReviewed": "2026-10-18",
+  "branchBases": {
+    "codex/favorites-form-v2": "codex/nic-nac-trade-hardening"
+  }
 }

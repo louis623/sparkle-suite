@@ -8,9 +8,11 @@ import {
 } from '@/lib/sparkle-suite/jewelry-preferences'
 
 /**
- * Finder publishes the shared lists at /api/public/finder/preference-options.
- * That route is not on Finder Live yet (it 404s), so the bundled copy is the
- * default. Set SPARKLE_FINDER_PREFERENCE_OPTIONS_URL to opt into a live fetch.
+ * Finder publishes the shared lists at
+ * https://yoursparklefinder.com/api/public/finder/preference-options.
+ * Live Finder still serves those options from code until its beta migrations
+ * are applied. The bundled copy is the default. Set
+ * SPARKLE_FINDER_PREFERENCE_OPTIONS_URL to opt into a live fetch.
  * Any failure returns the bundled copy and never throws.
  */
 export const FINDER_PREFERENCE_OPTIONS_PATH = '/api/public/finder/preference-options'
@@ -126,6 +128,7 @@ function normalizeKindOptions(rows: unknown): PreferenceOption[] | null {
       slug,
       label,
       isRetired: record.isRetired === true,
+      ...(record.isHidden === true ? { isHidden: true } : {}),
       groupLabel: typeof record.groupLabel === 'string' ? record.groupLabel : undefined,
       sortOrder: typeof record.sortOrder === 'number' ? record.sortOrder : options.length,
       source: isPreferenceSource(record.source) ? record.source : undefined,

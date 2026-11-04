@@ -438,7 +438,7 @@ describe('POST /api/amethyst/customer-audience', () => {
     )
     expect(missing.status).toBe(400)
     await expect(missing.json()).resolves.toMatchObject({
-      error: 'Refresh the page and pick at least one favorite in each list, or choose Not sure yet.',
+      error: 'Pick at least one favorite in each list. Not sure yet counts.',
     })
 
     const accepted = await POST(
@@ -572,7 +572,7 @@ describe('POST /api/amethyst/customer-audience', () => {
     expect(response.status).toBe(400)
     await expect(response.json()).resolves.toMatchObject({
       code: 'INVALID_INPUT',
-      error: 'Refresh the page and pick at least one favorite in each list, or choose Not sure yet.',
+      error: 'Pick at least one favorite in each list. Not sure yet counts.',
     })
     expect(spies.insert).not.toHaveBeenCalled()
   })
@@ -602,7 +602,7 @@ describe('POST /api/amethyst/customer-audience', () => {
 
     expect(response.status).toBe(400)
     await expect(response.json()).resolves.toMatchObject({
-      error: 'Choose a ring size from 5 to 11, or Not sure.',
+      error: 'Choose a ring size from the list, or leave it blank.',
     })
     expect(spies.insert).not.toHaveBeenCalled()
   })

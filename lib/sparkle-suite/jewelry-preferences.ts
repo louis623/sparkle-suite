@@ -1,9 +1,9 @@
 /**
  * Finder-parity jewelry favorites for Sparkle Suite rep-site sign-up.
- * Slugs and labels match Sparkle Finder's fallback list
- * (lib/sparkle-finder/jewelry-preferences.ts, PR #7) and
- * RING_SIZE_VALUES in lib/sparkle-finder/ring-sizes.ts.
+ * Slugs and labels match Sparkle Finder's favorites form.
  * "Not sure yet" is the slug not_sure and cannot be combined with other picks.
+ * Hidden options stay valid for stored values. The public options payload includes them with isHidden true.
+ * Pickers leave them out unless the customer already saved one.
  */
 
 export type PreferenceKind = 'stone' | 'material' | 'cut' | 'collection'
@@ -57,12 +57,14 @@ export const invalidPreferencesMessage =
   'Choose up to 3 favorites in each list. Not sure yet stands on its own.'
 
 export const missingPreferencesMessage =
-  'Refresh the page and pick at least one favorite in each list, or choose Not sure yet.'
+  'Pick at least one favorite in each list. Not sure yet counts.'
 
 export type PreferenceOption = {
   slug: string
   label: string
   isRetired?: boolean
+  /** Stored values still validate. Public preference-option responses include these with isHidden true. */
+  isHidden?: boolean
   groupLabel?: string
   sortOrder?: number
   source?: 'library' | 'bomb_party' | 'both' | 'standard'
@@ -76,7 +78,7 @@ export type CustomerSignupPreferencePicks = {
   favoriteCuts: string[]
   favoriteCollections: string[]
   ringSize: RingSizeValue | null
-  jewelryNotes: string | null
+  jewelryNotes: string
   labels: {
     favoriteGemOrStone: string | null
     favoriteMaterial: string | null
@@ -90,6 +92,7 @@ type PreferenceOptionSeed = {
   label: string
   source: NonNullable<PreferenceOption['source']>
   isRetired?: boolean
+  isHidden?: boolean
   groupLabel?: string
 }
 
@@ -130,6 +133,9 @@ const stoneSeeds: PreferenceOptionSeed[] = [
   { slug: 'amazonite', label: 'Amazonite', source: 'library' },
   { slug: 'obsidian', label: 'Obsidian', source: 'library' },
   { slug: 'aquamarine', label: 'Aquamarine', source: 'standard' },
+  { slug: 'tanzanite', label: 'Tanzanite', source: 'standard' },
+  { slug: 'peridot', label: 'Peridot', source: 'standard' },
+  { slug: 'alexandrite', label: 'Alexandrite', source: 'standard' },
 ]
 
 const materialSeeds: PreferenceOptionSeed[] = [
@@ -137,11 +143,12 @@ const materialSeeds: PreferenceOptionSeed[] = [
   { slug: 'rhodium', label: 'Silver-tone (rhodium plated)', source: 'both' },
   { slug: 'hematite', label: 'Hematite / gunmetal (dark)', source: 'library' },
   { slug: 'gold', label: 'Gold plated', source: 'library' },
+  { slug: 'matte-gold', label: 'Matte gold', source: 'library' },
   { slug: 'rose-gold', label: 'Rose gold plated', source: 'library' },
-  { slug: 'silver-plated', label: 'Silver plated', source: 'library' },
-  { slug: 'matte-rhodium', label: 'Matte rhodium', source: 'library' },
   { slug: 'sterling', label: 'Sterling silver (.925)', source: 'both' },
   { slug: 'vermeil', label: 'Gold vermeil (gold over sterling)', source: 'bomb_party' },
+  { slug: 'silver-plated', label: 'Silver plated', source: 'library', isHidden: true },
+  { slug: 'matte-rhodium', label: 'Matte rhodium', source: 'library', isHidden: true },
 ]
 
 const cutSeeds: PreferenceOptionSeed[] = [
@@ -163,9 +170,9 @@ const cutSeeds: PreferenceOptionSeed[] = [
 
 const collectionSeeds: PreferenceOptionSeed[] = [
   notSure('Active'),
-  { slug: 'originals', label: 'Originals (monthly rings)', source: 'both', groupLabel: 'Active' },
+  { slug: 'originals', label: 'OGs', source: 'both', groupLabel: 'Active' },
   { slug: 'birthday', label: 'Birthday Collections (monthly)', source: 'both', groupLabel: 'Active' },
-  { slug: 'exclusives', label: 'Exclusives & Bringbacks', source: 'both', groupLabel: 'Active' },
+  { slug: 'exclusives', label: 'Exclusives', source: 'both', groupLabel: 'Active' },
   { slug: 'obsidia', label: 'Obsidia', source: 'both', groupLabel: 'Active' },
   { slug: 'halo', label: 'Halo', source: 'both', groupLabel: 'Active' },
   { slug: 'charmelier', label: 'Charmelier', source: 'both', groupLabel: 'Active' },
@@ -188,7 +195,6 @@ const collectionSeeds: PreferenceOptionSeed[] = [
   { slug: 'lumina', label: 'Lumina', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'untamed', label: 'Untamed', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'sterling-club', label: 'Sterling Club', source: 'bomb_party', groupLabel: 'Active' },
-  { slug: 'gem-society', label: 'Gem Society', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'originals-kids', label: 'Originals Kids', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'sirens', label: 'Sirens', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'simply', label: 'Simply Hoops / Studs / Sets', source: 'bomb_party', groupLabel: 'Active' },
@@ -272,7 +278,7 @@ const collectionSeeds: PreferenceOptionSeed[] = [
   },
   {
     slug: 'farmhouse',
-    label: 'Farmhouse (incl. Bringback)',
+    label: 'Farmhouse',
     source: 'bomb_party',
     isRetired: true,
     groupLabel: 'Older collections',
@@ -284,6 +290,7 @@ const collectionSeeds: PreferenceOptionSeed[] = [
     isRetired: true,
     groupLabel: 'Older collections',
   },
+  { slug: 'gem-society', label: 'Gem Society', source: 'bomb_party', groupLabel: 'Active', isHidden: true },
 ]
 
 function toOptions(seeds: PreferenceOptionSeed[]): PreferenceOption[] {
@@ -291,6 +298,7 @@ function toOptions(seeds: PreferenceOptionSeed[]): PreferenceOption[] {
     slug: seed.slug,
     label: seed.label,
     isRetired: seed.isRetired === true,
+    isHidden: seed.isHidden === true,
     groupLabel: seed.groupLabel,
     sortOrder: index,
     source: seed.source,
@@ -310,11 +318,65 @@ export function isRingSizeValue(value: string): value is RingSizeValue {
   return ringSizeValueSet.has(value)
 }
 
+/** Options the picker renders. Hidden rows stay out unless that slug is already saved. */
+export function optionsForPreferencePicker(
+  options: readonly PreferenceOption[],
+  selected: readonly string[],
+): PreferenceOption[] {
+  const list = Array.isArray(options) ? options : []
+  const selectedSlugs = new Set(selected)
+  const visible = list.filter((option) => option.isHidden !== true)
+  const savedHidden = list.filter((option) => option.isHidden === true && selectedSlugs.has(option.slug))
+  return [...visible, ...savedHidden]
+}
+
+/**
+ * Shared preference-options payload. Hidden ids stay in the list with isHidden: true.
+ * A Finder payload that omits the flag, or omits the row, still includes the bundled hidden ids.
+ */
+export function preferenceOptionsPayload(
+  options: PreferenceOptionsByKind = fallbackPreferenceOptions,
+): PreferenceOptionsByKind {
+  const payload = {} as PreferenceOptionsByKind
+  for (const kind of PREFERENCE_KINDS) {
+    const bundledHidden = fallbackPreferenceOptions[kind].filter((option) => option.isHidden)
+    const hiddenSlugs = new Set(bundledHidden.map((option) => option.slug))
+    const rows = options[kind].map((option) =>
+      hiddenSlugs.has(option.slug) ? { ...option, isHidden: true as const } : option,
+    )
+    const present = new Set(rows.map((option) => option.slug))
+    for (const hidden of bundledHidden) {
+      if (!present.has(hidden.slug)) rows.push(hidden)
+    }
+    payload[kind] = rows
+  }
+  return payload
+}
+
+export function visiblePreferenceOptions(
+  options: PreferenceOptionsByKind = fallbackPreferenceOptions,
+): PreferenceOptionsByKind {
+  const visible = {} as PreferenceOptionsByKind
+  for (const kind of PREFERENCE_KINDS) {
+    const bundledHidden = new Set(
+      fallbackPreferenceOptions[kind].filter((option) => option.isHidden).map((option) => option.slug),
+    )
+    visible[kind] = options[kind].filter(
+      (option) => option.isHidden !== true && !bundledHidden.has(option.slug),
+    )
+  }
+  return visible
+}
+
 export function knownPreferenceSlugs(
   kind: PreferenceKind,
   options: PreferenceOptionsByKind = fallbackPreferenceOptions,
 ): Set<string> {
-  return new Set(options[kind].map((option) => option.slug))
+  const slugs = new Set(options[kind].map((option) => option.slug))
+  for (const option of fallbackPreferenceOptions[kind]) {
+    if (option.isHidden) slugs.add(option.slug)
+  }
+  return slugs
 }
 
 export type PreferenceParseResult =
@@ -372,6 +434,9 @@ export function joinPreferenceLabels(
   const visible = slugs.filter((slug) => slug !== NOT_SURE_SLUG)
   if (visible.length === 0) return null
   const labels = new Map(options[kind].map((option) => [option.slug, option.label]))
+  for (const option of fallbackPreferenceOptions[kind]) {
+    if (option.isHidden && !labels.has(option.slug)) labels.set(option.slug, option.label)
+  }
   const text = visible.map((slug) => labels.get(slug) ?? slug).join(', ')
   return text.length > 0 ? text : null
 }
@@ -427,11 +492,10 @@ export function parseRingSizeAnswer(
 
 export function parseJewelryNotes(
   value: unknown,
-): { ok: true; value: string | null } | { ok: false } {
-  if (value === undefined || value === null) return { ok: true, value: null }
+): { ok: true; value: string } | { ok: false } {
+  if (value === undefined || value === null) return { ok: true, value: '' }
   if (typeof value !== 'string') return { ok: false }
   const trimmed = value.trim()
-  if (!trimmed) return { ok: true, value: null }
   if (trimmed.length > JEWELRY_NOTES_MAX_LENGTH) return { ok: false }
   return { ok: true, value: trimmed }
 }
@@ -439,8 +503,8 @@ export function parseJewelryNotes(
 /**
  * Validates a public sign-up body.
  * Stones, materials, cuts, and collections are always required
- * (min 1, max 3). A cached page that omits them gets the same refresh
- * message as an empty list. Ring size and notes stay optional.
+ * (min 1, max 3). A cached page that omits them gets the same
+ * empty-list message. Ring size and notes stay optional.
  */
 export function readSignupPreferences(
   input: SignupPreferenceBody,
@@ -451,7 +515,7 @@ export function readSignupPreferences(
     return {
       ok: false,
       detail: 'invalid ring size',
-      message: 'Choose a ring size from 5 to 11, or Not sure.',
+      message: 'Choose a ring size from the list, or leave it blank.',
     }
   }
 
@@ -460,7 +524,7 @@ export function readSignupPreferences(
     return {
       ok: false,
       detail: 'jewelry notes too long',
-      message: 'Keep jewelry notes to 500 characters.',
+      message: 'Keep notes to 500 characters.',
     }
   }
 

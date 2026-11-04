@@ -1,5 +1,18 @@
 # Sparkle Suite Branch Register
 
+## November 4 — Favorites form v2, PR only
+
+Louis authorized `codex/favorites-form-v2` from verified tip
+`5d26e2166c69cdea218f79dca3b30caba64bbcac` in
+`/workspace/codex-runs/favorites-form-v2`. Rebuild #157's favorites behavior
+on the legacy and SSR v2 homepages, preserving signup discounts and excluding
+cancelled favorites-sharing privacy copy. One non-draft PR; no merge or Live
+release. Preview permission is limited to `sparkle-suite-smoke`
+(`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`) / preview. No database migrations,
+environment changes, aliases, GitHub default or Vercel production-branch changes.
+Checks: one TypeScript run, one Vitest run of the four named files, at most two
+optional browser loads, and one report/diff review.
+
 ## November 3 — Landing preview images, Smoke only
 
 Louis approved `codex/landing-preview-images` from exact source `0750fcbf32d8b80e96bd499eb87529302d96d9fd`
