@@ -12,8 +12,12 @@ import {
   deliverSuiteListNotice,
   parseSuiteListResourceNoticeKey,
   renderSuiteOfficialNoticeHtml,
+  suiteNoticePlainText,
   suiteNoticeVariables,
 } from '@/lib/services/suite-official-notice'
+
+const WORKSPACE_SUPPORT_URL =
+  'https://www.yoursparklesuite.com/nic-nac?section=messages&view=support&src=email'
 
 const content = {
   preheader: 'A short note',
@@ -286,5 +290,43 @@ describe('suite official notices', () => {
     })
     expect(blocked.ok).toBe(false)
     expect(fetchImpl).not.toHaveBeenCalled()
+  })
+
+  it('renders the legal name, address, and Workspace Support link in the HTML footer', () => {
+    const rendered = renderSuiteOfficialNoticeHtml(content)
+    expect(rendered.html).toContain(
+      "Neon Rabbit Digital Services LLC<br>2126 St. Martin's Drive West, Jacksonville, FL 32246",
+    )
+    expect(rendered.html).toContain(
+      'This is an automated notice, so please don\'t reply to this email. To reach Louis, use Workspace Support in your <a href="https://www.yoursparklesuite.com/nic-nac?section=messages&amp;view=support&amp;src=email" style="color:#402924;text-decoration:underline;">Sparkle Suite workspace</a>.',
+    )
+    expect(rendered.html).toContain('{{{RESEND_UNSUBSCRIBE_URL}}}')
+    expect(rendered.html).not.toContain('This is a notification. Please don\'t reply to this email.')
+  })
+
+  it('adds a plain-text footer and keeps the thumbnail URL and unsubscribe line', () => {
+    const thumbnailUrl = 'https://www.yoursparklesuite.com/brand/sparkle-suite-logo-transparent.png'
+    const text = suiteNoticePlainText({ ...content, thumbnailUrl })
+    const thumbnailAt = text.indexOf(thumbnailUrl)
+    const companyAt = text.indexOf('Neon Rabbit Digital Services LLC')
+    const unsubscribeAt = text.indexOf('Unsubscribe: {{{RESEND_UNSUBSCRIBE_URL}}}')
+
+    expect(thumbnailAt).toBeGreaterThan(-1)
+    expect(companyAt).toBeGreaterThan(thumbnailAt)
+    expect(text).toContain("2126 St. Martin's Drive West, Jacksonville, FL 32246")
+    expect(text).toContain(
+      "This is an automated notice, so please don't reply to this email. To reach Louis, use Workspace Support in your Sparkle Suite workspace:",
+    )
+    expect(text).toContain(WORKSPACE_SUPPORT_URL)
+    expect(unsubscribeAt).toBeGreaterThan(companyAt)
+    expect(text.trimEnd().endsWith('Unsubscribe: {{{RESEND_UNSUBSCRIBE_URL}}}')).toBe(true)
+  })
+
+  it('omits an unsafe thumbnail and still includes the plain-text footer', () => {
+    const text = suiteNoticePlainText({ ...content, thumbnailUrl: 'javascript:alert(1)' })
+    expect(text).not.toContain('javascript:')
+    expect(text).toContain('Neon Rabbit Digital Services LLC')
+    expect(text).toContain(WORKSPACE_SUPPORT_URL)
+    expect(text.trimEnd().endsWith('Unsubscribe: {{{RESEND_UNSUBSCRIBE_URL}}}')).toBe(true)
   })
 })
