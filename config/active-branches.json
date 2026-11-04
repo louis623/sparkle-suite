@@ -55,7 +55,8 @@
     "codex/about-headline-smoke",
     "codex/signup-consent-punctuation",
     "codex/britt-ssr-smoke",
-    "codex/landing-preview-images"
+    "codex/landing-preview-images",
+    "codex/heather-ssr-smoke"
   ],
   "previewBranches": {
     "codex/landing-preview-images": {
@@ -191,6 +192,10 @@
       "environment": "preview"
     },
     "codex/britt-ssr-smoke": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "codex/heather-ssr-smoke": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }

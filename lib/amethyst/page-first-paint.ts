@@ -64,7 +64,8 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
   if (page === 'trade' && markup.includes('data-trade-board-empty="true"')) body.classList.add('dance-floor-empty')
   const style = Array.from(properties, ([key, value]) => `${key}:${value}`).join(';')
   const allowedCss = new Set(['tokens.css', 'components.css', 'homepage.css', page + '.css', ...theme.css,
-    ...(data.homepage.publicSiteVariant === 'britt_with_bling_hybrid' ? ['britt-hero-buttons.css'] : [])])
+    ...(data.homepage.publicSiteVariant === 'britt_with_bling_hybrid' ? ['britt-hero-buttons.css'] : []),
+    ...(data.homepage.publicSiteVariant === 'bling_kitchen_hybrid' ? ['framed-hero.css'] : [])])
   // Trade has no aurora/video. Remove unrelated home-layout font faces and the
   // duplicated embedded heading preload. Decode the two original embedded faces
   // before parsing the shared CSS, preserving the original first-paint metrics.

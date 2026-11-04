@@ -1,3 +1,5 @@
+import type { AmethystPantryTemplateData } from './pantry-template-data'
+import { applyBlingKitchenHomepage, applyBlingKitchenTrade, applyBlingKitchenJoin, BLING_KITCHEN_PROFILE } from '@/lib/bling-kitchen/profile'
 import { AMETHYST_APPEARANCE_PRESET_IDS } from './appearance-presets'
 import type { AmethystPreviewTemplateData } from './preview-template-data'
 import {
@@ -43,9 +45,37 @@ export function homepageSmokeReview(data: AmethystPreviewTemplateData, url: URL,
       join: applyBrittWithBlingJoin({ ...data.join, ...identity }, BRITT_WITH_BLING_TEAM_MEMBERS),
     }
   }
+  if (layout === 'bling_kitchen') {
+    const profile = BLING_KITCHEN_PROFILE
+    const identity = { repName: profile.publicName, businessName: profile.businessName, teamName: profile.teamName }
+    data = { ...data,
+      homepage: { ...applyBlingKitchenHomepage({ ...data.homepage, ...identity }),
+        pantryPageUrl: undefined, aboutMediaSlots: [], heroImageUrl: profile.heroImageUrl },
+      trade: { ...applyBlingKitchenTrade({ ...data.trade, ...identity }), pantryPageUrl: undefined },
+      join: { ...applyBlingKitchenJoin({ ...data.join, ...identity }), pantryPageUrl: undefined },
+    }
+  }
   const variant = layout === null ? data.homepage.publicSiteVariant : SSR_REVIEW_LAYOUTS[layout as keyof typeof SSR_REVIEW_LAYOUTS]
   return { ...data, ssrReview: true, appearancePreset: theme as AmethystPreviewTemplateData['appearancePreset'],
     homepage: { ...data.homepage, publicSiteVariant: variant },
     trade: { ...data.trade, publicSiteVariant: variant },
     join: { ...data.join, publicSiteVariant: variant } }
+}
+
+/** Repository-only photos for Heather's pantry on the approved Smoke preview. */
+export function pantrySmokeReview(data: AmethystPantryTemplateData, slug?: string | null) {
+  if (process.env.VERCEL_ENV !== 'preview' ||
+      process.env.VERCEL_PROJECT_ID !== 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ' ||
+      process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT !== 'smoke' ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://pukemqiwlyqmyytxkdmo.supabase.co' ||
+      slug !== 'blingkitchen') return data
+  const replace = (value: unknown, key = ''): unknown => {
+    if (typeof value === 'string' && value.startsWith('https://bqhzfkgkjyuhlsozpylf')) {
+      return key === 'heroImageUrl' ? '/amethyst/bling-kitchen/homepage-hero-pendant.jpg' : '/amethyst/bling-kitchen/tile-wall.webp'
+    }
+    if (Array.isArray(value)) return value.map(item => replace(item))
+    if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, replace(item, key)]))
+    return value
+  }
+  return replace(data) as AmethystPantryTemplateData
 }

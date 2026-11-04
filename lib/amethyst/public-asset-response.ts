@@ -23,6 +23,8 @@ import {
 } from '@/lib/amethyst/preview-template-data'
 import { resolveAmethystRequestCustomDomainHost } from '@/lib/amethyst/host-routing'
 import {
+  isBlingKitchenPantryAllowed,
+  pantryNotFoundResponse,
   pantryRequestHost,
   restrictPantryTemplateData,
 } from '@/lib/bling-kitchen/pantry-access'
@@ -576,7 +578,15 @@ export async function renderAmethystPublicAssetResponse(
     return new Response(html, { status: response.status, headers: response.headers })
   }
   if (!useSSR) return renderLegacy()
-  const filePath = asset.join('/') === 'Trade.html'
+  if (asset.join('/') === 'Pantry.html' && !isBlingKitchenPantryAllowed({
+    publicSiteSlug: routeOptions.publicSiteSlugOverride ?? routeOptions.renderGateSlug,
+    repId: options.repIdOverride,
+    customDomain: resolveAmethystRequestCustomDomainHost(request),
+    requestHost: pantryRequestHost(request),
+  })) return pantryNotFoundResponse()
+  const filePath = asset.join('/') === 'Pantry.html'
+    ? join(process.cwd(), 'lib/amethyst/legacy/assets/Pantry.html')
+    : asset.join('/') === 'Trade.html'
     ? join(process.cwd(), 'lib/amethyst/legacy/assets/Trade.html')
     : asset.join('/') === 'Join.html'
       ? join(process.cwd(), 'lib/amethyst/legacy/assets/Join.html')
@@ -621,7 +631,7 @@ export async function renderAmethystPublicAssetResponse(
       if (reviewSelection.layout !== null) bootstrapUrl.searchParams.set('ssrReviewLayout', reviewSelection.layout)
     }
     // Start all data reads before waiting for the template used by metadata.
-    const bootstrapTask = page !== 'homepage'
+    const bootstrapTask = page === 'pantry' ? Promise.resolve(null) : page !== 'homepage'
       ? import('./customer-page-bootstrap-response').then(({ buildCustomerPageBootstrapResponse }) => buildCustomerPageBootstrapResponse(page as 'trade' | 'join', request, {
         templateData: templatePromise.then(data => { if (!data) throw new Error('Missing template'); return data }),
         repId: repId || '', publicSiteSlug: options.publicSiteSlugOverride || '',
@@ -678,6 +688,18 @@ export async function renderAmethystPublicAssetResponse(
           { ...resolvedOptions, pantryRecipes, pantryEmpty, joinRuntimeContext },
           ga4Tag,
         )
+        if (page === 'pantry') {
+          // Share the API's allowlisted data builder, using the server-resolved identity.
+          const pantryUrl = new URL('/api/amethyst/pantry-template', requestUrl.origin)
+          if (repId) pantryUrl.searchParams.set('c', repId)
+          if (options.publicSiteSlugOverride) pantryUrl.searchParams.set('publicSiteSlug', options.publicSiteSlugOverride)
+          const { buildPantryTemplateResponse } = await import('@/lib/bling-kitchen/pantry-template-response')
+          const pantry = await buildPantryTemplateResponse(new Request(pantryUrl, { headers: request.headers }))
+          if (pantry instanceof Response) return pantry
+          const { renderAmethystPantryFirstPaint } = await import('./pantry-first-paint')
+          responseBody = await renderAmethystPantryFirstPaint(responseBody as string, pantry.bootstrapScript, pantry.data)
+          if (!responseBody.includes('data-server-rendered=')) throw new Error('Invalid Pantry SSR render response')
+        }
         if ((page === 'homepage' || page === 'trade' || page === 'join') && templateData) {
           const original = responseBody as string
           mark('metadataReadyMs')

@@ -894,8 +894,8 @@ function GnomeGardenScene() {
 
 function Hero({ teamName, title, pitch, ctaText, ctaUrl, hasRecruitingLink, showPromo, promoText, repName, locationLabel, gnomeGarden, motionTweaks }) {
   return (
-    <section className="jp-hero" data-ssr-hero={(isMileHighFizzHybrid || isBrittWithBlingHybrid) ? undefined : motionTweaks.preset} data-ssr-surface={(isMileHighFizzHybrid || isBrittWithBlingHybrid) ? undefined : "utility"} suppressHydrationWarning>
-      {(isMileHighFizzHybrid || isBrittWithBlingHybrid) ? (gnomeGarden && <GnomeGardenDecoration />) : <HeroMotionScene t={motionTweaks} surface="utility" />}
+    <section className="jp-hero" data-ssr-hero={(isMileHighFizzHybrid || isBrittWithBlingHybrid || isBlingKitchenHybrid) ? undefined : motionTweaks.preset} data-ssr-surface={(isMileHighFizzHybrid || isBrittWithBlingHybrid || isBlingKitchenHybrid) ? undefined : "utility"} suppressHydrationWarning>
+      {(isMileHighFizzHybrid || isBrittWithBlingHybrid || isBlingKitchenHybrid) ? (gnomeGarden && <GnomeGardenDecoration />) : <HeroMotionScene t={motionTweaks} surface="utility" />}
       <div className="jp-hero-media slot" data-slot="hero photo" />
       <div className="jp-hero-inner">
         <HeroCopyReservation enabled={["pearl_rose", "midnight_rose"].includes(motionTweaks.preset) || (isMileHighFizzHybrid && ["gilded_autumn", "alpine_opal"].includes(motionTweaks.preset))}>
