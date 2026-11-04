@@ -45,6 +45,7 @@ import { logIncident } from '@/lib/nic-nac/guardian-telemetry'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
 import { NicNacMutationFailure } from '@/lib/nic-nac/tool-failure-classification'
 import {
+  mainPhotoProblem,
   computeTradeBoardAddAttemptReadiness,
   formatWorkflowNotReadyMessage,
   transitionTradeBoardIntake,
@@ -52,6 +53,9 @@ import {
 import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
 import {
+  getCurrentPiecePhotos,
+  workflowPieceKey,
+  selectWorkflowJewelryPhoto,
   catalogVariantPhotoAssetKey,
   hasUsableWorkflowJewelryPhoto,
   resolveWorkflowCustomerFacingPhoto,
@@ -667,13 +671,10 @@ export function getWorkflowConfirmedJewelryFrontImageUrl(
   photoIndex?: number,
   selectedPhotoId?: string,
 ): string | null {
-  const publishable = workflowWithPublishableJewelryFront(workflow)
-  return (
-    resolveWorkflowCustomerFacingPhoto(publishable?.photos, {
-      selectedPhotoId,
-      modelIndex: photoIndex,
-    })?.imageUrl ?? null
-  )
+  if (!workflow || workflow.status !== 'active') return null
+  return requireConfirmedMainPhoto(workflow, workflowPieceKey(workflow), {
+    selectedPhotoId, modelIndex: photoIndex,
+  }).imageUrl ?? null
 }
 
 function workflowHasUsableJewelryFrontRole(
@@ -684,20 +685,71 @@ function workflowHasUsableJewelryFrontRole(
   return publishable.photos.some(isAcceptedCustomerFacingWorkflowPhoto)
 }
 
+export function requireConfirmedMainPhoto(
+  workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
+  itemNumber: string,
+  selection: { selectedPhotoId?: string; modelIndex?: number; imageUrl?: string } = {},
+) {
+  const refuse = (message: string): never => { throw new NicNacToolError({ code: 'MAIN_PHOTO_REQUIRED', userMessage: message }) }
+  if (!workflow || workflow.status !== 'active') return refuse('Please send the customer-facing jewelry photo for this piece so I can preview it before saving.')
+  const photos = getCurrentPiecePhotos(workflow, itemNumber)
+  const problem = mainPhotoProblem(workflow, itemNumber)
+  if (problem) return refuse(problem)
+  const selectedPhotoId = selection.selectedPhotoId ??
+    (selection.modelIndex === undefined ? workflow.metadata.confirmedPhotoId as string | undefined : undefined)
+  const photo = selectWorkflowJewelryPhoto(photos, { selectedPhotoId, modelIndex: selection.modelIndex })
+  if (!photo?.id) return refuse('Please send the customer-facing jewelry photo for this piece before I can save it.')
+  if (selection.imageUrl && selection.imageUrl !== photo.imageUrl) return refuse('Please send the customer-facing jewelry photo for this piece before I can save it.')
+  if (workflow.metadata.confirmedPhotoId !== photo.id ||
+      String(workflow.metadata.confirmedItemNumber).toUpperCase() !== itemNumber.toUpperCase())
+    return refuse(`Please confirm the main photo preview for ${itemNumber} before I save it.`)
+  return photo
+}
+
+/** Match original bytes to prior saved intake provenance, then verify the listing still uses it. */
+export async function assertMainPhotoNotReused(
+  supabase: SupabaseClient,
+  photo: { id?: string; imageUrl?: string; contentSha256?: string },
+  itemNumber: string,
+): Promise<string> {
+  if (!photo.imageUrl) throw new Error('Missing main photo source')
+  const data = /^data:[^;]+;base64,([\s\S]+)$/i.exec(photo.imageUrl)
+  const response = data ? null : await fetch(photo.imageUrl)
+  if (response && !response.ok) throw new Error('Main photo source unavailable')
+  const bytes = data ? Buffer.from(data[1], 'base64') : Buffer.from(await response!.arrayBuffer())
+  const hash = createHash('sha256').update(bytes).digest('hex')
+  if (photo.contentSha256 && photo.contentSha256 !== hash)
+    throw new NicNacToolError({ code: 'MAIN_PHOTO_CHANGED', userMessage: 'That photo changed since its preview. Please send the jewelry photo again.' })
+  const { data: sources, error } = await supabase.from('trade_board_intake_photos')
+    .select('id, session:trade_board_intake_sessions!inner(id,item_number,catalog_mode,metadata,created_listing_ids)')
+    .eq('content_sha256', hash).eq('declared_role', 'jewelry_front')
+  if (error) throw error
+  for (const source of sources ?? []) {
+    const session = (Array.isArray(source.session) ? source.session[0] : source.session) as {
+      id: string; item_number: string | null; catalog_mode: string; metadata: Record<string, unknown>; created_listing_ids: string[] | null
+    }
+    const otherItem = session.catalog_mode === 'non_item_number' ? `NON_ITEM:${session.id}` : session.item_number
+    if (!otherItem || otherItem.toUpperCase() === itemNumber.toUpperCase() || !session.created_listing_ids?.length) continue
+    if (session.metadata.confirmedPhotoId && session.metadata.confirmedPhotoId !== source.id) continue
+    const { data: listings, error: listingError } = await supabase.from('trade_listings')
+      .select('id,listing_photo_url,manual_photo_url').in('id', session.created_listing_ids)
+    if (listingError) throw listingError
+    if ((listings ?? []).some((listing) => !session.metadata.savedMainPhotoUrl ||
+        listing.listing_photo_url === session.metadata.savedMainPhotoUrl || listing.manual_photo_url === session.metadata.savedMainPhotoUrl)) {
+      throw new NicNacToolError({ code: 'MAIN_PHOTO_REUSED', userMessage: `This photo is already on ${otherItem}. I won't use it as the main photo for ${itemNumber}. Please send a new jewelry photo.` })
+    }
+  }
+  return hash
+}
+
 function workflowOwnedListingPhotoUrl(input: {
   listingPhotoUrl?: string
   activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
 }): string | undefined {
-  const listingPhotoUrl = input.listingPhotoUrl?.trim()
-  if (!listingPhotoUrl) return undefined
+  if (!input.listingPhotoUrl) return undefined
   const workflow = input.activeTradeBoardWorkflow
-  if (workflow?.status !== 'active') return listingPhotoUrl
-  const matchesAcceptedJewelry = workflow.photos.some(
-    (photo) =>
-      isAcceptedCustomerFacingWorkflowPhoto(photo) &&
-      photo.imageUrl === listingPhotoUrl,
-  )
-  return matchesAcceptedJewelry ? listingPhotoUrl : undefined
+  if (!workflow) return undefined
+  return requireConfirmedMainPhoto(workflow, workflowPieceKey(workflow), { imageUrl: input.listingPhotoUrl }).imageUrl
 }
 
 export async function processListingPhotoForAdd(input: {
@@ -716,11 +768,14 @@ export async function processListingPhotoForAdd(input: {
   allowImplicitConversationPhoto?: boolean
   mutationAssetKey?: string
 }): Promise<string | undefined> {
-  const activeTradeBoardWorkflow = workflowWithPublishableJewelryFront(
-    input.activeTradeBoardWorkflow,
-  )
-  const itemNumber = input.itemNumber ?? 'listing'
+  const activeTradeBoardWorkflow = input.activeTradeBoardWorkflow
+  if (!activeTradeBoardWorkflow && !input.listingPhotoUrl && !input.selectedPhotoId && input.photoIndex === undefined && input.listingPhotoIndex === undefined) return undefined
+  const itemNumber = activeTradeBoardWorkflow?.catalogMode === 'non_item_number'
+    ? workflowPieceKey(activeTradeBoardWorkflow) : input.itemNumber ?? ''
   const photoIndex = input.photoIndex ?? input.listingPhotoIndex
+  const chosen = requireConfirmedMainPhoto(activeTradeBoardWorkflow, itemNumber, {
+    selectedPhotoId: input.selectedPhotoId, modelIndex: photoIndex, imageUrl: input.listingPhotoUrl,
+  })
   const variantAssetKey = catalogVariantPhotoAssetKey({
     designId: input.designId,
     material: input.material,
@@ -728,88 +783,14 @@ export async function processListingPhotoForAdd(input: {
   })
   const listingPhotoProcessInput = {
     repId: input.repId,
-    filenameStem: `${itemNumber}-listing-photo`,
+    filenameStem: `${activeTradeBoardWorkflow?.catalogMode === 'non_item_number' ? 'non-item-number-piece' : itemNumber}-listing-photo`,
     mutationAssetKey: input.mutationAssetKey,
     ...(variantAssetKey ? { variantAssetKey } : {}),
   }
-  const workflowPhotoUrl = getWorkflowConfirmedJewelryFrontImageUrl(
-    activeTradeBoardWorkflow,
-    photoIndex,
-    input.selectedPhotoId,
-  )
-  // In an active workflow the app-owned attachment is authoritative. Raw URLs
-  // emitted by the model may be stale copies from an earlier piece or another
-  // finish/stone of the same item number.
-  if (workflowPhotoUrl) {
-    try {
-      return (
-        await processRepListingPhotoUrl(
-          {
-            ...listingPhotoProcessInput,
-            sourceImageUrl: workflowPhotoUrl,
-          },
-          { confirmedJewelryFront: true },
-        )
-      ).photoUrl
-    } catch (err) {
-      explainServiceError(err)
-    }
-  }
-  const listingPhotoUrl = workflowOwnedListingPhotoUrl({
-    listingPhotoUrl: input.listingPhotoUrl,
-    activeTradeBoardWorkflow,
-  })
-  if (listingPhotoUrl) {
-    try {
-      const processInput = {
-        ...listingPhotoProcessInput,
-        sourceImageUrl: listingPhotoUrl,
-      }
-      const processed =
-        workflowPhotoUrl === listingPhotoUrl
-          ? await processRepListingPhotoUrl(processInput, {
-              confirmedJewelryFront: true,
-            })
-          : await processRepListingPhotoUrl(processInput)
-      return processed.photoUrl
-    } catch (err) {
-      explainServiceError(err)
-    }
-  }
-
-  if (
-    activeTradeBoardWorkflow?.status === 'active' &&
-    !workflowHasUsableJewelryFrontRole(activeTradeBoardWorkflow)
-  ) {
-    return undefined
-  }
-
-  if (photoIndex === undefined && !input.allowImplicitConversationPhoto) {
-    return undefined
-  }
-
-  const resolvedListingPhoto = await resolvePhotoFromConversation({
-    supabase: input.supabase,
-    conversationId: input.conversationId,
-    photoIndex,
-  })
-  if (!resolvedListingPhoto) return undefined
-
   try {
-    const processInput = {
-      ...listingPhotoProcessInput,
-      sourceImageUrl: resolvedListingPhoto.imageDataUrl,
-    }
-    const isWorkflowConfirmed = workflowConfirmsJewelryFrontPhoto(
-      activeTradeBoardWorkflow,
-      photoIndex,
-    )
-    const processed = isWorkflowConfirmed
-      ? await processRepListingPhotoUrl(processInput, {
-          confirmedJewelryFront: true,
-        })
-      : await processRepListingPhotoUrl(processInput)
-    return processed.photoUrl
+    const result = await processRepListingPhotoUrl({ ...listingPhotoProcessInput, sourceImageUrl: chosen.imageUrl! }, { confirmedJewelryFront: true })
+    if (activeTradeBoardWorkflow) activeTradeBoardWorkflow.metadata.savedMainPhotoUrl = result.photoUrl
+    return result.photoUrl
   } catch (err) {
     explainServiceError(err)
   }
@@ -1330,7 +1311,7 @@ async function runSingle(
               existingDesign.hasCollection &&
               Boolean(existingDesign.design.canonicalPhotoUrl),
             resolvedDesignId: existingDesign.design.id,
-          })
+          }) && !activeWorkflow
         const existingListingPhotoUrl = useExistingCatalogCanonicalPhoto
           ? undefined
           : await processListingPhotoForAdd({
@@ -1421,6 +1402,7 @@ async function runSingle(
     // Reserve the internal catalog variant identity before uploading photos.
     // The vendor item number stays unchanged and may be shared by multiple
     // stone/material variants; this UUID owns assets for one design row.
+    if (!activeWorkflow) requireConfirmedMainPhoto(undefined, itemNumber)
     const newDesignId = randomUUID()
     let publicPhotoObjectPath: string | null = null
     const designSourcePhotoIndex = input.piecePhotoIndex ?? input.listingPhotoIndex
@@ -1701,6 +1683,7 @@ async function runSingle(
     createdNewDesign = true
     if (workflowConfirmedDesignPhoto && resolvedPhotoUrl) {
       newDesignListingPhotoUrl = resolvedPhotoUrl
+      if (activeWorkflow) activeWorkflow.metadata.savedMainPhotoUrl = resolvedPhotoUrl
     }
     if (stagedOriginal) {
       try {
@@ -1903,7 +1886,7 @@ async function runSingle(
     resolvedDesignId: resolvedCatalogDesign?.found
       ? resolvedCatalogDesign.design.id
       : null,
-  })
+  }) && !activeWorkflow
   if (!createdNewDesign) {
     await markActiveTradeBoardWorkflowAdding({
       workflow: activeWorkflow,
@@ -2076,9 +2059,7 @@ async function runBatch(
       itemNumber: item.itemNumber,
       material: item.material,
       mainStone: item.mainStone,
-      activeTradeBoardWorkflow: shareWorkflowJewelry
-        ? ctx.activeTradeBoardWorkflow
-        : undefined,
+      activeTradeBoardWorkflow: ctx.activeTradeBoardWorkflow,
       repId: ctx.repId,
       supabase: ctx.supabase,
       conversationId: ctx.conversationId,
@@ -2265,6 +2246,14 @@ async function runBatch(
     })
   }
 
+  if (ctx.activeTradeBoardWorkflow && result.added.length) {
+    await updateTradeBoardIntakeSession(admin, { sessionId: ctx.activeTradeBoardWorkflow.id, patch: {
+      status: 'completed', current_phase: 'completed',
+      created_listing_ids: [...recoveredNewDesignAdds, ...result.added].map((row) => row.listingId),
+      metadata: ctx.activeTradeBoardWorkflow.metadata,
+    } })
+  }
+
   return {
     mode: 'batch' as const,
     added: [
@@ -2323,6 +2312,20 @@ export function makeAddListingTool(ctx: {
     inputSchema,
     execute: async (input) => {
       const admin = createAdminClient()
+      const workflow = ctx.activeTradeBoardWorkflow
+      const candidates = input.mode === 'batch' ? input.items ?? [] : [input]
+      for (const candidate of candidates) {
+        const hasPhotoInput = candidate.listingPhotoUrl || candidate.piecePhotoUrl || candidate.selectedPhotoId || candidate.listingPhotoIndex || candidate.piecePhotoIndex
+        if (!workflow && !hasPhotoInput) continue
+        const key = workflow?.catalogMode === 'non_item_number' ? workflowPieceKey(workflow) : candidate.itemNumber ?? ''
+        const photo = requireConfirmedMainPhoto(workflow, key, {
+          selectedPhotoId: candidate.selectedPhotoId,
+          modelIndex: candidate.listingPhotoIndex ?? candidate.piecePhotoIndex,
+          imageUrl: candidate.listingPhotoUrl ?? candidate.piecePhotoUrl,
+        })
+        const hash = await assertMainPhotoNotReused(admin, photo, key)
+        if (workflow) workflow.metadata.mainPhotoSha256 = hash
+      }
 
       if (input.mode === 'single') {
         return await runSingle(input, ctx, admin)

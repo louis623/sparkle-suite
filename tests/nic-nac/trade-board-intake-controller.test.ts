@@ -253,7 +253,7 @@ describe('Dance Floor intake controller', () => {
     expect(next.status).toBe('active')
   })
 
-  it('allows an add attempt when current tool input supplies stale workflow item fields and jewelry photo is confirmed', () => {
+  it('refuses an add attempt whose photo is not bound to the supplied item number', () => {
     const state = baseState({
       phase: 'details_capture',
       known: {
@@ -289,8 +289,8 @@ describe('Dance Floor intake controller', () => {
       collectionYear: 2026,
     })
 
-    expect(readiness.ready).toBe(true)
-    expect(readiness.missing).toEqual([])
+    expect(readiness.ready).toBe(false)
+    expect(readiness.missing).toEqual(['jewelryFrontPhoto'])
     expect(readiness.blockers).toEqual([])
   })
 

@@ -533,78 +533,12 @@ describe('add_listing — batch mode', () => {
     })
   })
 
-  it('isolates same-SKU finish/stone listing photos on the shared pipeline', async () => {
-    processRepListingPhotoUrlMock
-      .mockResolvedValueOnce({ photoUrl: 'https://cdn.example.com/gold-jewelry.png' })
-      .mockResolvedValueOnce({
-        photoUrl: 'https://cdn.example.com/rhodium-jewelry.png',
-      })
-    addListingBatchMock.mockResolvedValueOnce({
-      added: [
-        {
-          listingId: 'listing-gold',
-          designId: 'design-nk88350-gold',
-          itemNumber: 'NK88350',
-          designName: 'Half Moon Crescent',
-          status: 'available',
-          usesCanonicalPhoto: false,
-        },
-        {
-          listingId: 'listing-rhodium',
-          designId: 'design-nk88350-rhodium',
-          itemNumber: 'NK88350',
-          designName: 'Half Moon Crescent',
-          status: 'available',
-          usesCanonicalPhoto: false,
-        },
-      ],
-      pending: { needCollection: [], needFullInfo: [] },
-    })
-
+  it('requires confirmed workflow ownership for same-SKU finish/stone batch photos', async () => {
     const tool = makeTool()
-    await tool.execute({
-      mode: 'batch',
-      items: [
-        {
-          itemNumber: 'NK88350',
-          material: 'Gold Plating',
-          mainStone: 'Lapis Magnesite',
-          listingPhotoUrl: 'https://dropbox.example.com/gold.png',
-        },
-        {
-          itemNumber: 'NK88350',
-          material: 'Rhodium Plating',
-          mainStone: 'Malachite Magnesite',
-          listingPhotoUrl: 'https://dropbox.example.com/rhodium.png',
-        },
-      ],
-    })
-
-    expect(processRepListingPhotoUrlMock).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        sourceImageUrl: 'https://dropbox.example.com/gold.png',
-        filenameStem: 'NK88350-listing-photo',
-        variantAssetKey: 'gold plating|lapis magnesite',
-      }),
-    )
-    expect(processRepListingPhotoUrlMock).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        sourceImageUrl: 'https://dropbox.example.com/rhodium.png',
-        filenameStem: 'NK88350-listing-photo',
-        variantAssetKey: 'rhodium plating|malachite magnesite',
-      }),
-    )
-    expect(addListingBatchMock.mock.calls[0][2].items).toEqual([
-      expect.objectContaining({
-        listingPhotoUrl: 'https://cdn.example.com/gold-jewelry.png',
-        material: 'Gold Plating',
-      }),
-      expect.objectContaining({
-        listingPhotoUrl: 'https://cdn.example.com/rhodium-jewelry.png',
-        material: 'Rhodium Plating',
-      }),
-    ])
-  })
-})
+    await expect(tool.execute({ mode: 'batch', items: [
+      { itemNumber: 'NK88350', material: 'Gold Plating', listingPhotoUrl: 'https://dropbox.example.com/gold.png' },
+      { itemNumber: 'NK88350', material: 'Rhodium Plating', listingPhotoUrl: 'https://dropbox.example.com/rhodium.png' },
+    ] })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
+    expect(addListingBatchMock).not.toHaveBeenCalled()
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+  })})

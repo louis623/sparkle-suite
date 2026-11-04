@@ -1,3 +1,4 @@
+import type { TradeBoardIntakeSessionState } from './trade-board-intake-types'
 import {
   normalizeJewelryMainStoneKey,
   normalizeJewelryMaterialKey,
@@ -14,6 +15,8 @@ export interface WorkflowJewelryPhoto {
   visualRole: string
   quality: string
   imageUrl?: string
+  notes?: string[]
+  qualityIssues?: string[]
 }
 
 export function selectWorkflowJewelryPhoto(
@@ -28,27 +31,45 @@ export function selectWorkflowJewelryPhoto(
   if (selection.modelIndex !== undefined) {
     const modelIndexed = allPhotos[selection.modelIndex - 1]
     if (isAcceptedCustomerFacingWorkflowPhoto(modelIndexed)) return modelIndexed
-    return accepted.find((photo) => photo.attachmentIndex === selection.modelIndex) ?? null
+    return null
   }
-  return pickPreferredCustomerFacingPhoto(accepted)
+  return null
 }
 
 export function resolveWorkflowCustomerFacingPhoto(
   photos: WorkflowJewelryPhoto[] | null | undefined,
   selection: { selectedPhotoId?: string; modelIndex?: number } = {},
 ): WorkflowJewelryPhoto | null {
-  const selected = selectWorkflowJewelryPhoto(photos, selection)
-  if (selected) return selected
-  if (selection.selectedPhotoId || selection.modelIndex !== undefined) {
-    return selectWorkflowJewelryPhoto(photos, {})
-  }
-  return null
+  return selectWorkflowJewelryPhoto(photos, selection)
+}
+
+export function workflowPieceKey(workflow: TradeBoardIntakeSessionState): string {
+  return workflow.catalogMode === 'non_item_number'
+    ? `NON_ITEM:${workflow.id}`
+    : workflow.known.itemNumber?.trim().toUpperCase() ?? ''
+}
+
+/** Bindings survive changes of item number within a conversation. Never rebind old photos. */
+export function getCurrentPiecePhotos(
+  workflow: TradeBoardIntakeSessionState,
+  itemNumber = workflowPieceKey(workflow),
+): TradeBoardIntakeSessionState['photos'] {
+  const key = itemNumber.trim().toUpperCase()
+  if (!key || key !== workflowPieceKey(workflow).toUpperCase()) return []
+  const bindings = (workflow.metadata.photoBindings ?? {}) as Record<string, string>
+  return workflow.photos.filter((photo) =>
+    photo.id && bindings[photo.id]
+      ? bindings[photo.id].toUpperCase() === key
+      : true,
+  )
 }
 
 export function hasUsableWorkflowJewelryPhoto(
   photos: WorkflowJewelryPhoto[] | null | undefined,
   selection: { selectedPhotoId?: string; modelIndex?: number } = {},
 ): boolean {
+  if (!selection.selectedPhotoId && selection.modelIndex === undefined)
+    return stampSoleReadinessJewelryFrontCandidate(photos).some(isAcceptedCustomerFacingWorkflowPhoto)
   return Boolean(resolveWorkflowCustomerFacingPhoto(photos, selection)?.imageUrl)
 }
 
@@ -96,13 +117,4 @@ export function catalogVariantPhotoAssetKey(args: {
   const mainStone = normalizeJewelryMainStoneKey(args.mainStone)
   const variant = [material, mainStone].filter(Boolean).join('|')
   return variant || undefined
-}
-
-function pickPreferredCustomerFacingPhoto(
-  accepted: WorkflowJewelryPhoto[],
-): WorkflowJewelryPhoto | null {
-  const preferredJewelry = [...accepted]
-    .reverse()
-    .find((photo) => photo.visualRole === 'jewelry')
-  return preferredJewelry ?? accepted[accepted.length - 1] ?? null
 }

@@ -73,8 +73,8 @@ describe('two-photo Add Dancer role assignment', () => {
         visualRole: 'label_or_packaging' as const,
       },
     ]
-    expect(selectWorkflowJewelryPhoto(laterPin, {})?.imageUrl).toBe('jewelry-first')
-    expect(selectWorkflowJewelryPhoto(laterPin, {})?.imageUrl).not.toBe(
+    expect(selectWorkflowJewelryPhoto(laterPin, { modelIndex: 1 })?.imageUrl).toBe('jewelry-first')
+    expect(selectWorkflowJewelryPhoto(laterPin, { modelIndex: 1 })?.imageUrl).not.toBe(
       'label-second',
     )
   })
@@ -115,7 +115,7 @@ describe('two-photo Add Dancer role assignment', () => {
     ).toEqual(['jewelry_front'])
   })
 
-  it('does not let a visual label overwrite a jewelry ask on a single-photo turn', () => {
+  it('keeps a visual label details-only even after a jewelry ask', () => {
     expect(
       assignDeclaredPhotoRolesForTurn({
         attachmentCount: 1,
@@ -128,7 +128,7 @@ describe('two-photo Add Dancer role assignment', () => {
         ],
         visualRoles: ['label_or_packaging'],
       }),
-    ).toEqual(['jewelry_front'])
+    ).toEqual(['label_details'])
   })
 
   it('still pins a visual label when the turn was not a jewelry ask', () => {
@@ -185,11 +185,11 @@ describe('customer-facing media selection', () => {
     expect(selectWorkflowJewelryPhoto([label, jewelry], { selectedPhotoId: label.id })).toBeNull()
   })
 
-  it('publishes the jewelry photo from a two-photo intake even if the model points at the label', () => {
+  it('refuses a label selection without falling back to the jewelry photo', () => {
     const selected = resolveWorkflowCustomerFacingPhoto([label, jewelry], {
       selectedPhotoId: label.id,
     })
-    expect(selected?.imageUrl).toBe('jewelry-photo')
+    expect(selected).toBeNull()
     expect(selected?.imageUrl).not.toBe('label-photo')
   })
 
@@ -203,7 +203,7 @@ describe('customer-facing media selection', () => {
       imageUrl: 'inherited-label',
     }
     expect(
-      selectWorkflowJewelryPhoto([jewelry, inheritedLabel], {})?.imageUrl,
+      selectWorkflowJewelryPhoto([jewelry, inheritedLabel], { selectedPhotoId: jewelry.id })?.imageUrl,
     ).toBe('jewelry-photo')
   })
 
@@ -312,7 +312,7 @@ describe('customer-facing media selection', () => {
     })
     expect(isAcceptedCustomerFacingWorkflowPhoto(stamped[1])).toBe(true)
     expect(isAcceptedCustomerFacingWorkflowPhoto(boxed)).toBe(false)
-    expect(resolveWorkflowCustomerFacingPhoto([leftoverLabel, boxed])?.imageUrl).toBe(
+    expect(resolveWorkflowCustomerFacingPhoto([leftoverLabel, boxed], { modelIndex: 2 })?.imageUrl).toBe(
       'boxed-earrings',
     )
 
@@ -327,7 +327,7 @@ describe('customer-facing media selection', () => {
     expect(resolveWorkflowCustomerFacingPhoto(twoUncertain)).toBeNull()
   })
 
-  it('remaps a visual label to uncertain when the sole readiness candidate is stamped jewelry_front', () => {
+  it('never remaps a visual label into a publishable jewelry photo', () => {
     const boxedHexCard = {
       declaredRole: 'unknown' as const,
       visualRole: 'uncertain' as const,
@@ -347,10 +347,10 @@ describe('customer-facing media selection', () => {
     const remapped = stampSoleReadinessJewelryFrontCandidate([inheritedLabelAsFront])
     expect(remapped[0]).toMatchObject({
       declaredRole: 'jewelry_front',
-      visualRole: 'uncertain',
+      visualRole: 'label_or_packaging',
       imageUrl: 'boxed-hex-card',
     })
-    expect(isAcceptedCustomerFacingWorkflowPhoto(remapped[0])).toBe(true)
+    expect(isAcceptedCustomerFacingWorkflowPhoto(remapped[0])).toBe(false)
     expect(isAcceptedCustomerFacingWorkflowPhoto(inheritedLabelAsFront)).toBe(
       false,
     )
