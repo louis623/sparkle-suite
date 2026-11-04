@@ -29,6 +29,7 @@ export const RESERVED_PUBLIC_SITE_SLUGS = new Set([
   'faq',
   'portfolio',
   'adventure',
+  'links',
 ])
 
 export type PublicSiteSlugValidation =

@@ -28,6 +28,11 @@ describe('public site show link rules', () => {
       ok: false,
       reason: 'reserved',
     })
+    // yoursparklesuite.com/links is the TikTok bio page; no rep may claim it.
+    expect(validatePublicSiteSlug('links')).toEqual({
+      ok: false,
+      reason: 'reserved',
+    })
     expect(validatePublicSiteSlug('gracie-sparkle')).toEqual({
       ok: false,
       reason: 'format',

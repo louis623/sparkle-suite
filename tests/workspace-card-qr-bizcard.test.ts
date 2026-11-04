@@ -101,11 +101,16 @@ describe('card copy', () => {
     expect(bizcardSocial({ instagram: '@ig.me' }, 'youtube')).toEqual({ handle: '@ig.me', platform: 'instagram' })
     expect(bizcardSocial({}, 'tiktok')).toEqual({ handle: '', platform: '' })
     const louis = {
-      tiktok: 'https://www.tiktok.com/@yoursparklesuite.com?is_from_webapp=1',
+      tiktok: 'https://www.tiktok.com/@sparklesuiteandfinder?is_from_webapp=1',
       facebook: 'https://www.facebook.com/profile.php',
     }
-    expect(bizcardSocial(louis)).toEqual({ handle: '@yoursparklesuite.com', platform: 'tiktok' })
-    expect(bizcardSocial(louis, 'facebook')).toEqual({ handle: '@yoursparklesuite.com', platform: 'tiktok' })
+    expect(bizcardSocial(louis)).toEqual({ handle: '@sparklesuiteandfinder', platform: 'tiktok' })
+    expect(bizcardSocial(louis, 'facebook')).toEqual({ handle: '@sparklesuiteandfinder', platform: 'tiktok' })
+    // Handles that end in ".com" must survive intact (not read as a domain).
+    expect(bizcardSocial({ tiktok: 'https://www.tiktok.com/@shopmy.gems.com?is_from_webapp=1' })).toEqual({
+      handle: '@shopmy.gems.com',
+      platform: 'tiktok',
+    })
     expect(bizcardSocial({ facebook: 'https://www.facebook.com/profile.php?id=1' })).toEqual({ handle: '', platform: '' })
     expect(bizcardSocial({ youtube: '@fizz.tv' }, 'youtube')).toEqual({ handle: '@fizz.tv', platform: 'youtube' })
     expect(bizcardSocialHint(louis, 'facebook')).toBe(

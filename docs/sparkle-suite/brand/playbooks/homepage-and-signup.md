@@ -34,7 +34,7 @@ The demo account's saved theme drives the default, including seasonal, custom, o
 - Nic-Nac has substantial factual coverage on `/tools`, with no public assistant trial or handoff form. Keep him out of the four Home tool cards.
 - Customer email/SMS updates are coming soon.
 - No Bomb Party in the headline, no new affiliation discussion, no invented proof.
-- Real demos belong in Watch. Use the approved `@yoursparklesuite.com` TikTok and `@SparkleSuite` YouTube channels.
+- Real demos belong in Watch. Use the approved `@SparkleSuiteandFinder` TikTok (`https://www.tiktok.com/@sparklesuiteandfinder`) and `@SparkleSuite` YouTube channels.
 
 ## Queue and pricing
 

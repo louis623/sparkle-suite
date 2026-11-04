@@ -1,4 +1,7 @@
-import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
+import {
+  sparkleSuitePublicLandingSafety,
+  sparkleSuiteTikTokChannelUrl,
+} from '@/lib/sparkle-suite/public-landing-content'
 import { injectPublicSiteVisitBeacon } from '@/lib/services/site-visit-summary'
 import { injectRepGa4Tag, resolveRepGa4TagHtml } from '@/lib/amethyst/rep-ga4-tag'
 import { renderSparkleSuitePoweredByLinkHtml } from './sparkle-suite-footer-credit'
@@ -429,7 +432,7 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
       <a href="https://yoursparklefinder.com" target="_blank" rel="noopener noreferrer">Sparkle Finder</a>
     </nav>
     <nav class="faq-social" aria-label="Sparkle Suite channels">
-      <a aria-label="Sparkle Suite on TikTok" href="https://www.tiktok.com/@yoursparklesuite.com" target="_blank" rel="noopener noreferrer">${tiktokIcon}<span>TikTok</span></a>
+      <a aria-label="Sparkle Suite on TikTok" href="${escapeHtml(sparkleSuiteTikTokChannelUrl)}" target="_blank" rel="noopener noreferrer">${tiktokIcon}<span>TikTok</span></a>
       <a aria-label="Sparkle Suite on YouTube" href="https://www.youtube.com/@SparkleSuite" target="_blank" rel="noopener noreferrer">${youtubeIcon}<span>YouTube</span></a>
     </nav>
     <p class="faq-footer-disclaimer">© ${year} Sparkle Suite · ${renderSparkleSuitePoweredByLinkHtml()} · ${sparkleSuitePublicLandingSafety.disclaimer}</p>

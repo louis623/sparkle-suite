@@ -21,7 +21,7 @@ const BRITT_LEGACY_PATHS: Record<string, string> = {
   '/embed': '/',
 }
 
-const SUITE_MARKETING_PATHS = ['/portfolio', '/tools', '/prelaunch', '/adventure', '/demo', '/learn']
+const SUITE_MARKETING_PATHS = ['/portfolio', '/tools', '/prelaunch', '/adventure', '/demo', '/learn', '/links']
 
 export function normalizePublicPath(pathname: string) {
   if (pathname.length > 1 && pathname.endsWith('/')) return pathname.replace(/\/+$/, '')

@@ -121,7 +121,7 @@ describe('customer Dance Floor FAQ', () => {
     expect(html).toContain('target="_blank"')
     expect(html).not.toContain('Powered by Sparkle Suite')
     expect(html).toContain('Skip to questions')
-    expect(html).toContain('tiktok.com/@yoursparklesuite.com')
+    expect(html).toContain('tiktok.com/@sparklesuiteandfinder')
     expect(html).toContain('youtube.com/@SparkleSuite')
     expect(html).toContain('TikTok')
     expect(html).toContain('YouTube')

@@ -23,7 +23,8 @@ import {
  *
  * Checked 2026-09-28:
  * - Featured reel is the TikTok Louis picked, https://www.tiktok.com/t/ZP8TTK4KU/,
- *   which resolves to video 7684058046800071966 on @yoursparklesuite.com.
+ *   which resolves to video 7684058046800071966 on @sparklesuiteandfinder
+ *   (renamed from @yoursparklesuite.com on 2026-10-18; video IDs unchanged).
  * - YouTube https://youtube.com/@sparklesuite is channel UCpISEvH3gBaRfC8OoCKH7Qg,
  *   the same channel as the icon URL. No listed upload yet, so no YouTube iframe.
  * - Icons stay profile links. The grid stays empty until a real landing demo

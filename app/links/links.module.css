@@ -1,0 +1,148 @@
+/* Suite brand kit (docs/sparkle-suite/brand/08). Finder violet only inside .finderCard. */
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #34252f 0%, #34252f 55%, #36221d 100%);
+  color: #fff6fa;
+  font-family: var(--font-prelaunch-sans), system-ui, sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 40px 18px 32px;
+}
+
+.inner {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.headshot {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff6fa;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.name {
+  margin: 6px 0 0;
+  font-family: var(--font-prelaunch-display), Georgia, serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff6fa;
+}
+
+.tagline {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(255, 246, 250, 0.86);
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 20px 22px;
+  border-radius: 22px;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease;
+}
+
+.card:hover,
+.card:focus-visible {
+  transform: translateY(-2px);
+}
+
+.card:focus-visible {
+  outline: 3px solid #ff4cae;
+  outline-offset: 3px;
+}
+
+.suiteCard {
+  background: #fff6fa;
+  color: #34252f;
+}
+
+.finderCard {
+  background: #ffffff;
+  color: #2b2140;
+}
+
+.logo {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+}
+
+.summary {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.button {
+  display: inline-block;
+  min-width: 220px;
+  padding: 14px 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff6fb;
+}
+
+.suiteCard .button {
+  background: linear-gradient(135deg, #ff4cae, #d81b87);
+}
+
+.finderCard .button {
+  background: #5c0eff;
+}
+
+.finderCard:focus-visible {
+  outline-color: #5c0eff;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.footer a {
+  color: #fff6fa;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.disclaimer {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: rgba(255, 246, 250, 0.7);
+}

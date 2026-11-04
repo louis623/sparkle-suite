@@ -300,8 +300,25 @@ describe('custom-domain customer site proxy', () => {
     expect(getRedirectUrl(apexResponse)).toBe('https://yoursparklesuite.com/#watch')
   })
 
+  it('serves /links only on the Suite hosts and 404s it on every rep host', () => {
+    for (const host of ['www.yoursparklesuite.com', 'yoursparklesuite.com']) {
+      const response = proxy(new NextRequest(`https://${host}/links`, { headers: { host } }))
+      expect(response.status).toBe(200)
+      expect(getRedirectUrl(response)).toBeNull()
+      expect(isRewrite(response)).toBe(false)
+    }
+    for (const host of ['milehighfizz.com', 'theblingkitchen.com', 'www.brisglowtique.com', 'brittwithbling.com']) {
+      for (const path of ['/links', '/links/', '/links/anything']) {
+        const response = proxy(new NextRequest(`https://${host}${path}`, { headers: { host } }))
+        expect(response.status).toBe(404)
+        expect(response.headers.get('x-robots-tag')).toBe('noindex')
+        expect(isRewrite(response)).toBe(false)
+      }
+    }
+  })
+
   it('returns 404 for Suite marketing pages on a rep host and leaves the Suite host alone', () => {
-    for (const path of ['/portfolio', '/tools', '/prelaunch/intake', '/adventure', '/demo', '/learn']) {
+    for (const path of ['/portfolio', '/tools', '/prelaunch/intake', '/adventure', '/demo', '/learn', '/links']) {
       const rep = proxy(
         new NextRequest(`https://brittwithbling.com${path}`, {
           headers: { host: 'brittwithbling.com' },

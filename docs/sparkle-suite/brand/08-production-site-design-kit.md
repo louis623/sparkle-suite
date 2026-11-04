@@ -108,7 +108,7 @@ Use `standing/assets/louis-headshot-2026-10-05.png` from Core Memory. Its teal b
 ## Channels, social previews, and tracking
 
 - YouTube: `https://www.youtube.com/@SparkleSuite`.
-- TikTok: `https://www.tiktok.com/@yoursparklesuite.com`; featured demo `/video/7684058046800071966`. Never use `tiktok.com/@sparklesuite`.
+- TikTok: `https://www.tiktok.com/@sparklesuiteandfinder` (display `@SparkleSuiteandFinder`; renamed from `@yoursparklesuite.com` on 2026-10-18. The old handle is dead, never link it); featured demo `/video/7684058046800071966`. Never use `tiktok.com/@sparklesuite`.
 - Watch uses real demos and two equal-size channel links with icons after the labels: TikTok black with its cyan/pink accents, YouTube red with white. These platform-brand colors are specific to channel buttons, not Suite chrome. No separate featured-clip button. The hero follows the owner's saved demo theme.
 - OG/social cards explain Sparkle Suite with a themed site image and value headline, **no price**.
 - Preserve `?src=tiktok`, `?src=email`, and extensible campaign labels through marketing navigation into queue signups. Use free/built-in tooling and minimal data. Louis pastes links; setup and reporting are handled by Suite/Codex.
