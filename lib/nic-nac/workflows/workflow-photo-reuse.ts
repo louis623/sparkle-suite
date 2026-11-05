@@ -22,7 +22,17 @@ export async function assertMainPhotoNotReused(
     .select('id, session:trade_board_intake_sessions!inner(id,item_number,catalog_mode,metadata,created_listing_ids)')
     .eq('content_sha256', hash).eq('declared_role', 'jewelry_front')
   if (error) throw error
-  for (const source of sources ?? []) {
+  // A completed save records the original-byte hash independently of the photo row.
+  // Include that provenance even for older confirmed rows whose hash was cleared.
+  const { data: savedSessions, error: savedError } = await supabase.from('trade_board_intake_sessions')
+    .select('id,item_number,catalog_mode,metadata,created_listing_ids')
+    .eq('metadata->>mainPhotoSha256', hash)
+  if (savedError) throw savedError
+  const savedSources = (savedSessions ?? []).map((session) => ({
+    id: (session.metadata as Record<string, unknown> | null)?.confirmedPhotoId,
+    session,
+  }))
+  for (const source of [...(sources ?? []), ...savedSources]) {
     const session = (Array.isArray(source.session) ? source.session[0] : source.session) as {
       id: string; item_number: string | null; catalog_mode: string; metadata: Record<string, unknown>; created_listing_ids: string[] | null
     }

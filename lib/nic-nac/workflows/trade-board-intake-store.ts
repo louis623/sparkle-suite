@@ -369,9 +369,11 @@ export async function upsertTradeBoardIntakePhoto(
       quality_issues: args.qualityIssues,
       notes: args.notes,
       ocr_or_vision_summary: args.ocrOrVisionSummary ?? null,
-      content_sha256: args.contentSha256 ?? null,
-      inspected_at: args.visualRoleSource ? new Date().toISOString() : null,
-      visual_role_source: args.visualRoleSource ?? null,
+      ...(args.contentSha256 !== undefined ? { content_sha256: args.contentSha256 } : {}),
+      ...(args.visualRoleSource !== undefined ? {
+        inspected_at: new Date().toISOString(),
+        visual_role_source: args.visualRoleSource,
+      } : {}),
     },
     { onConflict: 'session_id,conversation_message_id,attachment_index' },
   )

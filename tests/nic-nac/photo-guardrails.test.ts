@@ -40,13 +40,14 @@ function yes(s: TradeBoardIntakeSessionState, hasAttachment = false) {
   s.metadata = applyMainPhotoConfirmation(s, { id: 'yes-A', text: 'Yes, please!', hasAttachment,
     previousAssistantId: 'assistant-preview-A', previewPhotoId: 'photo-A' })
 }
-function duplicateDb(itemNumber?: string): SupabaseClient {
+function duplicateDb(itemNumber?: string, savedOnly = false): SupabaseClient {
   const source = { id: 'prior-photo', session: { id: 'prior-intake', item_number: itemNumber, catalog_mode: 'item_number',
-    metadata: { confirmedPhotoId: 'prior-photo', savedMainPhotoUrl: 'saved-main' }, created_listing_ids: ['listing-prior'] } }
-  const chain: Record<string, unknown> = { data: itemNumber ? [source] : [], error: null }
-  for (const key of ['select', 'eq']) chain[key] = () => chain
+    metadata: { confirmedPhotoId: 'prior-photo', savedMainPhotoUrl: 'saved-main', mainPhotoSha256: hash }, created_listing_ids: ['listing-prior'] } }
+  const chain: Record<string, unknown> = { data: itemNumber && !savedOnly ? [source] : [], error: null }
+  const saved: Record<string, unknown> = { data: itemNumber ? [source.session] : [], error: null }
+  for (const key of ['select', 'eq']) { chain[key] = () => chain; saved[key] = () => saved }
   const listings = { select: () => ({ in: async () => ({ data: [{ id: 'listing-prior', listing_photo_url: 'saved-main' }], error: null }) }) }
-  return { from: (table: string) => table === 'trade_listings' ? listings : chain } as unknown as SupabaseClient
+  return { from: (table: string) => table === 'trade_listings' ? listings : table === 'trade_board_intake_sessions' ? saved : chain } as unknown as SupabaseClient
 }
 beforeEach(() => { vi.clearAllMocks(); vi.stubGlobal('React', React); updateSession.mockResolvedValue(undefined); priorInspections.mockResolvedValue([]); processPhoto.mockResolvedValue({ photoUrl: 'saved-exact-photo-A' }) })
 
@@ -132,8 +133,8 @@ describe('main photo guards', () => {
     expect(await processListingPhotoForAdd({ itemNumber: 'rg12345', repId: s.repId, conversationId: s.conversationId, supabase: db, activeTradeBoardWorkflow: s })).toBe('saved-exact-photo-A')
     expect(processPhoto).toHaveBeenCalledWith(expect.objectContaining({ sourceImageUrl: url }), { confirmedJewelryFront: true })
   })
-  it('G3: yes with an attachment explicitly clarifies which displayed image to confirm', async () => {
-    const s = state(); await preview(s); yes(s, true)
+  it('G3/G4: clarification confirmation and save preserve the photo hash and inspection source', async () => {
+    const s = state(); s.photos[0].visualRoleSource = 'conversation_hash_reuse_v1'; await preview(s); yes(s, true)
     expect(s.metadata.confirmedPhotoId).toBeUndefined()
     const chunks: UIMessageChunk[] = []
     expect(await writeTradeBoardMainPhotoPreview(db, s, 'assistant-clarify', { write: (chunk) => chunks.push(chunk) })).toBe(true)
@@ -141,8 +142,25 @@ describe('main photo guards', () => {
     expect(chunks[2]).toMatchObject({ type: 'text-delta', delta: expect.stringMatching(/said yes and attached.*image shown here.*reply yes without another attachment/i) })
     expect(() => requireConfirmedMainPhoto(s, 'RG12345', { selectedPhotoId: 'photo-A' })).toThrow(/confirm/)
     expect(processPhoto).not.toHaveBeenCalled()
-    s.metadata = applyMainPhotoConfirmation(s, { id: 'clarified-yes', text: 'Yes', hasAttachment: false, previousAssistantId: 'assistant-clarify', previewPhotoId: 'photo-A' })
-    expect(requireConfirmedMainPhoto(s, 'RG12345').id).toBe('photo-A')
+    const actualStore = await vi.importActual<typeof import('@/lib/nic-nac/workflows/trade-board-intake-store')>('@/lib/nic-nac/workflows/trade-board-intake-store')
+    const stored: Record<string, unknown> = { content_sha256: hash, visual_role_source: 'conversation_hash_reuse_v1' }
+    const storeDb = { from: () => ({ upsert: async (patch: Record<string, unknown>) => { Object.assign(stored, patch); return { error: null } } }) } as unknown as SupabaseClient
+    persistPhoto.mockImplementation((_db, args) => actualStore.upsertTradeBoardIntakePhoto(storeDb, args))
+    const next = await ingestLatestTradeBoardIntakeTurn(db, { session: s, latestUserMessageId: 'clarified-yes', messages: [
+      { id: 'assistant-clarify', role: 'assistant', parts: [
+        { type: 'data-main-photo-preview', data: { photoId: 'photo-A' } },
+        { type: 'text', text: 'Please reply yes without another attachment to confirm this image.' },
+      ] },
+      { id: 'clarified-yes', role: 'user', parts: [{ type: 'text', text: 'Yes' }] },
+    ] })
+    expect(persistPhoto).toHaveBeenCalledWith(db, expect.objectContaining({ contentSha256: hash, visualRoleSource: 'conversation_hash_reuse_v1' }))
+    expect(requireConfirmedMainPhoto(next, 'RG12345').id).toBe('photo-A')
+    expect(await processListingPhotoForAdd({ itemNumber: 'RG12345', repId: s.repId, conversationId: s.conversationId, supabase: db, activeTradeBoardWorkflow: next })).toBe('saved-exact-photo-A')
+    // A later partial confirmation update must also leave durable provenance intact.
+    const partial = { ...persistPhoto.mock.calls[0][1] }
+    delete partial.contentSha256; delete partial.visualRoleSource
+    await actualStore.upsertTradeBoardIntakePhoto(storeDb, partial)
+    expect(stored).toMatchObject({ content_sha256: hash, visual_role_source: 'conversation_hash_reuse_v1' })
   })
   it('G3: yes for piece A cannot confirm piece B', async () => {
     const s = state(); await preview(s); s.known.itemNumber = 'RG99999'; yes(s)
@@ -151,6 +169,8 @@ describe('main photo guards', () => {
   })
   it('G4: identical bytes already used on another item are blocked before processing', async () => {
     await expect(assertMainPhotoNotReused(duplicateDb('ER88888'), state().photos[0], 'RG12345')).rejects.toThrow("This photo is already on ER88888. I won't use it as the main photo for RG12345.")
+    // Older confirmed photo rows may have lost their hash; the saved session still proves reuse.
+    await expect(assertMainPhotoNotReused(duplicateDb('ER88888', true), state().photos[0], 'RG12345')).rejects.toThrow('This photo is already on ER88888.')
     const s = state()
     s.photos.push({ ...s.photos[0], id: 'duplicate-replacement', conversationMessageId: 'replacement' })
     const chunks: UIMessageChunk[] = []
