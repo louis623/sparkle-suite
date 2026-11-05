@@ -358,5 +358,8 @@ export function assignDeclaredPhotoRolesForTurn(args: {
     }
   }
 
-  return roles.map((role, index) => args.visualRoles[index] === 'label_or_packaging' ? 'label_details' : role ?? 'unknown')
+  // The inspected content wins over attachment captions and inherited asks.
+  return roles.map((role, index) => args.visualRoles[index] === 'jewelry'
+    ? 'jewelry_front'
+    : args.visualRoles[index] === 'label_or_packaging' ? 'label_details' : role ?? 'unknown')
 }

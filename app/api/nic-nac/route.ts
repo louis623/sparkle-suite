@@ -65,7 +65,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizeNicNacAssistantParts } from '@/lib/nic-nac/message-normalize'
 import {
   getOrCreateTradeBoardIntakeContext,
-  prepareTradeBoardMainPhotoPreview,
+  writeTradeBoardMainPhotoPreview,
 } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import { getOrCreateTradeWorkflowContext } from '@/lib/nic-nac/workflows/trade-workflow-context'
 import { getOrCreateCalendarWorkflowContext } from '@/lib/nic-nac/workflows/calendar-workflow-context'
@@ -921,15 +921,10 @@ export async function POST(request: Request) {
       // terminal hide in every case.
       const activeToolCallIds = new Set<string>()
       try {
-        const preview = await prepareTradeBoardMainPhotoPreview(workflowSupabase, activeTradeBoardWorkflow, assistantMessageId)
-        if (preview) {
-          emitHide('plain-text')
-          writer.write({ type: 'data-main-photo-preview', data: preview })
-          writer.write({ type: 'text-start', id: 'main-photo-question' })
-          writer.write({ type: 'text-delta', id: 'main-photo-question', delta: preview.question })
-          writer.write({ type: 'text-end', id: 'main-photo-question' })
-          return
-        }
+        if (await writeTradeBoardMainPhotoPreview(
+          workflowSupabase, activeTradeBoardWorkflow, assistantMessageId,
+          { write: (chunk) => { emitHide('plain-text'); writer.write(chunk) } },
+        )) return
         for (let agentAttempt = 1; agentAttempt <= 2; agentAttempt += 1) {
           const result = await configuredAgent.agent.stream({
             messages: modelMessages,
