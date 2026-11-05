@@ -6,14 +6,15 @@ import { createHash } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
 
-const { processPhoto, updateSession, inspectModel, analyzeImage, persistPhoto, reloadSession } = vi.hoisted(() => ({
-  processPhoto: vi.fn(), updateSession: vi.fn(), inspectModel: vi.fn(), analyzeImage: vi.fn(), persistPhoto: vi.fn(), reloadSession: vi.fn(),
+const { processPhoto, updateSession, inspectModel, analyzeImage, persistPhoto, reloadSession, priorInspections } = vi.hoisted(() => ({
+  processPhoto: vi.fn(), updateSession: vi.fn(), inspectModel: vi.fn(), analyzeImage: vi.fn(), persistPhoto: vi.fn(), reloadSession: vi.fn(), priorInspections: vi.fn(),
 }))
 vi.mock('ai', async (importOriginal) => ({ ...await importOriginal<typeof import('ai')>(), generateText: inspectModel }))
 vi.mock('@/lib/services/server-image-quality', () => ({ analyzeServerImageQuality: analyzeImage }))
 vi.mock('@/lib/services/listing-photo-processing', () => ({ processRepListingPhotoUrl: processPhoto }))
 vi.mock('@/lib/nic-nac/workflows/trade-board-intake-store', () => ({ updateTradeBoardIntakeSession: updateSession,
   upsertTradeBoardIntakePhoto: persistPhoto, getActiveTradeBoardIntakeSession: reloadSession,
+  getConversationTradeBoardPhotoInspections: priorInspections,
 }))
 import { applyMainPhotoConfirmation, mainPhotoProblem, computeTradeBoardIntakeReadiness } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 import { getCurrentPiecePhotos, resolveWorkflowCustomerFacingPhoto, workflowPieceKey } from '@/lib/nic-nac/workflows/workflow-photo-selection'
@@ -47,7 +48,7 @@ function duplicateDb(itemNumber?: string): SupabaseClient {
   const listings = { select: () => ({ in: async () => ({ data: [{ id: 'listing-prior', listing_photo_url: 'saved-main' }], error: null }) }) }
   return { from: (table: string) => table === 'trade_listings' ? listings : chain } as unknown as SupabaseClient
 }
-beforeEach(() => { vi.clearAllMocks(); vi.stubGlobal('React', React); updateSession.mockResolvedValue(undefined); processPhoto.mockResolvedValue({ photoUrl: 'saved-exact-photo-A' }) })
+beforeEach(() => { vi.clearAllMocks(); vi.stubGlobal('React', React); updateSession.mockResolvedValue(undefined); priorInspections.mockResolvedValue([]); processPhoto.mockResolvedValue({ photoUrl: 'saved-exact-photo-A' }) })
 
 async function inspectUpload(jewelryVisible: boolean, labelOnly: boolean, text: string) {
   const s = state(); s.photos = []; s.metadata = {}
@@ -66,6 +67,18 @@ async function inspectUpload(jewelryVisible: boolean, labelOnly: boolean, text: 
     { id: 'upload-turn', role: 'user', parts: [
       { type: 'text', text }, { type: 'file', mediaType: 'image/png', url },
     ] }] })
+}
+
+async function reuploadSamePhoto(s: TradeBoardIntakeSessionState, matches: TradeBoardIntakeSessionState['photos']) {
+  priorInspections.mockResolvedValue(matches)
+  const persisted = [...s.photos]
+  persistPhoto.mockImplementation(async (_db, photo) => { persisted.push({ ...photo, id: 'same-bytes-new-upload' }) })
+  reloadSession.mockImplementation(async () => ({ ...s, photos: persisted }))
+  inspectModel.mockRejectedValue(new Error('A matching upload must not reach the visual model'))
+  return ingestLatestTradeBoardIntakeTurn(db, { session: s, latestUserMessageId: 'yes-with-same-photo', messages: [
+    { id: 'assistant-preview-A', role: 'assistant', parts: [{ type: 'data-main-photo-preview', data: { photoId: 'photo-A' } }] },
+    { id: 'yes-with-same-photo', role: 'user', parts: [{ type: 'text', text: 'Yes, please!' }, { type: 'file', mediaType: 'image/png', url }] },
+  ] })
 }
 
 describe('main photo guards', () => {
@@ -193,5 +206,24 @@ describe('main photo guards', () => {
     expect(key).toBe('NON_ITEM:intake-A'); await preview(s); yes(s)
     expect(requireConfirmedMainPhoto(s, key).id).toBe('photo-A')
     expect(() => requireConfirmedMainPhoto(s, 'NON_ITEM:intake-B')).toThrow(/jewelry photo/)
+  })
+  it('reuses an approved conversation hash for yes with the same photo without re-running visual checks', async () => {
+    const s = state(); await preview(s)
+    const next = await reuploadSamePhoto(s, [{ ...s.photos[0], quality: 'warning', qualityIssues: ['low_resolution'] }])
+    expect(priorInspections).toHaveBeenCalledWith(db, { repId: s.repId, conversationId: s.conversationId, contentSha256: hash })
+    expect(inspectModel).not.toHaveBeenCalled(); expect(analyzeImage).not.toHaveBeenCalled()
+    expect(next.photos.at(-1)).toMatchObject({ id: 'same-bytes-new-upload', contentSha256: hash,
+      visualRole: 'jewelry', quality: 'warning', qualityIssues: ['low_resolution'], visualRoleSource: 'conversation_hash_reuse_v1' })
+    expect(next.metadata.confirmedPhotoId).toBeUndefined()
+    expect(await preview(next)).toMatchObject({ photoId: 'same-bytes-new-upload', question: expect.stringMatching(/said yes and attached.*reply yes without another attachment/i) })
+  })
+  it('keeps blocked or rejected matching bytes blocked even when an older approval exists', async () => {
+    const s = state(); const approved = s.photos[0]; s.photos = []
+    const issues = ['blur_risk', 'subject_cut_off', 'duplicate_main_photo']
+    const next = await reuploadSamePhoto(s, [approved, { ...approved, id: 'rejected', quality: 'blocked', qualityIssues: issues }])
+    expect(inspectModel).not.toHaveBeenCalled(); expect(analyzeImage).not.toHaveBeenCalled()
+    expect(next.photos.at(-1)).toMatchObject({ quality: 'blocked', qualityIssues: issues, contentSha256: hash, visualRoleSource: 'conversation_hash_reuse_v1' })
+    expect(await preview(next)).toBeNull()
+    expect(() => requireConfirmedMainPhoto(next, 'RG12345', { selectedPhotoId: 'same-bytes-new-upload' })).toThrow(/cut off/)
   })
 })

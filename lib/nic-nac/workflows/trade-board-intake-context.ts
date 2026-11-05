@@ -36,6 +36,7 @@ import type {
 import {
   createTradeBoardIntakeSession,
   getActiveTradeBoardIntakeSession,
+  getConversationTradeBoardPhotoInspections,
   updateTradeBoardIntakeSession,
   upsertTradeBoardIntakePhoto,
 } from './trade-board-intake-store'
@@ -304,7 +305,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
       (part as { mediaType?: string }).mediaType?.startsWith('image/'),
   ) as Array<{ type?: string; mediaType?: string; url?: string }>
   const inspectedPhotos = await Promise.all(
-    fileParts.map((filePart) => inspectWorkflowPhoto(filePart.url, 'unknown')),
+    fileParts.map((filePart) => inspectWorkflowPhoto(supabase, args.session, filePart.url, 'unknown')),
   )
   const printedItems = [...new Set(inspectedPhotos.map((photo) => photo.printedItemNumber).filter(Boolean))]
   if (!known.itemNumber && printedItems.length === 1) known = { ...known, itemNumber: printedItems[0] }
@@ -640,17 +641,39 @@ function assistantIdentifiedJewelryFront(text: string): boolean {
 }
 
 async function inspectWorkflowPhoto(
+  supabase: SupabaseClient,
+  session: TradeBoardIntakeSessionState,
   imageUrl: string | undefined,
   declaredRole: TradeBoardPhotoDeclaredRole,
 ): Promise<InspectedWorkflowPhoto> {
   if (!imageUrl) {
     return { visualRole: 'uncertain', quality: 'unknown', qualityIssues: [] }
   }
+  let contentSha256: string | undefined
   try {
     const dataMatch = /^data:[^;]+;base64,(.+)$/i.exec(imageUrl)
     const bytes = dataMatch
       ? new Uint8Array(Buffer.from(dataMatch[1], 'base64'))
       : new Uint8Array(await (await fetch(imageUrl)).arrayBuffer())
+    contentSha256 = createHash('sha256').update(bytes).digest('hex')
+    const matches = await getConversationTradeBoardPhotoInspections(supabase, {
+      repId: session.repId, conversationId: session.conversationId, contentSha256,
+    })
+    // Reuse only inspection facts, never a previous piece binding, preview, or confirmation.
+    // A blocked/rejected match wins over an older approval and cannot be rehabilitated by re-uploading.
+    const prior = matches.find((photo) => photo.quality === 'blocked' ||
+      photo.qualityIssues.some((issue) => /blur_risk|subject_cut_off|duplicate_main_photo/.test(issue))) ??
+      matches.find((photo) => photo.quality === 'usable' || photo.quality === 'warning')
+    if (prior) {
+      const quality = prior.quality === 'blocked' || prior.qualityIssues.some((issue) =>
+        /blur_risk|subject_cut_off|duplicate_main_photo/.test(issue)) ? 'blocked' : prior.quality
+      return {
+        visualRole: prior.visualRole, quality, labelQuality: quality, jewelryQuality: quality,
+        qualityScore: prior.qualityScore, qualityIssues: [...prior.qualityIssues], contentSha256,
+        printedItemNumber: prior.notes.find((note) => note.startsWith('label_item_number:'))?.slice(18),
+        visualRoleSource: 'conversation_hash_reuse_v1',
+      }
+    }
     const analysis = await analyzeServerImageQuality(bytes)
     const policy = getNicNacModelPolicy('utility_fast')
     const { output: visual } = await generateText({
@@ -709,7 +732,7 @@ async function inspectWorkflowPhoto(
         ...semantic.reasons,
         ...preflight.issues.map((issue) => issue.code),
       ],
-      contentSha256: createHash('sha256').update(bytes).digest('hex'),
+      contentSha256,
       visualRoleSource: 'server_image_analysis_v1',
     }
   } catch {
@@ -719,6 +742,7 @@ async function inspectWorkflowPhoto(
       labelQuality: 'blocked',
       jewelryQuality: 'blocked',
       qualityIssues: ['server_visual_inspection_unavailable'],
+      contentSha256,
       visualRoleSource: 'inspection_failed',
     }
   }

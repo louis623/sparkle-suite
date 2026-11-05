@@ -143,6 +143,21 @@ export function mapTradeBoardIntakePhotoRow(
   }
 }
 
+/** Inspection reuse is restricted to the authenticated rep's current conversation and exact bytes. */
+export async function getConversationTradeBoardPhotoInspections(
+  supabase: SupabaseClient,
+  args: { repId: string; conversationId: string; contentSha256: string },
+): Promise<TradeBoardIntakePhotoState[]> {
+  const { data, error } = await supabase.from('trade_board_intake_photos')
+    .select('*')
+    .eq('rep_id', args.repId)
+    .eq('conversation_id', args.conversationId)
+    .eq('content_sha256', args.contentSha256)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []).map(mapTradeBoardIntakePhotoRow)
+}
+
 export async function getActiveTradeBoardIntakeSession(
   supabase: SupabaseClient,
   args: { repId: string; conversationId: string; nowIso: string },
