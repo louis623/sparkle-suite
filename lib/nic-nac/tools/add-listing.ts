@@ -43,6 +43,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { writeTradeActionAudit } from '@/lib/nic-nac/audit'
 import { logIncident } from '@/lib/nic-nac/guardian-telemetry'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
+import { assertMainPhotoNotReused, rejectReusedMainPhoto } from '@/lib/nic-nac/workflows/workflow-photo-reuse'
+export { assertMainPhotoNotReused } from '@/lib/nic-nac/workflows/workflow-photo-reuse'
 import { NicNacMutationFailure } from '@/lib/nic-nac/tool-failure-classification'
 import {
   mainPhotoProblem,
@@ -704,42 +706,6 @@ export function requireConfirmedMainPhoto(
       String(workflow.metadata.confirmedItemNumber).toUpperCase() !== itemNumber.toUpperCase())
     return refuse(`Please confirm the main photo preview for ${itemNumber} before I save it.`)
   return photo
-}
-
-/** Match original bytes to prior saved intake provenance, then verify the listing still uses it. */
-export async function assertMainPhotoNotReused(
-  supabase: SupabaseClient,
-  photo: { id?: string; imageUrl?: string; contentSha256?: string },
-  itemNumber: string,
-): Promise<string> {
-  if (!photo.imageUrl) throw new Error('Missing main photo source')
-  const data = /^data:[^;]+;base64,([\s\S]+)$/i.exec(photo.imageUrl)
-  const response = data ? null : await fetch(photo.imageUrl)
-  if (response && !response.ok) throw new Error('Main photo source unavailable')
-  const bytes = data ? Buffer.from(data[1], 'base64') : Buffer.from(await response!.arrayBuffer())
-  const hash = createHash('sha256').update(bytes).digest('hex')
-  if (photo.contentSha256 && photo.contentSha256 !== hash)
-    throw new NicNacToolError({ code: 'MAIN_PHOTO_CHANGED', userMessage: 'That photo changed since its preview. Please send the jewelry photo again.' })
-  const { data: sources, error } = await supabase.from('trade_board_intake_photos')
-    .select('id, session:trade_board_intake_sessions!inner(id,item_number,catalog_mode,metadata,created_listing_ids)')
-    .eq('content_sha256', hash).eq('declared_role', 'jewelry_front')
-  if (error) throw error
-  for (const source of sources ?? []) {
-    const session = (Array.isArray(source.session) ? source.session[0] : source.session) as {
-      id: string; item_number: string | null; catalog_mode: string; metadata: Record<string, unknown>; created_listing_ids: string[] | null
-    }
-    const otherItem = session.catalog_mode === 'non_item_number' ? `NON_ITEM:${session.id}` : session.item_number
-    if (!otherItem || otherItem.toUpperCase() === itemNumber.toUpperCase() || !session.created_listing_ids?.length) continue
-    if (session.metadata.confirmedPhotoId && session.metadata.confirmedPhotoId !== source.id) continue
-    const { data: listings, error: listingError } = await supabase.from('trade_listings')
-      .select('id,listing_photo_url,manual_photo_url').in('id', session.created_listing_ids)
-    if (listingError) throw listingError
-    if ((listings ?? []).some((listing) => !session.metadata.savedMainPhotoUrl ||
-        listing.listing_photo_url === session.metadata.savedMainPhotoUrl || listing.manual_photo_url === session.metadata.savedMainPhotoUrl)) {
-      throw new NicNacToolError({ code: 'MAIN_PHOTO_REUSED', userMessage: `This photo is already on ${otherItem}. I won't use it as the main photo for ${itemNumber}. Please send a new jewelry photo.` })
-    }
-  }
-  return hash
 }
 
 function workflowOwnedListingPhotoUrl(input: {
@@ -2323,8 +2289,16 @@ export function makeAddListingTool(ctx: {
           modelIndex: candidate.listingPhotoIndex ?? candidate.piecePhotoIndex,
           imageUrl: candidate.listingPhotoUrl ?? candidate.piecePhotoUrl,
         })
-        const hash = await assertMainPhotoNotReused(admin, photo, key)
-        if (workflow) workflow.metadata.mainPhotoSha256 = hash
+        try {
+          const hash = await assertMainPhotoNotReused(admin, photo, key)
+          if (workflow) workflow.metadata.mainPhotoSha256 = hash
+        } catch (error) {
+          if (workflow && error instanceof NicNacToolError && error.code === 'MAIN_PHOTO_REUSED') {
+            const ownedPhoto = workflow.photos.find((candidate) => candidate.id === photo.id)
+            if (ownedPhoto) await rejectReusedMainPhoto(admin, workflow, ownedPhoto, error.userMessage)
+          }
+          throw error
+        }
       }
 
       if (input.mode === 'single') {

@@ -4,7 +4,9 @@ import { generateText, Output, type UIMessage, type UIMessageChunk } from 'ai'
 import { z } from 'zod'
 import { getNicNacModelPolicy } from '@/lib/nic-nac/core/model-policy'
 import { getNicNacLanguageModel, getNicNacProviderOptions } from '@/lib/nic-nac/core/model-provider'
-import { getCurrentPiecePhotos, workflowPieceKey } from './workflow-photo-selection'
+import { getNewestMainPhotoCandidate, workflowPieceKey } from './workflow-photo-selection'
+import { assertMainPhotoNotReused, rejectReusedMainPhoto } from './workflow-photo-reuse'
+import { NicNacToolError } from '@/lib/nic-nac/errors'
 import type { NicNacToolIntent } from '@/lib/nic-nac/tools'
 import { analyzeServerImageQuality } from '@/lib/services/server-image-quality'
 import {
@@ -40,6 +42,7 @@ import {
 import { isExplicitTradeBoardAddRequest } from './trade-board-add-intent'
 import {
   assignDeclaredPhotoRolesForTurn,
+  isAcceptedCustomerFacingWorkflowPhoto,
   inferRoleFromText,
   stampSoleReadinessJewelryFrontCandidate,
 } from './workflow-photo-roles'
@@ -758,15 +761,22 @@ export async function prepareTradeBoardMainPhotoPreview(
   if (mainPhotoProblem(state)) return null
   const key = workflowPieceKey(state)
   if (state.metadata.confirmedItemNumber === key && state.metadata.confirmedPhotoId) return null
-  const photo = getCurrentPiecePhotos(state).filter((candidate) =>
-    candidate.id && candidate.imageUrl && candidate.declaredRole === 'jewelry_front' &&
-    candidate.visualRole !== 'label_or_packaging' && candidate.quality !== 'blocked' &&
-    ![...candidate.notes, ...candidate.qualityIssues].some((note) => /blur_risk|subject_cut_off/.test(note))).at(-1)
-  if (!photo?.id || !photo.imageUrl) return null
+  const photo = getNewestMainPhotoCandidate(state)
+  if (!photo?.id || !isAcceptedCustomerFacingWorkflowPhoto(photo)) return null
+  try {
+    await assertMainPhotoNotReused(supabase, photo, key)
+  } catch (error) {
+    if (!(error instanceof NicNacToolError) || error.code !== 'MAIN_PHOTO_REUSED') throw error
+    await rejectReusedMainPhoto(supabase, state, photo, error.userMessage)
+    return null
+  }
   state.metadata = { ...state.metadata, previewPhotoId: photo.id, previewItemNumber: key,
     previewUserMessageId: state.lastUserMessageId, previewAssistantMessageId: assistantMessageId }
   await updateTradeBoardIntakeSession(supabase, { sessionId: state.id, patch: { metadata: state.metadata } })
-  return { photoId: photo.id, url: photo.imageUrl, itemNumber: key, question: `Is this the right main photo for ${key}?` }
+  const question = state.metadata.photoConfirmationNeedsClarification
+    ? `You said yes and attached another image. To make sure I use the photo you mean, is the image shown here the right main photo for ${key}? Please reply yes without another attachment to confirm this image.`
+    : `Is this the right main photo for ${key}?`
+  return { photoId: photo.id, url: photo.imageUrl, itemNumber: key, question }
 }
 
 /** Persist and emit one server-owned preview; prose alone cannot stand in for it. */
@@ -777,10 +787,15 @@ export async function writeTradeBoardMainPhotoPreview(
   writer: { write: (chunk: UIMessageChunk) => void },
 ): Promise<boolean> {
   const preview = await prepareTradeBoardMainPhotoPreview(supabase, state, assistantMessageId)
-  if (!preview) return false
-  writer.write({ type: 'data-main-photo-preview', data: preview })
+  const newest = state && getNewestMainPhotoCandidate(state)
+  const problem = state && mainPhotoProblem(state)
+  // Rejected uploads get app-owned retake guidance, never an earlier image or model-only preview claim.
+  if (!preview && !(newest && problem)) return false
+  if (preview) writer.write({ type: 'data-main-photo-preview', data: preview })
+  const clarification = state?.metadata.photoConfirmationNeedsClarification
+    ? 'You said yes and attached another image. I have not confirmed a main photo. ' : ''
   writer.write({ type: 'text-start', id: 'main-photo-question' })
-  writer.write({ type: 'text-delta', id: 'main-photo-question', delta: preview.question })
+  writer.write({ type: 'text-delta', id: 'main-photo-question', delta: preview?.question ?? clarification + problem })
   writer.write({ type: 'text-end', id: 'main-photo-question' })
   return true
 }

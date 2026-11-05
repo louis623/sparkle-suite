@@ -64,6 +64,13 @@ export function getCurrentPiecePhotos(
   )
 }
 
+/** Choose by recency before checking quality; a rejected replacement cannot reveal an older photo. */
+export function getNewestMainPhotoCandidate(workflow: TradeBoardIntakeSessionState, itemNumber = workflowPieceKey(workflow)) {
+  return stampSoleReadinessJewelryFrontCandidate(getCurrentPiecePhotos(workflow, itemNumber))
+    .filter((photo) => photo.declaredRole !== 'label_details' && photo.declaredRole !== 'other' && photo.visualRole !== 'label_or_packaging')
+    .at(-1)
+}
+
 export function hasUsableWorkflowJewelryPhoto(
   photos: WorkflowJewelryPhoto[] | null | undefined,
   selection: { selectedPhotoId?: string; modelIndex?: number } = {},

@@ -33,16 +33,16 @@ function state(): TradeBoardIntakeSessionState {
     photos: [{ id: 'photo-A', conversationMessageId: 'details-A', attachmentIndex: 1, declaredRole: 'jewelry_front',
       visualRole: 'jewelry', quality: 'usable', qualityIssues: [], notes: [], roleConfirmed: true, imageUrl: url, contentSha256: hash }] }
 }
-const db = {} as SupabaseClient
+const db = duplicateDb()
 async function preview(s: TradeBoardIntakeSessionState) { return prepareTradeBoardMainPhotoPreview(db, s, 'assistant-preview-A') }
 function yes(s: TradeBoardIntakeSessionState, hasAttachment = false) {
   s.metadata = applyMainPhotoConfirmation(s, { id: 'yes-A', text: 'Yes, please!', hasAttachment,
     previousAssistantId: 'assistant-preview-A', previewPhotoId: 'photo-A' })
 }
-function duplicateDb(itemNumber: string): SupabaseClient {
+function duplicateDb(itemNumber?: string): SupabaseClient {
   const source = { id: 'prior-photo', session: { id: 'prior-intake', item_number: itemNumber, catalog_mode: 'item_number',
     metadata: { confirmedPhotoId: 'prior-photo', savedMainPhotoUrl: 'saved-main' }, created_listing_ids: ['listing-prior'] } }
-  const chain: Record<string, unknown> = { data: [source], error: null }
+  const chain: Record<string, unknown> = { data: itemNumber ? [source] : [], error: null }
   for (const key of ['select', 'eq']) chain[key] = () => chain
   const listings = { select: () => ({ in: async () => ({ data: [{ id: 'listing-prior', listing_photo_url: 'saved-main' }], error: null }) }) }
   return { from: (table: string) => table === 'trade_listings' ? listings : chain } as unknown as SupabaseClient
@@ -119,11 +119,17 @@ describe('main photo guards', () => {
     expect(await processListingPhotoForAdd({ itemNumber: 'rg12345', repId: s.repId, conversationId: s.conversationId, supabase: db, activeTradeBoardWorkflow: s })).toBe('saved-exact-photo-A')
     expect(processPhoto).toHaveBeenCalledWith(expect.objectContaining({ sourceImageUrl: url }), { confirmedJewelryFront: true })
   })
-  it('G3: a new upload in place of yes clears confirmation and cannot save', async () => {
-    const s = state(); await preview(s); yes(s); yes(s, true)
+  it('G3: yes with an attachment explicitly clarifies which displayed image to confirm', async () => {
+    const s = state(); await preview(s); yes(s, true)
     expect(s.metadata.confirmedPhotoId).toBeUndefined()
+    const chunks: UIMessageChunk[] = []
+    expect(await writeTradeBoardMainPhotoPreview(db, s, 'assistant-clarify', { write: (chunk) => chunks.push(chunk) })).toBe(true)
+    expect(chunks[0]).toMatchObject({ type: 'data-main-photo-preview', data: { photoId: 'photo-A' } })
+    expect(chunks[2]).toMatchObject({ type: 'text-delta', delta: expect.stringMatching(/said yes and attached.*image shown here.*reply yes without another attachment/i) })
     expect(() => requireConfirmedMainPhoto(s, 'RG12345', { selectedPhotoId: 'photo-A' })).toThrow(/confirm/)
     expect(processPhoto).not.toHaveBeenCalled()
+    s.metadata = applyMainPhotoConfirmation(s, { id: 'clarified-yes', text: 'Yes', hasAttachment: false, previousAssistantId: 'assistant-clarify', previewPhotoId: 'photo-A' })
+    expect(requireConfirmedMainPhoto(s, 'RG12345').id).toBe('photo-A')
   })
   it('G3: yes for piece A cannot confirm piece B', async () => {
     const s = state(); await preview(s); s.known.itemNumber = 'RG99999'; yes(s)
@@ -132,20 +138,39 @@ describe('main photo guards', () => {
   })
   it('G4: identical bytes already used on another item are blocked before processing', async () => {
     await expect(assertMainPhotoNotReused(duplicateDb('ER88888'), state().photos[0], 'RG12345')).rejects.toThrow("This photo is already on ER88888. I won't use it as the main photo for RG12345.")
+    const s = state()
+    s.photos.push({ ...s.photos[0], id: 'duplicate-replacement', conversationMessageId: 'replacement' })
+    const chunks: UIMessageChunk[] = []
+    expect(await writeTradeBoardMainPhotoPreview(duplicateDb('ER88888'), s, 'duplicate-reply', { write: (chunk) => chunks.push(chunk) })).toBe(true)
+    expect(chunks.some((chunk) => chunk.type === 'data-main-photo-preview')).toBe(false)
+    expect(chunks[1]).toMatchObject({ type: 'text-delta', delta: expect.stringContaining('Please send a new jewelry photo') })
+    expect(persistPhoto).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ quality: 'blocked', qualityIssues: ['duplicate_main_photo'] }))
+    expect(s.metadata.previewPhotoId).toBeUndefined()
+    expect(await preview(s)).toBeNull() // the rejected newest photo cannot reveal the earlier candidate
     expect(processPhoto).not.toHaveBeenCalled()
   })
   it('G4: identical bytes for the same item number and another finish are allowed', async () => {
     await expect(assertMainPhotoNotReused(duplicateDb('rg12345'), state().photos[0], 'RG12345')).resolves.toBe(hash)
   })
-  it('G6: blurry photos cannot be previewed or saved', async () => {
-    const s = state(); s.photos[0].notes = ['blur_risk']
+  it('G2/G6: a blurry replacement blocks the older candidate and emits retake guidance', async () => {
+    const s = state(); s.photos.push({ ...s.photos[0], id: 'blurry-replacement', quality: 'blocked', notes: ['blur_risk'] })
     expect(await preview(s)).toBeNull(); expect(mainPhotoProblem(s)).toMatch(/blurry.*retake/)
+    const chunks: UIMessageChunk[] = []
+    await writeTradeBoardMainPhotoPreview(db, s, 'retake', { write: (chunk) => chunks.push(chunk) })
+    expect(chunks.some((chunk) => chunk.type === 'data-main-photo-preview')).toBe(false)
+    expect(chunks[1]).toMatchObject({ type: 'text-delta', delta: expect.stringMatching(/blurry.*retake/) })
     expect(() => requireConfirmedMainPhoto(s, 'RG12345', { selectedPhotoId: 'photo-A' })).toThrow(/blurry/)
   })
-  it('G6: edge-cut photos cannot be previewed or saved', async () => {
-    const s = state(); s.photos[0].qualityIssues = ['subject_cut_off']
+  it('G2/G6: a cut-off replacement never falls back and only a newer clear candidate recovers', async () => {
+    const s = state(); s.photos.push({ ...s.photos[0], id: 'cut-off-replacement', qualityIssues: ['subject_cut_off'] })
     expect(await preview(s)).toBeNull(); expect(mainPhotoProblem(s)).toMatch(/cut off.*retake/)
+    const chunks: UIMessageChunk[] = []
+    await writeTradeBoardMainPhotoPreview(db, s, 'retake', { write: (chunk) => chunks.push(chunk) })
+    expect(chunks.some((chunk) => chunk.type === 'data-main-photo-preview')).toBe(false)
+    expect(chunks[1]).toMatchObject({ type: 'text-delta', delta: expect.stringMatching(/cut off.*retake/) })
     expect(() => requireConfirmedMainPhoto(s, 'RG12345', { selectedPhotoId: 'photo-A' })).toThrow(/cut off/)
+    s.photos.push({ ...s.photos[0], id: 'clear-replacement', conversationMessageId: 'newest-clear' })
+    expect(await preview(s)).toMatchObject({ photoId: 'clear-replacement' })
   })
   it('a correct typed item number still saves when a separate label is unreadable', async () => {
     const s = state(); s.photos.push({ ...s.photos[0], id: 'label', declaredRole: 'label_details', quality: 'blocked', notes: [], imageUrl: 'unreadable-label' })
