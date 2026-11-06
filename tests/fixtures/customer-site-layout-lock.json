@@ -8,7 +8,7 @@
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
-      "sha256": "69274daea4748791ab4f31f00136c18ed9f10f42f5d9edb198234dedd713514d"
+      "sha256": "550021cd2b554634105a9e51d619b81020e278da9aad89fddc914a56646edaa3"
     },
     {
       "path": "public/amethyst/homepage.jsx",
@@ -61,5 +61,14 @@
     "base": "777a38bda5b2f9ec1f52894bfe34a69026ff6962",
     "approval": "Louis selected compact calendar row option 1 and asked for implementation. Only empty lineup presentation, delayed text, and calendar scrolling are authorized; queue sync and unrelated shared layout stay locked.",
     "plan": "docs/plans/2026-10-02-compact-public-lineup.md"
+  },
+  "approvedAboutNarrativeChange": {
+    "date": "2026-11-06",
+    "base": "a668c05d9a123432ca9481dd4fc27d977443b12c",
+    "applicationSource": "2631e9058094e6bc62d8d5aeb5c99d31e7b5fd4d",
+    "approval": "Louis explicitly approved PR181 complete About narratives and authorized updating only the matching layout-lock hash receipt. No guard bypass or unrelated layout change.",
+    "behavior": "Preserve every saved About paragraph through mapping/targeting and both bootstraps; generated onboarding preview copy fills only an unsaved bio. Existing normalization, placeholders, privacy and visibility behavior stay intact.",
+    "path": "lib/amethyst/preview-template-data.ts",
+    "previousSha256": "69274daea4748791ab4f31f00136c18ed9f10f42f5d9edb198234dedd713514d"
   }
 }
