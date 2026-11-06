@@ -240,7 +240,58 @@
     "previewAccessCredentialExpiresUtc": "2026-11-07T06:48:47.000Z",
     "previewAccessCredentialRevoked": false,
     "projectSecuritySettingsChanged": false,
-    "credentialValuesRecorded": false
+    "credentialValuesRecorded": false,
+    "cleanup": {
+      "checkedUtc": "2026-11-06T20:11:09Z",
+      "requestedRevocationConfirmed": false,
+      "status": "blocked-no-supported-individual-project-oidc-revocation-found",
+      "managementEvidence": {
+        "project": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+        "operation": "GET /v9/projects/{idOrName}",
+        "trustedSources": null,
+        "oidcTokenConfig": {
+          "enabled": true,
+          "issuerMode": "team"
+        },
+        "ssoProtection": {
+          "deploymentType": "all_except_custom_domains"
+        },
+        "publicOpenApi": "https://openapi.vercel.sh",
+        "projectOidcOperation": "POST /v1/projects/{idOrName}/token (generate only; NOT called)",
+        "individualRevocationOperationFound": false,
+        "documentation": "https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/trusted-sources"
+      },
+      "blocker": "The exposed credential is a short-lived project OIDC JWT, not a managed automation bypass secret or account API token. No supported individual-revocation operation was found. Removing Smoke development-to-preview self-access would reject other development tokens as well; this broader policy change was not performed.",
+      "loggingCorrection": {
+        "guard": "scripts/qa/smoke-safe-diagnostics.cjs",
+        "helpers": [
+          {
+            "path": ".local/identity-isolation/recovery-browser-once.cjs",
+            "sha256": "28d509203cf17ea994201d2d6727824c25e1774d1ab403a9378a7c8eae41dfe0"
+          },
+          {
+            "path": ".local/identity-isolation/recovery-browser-final-once.cjs",
+            "sha256": "96ab00c75b9c439d95e2108470522f9d02042273b4352e8953f39c53c61555dd"
+          }
+        ],
+        "changes": [
+          "Guard loaded before auth/Playwright imports",
+          "Only fixed diagnostic labels reach stdout/stderr",
+          "Raw console arguments, error messages, stacks and browser-console text suppressed",
+          "All routed request and browser-close failures caught",
+          "Unhandled rejection/exception handlers emit constant labels and terminate"
+        ],
+        "verification": "Source inspection and syntax parsing only; no runtime/browser assertion"
+      },
+      "localPrivateFilesPresent": [],
+      "newCredentialsMinted": 0,
+      "managementWrites": 0,
+      "testsRun": 0,
+      "browserNavigations": 0,
+      "deployments": 0,
+      "fixtureMutations": 0,
+      "nextStep": "Vercel support confirmation of an individual project-OIDC invalidation control, or separate approval to temporarily remove Smoke development-to-preview self-access. Expiry is not recorded as revocation."
+    }
   },
   "unchanged": {
     "deniedSupportHttp500": true,
