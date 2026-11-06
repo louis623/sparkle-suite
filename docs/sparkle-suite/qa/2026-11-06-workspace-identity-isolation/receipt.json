@@ -35,7 +35,7 @@
     ]
   },
   "browser": {
-    "documentNavigations": 3,
+    "documentNavigations": 4,
     "navigationBudget": 4,
     "isolatedSessions": 2,
     "navigationUrls": [
@@ -91,7 +91,7 @@
       }
     ],
     "stoppedOn": "candidate_developer_authorized_rep_denied",
-    "lastSafeFailureViewExecuted": false,
+    "lastSafeFailureViewExecuted": true,
     "screenshots": [
       "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\06\\01a1ae65-7c5a-7b32-8ff6-68243a8f5e96\\identity-isolation\\baseline-gracie-masked.png"
     ],
@@ -105,7 +105,10 @@
         "text": "Failed to load resource: the server responded with a status of 404 ()"
       }
     ],
-    "scope": "No active rep or existing browser session used. Developer Control Center login succeeded; actual support-target concurrency covered by focused AsyncLocalStorage test. No persistent support session was created."
+    "scope": "No active rep or existing browser session used. Developer Control Center login succeeded; actual support-target concurrency covered by focused AsyncLocalStorage test. No persistent support session was created.",
+    "additionalApprovedNavigationCount": 1,
+    "failureScreenPrivacyPassed": true,
+    "failureScreenRecoveryPassed": false
   },
   "negativeSupportRead": {
     "developerStatus": 404,
@@ -254,5 +257,105 @@
   "productionBrowserLoads": 0,
   "merges": 0,
   "finalDiffReviews": 1,
-  "status": "Preventive hardening draft; six focused cases pass; browser acceptance stopped before final error-screen view. Not Live-ready."
+  "status": "Privacy/fail-closed check passed on existing Smoke candidate; HOLD Live recommendation because the error screen lacks recovery guidance or controls. Separate denied support500 unchanged; historical Live cause unproven.",
+  "additionalApprovedFailureScreen": {
+    "deployment": "dpl_7FDqx6BQ6cW271JAYMVWDkAizS8o",
+    "testedSha": "46d0a02533811b4c4716de3a5b19346044fc4941",
+    "navigations": [
+      "https://sparkle-suite-smoke-72h6k3tes-louis-2849s-projects.vercel.app/nic-nac?conversationId=c4d8cfdc-8b0d-45be-b39f-4f868b4e0262"
+    ],
+    "setupResponse": {
+      "status": 500,
+      "error": "Failed to load setup state"
+    },
+    "interceptedSetupRequests": 1,
+    "checks": {
+      "exactlyOneDocumentNavigation": true,
+      "failedSetupWasInjected": true,
+      "safeErrorVisible": true,
+      "noGracie": true,
+      "noOtherWorkspaceInformation": true,
+      "noConnectionCredential": true,
+      "noFixtureConnectionCode": true,
+      "noFrameworkOverlay": true
+    },
+    "buttons": [],
+    "links": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "documentStatus": 200,
+    "visibleError": "Failed to load setup state",
+    "recoveryControlPresent": false,
+    "recoveryInstructionPresent": false,
+    "credentialsAndIdentityWithheld": true,
+    "screenshot": "C:/Users/louis/.codex/visualizations/2026/11/06/01a1ae65-7c5a-7b32-8ff6-68243a8f5e96/identity-isolation/candidate-failure-screen-approved.png",
+    "fixtureManifest": {
+      "run": "identityfailure1793989841307",
+      "project": "pukemqiwlyqmyytxkdmo",
+      "accounts": [
+        {
+          "role": "rep",
+          "userId": "bac69160-122d-4907-97a3-591b3dd7c883",
+          "email": "identityfailure1793989841307@example.test",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        }
+      ],
+      "createdTables": [
+        {
+          "table": "reps",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        },
+        {
+          "table": "site_settings",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        },
+        {
+          "table": "subscriptions",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        },
+        {
+          "table": "self_serve_setup_sessions",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        },
+        {
+          "table": "live_lineup_connection_codes",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        }
+      ],
+      "supportSessionsCreated": 0
+    },
+    "cleanup": {
+      "run": "identityfailure1793989841307",
+      "accounts": [
+        {
+          "role": "rep",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b",
+          "userId": "bac69160-122d-4907-97a3-591b3dd7c883",
+          "deleted": true
+        }
+      ],
+      "remaining": {
+        "reps": 0,
+        "site_settings": 0,
+        "self_serve_setup_sessions": 0,
+        "subscriptions": 0,
+        "live_lineup_connection_codes": 0,
+        "live_lineup_states": 0,
+        "nic_nac_conversations": 0
+      },
+      "authUsersRemaining": 0
+    },
+    "independentCleanup": {
+      "fixtureReps": 0,
+      "authUsers": 0,
+      "authSessions": 0
+    },
+    "automatedTestsRerun": 0,
+    "deployments": 0,
+    "sourceEdits": 0,
+    "merges": 0,
+    "productionChanges": 0
+  },
+  "releaseRecommendation": "Hold Live pending a separately approved narrow recovery-screen improvement. No change to denied-support500 in this patch."
 }

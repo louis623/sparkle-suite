@@ -50,3 +50,9 @@ Open Brain capture was attempted once; its MCP call did not return confirmation 
 Private fixture credentials and short-lived access files were deleted locally; immutable deployment-only settings reference accounts that are now deleted.
 
 Final distinct Open Brain closeout capture confirmed successful (observation: investigation/development/quality assurance). The earlier unconfirmed capture remains unassumed; no repair or repeated capture chain was run.
+
+## Final explicitly approved failure-screen navigation
+
+Exactly one additional synthetic document navigation on existing candidate dpl_7FDqx6BQ6cW271JAYMVWDkAizS8o / SHA46d0a02533811b4c4716de3a5b19346044fc4941, cumulative4. Controlled setup500 produced only "Failed to load setup state": no Gracie, other rep information, connection credential or framework overlay. No Retry/sign-in link or recovery instructions appeared. Privacy check PASS; recovery UX insufficient. Recommend HOLD Live for a separately approved narrow recovery improvement; source unchanged in this continuation. Existing denied-support500 remains separately reported, not expanded into this patch. Historical incident cause still unproven.
+
+One fresh manifest-tracked synthetic account and all owned rows deleted; independent Smoke SQL confirms0reps/0authusers/0sessions. No tests rerun, deployments, merges, Live changes or additional diff/review chain. Temporary credential files removed. Final distinct Open Brain observation confirmed. Receipt includes exact observations, screenshot path, manifest and cleanup. Stop here.
