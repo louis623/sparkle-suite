@@ -7,6 +7,8 @@ export function isBarredFromCustomerFacingMedia(photo: {
   declaredRole?: string
   visualRole?: string
   quality?: string
+  notes?: string[]
+  qualityIssues?: string[]
 } | null | undefined): boolean {
   if (!photo) return true
   if (photo.declaredRole === 'label_details' || photo.declaredRole === 'other') {
@@ -14,6 +16,7 @@ export function isBarredFromCustomerFacingMedia(photo: {
   }
   if (photo.visualRole === 'label_or_packaging') return true
   if (photo.quality === 'blocked') return true
+  if ([...(photo.notes ?? []), ...(photo.qualityIssues ?? [])].some((note) => /blur_risk|subject_cut_off/.test(note))) return true
   return false
 }
 
@@ -47,9 +50,11 @@ export function workflowPhotoSatisfiesJewelryFront(photo: {
   declaredRole?: string
   visualRole?: string
   quality?: string
+  notes?: string[]
+  qualityIssues?: string[]
 } | null | undefined): boolean {
   if (!photo) return false
-  if (photo.quality === 'blocked') return false
+  if (isBarredFromCustomerFacingMedia(photo)) return false
   if (photo.declaredRole === 'label_details' || photo.declaredRole === 'other') {
     return false
   }
@@ -75,7 +80,7 @@ export function findWorkflowJewelryFrontForReadiness<
   const allPhotos = photos ?? []
   const declared = allPhotos.find(
     (photo) =>
-      photo.declaredRole === 'jewelry_front' && photo.quality !== 'blocked',
+      photo.declaredRole === 'jewelry_front' && !isBarredFromCustomerFacingMedia(photo),
   )
   if (declared) return declared
   const candidates = allPhotos.filter(workflowPhotoSatisfiesJewelryFront)
@@ -109,8 +114,7 @@ export function stampPhotoAsJewelryFront<T extends StampableWorkflowPhoto>(
   return {
     ...photo,
     declaredRole: 'jewelry_front',
-    visualRole:
-      photo.visualRole === 'label_or_packaging' ? 'uncertain' : photo.visualRole,
+    visualRole: photo.visualRole,
     roleConfirmed: true,
     notes,
   }
@@ -137,7 +141,7 @@ export function stampSoleReadinessJewelryFrontCandidate<
 >(photos: T[] | null | undefined): T[] {
   const allPhotos = photos ?? []
   const candidate = findWorkflowJewelryFrontForReadiness(allPhotos)
-  if (!candidate || jewelryFrontStampAlreadyApplied(candidate)) {
+  if (!candidate || isBarredFromCustomerFacingMedia(candidate) || jewelryFrontStampAlreadyApplied(candidate)) {
     return allPhotos
   }
   const stamped = stampPhotoAsJewelryFront(candidate)
@@ -354,5 +358,8 @@ export function assignDeclaredPhotoRolesForTurn(args: {
     }
   }
 
-  return roles.map((role) => role ?? 'unknown')
+  // The inspected content wins over attachment captions and inherited asks.
+  return roles.map((role, index) => args.visualRoles[index] === 'jewelry'
+    ? 'jewelry_front'
+    : args.visualRoles[index] === 'label_or_packaging' ? 'label_details' : role ?? 'unknown')
 }

@@ -1,3 +1,4 @@
+import { getCurrentPiecePhotos, getNewestMainPhotoCandidate, workflowPieceKey } from './workflow-photo-selection'
 import type { NicNacToolIntent } from '@/lib/nic-nac/tools'
 import { mergeTradeBoardKnownFields } from './trade-board-known-fields'
 import {
@@ -97,7 +98,7 @@ export function computeTradeBoardIntakeReadiness(
   const labelDetailsPhoto = state.photos.find(
     (photo) => photo.declaredRole === 'label_details',
   )
-  const jewelryFrontPhoto = findPublishableJewelryFront(state.photos)
+  const jewelryFrontPhoto = findPublishableJewelryFront(getCurrentPiecePhotos(state))
   const blockedLabel = state.photos.find(
     (photo) =>
       photo.declaredRole === 'label_details' && photo.quality === 'blocked',
@@ -175,7 +176,7 @@ export function computeTradeBoardAddAttemptReadiness(
   const blockers: string[] = []
   const catalogMode = input.catalogMode ?? state.catalogMode ?? 'item_number'
 
-  const jewelryFrontPhoto = findPublishableJewelryFront(state.photos)
+  const jewelryFrontPhoto = findPublishableJewelryFront(getCurrentPiecePhotos(state, input.itemNumber ?? workflowPieceKey(state)))
   const blockedLabel = state.photos.find(
     (photo) =>
       photo.declaredRole === 'label_details' && photo.quality === 'blocked',
@@ -426,4 +427,60 @@ function chooseNextAction(args: {
     return 'ask_for_jewelry_front_photo'
   }
   return 'confirm_extracted_details'
+}
+
+/** Ambiguous yes-plus-upload turns require an explicit clarification in the next reply. */
+export function applyMainPhotoConfirmation(
+  state: TradeBoardIntakeSessionState,
+  turn: { id: string; text: string; hasAttachment: boolean; previousAssistantId?: string; previewPhotoId?: string },
+): Record<string, unknown> {
+  const metadata = { ...state.metadata }
+  const key = workflowPieceKey(state)
+  if (turn.hasAttachment) delete metadata.awaitingReplacementPhoto
+  if (turn.hasAttachment || metadata.confirmedItemNumber !== key) {
+    delete metadata.confirmedPhotoId
+    delete metadata.confirmedItemNumber
+  }
+  const freshTurn = turn.id !== metadata.previewUserMessageId
+  const affirmative = /^(?:yes|yep|yeah|yup|correct|confirmed|that's right|that is right|that's correct|that is correct|use (?:it|this|that)(?: photo)?)(?:[,! .]*(?:please|thanks|thank you))?[!. ]*$/i.test(turn.text.trim())
+  metadata.photoConfirmationNeedsClarification = Boolean(turn.hasAttachment && freshTurn &&
+    /^(?:yes|yep|yeah|yup|correct|confirmed)\b/i.test(turn.text.trim()) &&
+    metadata.previewPhotoId && metadata.previewItemNumber === key &&
+    metadata.previewAssistantMessageId === turn.previousAssistantId)
+  if (metadata.previewPhotoId && !turn.hasAttachment && freshTurn && affirmative &&
+      metadata.previewItemNumber === key &&
+      metadata.previewAssistantMessageId === turn.previousAssistantId &&
+      metadata.previewPhotoId === turn.previewPhotoId &&
+      getNewestMainPhotoCandidate(state)?.id === turn.previewPhotoId &&
+      getCurrentPiecePhotos(state).some((photo) => photo.id === turn.previewPhotoId && isAcceptedCustomerFacingWorkflowPhoto(photo))) {
+    metadata.confirmedPhotoId = turn.previewPhotoId
+    metadata.confirmedItemNumber = key
+    delete metadata.previewPhotoId
+    delete metadata.previewItemNumber
+    delete metadata.previewAssistantMessageId
+  }
+  if (metadata.previewPhotoId && freshTurn && !affirmative && !turn.hasAttachment) metadata.awaitingReplacementPhoto = true
+  if (turn.hasAttachment || metadata.previewItemNumber !== key || freshTurn && !affirmative) {
+    delete metadata.previewPhotoId
+    delete metadata.previewItemNumber
+    delete metadata.previewAssistantMessageId
+  }
+  return metadata
+}
+
+export function mainPhotoProblem(state: TradeBoardIntakeSessionState, itemNumber = workflowPieceKey(state)): string | null {
+  if (state.metadata.awaitingReplacementPhoto) return 'Please send a new customer-facing jewelry photo for this piece so I can preview it.'
+  const photos = stampSoleReadinessJewelryFrontCandidate(getCurrentPiecePhotos(state, itemNumber))
+  const mismatch = photos.flatMap((photo) => photo.notes).find((note) =>
+    note.startsWith('label_item_number:') && note.slice(18).toUpperCase() !== itemNumber.toUpperCase())
+  if (mismatch) return `The label shows ${mismatch.slice(18)}, which does not match ${itemNumber}. Please send the matching label or correct the item number.`
+  const newest = getNewestMainPhotoCandidate(state, itemNumber)
+  const rejected = state.metadata.rejectedMainPhotos as Record<string, string> | undefined
+  if (newest?.id && rejected?.[newest.id]) return rejected[newest.id]
+  if (isAcceptedCustomerFacingWorkflowPhoto(newest)) return null
+  if (newest && [...newest.notes, ...newest.qualityIssues].some((note) => note.includes('subject_cut_off')))
+    return 'Part of the piece is cut off. Please retake the jewelry photo with the whole piece in view.'
+  if (newest && [...newest.notes, ...newest.qualityIssues].some((note) => note.includes('blur_risk')))
+    return 'The jewelry photo is blurry. Please retake a clear photo of the piece.'
+  return 'I still need the customer-facing jewelry photo for this piece before I can save this listing.'
 }

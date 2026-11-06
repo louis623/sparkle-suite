@@ -57,7 +57,8 @@
     "codex/britt-ssr-smoke",
     "codex/landing-preview-images",
     "codex/heather-ssr-smoke",
-    "codex/favorites-form-v2"
+    "codex/favorites-form-v2",
+    "codex/nicnac-photo-guardrails"
   ],
   "previewBranches": {
     "codex/landing-preview-images": {
@@ -203,6 +204,10 @@
     "codex/favorites-form-v2": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
+    },
+    "codex/nicnac-photo-guardrails": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
@@ -216,6 +221,7 @@
   "temporaryDeploymentUrls": "provenance-only",
   "lastReviewed": "2026-10-18",
   "branchBases": {
-    "codex/favorites-form-v2": "codex/nic-nac-trade-hardening"
+    "codex/favorites-form-v2": "codex/nic-nac-trade-hardening",
+    "codex/nicnac-photo-guardrails": "codex/nic-nac-trade-hardening"
   }
 }

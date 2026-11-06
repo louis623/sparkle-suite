@@ -310,3 +310,7 @@ Louis authorized one PR from 0750fcbf on codex/britt-ssr-smoke in the disposable
 ## November 3 — Heather SSR Smoke review
 
 Louis authorized one draft PR on `codex/heather-ssr-smoke` from verified `5a1ba1a1e0afe4413603b519c2816070db9b49bf`, in disposable clone `/workspace/codex-runs/heather-ssr-clean`. Preview only: `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`. Deployment-only Pantry allowlist override; no shared settings, aliases, Live, database writes, merge, or production/default branch changes. Existing push guard remains mandatory.
+
+## November 4 — Nic-Nac photo guardrails
+
+Louis approved `codex/nicnac-photo-guardrails` by name on Nov 4, 2026, as the narrow rebuild that replaces PR #141: six code-enforced guards so a photo cannot be saved onto the wrong piece. One PR from production `634320e6`. Preview only: `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`. No Live project, aliases, database change, merge, or production/default branch change.

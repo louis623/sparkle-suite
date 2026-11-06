@@ -1,3 +1,4 @@
+import { getCurrentPiecePhotos } from '@/lib/nic-nac/workflows/workflow-photo-selection'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   NIC_NAC_TASK_CONTEXT_SCHEMA_VERSION,
@@ -105,7 +106,9 @@ function tradeBoardGoal(session: TradeBoardIntakeSessionState): NicNacTaskGoal {
       knownFields: session.known,
       blockers: session.blockers,
       warnings: session.warnings,
-      photos: session.photos.slice(0, 12).map((photo) => ({
+      mainPhotoConfirmation: { photoId: session.metadata.confirmedPhotoId, itemNumber: session.metadata.confirmedItemNumber },
+      photos: getCurrentPiecePhotos(session).slice(0, 12).map((photo, index) => ({
+        id: photo.id, index: index + 1,
         attachmentIndex: photo.attachmentIndex,
         declaredRole: photo.declaredRole,
         visualRole: photo.visualRole,

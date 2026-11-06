@@ -65,6 +65,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizeNicNacAssistantParts } from '@/lib/nic-nac/message-normalize'
 import {
   getOrCreateTradeBoardIntakeContext,
+  writeTradeBoardMainPhotoPreview,
 } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import { getOrCreateTradeWorkflowContext } from '@/lib/nic-nac/workflows/trade-workflow-context'
 import { getOrCreateCalendarWorkflowContext } from '@/lib/nic-nac/workflows/calendar-workflow-context'
@@ -706,7 +707,7 @@ export async function POST(request: Request) {
     allowImplicitPassiveContinuation: false,
   })
   const tradeBoardWorkflowContext =
-    workflowContinuityAccess.tradeBoard && workflowTurn.tradeBoard
+    workflowContinuityAccess.tradeBoard && (workflowTurn.tradeBoard || workflowTaskContinuity.tradeBoardSession?.metadata.previewPhotoId)
     ? await getOrCreateTradeBoardIntakeContext({
         supabase,
         workflowSupabase,
@@ -920,6 +921,10 @@ export async function POST(request: Request) {
       // terminal hide in every case.
       const activeToolCallIds = new Set<string>()
       try {
+        if (await writeTradeBoardMainPhotoPreview(
+          workflowSupabase, activeTradeBoardWorkflow, assistantMessageId,
+          { write: (chunk) => { emitHide('plain-text'); writer.write(chunk) } },
+        )) return
         for (let agentAttempt = 1; agentAttempt <= 2; agentAttempt += 1) {
           const result = await configuredAgent.agent.stream({
             messages: modelMessages,

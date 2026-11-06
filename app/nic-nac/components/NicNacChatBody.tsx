@@ -1,5 +1,7 @@
 'use client'
 
+import { MainPhotoPreview } from './MainPhotoPreview'
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useChat } from '@ai-sdk/react'
 import {
@@ -124,6 +126,7 @@ export function getTradeRequestCardState({
 function unavailableTradeRequestDecision() {}
 
 export type AssistantMessageRenderable =
+  | { type: 'main-photo-preview'; key: string; preview: { url: string; question: string } }
   | { type: 'text'; key: string; text: string }
   | {
       type: 'data-trade-request-card'
@@ -144,8 +147,14 @@ export function buildAssistantMessageRenderables(
   }
 
   parts.forEach((part, index) => {
-    const pt = part as { type?: string; text?: string }
+    const pt = part as { type?: string; text?: string; data?: { url?: string; question?: string } }
+    if (pt.type === 'data-main-photo-preview' && pt.data?.url && pt.data.question) {
+      flushText(`text-${index}`)
+      renderables.push({ type: 'main-photo-preview', key: `photo-${index}`, preview: { url: pt.data.url, question: pt.data.question } })
+      return
+    }
     if (pt.type === 'text') {
+      if (renderables.some((item) => item.type === 'main-photo-preview' && item.preview.question === pt.text)) return
       textBuffer += pt.text ?? ''
       return
     }
@@ -947,6 +956,7 @@ function AssistantMessage({
           const itemTimestamp =
             index === lastRenderableIndex ? timestamp : undefined
 
+          if (item.type === 'main-photo-preview') return <MainPhotoPreview key={item.key} {...item.preview} />
           if (item.type === 'text') {
             return isStreamingTail ? (
               <StreamingBubble

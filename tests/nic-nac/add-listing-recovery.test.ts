@@ -186,7 +186,7 @@ function makeTool(
 function activeWorkflow(
   overrides: Partial<TradeBoardIntakeSessionState> = {},
 ): TradeBoardIntakeSessionState {
-  return {
+  const state: TradeBoardIntakeSessionState = {
     id: 'workflow-1',
     repId: 'rep-1',
     conversationId: 'conv-1',
@@ -194,12 +194,6 @@ function activeWorkflow(
     catalogMode: 'item_number',
     status: 'active',
     phase: 'photo_capture',
-    known: {
-      rarityClassification: 'standard',
-      itemNumber: 'ER13229',
-      designName: 'The Florence Earrings',
-      collectionName: 'July Birthday',
-    },
     missing: ['jewelryFrontPhoto'],
     blockers: [],
     warnings: [],
@@ -224,6 +218,18 @@ function activeWorkflow(
       ...(overrides.known ?? {}),
     },
   }
+  state.photos = state.photos.map((photo, index) => ({ ...photo, id: photo.id ?? `photo-${index + 1}` }))
+  const main = state.photos.filter((photo) => photo.declaredRole !== 'label_details' && photo.visualRole !== 'label_or_packaging' && photo.imageUrl && photo.quality !== 'blocked').at(-1)
+  if (main) state.metadata = { ...state.metadata, confirmedPhotoId: main.id,
+    confirmedItemNumber: state.catalogMode === 'non_item_number' ? `NON_ITEM:${state.id}` : state.known.itemNumber }
+  return state
+}
+
+function confirmedPhotoWorkflow(itemNumber: string, imageUrl: string) {
+  return activeWorkflow({ known: { itemNumber }, missing: [], photos: [{
+    attachmentIndex: 1, declaredRole: 'jewelry_front', visualRole: 'jewelry', roleConfirmed: true,
+    imageUrl, quality: 'usable', qualityIssues: [], notes: [],
+  }] })
 }
 
 function activeSwapCleanupWorkflow(
@@ -305,6 +311,9 @@ function makeAdminClientMock(
 
   return {
     from: vi.fn((table: string) => {
+      if (table === 'trade_board_intake_photos') {
+        const chain: Record<string, unknown> = { data: [], error: null }; chain.select = () => chain; chain.eq = () => chain; return chain
+      }
       if (table === 'trade_listings') {
         return { select: duplicateSelect }
       }
@@ -412,92 +421,13 @@ describe('add_listing — NEEDS_FULL_INFO recovery payload', () => {
 })
 
 describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () => {
-  it('runs the create-design retry path when the model supplies a real piecePhotoUrl', async () => {
-    fetchMock.mockResolvedValueOnce(makeImageResponse(new Uint8Array([1, 2, 3])))
-    analyzeServerImageQualityMock.mockResolvedValueOnce({
-      contentType: 'image/png',
-      width: 1800,
-      height: 1800,
-      blurRisk: 0.05,
-      lightingRisk: 0.05,
-      detailRisk: 0.04,
-      backgroundDistractionRisk: 0.06,
-      subjectCoverage: 0.42,
-      subjectCentered: true,
-      detailConfidence: 0.96,
-      backgroundUniformity: 0.94,
-      backgroundCleanliness: 0.94,
-    })
-    uploadJewelryPhotoMock.mockResolvedValueOnce(
-      'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/manual-source.jpg',
-    )
-    uploadStagedOriginalPhotoMock.mockResolvedValueOnce({
-      objectPath: 'rep-1/originals/manual-source.jpg',
-      signedUrl: 'https://signed.example.com/manual-source',
-    })
-    createDesignMock.mockResolvedValueOnce({
-      designId: 'design-1',
-      itemNumber: 'NEW-100',
-      collectionId: 'coll-1',
-      collectionName: 'Lustre',
-      typePrefix: 'DR',
-    })
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-1',
-      designId: 'design-1',
-      itemNumber: 'NEW-100',
-      designName: 'Sapphire Halo',
-      status: 'available',
-      usesCanonicalPhoto: false,
-    })
-
-    const tool = makeTool()
-    const result = await tool.execute({
-      mode: 'single',
-      itemNumber: 'NEW-100',
-      clickwrapAccepted: true,
-      designName: 'Sapphire Halo',
-      piecePhotoUrl: 'https://dropbox.example/photo.jpg',
-      collectionName: 'Lustre',
-      collectionYear: 2026,
-      searchTags: ['rose gold', 'heart'],
-    })
-
-    expect(createDesignMock).toHaveBeenCalledTimes(1)
-    expect(createDesignMock.mock.calls[0][1]).toMatchObject({
-      itemNumber: 'NEW-100',
-      designName: 'Sapphire Halo',
-      piecePhotoUrl:
-        'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/manual-source.jpg',
-      collectionName: 'Lustre',
-      collectionYear: 2026,
-      searchTags: ['rose gold', 'heart'],
-      photoPipeline: {
-        originalPath: 'rep-1/originals/manual-source.jpg',
-        originalUrl: 'https://signed.example.com/manual-source',
-        status: 'ready',
-        preflightScore: 100,
-        preflightIssues: [],
-      },
-    })
-    expect(createDesignMock.mock.calls[0][1].piecePhotoUrl).toBe(
-      'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/manual-source.jpg',
-    )
-    expect(fetchMock).toHaveBeenCalledWith('https://dropbox.example/photo.jpg')
-    expect(uploadStagedOriginalPhotoMock).toHaveBeenCalledTimes(1)
-    expect(uploadJewelryPhotoMock).toHaveBeenCalledTimes(1)
-    expect(addListingMock).toHaveBeenCalledTimes(1)
-    expect(result).toMatchObject({
-      mode: 'single',
-      listingId: 'listing-1',
-      itemNumber: 'NEW-100',
-      createdNewDesign: true,
-    })
-    expect(result).not.toHaveProperty('photoPipelineStatus')
-    expect(result).not.toHaveProperty('photoPreflight')
+  it('refuses an unbound model-supplied piecePhotoUrl', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: activeWorkflow() })
+    await expect(tool.execute({ mode: 'single', itemNumber: 'NEW-100', designName: 'Sapphire Halo', collectionName: 'Lustre', piecePhotoUrl: 'https://dropbox.example/photo.jpg' })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(createDesignMock).not.toHaveBeenCalled()
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
-
   it('does not try to recreate an existing catalog design when recovery fields are present', async () => {
     resolveItemNumberMock.mockResolvedValueOnce({
       found: true,
@@ -1043,7 +973,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
     )
 
     const tool = makeTool(makeConversationLookupMock([]), {
-      activeTradeBoardWorkflow: activeWorkflow({
+      activeTradeBoardWorkflow: activeWorkflow({ known: { itemNumber: 'ER59000' },
         phase: 'ready_to_add',
         missing: [],
         photos: [
@@ -1076,49 +1006,13 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
     expect(removeCatalogDesignPhotoAssetsMock).not.toHaveBeenCalled()
   })
 
-  it('processes a rep-level custom listing photo before creating the board listing', async () => {
-    fetchMock.mockResolvedValueOnce(makeImageResponse(new Uint8Array([4, 5, 6])))
-    createDesignMock.mockResolvedValueOnce({
-      designId: 'design-1',
-      itemNumber: 'NEW-100',
-      collectionId: 'coll-1',
-      collectionName: 'Lustre',
-      typePrefix: 'DR',
-    })
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-1',
-      designId: 'design-1',
-      itemNumber: 'NEW-100',
-      designName: 'Sapphire Halo',
-      status: 'available',
-      usesCanonicalPhoto: false,
-    })
-    processRepListingPhotoUrlMock.mockResolvedValueOnce({
-      photoUrl: 'https://cdn.example.com/listings/rep-1/ring-enhanced.png',
-    })
-
-    const tool = makeTool()
-    await tool.execute({
-      mode: 'single',
-      itemNumber: 'NEW-100',
-      clickwrapAccepted: true,
-      designName: 'Sapphire Halo',
-      piecePhotoUrl: 'https://dropbox.example/photo.jpg',
-      collectionName: 'Lustre',
-      listingPhotoUrl: 'https://rep.example.com/raw-listing.jpg',
-    })
-
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'https://rep.example.com/raw-listing.jpg',
-      filenameStem: 'NEW-100-listing-photo',
-      mutationAssetKey: expect.any(String),
-    })
-    expect(addListingMock.mock.calls[0][2]).toMatchObject({
-      listingPhotoUrl: 'https://cdn.example.com/listings/rep-1/ring-enhanced.png',
-    })
+  it('refuses an unbound custom listing URL before creating a board listing', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: activeWorkflow() })
+    await expect(tool.execute({ mode: 'single', itemNumber: 'NEW-100', listingPhotoUrl: 'https://rep.example.com/raw-listing.jpg' })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(createDesignMock).not.toHaveBeenCalled()
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
-
   it('uses the only image in the current user message as the listing photo for existing designs', async () => {
     addListingMock.mockResolvedValueOnce({
       listingId: 'listing-1',
@@ -1144,7 +1038,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('ER76003', 'data:image/jpeg;base64,SkVXRUw=') })
 
     await tool.execute({
       mode: 'single',
@@ -1157,46 +1051,19 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       sourceImageUrl: 'data:image/jpeg;base64,SkVXRUw=',
       filenameStem: 'ER76003-listing-photo',
       mutationAssetKey: expect.any(String),
-    })
+    }, { confirmedJewelryFront: true })
     expect(addListingMock.mock.calls[0][2]).toMatchObject({
       listingPhotoUrl: 'https://cdn.example.com/listings/rep-1/elodie-jewelry.png',
     })
   })
 
-  it('does not guess a listing photo when a label/card photo and jewelry photo are both present', async () => {
-    const supabaseMock = makeConversationLookupMock([
-      {
-        parts: [
-          { type: 'text', text: 'Please add to my dance floor' },
-          {
-            type: 'file',
-            mediaType: 'image/jpeg',
-            url: 'data:image/jpeg;base64,SkVXRUw=',
-          },
-          {
-            type: 'file',
-            mediaType: 'image/jpeg',
-            url: 'data:image/jpeg;base64,TEFCRUw=',
-          },
-        ],
-      },
-    ])
-    const tool = makeTool(supabaseMock)
-
-    await expect(
-      tool.execute({
-        mode: 'single',
-        itemNumber: 'ER76003',
-        clickwrapAccepted: true,
-      }),
-    ).rejects.toMatchObject({
-      code: 'PHOTO_CHOICE_REQUIRED',
-      userMessage: expect.stringContaining('actual jewelry photo'),
-    })
-    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+  it('requires a preview instead of guessing among unbound conversation photos', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: activeWorkflow() })
+    await expect(tool.execute({ mode: 'single', itemNumber: 'ER76003', listingPhotoIndex: 1 })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
     expect(addListingMock).not.toHaveBeenCalled()
+    expect(createDesignMock).not.toHaveBeenCalled()
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
-
   it('uses an explicit listingPhotoIndex to pick the jewelry-front photo from a multi-photo message', async () => {
     addListingMock.mockResolvedValueOnce({
       listingId: 'listing-1',
@@ -1227,7 +1094,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('ER13743', 'data:image/jpeg;base64,SkVXRUw=') })
 
     await tool.execute({
       mode: 'single',
@@ -1240,7 +1107,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       sourceImageUrl: 'data:image/jpeg;base64,SkVXRUw=',
       filenameStem: 'ER13743-listing-photo',
       mutationAssetKey: expect.any(String),
-    })
+    }, { confirmedJewelryFront: true })
     expect(addListingMock.mock.calls[0][2]).toMatchObject({
       itemNumber: 'ER13743',
       listingPhotoUrl:
@@ -1288,7 +1155,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('ER13229', 'data:image/jpeg;base64,Qk9YRURfSkVXRUxSWQ==') })
 
     await tool.execute({
       mode: 'single',
@@ -1302,7 +1169,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       sourceImageUrl: 'data:image/jpeg;base64,Qk9YRURfSkVXRUxSWQ==',
       filenameStem: 'ER13229-listing-photo',
       mutationAssetKey: expect.any(String),
-    })
+    }, { confirmedJewelryFront: true })
     expect(addListingMock.mock.calls[0][2]).toMatchObject({
       itemNumber: 'ER13229',
       collectionName: 'July Birthday',
@@ -1347,12 +1214,12 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('ER13229', 'data:image/jpeg;base64,Qk9YRURfSkVXRUxSWQ==') })
 
     await tool.execute({
       mode: 'single',
       itemNumber: 'ER13229',
-      listingPhotoIndex: 2,
+      listingPhotoIndex: 1,
     })
 
     expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
@@ -1360,7 +1227,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       sourceImageUrl: 'data:image/jpeg;base64,Qk9YRURfSkVXRUxSWQ==',
       filenameStem: 'ER13229-listing-photo',
       mutationAssetKey: expect.any(String),
-    })
+    }, { confirmedJewelryFront: true })
   })
 })
 
@@ -1403,7 +1270,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('NEW-100', 'data:image/jpeg;base64,AAAA') })
     const result = await tool.execute({
       mode: 'single',
       itemNumber: 'NEW-100',
@@ -1480,7 +1347,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('NEW-101', 'data:image/jpeg;base64,SkVXRUw=') })
 
     await tool.execute({
       mode: 'single',
@@ -1578,7 +1445,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('ER13743', 'data:image/jpeg;base64,SkVXRUw=') })
 
     const result = await tool.execute({
       mode: 'single',
@@ -1658,7 +1525,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('ER13743', 'data:image/jpeg;base64,SlRZ') })
 
     await tool.execute({
       mode: 'single',
@@ -1759,7 +1626,8 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('NK18149', 'data:image/jpeg;base64,SkVXRUw=') })
+    processRepListingPhotoUrlMock.mockResolvedValue({ photoUrl: 'https://cdn.example.com/confirmed-harper.png' })
     const result = await tool.execute({
       mode: 'batch',
       items: [
@@ -2001,7 +1869,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('NEW-100', 'data:image/jpeg;base64,AAAA') })
     const result = await tool.execute({
       mode: 'single',
       itemNumber: 'NEW-100',
@@ -2158,7 +2026,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('NEW-100', 'data:image/jpeg;base64,AAAA') })
     const result = await tool.execute({
       mode: 'single',
       itemNumber: 'NEW-100',
@@ -2271,7 +2139,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('NEW-100', 'data:image/jpeg;base64,AAAA') })
     const result = await tool.execute({
       mode: 'single',
       itemNumber: 'NEW-100',
@@ -2392,7 +2260,7 @@ describe('add_listing - active workflow readiness guard', () => {
         collectionName: 'July Birthday',
       }),
     ).rejects.toMatchObject({
-      code: 'WORKFLOW_NOT_READY',
+      code: 'MAIN_PHOTO_REQUIRED',
       userMessage: expect.stringContaining('customer-facing jewelry photo'),
     })
     expect(addListingMock).not.toHaveBeenCalled()
@@ -2553,282 +2421,34 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(processRepListingPhotoUrlMock).toHaveBeenCalledTimes(2)
   })
 
-  it('adds a known catalog design with the canonical photo after duplicate confirmation even when the only workflow photo is label/details', async () => {
-    resolveItemNumberMock.mockResolvedValueOnce({
-      found: true,
-      hasCollection: true,
-      design: {
-        id: 'design-er13229',
-        itemNumber: 'ER13229',
-        designName: 'The Florence Earrings',
-        canonicalPhotoUrl: 'https://cdn.example.com/catalog/er13229.png',
-      },
-    })
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-2',
-      designId: 'design-er13229',
-      itemNumber: 'ER13229',
-      designName: 'The Florence Earrings',
-      status: 'available',
-      usesCanonicalPhoto: true,
-    })
-    createAdminClientMock.mockReturnValue(
-      makeAdminClientMock([{ id: 'listing-existing' }]),
-    )
-    const supabaseMock = makeConversationLookupMock([
-      {
-        role: 'user',
-        parts: [{ type: 'text', text: "Yes, we're adding a second piece." }],
-      },
-      {
-        role: 'assistant',
-        parts: [
-          {
-            type: 'text',
-            text: 'That item number is already on your Dance Floor. Are we adding a second physical piece of that same design?',
-          },
-        ],
-      },
-      {
-        role: 'user',
-        parts: [
-          { type: 'text', text: 'Here is the label.' },
-          {
-            type: 'file',
-            mediaType: 'image/jpeg',
-            url: 'data:image/jpeg;base64,TEFCRUw=',
-          },
-        ],
-      },
-    ])
-    const tool = makeTool(supabaseMock, {
-      activeTradeBoardWorkflow: activeWorkflow({
-        phase: 'photo_capture',
-        missing: ['jewelryFrontPhoto'],
-        known: {
-          itemNumber: 'ER13229',
-          designName: 'The Florence Earrings',
-          collectionName: 'July Birthday 2026',
-          collectionYear: 2026,
-        },
-        photos: [
-          {
-            attachmentIndex: 1,
-            declaredRole: 'label_details',
-            visualRole: 'label_or_packaging',
-            roleConfirmed: true,
-            imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'usable',
-            qualityIssues: [],
-            notes: ['declared as label/details source'],
-          },
-        ],
-      }),
-    })
-
-    await expect(
-      tool.execute({
-        mode: 'single',
-        itemNumber: 'ER13229',
-      }),
-    ).resolves.toMatchObject({
-      mode: 'single',
-      listingId: 'listing-2',
-      usesCanonicalPhoto: true,
-    })
-
+  it('refuses label-only intake even when a catalog canonical exists', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: activeWorkflow() })
+    await expect(tool.execute({ mode: 'single', itemNumber: 'ER13229' })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(createDesignMock).not.toHaveBeenCalled()
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
-    expect(addListingMock).toHaveBeenCalledWith(
-      expect.anything(),
-      'rep-1',
-      expect.objectContaining({
-        itemNumber: 'ER13229',
-        listingPhotoUrl: undefined,
-      }),
-    )
   })
-
-  it('uses durable workflow duplicate confirmation instead of depending on recent wording', async () => {
-    resolveItemNumberMock.mockResolvedValueOnce({
-      found: true,
-      hasCollection: true,
-      design: {
-        id: 'design-er13229',
-        itemNumber: 'ER13229',
-        designName: 'The Florence Earrings',
-        canonicalPhotoUrl: 'https://cdn.example.com/catalog/er13229.png',
-      },
-    })
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-2',
-      designId: 'design-er13229',
-      itemNumber: 'ER13229',
-      designName: 'The Florence Earrings',
-      status: 'available',
-      usesCanonicalPhoto: true,
-    })
-    createAdminClientMock.mockReturnValue(
-      makeAdminClientMock([{ id: 'listing-existing' }]),
-    )
-    const supabaseMock = makeConversationLookupMock([
-      {
-        role: 'user',
-        parts: [{ type: 'text', text: 'Go ahead.' }],
-      },
-      {
-        role: 'assistant',
-        parts: [{ type: 'text', text: 'I have the details now.' }],
-      },
-    ])
-    const tool = makeTool(supabaseMock, {
-      activeTradeBoardWorkflow: activeWorkflow({
-        phase: 'details_capture',
-        known: {
-          itemNumber: 'ER13229',
-          duplicatePhysicalConfirmed: true,
-        },
-        missing: ['designName', 'collectionName', 'jewelryFrontPhoto'],
-        photos: [],
-      }),
-    })
-
-    await expect(
-      tool.execute({
-        mode: 'single',
-        itemNumber: 'ER13229',
-      }),
-    ).resolves.toMatchObject({
-      mode: 'single',
-      listingId: 'listing-2',
-    })
-    expect(addListingMock).toHaveBeenCalledWith(
-      expect.anything(),
-      'rep-1',
-      expect.objectContaining({ itemNumber: 'ER13229' }),
-    )
-  })
-
-  it('ignores a bogus photo index for an item-number-only known catalog add with canonical photo', async () => {
-    resolveItemNumberMock.mockResolvedValue({
-      found: true,
-      hasCollection: true,
-      design: {
-        id: 'design-er13229',
-        itemNumber: 'ER13229',
-        designName: 'The Florence Earrings',
-        canonicalPhotoUrl: 'https://cdn.example.com/catalog/er13229.png',
-      },
-    })
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-2',
-      designId: 'design-er13229',
-      itemNumber: 'ER13229',
-      designName: 'The Florence Earrings',
-      status: 'available',
-      usesCanonicalPhoto: true,
-    })
-    createAdminClientMock.mockReturnValue(makeAdminClientMock([]))
-    const supabaseMock = makeConversationLookupMock([
-      {
-        role: 'user',
-        parts: [{ type: 'text', text: 'Yes' }],
-      },
-      {
-        role: 'assistant',
-        parts: [
-          {
-            type: 'text',
-            text: 'Want me to add it with the catalog photo, or do you want to use your own listing photo?',
-          },
-        ],
-      },
-    ])
-    const tool = makeTool(supabaseMock, {
-      activeTradeBoardWorkflow: activeWorkflow({
-        phase: 'details_capture',
-        known: { itemNumber: 'ER13229' },
-        missing: ['designName', 'collectionName', 'jewelryFrontPhoto'],
-        photos: [],
-      }),
-    })
-
-    await expect(
-      tool.execute({
-        mode: 'single',
-        itemNumber: 'ER13229',
-        listingPhotoIndex: 1,
-      }),
-    ).resolves.toMatchObject({
-      mode: 'single',
-      listingId: 'listing-2',
-      usesCanonicalPhoto: true,
-    })
-
+  it('duplicate-inventory confirmation does not replace main-photo confirmation', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: activeWorkflow() })
+    await expect(tool.execute({ mode: 'single', itemNumber: 'ER13229' })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(createDesignMock).not.toHaveBeenCalled()
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
-    expect(addListingMock).toHaveBeenCalledWith(
-      expect.anything(),
-      'rep-1',
-      expect.objectContaining({
-        itemNumber: 'ER13229',
-        listingPhotoUrl: undefined,
-      }),
-    )
   })
-
-  it('ignores a bogus photo index for an existing catalog design retry with design fields', async () => {
-    resolveItemNumberMock.mockResolvedValue({
-      found: true,
-      hasCollection: true,
-      design: {
-        id: 'design-er13229',
-        itemNumber: 'ER13229',
-        designName: 'The Florence Earrings',
-        canonicalPhotoUrl: 'https://cdn.example.com/catalog/er13229.png',
-      },
-    })
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-3',
-      designId: 'design-er13229',
-      itemNumber: 'ER13229',
-      designName: 'The Florence Earrings',
-      status: 'available',
-      usesCanonicalPhoto: true,
-    })
-    createAdminClientMock.mockReturnValue(makeAdminClientMock([]))
-    const tool = makeTool(makeConversationLookupMock([]), {
-      activeTradeBoardWorkflow: activeWorkflow({
-        phase: 'details_capture',
-        known: { itemNumber: 'ER13229' },
-        missing: ['designName', 'collectionName', 'jewelryFrontPhoto'],
-        photos: [],
-      }),
-    })
-
-    await expect(
-      tool.execute({
-        mode: 'single',
-        itemNumber: 'ER13229',
-        designName: 'The Florence Earrings',
-        collectionName: 'July Birthday 2026',
-        listingPhotoIndex: 1,
-      }),
-    ).resolves.toMatchObject({
-      mode: 'single',
-      listingId: 'listing-3',
-      usesCanonicalPhoto: true,
-    })
-
+  it('refuses a bogus photo index on an item-number-only catalog add', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: activeWorkflow() })
+    await expect(tool.execute({ mode: 'single', itemNumber: 'ER13229', listingPhotoIndex: 9 })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(createDesignMock).not.toHaveBeenCalled()
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
-    expect(addListingMock).toHaveBeenCalledWith(
-      expect.anything(),
-      'rep-1',
-      expect.objectContaining({
-        itemNumber: 'ER13229',
-        listingPhotoUrl: undefined,
-      }),
-    )
   })
-
+  it('refuses a bogus photo index during existing-design recovery', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: activeWorkflow() })
+    await expect(tool.execute({ mode: 'single', itemNumber: 'ER13229', designName: 'Florence', collectionName: 'Originals', listingPhotoIndex: 9 })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(createDesignMock).not.toHaveBeenCalled()
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+  })
   it('allows add_listing when active workflow readiness is satisfied', async () => {
     addListingMock.mockResolvedValueOnce({
       listingId: 'listing-1',
@@ -2914,102 +2534,13 @@ describe('add_listing - active workflow readiness guard', () => {
     )
   })
 
-  it('uses the workflow-confirmed jewelry-front photo instead of a stale label index', async () => {
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-1',
-      designId: 'design-1',
-      itemNumber: 'ER13229',
-      designName: 'The Florence Earrings',
-      status: 'available',
-      usesCanonicalPhoto: false,
-    })
-    createDesignMock.mockResolvedValueOnce({
-      designId: 'design-1',
-      itemNumber: 'ER13229',
-      collectionId: 'coll-1',
-      collectionName: 'July Birthday',
-      typePrefix: 'ER',
-    })
-    uploadJewelryPhotoMock.mockResolvedValueOnce(
-      'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/florence-boxed.jpg',
-    )
-    uploadStagedOriginalPhotoMock.mockResolvedValueOnce({
-      objectPath: 'rep-1/originals/florence-boxed.jpg',
-      signedUrl: 'https://signed.example.com/florence-boxed',
-    })
-    const supabaseMock = makeConversationLookupMock([
-      {
-        parts: [
-          { type: 'text', text: 'Here is the boxed display jewelry photo.' },
-          {
-            type: 'file',
-            mediaType: 'image/jpeg',
-            url: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-          },
-        ],
-      },
-      {
-        parts: [
-          { type: 'text', text: 'Here is the label/details photo.' },
-          {
-            type: 'file',
-            mediaType: 'image/jpeg',
-            url: 'data:image/jpeg;base64,TEFCRUw=',
-          },
-        ],
-      },
-    ])
-    const tool = makeTool(supabaseMock, {
-      activeTradeBoardWorkflow: activeWorkflow({
-        phase: 'ready_to_add',
-        missing: [],
-        photos: [
-          {
-            attachmentIndex: 1,
-            declaredRole: 'label_details',
-            visualRole: 'label_or_packaging',
-            roleConfirmed: true,
-            imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'usable',
-            qualityIssues: [],
-            notes: ['declared as label/details source'],
-          },
-          {
-            attachmentIndex: 1,
-            declaredRole: 'jewelry_front',
-            visualRole: 'jewelry',
-            roleConfirmed: true,
-            imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-            quality: 'unknown',
-            qualityIssues: [],
-            notes: ['declared as customer-facing jewelry photo'],
-          },
-        ],
-      }),
-    })
-
-    await tool.execute({
-      mode: 'single',
-      itemNumber: 'ER13229',
-      designName: 'The Florence Earrings',
-      collectionName: 'July Birthday',
-      collectionYear: 2026,
-      material: 'Rhodium Plating',
-      mainStone: 'Lab-Created Ruby',
-      bpMsrp: 160,
-      piecePhotoIndex: 1,
-    })
-
-    expect(uploadJewelryPhotoMock.mock.calls[0][1]).toBe(
-      'data:image/png;base64,SkVXRUxSWQ==',
-    )
-    expect(createDesignMock.mock.calls[0][1]).toMatchObject({
-      itemNumber: 'ER13229',
-      piecePhotoUrl:
-        'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/florence-boxed.jpg',
-    })
+  it('refuses a stale label index instead of substituting a confirmed jewelry photo', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: activeWorkflow({ photos: [{ id: 'label-id', attachmentIndex: 1, declaredRole: 'label_details', visualRole: 'label_or_packaging', roleConfirmed: true, imageUrl: 'label', quality: 'usable', qualityIssues: [], notes: [] }] }) })
+    await expect(tool.execute({ mode: 'single', itemNumber: 'ER13229', piecePhotoIndex: 1 })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(createDesignMock).not.toHaveBeenCalled()
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
-
   it('accepts a clear workflow-confirmed boxed display jewelry photo', async () => {
     analyzeServerImageQualityMock.mockResolvedValueOnce(
       makeCleanAnalysis({
@@ -3219,79 +2750,13 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(addListingMock).toHaveBeenCalledTimes(1)
   })
 
-  it('does not let stale workflow catalog fields veto a valid ER13229 add attempt with a confirmed jewelry photo', async () => {
-    processRepListingPhotoUrlMock.mockResolvedValueOnce({
-      photoUrl:
-        'https://cdn.example.com/listings/rep-1/florence-boxed-display.png',
-    })
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-1',
-      designId: 'design-existing',
-      itemNumber: 'ER13229',
-      designName: 'The Florence Earrings',
-      status: 'available',
-      usesCanonicalPhoto: false,
-    })
-
-    const tool = makeTool(makeConversationLookupMock([]), {
-      activeTradeBoardWorkflow: activeWorkflow({
-        phase: 'details_capture',
-        known: {
-          collectionName: 'ection',
-        },
-        missing: ['itemNumber', 'designName'],
-        photos: [
-          {
-            attachmentIndex: 1,
-            declaredRole: 'label_details',
-            visualRole: 'label_or_packaging',
-            roleConfirmed: true,
-            imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'unknown',
-            qualityIssues: [],
-            notes: ['declared as label/details source'],
-          },
-          {
-            attachmentIndex: 1,
-            declaredRole: 'jewelry_front',
-            visualRole: 'jewelry',
-            roleConfirmed: true,
-            imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-            quality: 'unknown',
-            qualityIssues: [],
-            notes: ['declared as customer-facing jewelry photo'],
-          },
-        ],
-      }),
-    })
-
-    await expect(
-      tool.execute({
-        mode: 'single',
-        itemNumber: 'ER13229',
-        collectionName: 'July Birthday',
-        collectionYear: 2026,
-        piecePhotoIndex: 2,
-      }),
-    ).resolves.toMatchObject({
-      mode: 'single',
-      listingId: 'listing-1',
-      designId: 'design-existing',
-      itemNumber: 'ER13229',
-    })
-
-    expect(addListingMock).toHaveBeenCalledWith(
-      expect.anything(),
-      'rep-1',
-      expect.objectContaining({
-        itemNumber: 'ER13229',
-        collectionName: 'July Birthday',
-        listingPhotoUrl:
-          'https://cdn.example.com/listings/rep-1/florence-boxed-display.png',
-      }),
-    )
+  it('refuses an item number that does not own the workflow photo', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: confirmedPhotoWorkflow('ER99999', 'data:image/png;base64,SkVXRUw=') })
+    await expect(tool.execute({ mode: 'single', itemNumber: 'ER13229' })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(createDesignMock).not.toHaveBeenCalled()
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
-
   it('adds a confirmed non-item-number piece without creating or resolving catalog designs', async () => {
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
       photoUrl:
@@ -3662,98 +3127,13 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     )
   })
-  it('publishes the jewelry-front photo from two-photo intake and ignores a label selectedPhotoId', async () => {
-    processRepListingPhotoUrlMock.mockResolvedValueOnce({
-      photoUrl:
-        'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
-    })
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-1',
-      designId: 'design-existing',
-      itemNumber: 'NK96080',
-      designName: 'Half Moon Crescent',
-      status: 'available',
-      usesCanonicalPhoto: false,
-    })
-
-    const labelId = '11111111-1111-4111-8111-111111111111'
-    const jewelryId = '22222222-2222-4222-8222-222222222222'
-    const tool = makeTool(makeConversationLookupMock([]), {
-      activeTradeBoardWorkflow: activeWorkflow({
-        phase: 'ready_to_add',
-        missing: [],
-        known: {
-          itemNumber: 'NK96080',
-          designName: 'Half Moon Crescent',
-          collectionName: 'Original Necklace',
-          rarityClassification: 'standard',
-        },
-        photos: [
-          {
-            id: labelId,
-            attachmentIndex: 1,
-            declaredRole: 'label_details',
-            visualRole: 'label_or_packaging',
-            roleConfirmed: true,
-            imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'usable',
-            qualityIssues: [],
-            notes: ['declared as label/details source'],
-          },
-          {
-            id: jewelryId,
-            attachmentIndex: 2,
-            declaredRole: 'jewelry_front',
-            visualRole: 'jewelry',
-            roleConfirmed: true,
-            imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-            quality: 'usable',
-            qualityIssues: [],
-            notes: ['declared as customer-facing jewelry photo'],
-          },
-        ],
-      }),
-    })
-
-    await expect(
-      tool.execute({
-        mode: 'single',
-        itemNumber: 'NK96080',
-        collectionName: 'Original Necklace',
-        selectedPhotoId: labelId,
-        listingPhotoUrl: 'data:image/jpeg;base64,TEFCRUw=',
-      }),
-    ).resolves.toMatchObject({
-      mode: 'single',
-      listingId: 'listing-1',
-      itemNumber: 'NK96080',
-    })
-
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
-      {
-        repId: 'rep-1',
-        sourceImageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-        filenameStem: 'NK96080-listing-photo',
-        mutationAssetKey: expect.any(String),
-      },
-      { confirmedJewelryFront: true },
-    )
-    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalledWith(
-      expect.objectContaining({
-        sourceImageUrl: 'data:image/jpeg;base64,TEFCRUw=',
-      }),
-      expect.anything(),
-    )
-    expect(addListingMock).toHaveBeenCalledWith(
-      expect.anything(),
-      'rep-1',
-      expect.objectContaining({
-        listingPhotoUrl:
-          'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
-      }),
-    )
+  it('refuses a label selectedPhotoId instead of substituting another image', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: activeWorkflow() })
+    await expect(tool.execute({ mode: 'single', itemNumber: 'ER13229', selectedPhotoId: 'label-id' })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(createDesignMock).not.toHaveBeenCalled()
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
-
   it('uses the workflow jewelry photo for an existing catalog design even when listingPhotoUrl is omitted', async () => {
     resolveItemNumberMock.mockResolvedValueOnce({
       found: true,
@@ -4132,29 +3512,9 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     })
 
-    await expect(
-      tool.execute({
-        mode: 'single',
-        itemNumber: 'NK88350',
-        material: 'Rhodium Plating',
-        mainStone: 'Malachite Magnesite',
-      }),
-    ).resolves.toMatchObject({
-      listingId: 'listing-half-moon-rhodium',
-      itemNumber: 'NK88350',
-    })
-
+    await expect(tool.execute({ mode: 'single', itemNumber: 'NK88350', material: 'Rhodium Plating', mainStone: 'Malachite Magnesite' })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
+    expect(addListingMock).not.toHaveBeenCalled()
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
-    expect(addListingMock).toHaveBeenCalledWith(
-      expect.anything(),
-      'rep-1',
-      expect.objectContaining({
-        itemNumber: 'NK88350',
-        material: 'Rhodium Plating',
-        mainStone: 'Malachite Magnesite',
-        listingPhotoUrl: undefined,
-      }),
-    )
   })
 })
 
