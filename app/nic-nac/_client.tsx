@@ -34,7 +34,6 @@ import {
 import { resolveNicNacWorkspaceMode } from '@/lib/nic-nac/required-setup-client-mode'
 import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 import {
-  REQUIRED_SETUP_STEPS,
   type RequiredSetupState,
 } from '@/lib/self-serve/required-setup-contract'
 import { createClient } from '@/lib/supabase/client'
@@ -153,54 +152,6 @@ function buildLoginRedirectHref() {
   return `/login?redirect=${encodeURIComponent(returnPath)}`
 }
 
-function buildWorkspaceReviewFallbackState(): SetupStateWithLiveQueue | null {
-  if (typeof window === 'undefined') return null
-
-  const conversationId = getConversationIdFromSearch(window.location.search)
-  if (!conversationId) return null
-
-  return {
-    id: null,
-    repId: 'rep-gracie-smoke-review',
-    status: 'dashboard_unlocked',
-    currentStep: 'final_preview_approval',
-    completedSteps: REQUIRED_SETUP_STEPS.map((step) => step.id),
-    steps: REQUIRED_SETUP_STEPS,
-    answers: {
-      account_basics: {
-        repName: 'Gracie Smoke',
-        businessName: 'Gracie Test Studio 20260605001558',
-        email: 'gracie.smoke@example.test',
-      },
-      site_skin: {
-        preset: 'sparkle_suite_morganite',
-      },
-      welcome_copy: {},
-    },
-    generatedCopy: {},
-    supportState: {
-      review_workspace: {
-        enabled: true,
-        source: 'client_fallback',
-        conversationId,
-      },
-    },
-    dashboardUnlockedAt: null,
-    createdAt: null,
-    updatedAt: null,
-    nextStep: null,
-    canUnlockDashboard: true,
-    liveQueueSyncCode: 'GS2-2335',
-  }
-}
-
-function shouldUseLocalWorkspaceReviewFallback() {
-  if (typeof window === 'undefined') return false
-
-  const host = window.location.hostname
-  return host === 'localhost' || host === '127.0.0.1'
-}
-
 type SetupStateResponse = {
   state?: SetupStateWithLiveQueue
   error?: string
@@ -310,16 +261,6 @@ export default function NicNacClient({
       if (options.showLoading) setSetupStateStatus('loading')
       setSetupStateError(null)
 
-      const localReviewFallbackState =
-        reviewerSmokeVisible && shouldUseLocalWorkspaceReviewFallback()
-          ? buildWorkspaceReviewFallbackState()
-          : null
-      if (localReviewFallbackState) {
-        setSetupState(localReviewFallbackState)
-        setSetupStateStatus('ready')
-        return
-      }
-
       const controller = new AbortController()
       const abortFromCaller = () => controller.abort('caller')
       if (options.signal?.aborted) controller.abort('caller')
@@ -334,16 +275,9 @@ export default function NicNacClient({
           signal: controller.signal,
         })
         if (!res.ok) {
-          const fallbackState = reviewerSmokeVisible
-            ? buildWorkspaceReviewFallbackState()
-            : null
-          if (fallbackState) {
-            setSetupState(fallbackState)
-            setSetupStateStatus('ready')
-            return
-          }
-
           if (res.status === 401) {
+            setSetupState(null)
+            setSetupStateStatus('error')
             router.replace(buildLoginRedirectHref())
             return
           }
@@ -365,29 +299,12 @@ export default function NicNacClient({
       } catch (err) {
         if ((err as { name?: string })?.name === 'AbortError') {
           if (controller.signal.reason === 'timeout') {
-            const fallbackState = reviewerSmokeVisible
-              ? buildWorkspaceReviewFallbackState()
-              : null
-            if (fallbackState) {
-              setSetupState(fallbackState)
-              setSetupStateStatus('ready')
-              return
-            }
-
             setSetupState(null)
             setSetupStateError(
               'Setup state did not load. Check local auth and environment configuration, then refresh.',
             )
             setSetupStateStatus('error')
           }
-          return
-        }
-        const fallbackState = reviewerSmokeVisible
-          ? buildWorkspaceReviewFallbackState()
-          : null
-        if (fallbackState) {
-          setSetupState(fallbackState)
-          setSetupStateStatus('ready')
           return
         }
 
@@ -399,7 +316,7 @@ export default function NicNacClient({
         options.signal?.removeEventListener('abort', abortFromCaller)
       }
     },
-    [reviewerSmokeVisible, router],
+    [router],
   )
 
   const syncReturnedCheckoutSession = useCallback(

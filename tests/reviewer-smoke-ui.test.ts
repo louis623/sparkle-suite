@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
+import { reviewerSmokeModeEnabled, isReviewerSmokeTokenValid, workspaceReviewAccessEnabled } from '@/lib/reviewer-smoke/config'
 import { TradeBoardWorkspaceCard } from '@/app/nic-nac/components/TradeBoardWorkspaceCard'
 
 describe('reviewer smoke UI wiring', () => {
@@ -322,13 +323,26 @@ describe('reviewer smoke UI wiring', () => {
     expect(requiredSetupHome).toContain('reviewerActions')
   })
 
-  it('keeps the post-setup workspace visible in non-production review mode', () => {
-    expect(nicNacPage).toContain('workspaceReviewAccessEnabled()')
-    expect(nicNacClient).toContain('buildWorkspaceReviewFallbackState')
-    expect(nicNacClient).toContain('review_workspace')
-    expect(nicNacClient).toContain('Gracie Smoke')
-    expect(nicNacClient).toContain('Gracie Test Studio 20260605001558')
-    expect(nicNacClient).toContain('GS2-2335')
+  it('[identity] never fabricates a reviewer identity after client resolution fails', () => {
+    expect(nicNacClient).not.toContain('buildWorkspaceReviewFallbackState')
+    expect(nicNacClient).not.toContain('Gracie Smoke')
+    expect(nicNacClient).not.toContain('rep-gracie-smoke-review')
+    expect(nicNacClient).toContain("if (res.status === 401)")
+    expect(nicNacClient).toContain('setSetupState(null)')
+    expect(nicNacClient).toContain("setSetupStateStatus('error')")
+    expect(nicNacPage).not.toContain('workspaceReviewAccessEnabled()')
+  })
+
+  it('[identity] disables all reviewer entry points on production despite enabled settings', () => {
+    const env = { VERCEL_ENV: 'production', NODE_ENV: 'production', SPARKLE_ENVIRONMENT: 'smoke',
+      SPARKLE_REVIEWER_SMOKE_MODE: 'true', SPARKLE_REVIEWER_SMOKE_TOKEN: 'synthetic-review-token-only' } as NodeJS.ProcessEnv
+    expect(workspaceReviewAccessEnabled(env)).toBe(false)
+    expect(reviewerSmokeModeEnabled(env)).toBe(false)
+    expect(isReviewerSmokeTokenValid(env.SPARKLE_REVIEWER_SMOKE_TOKEN, env)).toBe(false)
+    expect(reviewerSmokeModeEnabled({ ...env, VERCEL_ENV: 'preview' })).toBe(true)
+    expect(workspaceReviewAccessEnabled({ ...env, VERCEL_ENV: undefined })).toBe(false)
+    const locSession = readFileSync(resolve(process.cwd(), 'lib/reviewer-smoke/loc-session.ts'), 'utf8')
+    expect(locSession).toContain('if (!workspaceReviewAccessEnabled())')
   })
 
   it('lets the Nic-Nac workspace own its Concept 1 app chrome', () => {

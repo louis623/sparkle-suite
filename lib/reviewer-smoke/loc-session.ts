@@ -1,4 +1,5 @@
 import 'server-only'
+import { workspaceReviewAccessEnabled } from './config'
 import { randomBytes, createHash, timingSafeEqual } from 'node:crypto'
 import type { User } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -13,6 +14,7 @@ export class LocReviewerError extends Error {
   constructor(public status: number, message: string) { super(message) }
 }
 export function verifyLocReviewerToken(token: unknown) {
+  if (!workspaceReviewAccessEnabled()) throw new LocReviewerError(403, 'Reviewer access is disabled in this environment.')
   const expected = process.env.LOC_REVIEWER_SMOKE_TOKEN?.trim() ?? ''
   if (expected.length < 32) throw new LocReviewerError(503, 'LOC reviewer access is not configured.')
   if (typeof token !== 'string' || token.length > 512 || !timingSafeEqual(
