@@ -1005,3 +1005,57 @@ describe('Amethyst preview template data', () => {
     expect(data.join).toBe(defaultAmethystJoinTemplateData)
   })
 })
+
+
+describe('About narrative regression', () => {
+  it('preserves seven saved paragraphs at the supported 1200-character boundary', () => {
+    const paragraphs = Array.from({ length: 7 }, (_, i) => `Saved paragraph ${i + 1}.`)
+    paragraphs[6] = paragraphs[6].padEnd(1200 - paragraphs.slice(0, 6).join('\n\n').length - 2, '!')
+    const narrative = paragraphs.join('\n\n')
+    expect(narrative).toHaveLength(1200)
+    expect(mapPreviewSettingsToHomepageTemplateData({
+      ...demoSettings, aboutNarrative: narrative,
+    }).aboutParagraphs).toEqual(paragraphs)
+  })
+
+  it('retains whitespace normalization and explicit or unset About visibility', () => {
+    const settings = { ...demoSettings, aboutNarrative: '  First line.\r\n Wrapped line.  \r\n\r\n  Final paragraph.  ' }
+    for (const sectionVisible of [true, false, undefined]) {
+      const homepage = mapPreviewSettingsToHomepageTemplateData({
+        ...settings,
+        homepageMediaSlots: [{ key: 'about_1', caption: '', imageUrl: '', videoUrl: '', sectionVisible }],
+      })
+      expect(homepage.aboutParagraphs).toEqual(['First line. Wrapped line.', 'Final paragraph.', ''])
+      expect(homepage.showAboutSection).toBe(sectionVisible === true)
+    }
+  })
+
+  it('keeps all seven saved paragraphs through targeted onboarding without draft replacement', async () => {
+    const paragraphs = Array.from({ length: 7 }, (_, i) => `New rep saved paragraph ${i + 1}.`)
+    const data = await loadAmethystPreviewTemplateData({
+      repId: 'synthetic-about-regression',
+      publicSiteSlug: 'synthetic-about-regression',
+      env: { NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'test-only' },
+      dependencies: {
+        createAdminClient: vi.fn(() => ({ from: vi.fn() })) as unknown as typeof createAdminClient,
+        resolveAmethystPreviewRep: vi.fn(async () => ({ id: 'synthetic-about-regression', email: 'synthetic@example.com' })),
+        getSiteSettingsDashboard: vi.fn(async () => ({ ...demoSettings, aboutNarrative: paragraphs.join('\n\n') })),
+        getJoinTeamRoster: vi.fn(async () => []),
+        getRequiredSetupState: vi.fn(async () => ({
+          id: 'synthetic-about-setup', repId: 'synthetic-about-regression', status: 'required_setup' as const,
+          currentStep: 'final_preview_approval' as const, completedSteps: [], steps: [],
+          answers: { about_page: { aboutCopy: 'Earlier generated draft.' }, show_schedule: { answer: 'Tuesday at seven.' } },
+          generatedCopy: {}, supportState: {}, dashboardUnlockedAt: null, createdAt: null, updatedAt: null,
+          nextStep: 'final_preview_approval' as const, canUnlockDashboard: false,
+        })),
+      },
+    })
+    expect(data.homepage.aboutParagraphs).toEqual(paragraphs)
+    const script = buildAmethystHomepageBootstrapScript(data.homepage, [], data.appearancePreset, {
+      targeted: true, publicSiteSlug: 'synthetic-about-regression',
+    })
+    const context = { window: {} as Record<string, unknown> }
+    runInNewContext(script, context)
+    expect((context.window.AMETHYST_HOMEPAGE_TEMPLATE_DATA as typeof data.homepage).aboutParagraphs).toEqual(paragraphs)
+  })
+})

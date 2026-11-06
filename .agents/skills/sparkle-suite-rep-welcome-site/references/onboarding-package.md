@@ -43,7 +43,7 @@ later operator can resume without reverse-engineering a session.
 | Identity and placement | Exact rep resolved; `customer` classification; Customer Database placement | Stop on ambiguous identity. |
 | Workspace access | Intended trial/entitlement plus no unintended checkout path | Never create Stripe objects as a workaround. |
 | Public-site foundation | Slug, Site Settings, business basics, and customer social handles present | Leave unknown rep details blank and name the gap. |
-| Public-route proof | Live Home, Dance Floor, and Join each resolve to the rep’s own copy | Check direct routes too; hidden navigation does not excuse stale demo content. |
+| Public-route proof | Live Home, Dance Floor, and Join each resolve to the rep’s own copy; compare the entire saved About narrative, including its final paragraph, against public output | Respect intentionally hidden sections; never enable one just for this check. Check direct routes too; hidden navigation does not excuse stale demo content. |
 | Show and Live Queue readiness | Configured platform social links, Calendar behavior, and Live Queue setup or handoff | Leave unchecked rather than inferring completion. |
 | Communication | Welcome draft/sent state with its separate authorization | A draft is not a sent message. |
 | Optional custom domain | Registrar authority, Vercel attachment, minimal DNS change, identity-guarded mapping, live root/Trade/Join, favicon, and social card | Use only when requested; never change unrelated DNS, aliases, forwarding, contacts, or billing. |
