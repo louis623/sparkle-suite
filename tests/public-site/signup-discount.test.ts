@@ -7,7 +7,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { buildAmethystHomepageBootstrapScript, defaultAmethystHomepageTemplateData } from '@/lib/amethyst/homepage-template-data'
-import { applySavedSignupDiscount } from '@/lib/public-site/signup-discount-settings'
+import { loadSavedSignupDiscount, applySavedSignupDiscount } from '@/lib/public-site/signup-discount-settings'
 import {
   SIGNUP_DISCOUNT_COPIED_MS,
   copySignupDiscountCode,
@@ -43,7 +43,7 @@ function loadHomepageDiscount(homepageSource = readFileSync(resolve(process.cwd(
     selectSignupDiscountCode: typeof selectSignupDiscountCode
     signupDiscountCopyFeedback: typeof signupDiscountCopyFeedback
     signupDiscountCopyName: typeof signupDiscountCopyName
-    SignupDiscountConfirmation: (props: { content?: { signupDiscountCode?: string; signupDiscountOffer?: string } }) => React.ReactElement | null
+    SignupDiscountConfirmation: (props: { content?: { signupDiscountCode?: string; signupDiscountOffer?: string; signupDiscountEnabled?: boolean; signupDiscountMessage?: string } }) => React.ReactElement | null
   }
 }
 
@@ -93,7 +93,7 @@ describe('signup discount confirmation', () => {
 
   it('renders the code, offer line, monospace box, and a 44px Copy button', () => {
     const html = renderToStaticMarkup(React.createElement(homepageDiscount.SignupDiscountConfirmation, {
-      content: { signupDiscountCode: 'MILEHIGHFIZZCUSTOMER', signupDiscountOffer: '15% off' },
+      content: { signupDiscountEnabled: true, signupDiscountCode: 'MILEHIGHFIZZCUSTOMER', signupDiscountOffer: '15% off' },
     }))
 
     expect(html).toContain('Your 15% off code')
@@ -208,6 +208,8 @@ describe('signup discount confirmation', () => {
     const withCode = await applySavedSignupDiscount(defaultAmethystHomepageTemplateData, 'rep-lindsey', async () => ({
       code: 'MILEHIGHFIZZCUSTOMER',
       offer: '15% off',
+      enabled: true,
+      message: null,
     }))
     const withoutCode = await applySavedSignupDiscount(defaultAmethystHomepageTemplateData, 'rep-other', async () => null)
     const withoutRep = await applySavedSignupDiscount(defaultAmethystHomepageTemplateData, null, async () => {
@@ -262,7 +264,7 @@ describe('signup discount setting', () => {
               maybeSingle: async () => {
                 if (columns.includes('signup_discount_code')) {
                   return {
-                    data: { signup_discount_code: 'MILEHIGHFIZZCUSTOMER', signup_discount_offer: '15% off' },
+                    data: { signup_discount_code: 'MILEHIGHFIZZCUSTOMER', signup_discount_offer: '15% off', signup_discount_enabled: true, signup_discount_message: 'Thanks for joining!' },
                     error: null,
                   }
                 }
@@ -297,6 +299,8 @@ describe('signup discount setting', () => {
     const loaded = await getSiteSettingsDashboard(saved as never, 'rep-lindsey')
     expect(loaded.signupDiscountCode).toBe('MILEHIGHFIZZCUSTOMER')
     expect(loaded.signupDiscountOffer).toBe('15% off')
+    expect(loaded.signupDiscountEnabled).toBe(true)
+    expect(loaded.signupDiscountMessage).toBe('Thanks for joining!')
     expect(loaded.bannerText).toBe('Live tonight')
     expect(loaded.businessName).toBe('Mile High Fizz')
 
@@ -399,7 +403,7 @@ for (const path of ['lib/amethyst/v2/homepage.jsx', 'lib/amethyst/legacy/assets/
       const writeText = vi.fn(async () => undefined)
       expect(await discount.copySignupDiscountCode('MILEHIGHFIZZCUSTOMER', {}, {writeText})).toBe('clipboard')
       expect(writeText).toHaveBeenCalledWith('MILEHIGHFIZZCUSTOMER')
-      const html = renderToStaticMarkup(React.createElement(discount.SignupDiscountConfirmation, {content:{signupDiscountCode:'MILEHIGHFIZZCUSTOMER',signupDiscountOffer:'Your 15% off code'}}))
+      const html = renderToStaticMarkup(React.createElement(discount.SignupDiscountConfirmation, {content:{signupDiscountEnabled:true,signupDiscountCode:'MILEHIGHFIZZCUSTOMER',signupDiscountOffer:'Your 15% off code'}}))
       expect(html).toContain('Your 15% off code')
       expect(html).not.toContain('Your Your')
       expect(html).toContain('aria-label="Copy MILEHIGHFIZZCUSTOMER"')
@@ -407,3 +411,77 @@ for (const path of ['lib/amethyst/v2/homepage.jsx', 'lib/amethyst/legacy/assets/
     })
   })
 }
+
+
+describe('Workspace signup discount toggle and message', () => {
+  const variants = [homepageSource, ...['lib/amethyst/v2/homepage.jsx', 'lib/amethyst/legacy/assets/homepage.jsx'].map(path => readFileSync(path, 'utf8'))].map(source => loadHomepageDiscount(source))
+
+  it('hides the block when off, missing an enabled flag, or given an invalid code', () => {
+    for (const variant of variants) {
+      for (const content of [
+        { signupDiscountEnabled: false, signupDiscountCode: 'SAVED' },
+        { signupDiscountCode: 'SAVED' },
+        { signupDiscountEnabled: true, signupDiscountCode: 'NOT VALID' },
+      ]) expect(renderToStaticMarkup(React.createElement(variant.SignupDiscountConfirmation, { content }))).toBe('')
+    }
+  })
+
+  it('shows a sanitized custom message with the valid enabled code in every renderer', () => {
+    const content = { signupDiscountEnabled: true, signupDiscountCode: 'SMOKETEST', signupDiscountOffer: '15% off', signupDiscountMessage: ' Thanks\n for joining!\u0000 Use this. ' }
+    expect(presentSignupDiscount(content)?.label).toBe('Thanks for joining! Use this.')
+    for (const variant of variants) {
+      const html = renderToStaticMarkup(React.createElement(variant.SignupDiscountConfirmation, { content }))
+      expect(html).toContain('Thanks for joining! Use this.')
+      expect(html).toContain('SMOKETEST')
+      expect(html).toContain('aria-label="Copy SMOKETEST"')
+      expect(html).not.toContain('Your 15% off code')
+    }
+  })
+
+  it('preserves Lindsey and Katelin offer labels and the generic label with an empty message', () => {
+    for (const [code, offer, label] of [
+      ['MILEHIGHFIZZCUSTOMER', '15% off', 'Your 15% off code'],
+      ['HOLIDAY', 'free shipping', 'Your free shipping code'],
+      ['SAVED', '', 'Your discount code'],
+    ]) {
+      const content = { signupDiscountEnabled: true, signupDiscountCode: code, signupDiscountOffer: offer, signupDiscountMessage: '  ' }
+      for (const variant of variants) {
+        const html = renderToStaticMarkup(React.createElement(variant.SignupDiscountConfirmation, { content }))
+        expect(html).toContain(label)
+        expect(html).toContain(code)
+      }
+    }
+  })
+
+  it('removes all discount bootstrap fields when off, including stale values on the input', async () => {
+    const stale = { ...defaultAmethystHomepageTemplateData, signupDiscountEnabled: true, signupDiscountCode: 'STALE', signupDiscountOffer: '15% off', signupDiscountMessage: 'Old message' }
+    const off = await applySavedSignupDiscount(stale, 'rep-test', async () => ({ enabled: false, code: 'SAVED', offer: '15% off', message: 'Hidden' }))
+    expect(buildAmethystHomepageBootstrapScript(off)).not.toContain('signupDiscount')
+    const on = await applySavedSignupDiscount(stale, 'rep-test', async () => ({ enabled: true, code: 'SAVED', offer: '15% off', message: ' Thanks! ' }))
+    expect(on).toMatchObject({ signupDiscountEnabled: true, signupDiscountCode: 'SAVED', signupDiscountMessage: 'Thanks!' })
+  })
+
+  it('fails closed when the new columns are missing (42703)', async () => {
+    const select = vi.fn(() => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: { code: '42703', message: 'column signup_discount_enabled does not exist' } }) }) }))
+    const saved = await loadSavedSignupDiscount('rep-test', { from: () => ({ select }) })
+    expect(select).toHaveBeenCalledWith('signup_discount_code, signup_discount_offer, signup_discount_enabled, signup_discount_message')
+    expect(saved).toBeNull()
+    const homepage = await applySavedSignupDiscount(defaultAmethystHomepageTemplateData, 'rep-test', async () => saved)
+    expect(buildAmethystHomepageBootstrapScript(homepage)).not.toContain('signupDiscount')
+  })
+
+  it('adds the toggle/message backfill and exact length check with a narrowly scoped undo', () => {
+    const migration = readFileSync('supabase/migrations/20261106232031_ss_signup_discount_toggle_message.sql', 'utf8')
+    const undo = readFileSync('supabase/manual/20261106232031_ss_signup_discount_toggle_message_undo.sql', 'utf8')
+    expect(migration).toContain('ADD COLUMN IF NOT EXISTS signup_discount_enabled boolean NOT NULL DEFAULT false')
+    expect(migration).toContain('ADD COLUMN IF NOT EXISTS signup_discount_message text NULL')
+    expect(migration).toContain('char_length(signup_discount_message) BETWEEN 1 AND 140')
+    expect(migration).toContain('char_length(btrim(signup_discount_message)) >= 1')
+    expect(migration).toContain("UPDATE public.site_settings SET signup_discount_enabled = true\nWHERE signup_discount_code ~ '^[A-Za-z0-9-]{1,40}$'")
+    expect(migration).toContain("NOTIFY pgrst, 'reload schema'")
+    expect(undo).toContain('DROP COLUMN IF EXISTS signup_discount_enabled')
+    expect(undo).toContain('DROP COLUMN IF EXISTS signup_discount_message')
+    expect(undo).not.toContain('DROP COLUMN IF EXISTS signup_discount_code')
+  })
+
+})

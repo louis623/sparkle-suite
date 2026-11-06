@@ -2415,11 +2415,18 @@ function normalizeSignupDiscountOffer(value) {
   return offer;
 }
 
+function normalizeSignupDiscountMessage(value) {
+  if (typeof value !== "string") return null;
+  const message = value.replace(/[\u0000-\u001F\u007F-\u009F]/g, " ").replace(/\s+/g, " ").trim();
+  if (!message || message.length > 140 || /[<>]/.test(message)) return null;
+  return message;
+}
+
 function presentSignupDiscount(content) {
   const code = normalizeSignupDiscountCode(content && content.signupDiscountCode);
   if (!code) return null;
   const offer = normalizeSignupDiscountOffer(content && content.signupDiscountOffer);
-  return { code, label: offer ? (/^Your .+ code$/i.test(offer) ? offer : `Your ${offer} code`) : "Your discount code" };
+  return { code, label: normalizeSignupDiscountMessage(content && content.signupDiscountMessage) || (offer ? (/^Your .+ code$/i.test(offer) ? offer : `Your ${offer} code`) : "Your discount code") };
 }
 
 function signupDiscountCopyName(code, copied) {
@@ -2495,7 +2502,7 @@ function copySignupDiscountCode(code, codeElement, deps) {
 }
 
 function SignupDiscountConfirmation({ content }) {
-  const discount = presentSignupDiscount(content);
+  const discount = content && content.signupDiscountEnabled === true ? presentSignupDiscount(content) : null;
   const [copied, setCopied] = React.useState(false);
   const codeRef = React.useRef(null);
   const timerRef = React.useRef(0);

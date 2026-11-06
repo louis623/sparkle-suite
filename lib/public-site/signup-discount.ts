@@ -5,6 +5,7 @@
 
 export const SIGNUP_DISCOUNT_CODE_PATTERN = /^[A-Za-z0-9-]{1,40}$/
 export const SIGNUP_DISCOUNT_OFFER_MAX = 40
+export const SIGNUP_DISCOUNT_MESSAGE_MAX = 140
 export const SIGNUP_DISCOUNT_COPIED_MS = 2000
 export const SIGNUP_DISCOUNT_CLIPBOARD_TIMEOUT_MS = 2500
 
@@ -19,6 +20,7 @@ export type SignupDiscountCopyDeps = {
 type SignupDiscountInput = {
   signupDiscountCode?: string | null
   signupDiscountOffer?: string | null
+  signupDiscountMessage?: string | null
 } | null | undefined
 
 export function normalizeSignupDiscountCode(value: unknown): string | null {
@@ -40,11 +42,18 @@ export function signupDiscountLabel(offer: string | null): string {
   return offer ? (/^Your .+ code$/i.test(offer) ? offer : `Your ${offer} code`) : 'Your discount code'
 }
 
+export function normalizeSignupDiscountMessage(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const message = value.replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ').replace(/\s+/g, ' ').trim()
+  if (!message || message.length > SIGNUP_DISCOUNT_MESSAGE_MAX || /[<>]/.test(message)) return null
+  return message
+}
+
 export function presentSignupDiscount(input: SignupDiscountInput) {
   const code = normalizeSignupDiscountCode(input?.signupDiscountCode)
   if (!code) return null
   const offer = normalizeSignupDiscountOffer(input?.signupDiscountOffer)
-  return { code, label: signupDiscountLabel(offer) }
+  return { code, label: normalizeSignupDiscountMessage(input?.signupDiscountMessage) ?? signupDiscountLabel(offer) }
 }
 
 export function signupDiscountCopyName(code: string, copied: boolean) {

@@ -1,5 +1,19 @@
 # Sparkle Suite Branch Register
 
+## November 6 — Workspace signup discount toggle, Smoke only
+
+Louis authorized `codex/signup-discount-workspace-toggle` from verified tip
+`0e136f56aca8d202f7ef6b23eb0fb380e7268b3d` in disposable clone
+`/workspace/codex-runs/signup-discount-clean`. The notes-only SHA difference
+from Live `7460a632` was explicitly accepted at 6:17 PM ET. Scope: signup
+discount toggle/message, owner settings, public confirmation, migration and
+focused tests in the two named files (at most 20 new/changed cases). One
+production build and at most eight browser loads. Deployment and migration
+are restricted to `sparkle-suite-smoke` (`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`)
+/ preview and database `pukemqiwlyqmyytxkdmo`. One unmerged PR. GitHub default
+branch, Vercel production branch, Live keys/database/domains remain unchanged.
+
+
 ## November 6 — Shared About narrative, Smoke only
 
 Louis authorized `codex/about-narrative-smoke` from production

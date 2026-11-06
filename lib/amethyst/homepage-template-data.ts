@@ -138,6 +138,8 @@ export interface AmethystHomepageTemplateData {
   signupDiscountCode?: string
   /** Saved offer phrase, such as "15% off". Omitted when the rep did not set one. */
   signupDiscountOffer?: string
+  signupDiscountEnabled?: boolean
+  signupDiscountMessage?: string
   joinTeamTitle: string
   joinTeamSub: string
   joinTeamUrl: string

@@ -913,3 +913,48 @@ describe('site settings service', () => {
     },
   )
 })
+
+
+describe('Workspace signup discount save', () => {
+  const rep = { display_name: 'Smoke Rep', business_name: 'Smoke only', email: 'smoke@example.test', social_handles: {} }
+
+  it('saves the toggle, code, and sanitized message only for the authenticated rep, and clears an empty message', async () => {
+    const site = makeUpsertSingle({ data: { banner_text: null, banner_visible: false }, error: null })
+    const profile = makeSelectSingle({ data: rep, error: null })
+    const supabase = { from: (table: string) => table === 'site_settings' ? site.api : profile.api }
+    const saved = await updateSiteSettingsDashboard(supabase as never, 'rep-owner', { signupDiscountEnabled: true, signupDiscountCode: ' SMOKETEST ', signupDiscountMessage: ' Thanks\n for joining!\u0000 Use this. ', ...{ rep_id: 'rep-other' } })
+    expect(site.spies.upsert).toHaveBeenLastCalledWith({ rep_id: 'rep-owner', signup_discount_enabled: true, signup_discount_code: 'SMOKETEST', signup_discount_message: 'Thanks for joining! Use this.' }, { onConflict: 'rep_id' })
+    expect(saved).toMatchObject({ signupDiscountEnabled: true, signupDiscountCode: 'SMOKETEST', signupDiscountMessage: 'Thanks for joining! Use this.' })
+    await updateSiteSettingsDashboard(supabase as never, 'rep-owner', { signupDiscountEnabled: false, signupDiscountMessage: ' \n ' })
+    expect(site.spies.upsert).toHaveBeenLastCalledWith({ rep_id: 'rep-owner', signup_discount_enabled: false, signup_discount_message: null }, { onConflict: 'rep_id' })
+  })
+
+  it.each([
+    { signupDiscountMessage: 'x'.repeat(141) },
+    { signupDiscountMessage: '<b>Thanks</b>' },
+    { signupDiscountCode: 'NOT VALID' },
+    { signupDiscountEnabled: 'true' },
+    { signupDiscountMessage: 123 },
+  ])('rejects invalid signup discount input before a database write: %j', async input => {
+    const supabase = { from: vi.fn() }
+    await expect(updateSiteSettingsDashboard(supabase as never, 'rep-owner', input as never)).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+    expect(supabase.from).not.toHaveBeenCalled()
+  })
+
+  it('keeps ordinary settings available and omits discounts on a missing-column read', async () => {
+    const select = vi.fn((columns: string) => ({ eq: () => ({ maybeSingle: async () => columns.includes('signup_discount_enabled')
+      ? { data: null, error: { code: '42703', message: 'column signup_discount_enabled does not exist' } }
+      : { data: { banner_text: 'Still available', banner_visible: true }, error: null } }) }))
+    const profile = makeSelectSingle({ data: rep, error: null })
+    const supabase = { from: (table: string) => table === 'site_settings' ? { select } : profile.api }
+    const result = await getSiteSettingsDashboard(supabase as never, 'rep-owner')
+    expect(result.bannerText).toBe('Still available')
+    expect(result.signupDiscountEnabled).toBeUndefined()
+    expect(result.signupDiscountMessage).toBeUndefined()
+  })
+
+  it('reports a missing-column save safely without claiming the discount was saved', async () => {
+    const site = makeUpsertSingle({ data: null, error: { code: '42703', message: 'column signup_discount_enabled does not exist' } })
+    await expect(updateSiteSettingsDashboard({ from: () => site.api } as never, 'rep-owner', { signupDiscountEnabled: true })).rejects.toMatchObject({ code: 'SITE_SETTINGS_UPDATE_FAILED' })
+  })
+})

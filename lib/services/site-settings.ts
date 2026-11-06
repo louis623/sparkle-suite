@@ -30,6 +30,7 @@ import { normalizeTeamPhotoFraming } from '@/lib/amethyst/team-photo-framing'
 import {
   normalizeSignupDiscountCode,
   normalizeSignupDiscountOffer,
+  normalizeSignupDiscountMessage,
 } from '@/lib/public-site/signup-discount'
 
 type SiteSettingsRow = {
@@ -58,6 +59,8 @@ type SiteSettingsRow = {
   social_visibility?: unknown
   signup_discount_code?: string | null
   signup_discount_offer?: string | null
+  signup_discount_enabled?: boolean
+  signup_discount_message?: string | null
 }
 
 type RepProfileRow = {
@@ -411,13 +414,15 @@ function buildDashboardResult(args: {
 
 function signupDiscountFields(row: SiteSettingsRow | null) {
   if (!row) return {}
-  const fields: { signupDiscountCode?: string; signupDiscountOffer?: string } = {}
+  const fields: Pick<SiteSettingsDashboardResult, 'signupDiscountCode' | 'signupDiscountOffer' | 'signupDiscountEnabled' | 'signupDiscountMessage'> = {}
   if ('signup_discount_code' in row) {
     fields.signupDiscountCode = normalizeSignupDiscountCode(row.signup_discount_code) ?? ''
   }
   if ('signup_discount_offer' in row) {
     fields.signupDiscountOffer = normalizeSignupDiscountOffer(row.signup_discount_offer) ?? ''
   }
+  if ('signup_discount_enabled' in row) fields.signupDiscountEnabled = row.signup_discount_enabled === true
+  if ('signup_discount_message' in row) fields.signupDiscountMessage = normalizeSignupDiscountMessage(row.signup_discount_message) ?? ''
   return fields
 }
 
@@ -477,17 +482,19 @@ export async function getSiteSettingsDashboard(
     try {
       const discount = await supabase
         .from('site_settings')
-        .select('signup_discount_code, signup_discount_offer')
+        .select('signup_discount_code, signup_discount_offer, signup_discount_enabled, signup_discount_message')
         .eq('rep_id', repId)
         .maybeSingle()
       const discountRow = discount.data as
-        | { signup_discount_code?: string | null; signup_discount_offer?: string | null }
+        | Pick<SiteSettingsRow, 'signup_discount_code' | 'signup_discount_offer' | 'signup_discount_enabled' | 'signup_discount_message'>
         | null
       if (!discount.error && discountRow) {
         siteSettings = {
           ...siteSettings,
           signup_discount_code: discountRow.signup_discount_code ?? null,
           signup_discount_offer: discountRow.signup_discount_offer ?? null,
+          signup_discount_enabled: discountRow.signup_discount_enabled === true,
+          signup_discount_message: discountRow.signup_discount_message ?? null,
         }
       }
     } catch {
@@ -632,6 +639,23 @@ export async function updateSiteSettingsDashboard(
       input.homepageMediaSlots,
     )
   }
+  if (input.signupDiscountEnabled !== undefined) {
+    if (typeof input.signupDiscountEnabled !== 'boolean') {
+      throw errors.INVALID_INPUT('signupDiscountEnabled must be a boolean', 'Choose whether to show the signup discount code.')
+    }
+    siteSettingsPatch.signup_discount_enabled = input.signupDiscountEnabled
+  }
+  if (input.signupDiscountMessage !== undefined) {
+    if (typeof input.signupDiscountMessage !== 'string') {
+      throw errors.INVALID_INPUT('signupDiscountMessage must be a string', 'The signup discount message needs to be plain text.')
+    }
+    const message = normalizeSignupDiscountMessage(input.signupDiscountMessage)
+    const hasText = input.signupDiscountMessage.replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ').trim().length > 0
+    if (hasText && !message) {
+      throw errors.INVALID_INPUT('signupDiscountMessage is invalid', 'Keep the signup discount message to 140 characters of plain text, without < or >.')
+    }
+    siteSettingsPatch.signup_discount_message = message
+  }
   if (input.signupDiscountCode !== undefined) {
     if (typeof input.signupDiscountCode !== 'string') {
       throw errors.INVALID_INPUT(
@@ -736,6 +760,12 @@ export async function updateSiteSettingsDashboard(
         : {}),
       ...('signup_discount_offer' in siteSettingsPatch
         ? { signup_discount_offer: siteSettingsPatch.signup_discount_offer as string | null }
+        : {}),
+      ...('signup_discount_enabled' in siteSettingsPatch
+        ? { signup_discount_enabled: siteSettingsPatch.signup_discount_enabled as boolean }
+        : {}),
+      ...('signup_discount_message' in siteSettingsPatch
+        ? { signup_discount_message: siteSettingsPatch.signup_discount_message as string | null }
         : {}),
     }
   }
