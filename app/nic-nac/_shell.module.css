@@ -7,6 +7,11 @@
   color: var(--nic-nac-text-primary);
 }
 
+.recovery {
+  box-sizing: border-box;
+  padding: clamp(32px, 12vh, 112px) 0 32px;
+}
+
 @media (min-width: 1024px) {
   .root {
     display: block;

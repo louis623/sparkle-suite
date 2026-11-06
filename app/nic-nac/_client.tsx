@@ -13,6 +13,8 @@ import { NicNacGlyph } from './components/NicNacGlyph'
 import { NicNacMobileShell } from './components/NicNacMobileShell'
 import { RequiredSetupHome } from './components/RequiredSetupHome'
 import { WorkspaceAccessPending } from './components/WorkspaceAccessPending'
+import { WorkspaceSetupRecovery } from './components/WorkspaceSetupRecovery'
+import { requestWorkspaceSetupState } from '@/lib/nic-nac/workspace-setup-request'
 import {
   buildConversationStateUrl,
   canUseUrlConversationId,
@@ -214,7 +216,6 @@ export default function NicNacClient({
   const [setupStateStatus, setSetupStateStatus] = useState<
     'loading' | 'ready' | 'error'
   >('loading')
-  const [setupStateError, setSetupStateError] = useState<string | null>(null)
   const [reviewerResetBusy, setReviewerResetBusy] = useState(false)
   const [reviewerResetError, setReviewerResetError] = useState<string | null>(null)
 
@@ -259,7 +260,6 @@ export default function NicNacClient({
   const loadSetupState = useCallback(
     async (options: { signal?: AbortSignal; showLoading?: boolean } = {}) => {
       if (options.showLoading) setSetupStateStatus('loading')
-      setSetupStateError(null)
 
       const controller = new AbortController()
       const abortFromCaller = () => controller.abort('caller')
@@ -270,10 +270,7 @@ export default function NicNacClient({
       }, SETUP_STATE_TIMEOUT_MS)
 
       try {
-        const res = await fetch(buildSetupStateUrl(), {
-          credentials: 'include',
-          signal: controller.signal,
-        })
+        const res = await requestWorkspaceSetupState(buildSetupStateUrl(), controller.signal)
         if (!res.ok) {
           if (res.status === 401) {
             setSetupState(null)
@@ -282,11 +279,7 @@ export default function NicNacClient({
             return
           }
 
-          const body = (await res.json().catch(() => null)) as
-            | SetupStateResponse
-            | null
           setSetupState(null)
-          setSetupStateError(body?.error ?? `Couldn't load setup state (${res.status}).`)
           setSetupStateStatus('error')
           return
         }
@@ -300,16 +293,12 @@ export default function NicNacClient({
         if ((err as { name?: string })?.name === 'AbortError') {
           if (controller.signal.reason === 'timeout') {
             setSetupState(null)
-            setSetupStateError(
-              'Setup state did not load. Check local auth and environment configuration, then refresh.',
-            )
             setSetupStateStatus('error')
           }
           return
         }
 
         setSetupState(null)
-        setSetupStateError(`Failed to load setup state: ${(err as Error).message}`)
         setSetupStateStatus('error')
       } finally {
         window.clearTimeout(timeoutId)
@@ -363,17 +352,11 @@ export default function NicNacClient({
     ;(async () => {
       if (isFinalizingCheckout) {
         setSetupStateStatus('loading')
-        setSetupStateError(null)
         try {
           await syncReturnedCheckoutSession(checkoutSessionId, controller.signal)
         } catch (err) {
           if ((err as { name?: string })?.name === 'AbortError') return
           setSetupState(null)
-          setSetupStateError(
-            err instanceof Error
-              ? err.message
-              : 'Stripe checkout sync failed.',
-          )
           setSetupStateStatus('error')
           return
         }
@@ -904,7 +887,12 @@ export default function NicNacClient({
   if (setupStateStatus === 'error') {
     return (
       <div className={shellStyles.root}>
-        <div className={shellStyles.loading}>{setupStateError}</div>
+        <div className={shellStyles.recovery}>
+          <WorkspaceSetupRecovery
+            onRetry={() => loadSetupState({ showLoading: true })}
+            signInHref={buildLoginRedirectHref()}
+          />
+        </div>
       </div>
     )
   }
