@@ -1,0 +1,266 @@
+{
+  "scope": "Louis-approved narrow recovery-screen improvement",
+  "baseSha": "4b4b3ceff6a8f0dc28e1a2853aab1b384466875c",
+  "testedSha": "dd97846f1c2f9c737d49ed40a1d3bcfcefac60ba",
+  "pr": "https://github.com/louis623/sparkle-suite/pull/182",
+  "message": "We couldn’t load your workspace. Please try again. If the problem continues, sign out and sign back in.",
+  "tests": {
+    "file": "tests/nic-nac-workspace-recovery.test.tsx",
+    "passed": 2,
+    "failed": 0,
+    "executed": 2,
+    "oldIdentityTestsReplayed": 0,
+    "cases": [
+      {
+        "name": "Workspace setup recovery displays the safe error and both recovery actions without workspace data",
+        "status": "passed"
+      },
+      {
+        "name": "Workspace setup recovery Retry reuses the authorized setup request without choosing another identity or fallback",
+        "status": "passed"
+      }
+    ]
+  },
+  "deployment": {
+    "id": "dpl_23TyqpN7VwWjta7EXXGeePCad1ow",
+    "origin": "https://sparkle-suite-smoke-da8sewhdw-louis-2849s-projects.vercel.app",
+    "state": "READY",
+    "project": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+    "environment": "preview",
+    "count": 1,
+    "stableSmokeMoved": false,
+    "config": {
+      "project": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview",
+      "sha": "dd97846f1c2f9c737d49ed40a1d3bcfcefac60ba",
+      "fixtureRun": "recovery1793990924534",
+      "overrideNames": [
+        "SPARKLE_ENVIRONMENT",
+        "NEXT_PUBLIC_SPARKLE_ENVIRONMENT",
+        "SPARKLE_REVIEWER_SMOKE_MODE",
+        "SPARKLE_REVIEWER_SMOKE_TOKEN",
+        "SPARKLE_RELEASE_BRANCH",
+        "SPARKLE_RELEASE_REPOSITORY"
+      ],
+      "reviewerMode": true,
+      "reviewerToken": "newly generated deployment-only value, never printed",
+      "stableSmokeAliasMoved": false
+    }
+  },
+  "browser": {
+    "documentNavigations": 2,
+    "budget": 2,
+    "firstAttempt": {
+      "navigations": 1,
+      "setupResponsesObserved": 0,
+      "failure": "exactRequestedMessage",
+      "diagnosis": "Harness observed Next route announcer before setup response completed. No product failure established."
+    },
+    "completedPass": {
+      "deployment": "dpl_23TyqpN7VwWjta7EXXGeePCad1ow",
+      "testedSha": "dd97846f1c2f9c737d49ed40a1d3bcfcefac60ba",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "navigations": [
+        "https://sparkle-suite-smoke-da8sewhdw-louis-2849s-projects.vercel.app/nic-nac?conversationId=4f6c1d24-2d66-442b-b51f-ca8e70b2eb3e"
+      ],
+      "setupReads": [
+        {
+          "phase": "initial",
+          "path": "/api/self-serve/setup-state?conversationId=4f6c1d24-2d66-442b-b51f-ca8e70b2eb3e",
+          "status": 200,
+          "authorizedIdentityMatches": true
+        },
+        {
+          "phase": "retry",
+          "path": "/api/self-serve/setup-state?conversationId=4f6c1d24-2d66-442b-b51f-ca8e70b2eb3e",
+          "status": 200,
+          "authorizedIdentityMatches": true
+        }
+      ],
+      "checks": {
+        "exactRequestedMessage": true,
+        "onlySafeRecoveryContent": true,
+        "noFallbackOrConnectionCredential": true,
+        "retryEnabled": true,
+        "existingSignInFlowPreservesReturnPath": true,
+        "firstLoadUsedAuthorizedIdentity": true,
+        "retryRetainedSameAuthorizedIdentity": true,
+        "retryFailureRemainsSafe": true,
+        "retryDidNotNavigate": true,
+        "signInLinkRemainsExistingAuthFlow": true,
+        "remainingBudgetUsesOneNavigation": true
+      },
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshots": [
+        "C:/Users/louis/.codex/visualizations/2026/11/06/01a1ae65-7c5a-7b32-8ff6-68243a8f5e96/identity-isolation/recovery-actions-phone.png"
+      ],
+      "outageHeldDuringRetry": true,
+      "signInLinkActivated": false,
+      "signInDestinationPreviouslyVerified": true,
+      "passed": true
+    },
+    "signInLinkActivated": false,
+    "signInLinkValidation": "Rendered link exists, same-origin /login with exact return path. Destination not revisited within remaining navigation budget; existing flow unchanged.",
+    "successfulRetryResponse": "covered by focused unit case; browser held outage after real server resolved same authorized rep"
+  },
+  "fixtures": {
+    "created": 2,
+    "manifests": [
+      {
+        "run": "recovery1793990924534",
+        "project": "pukemqiwlyqmyytxkdmo",
+        "accounts": [
+          {
+            "role": "rep",
+            "userId": "89829593-2e09-4ecb-a9ea-fd5a223862d0",
+            "email": "recovery1793990924534@example.test",
+            "repId": "0a945d38-cb35-4b59-93a3-f57a6658faa2"
+          }
+        ],
+        "createdTables": [
+          {
+            "table": "reps",
+            "repId": "0a945d38-cb35-4b59-93a3-f57a6658faa2"
+          },
+          {
+            "table": "site_settings",
+            "repId": "0a945d38-cb35-4b59-93a3-f57a6658faa2"
+          },
+          {
+            "table": "subscriptions",
+            "repId": "0a945d38-cb35-4b59-93a3-f57a6658faa2"
+          },
+          {
+            "table": "self_serve_setup_sessions",
+            "repId": "0a945d38-cb35-4b59-93a3-f57a6658faa2"
+          },
+          {
+            "table": "live_lineup_connection_codes",
+            "repId": "0a945d38-cb35-4b59-93a3-f57a6658faa2"
+          }
+        ],
+        "supportSessionsCreated": 0
+      },
+      {
+        "run": "recoveryfinal1793991185976",
+        "project": "pukemqiwlyqmyytxkdmo",
+        "accounts": [
+          {
+            "role": "rep",
+            "userId": "920cc268-b8ac-4bb9-baab-b49dc808724f",
+            "email": "recoveryfinal1793991185976@example.test",
+            "repId": "fece14a6-9de3-4de8-a266-46bba042baed"
+          }
+        ],
+        "createdTables": [
+          {
+            "table": "reps",
+            "repId": "fece14a6-9de3-4de8-a266-46bba042baed"
+          },
+          {
+            "table": "site_settings",
+            "repId": "fece14a6-9de3-4de8-a266-46bba042baed"
+          },
+          {
+            "table": "subscriptions",
+            "repId": "fece14a6-9de3-4de8-a266-46bba042baed"
+          },
+          {
+            "table": "self_serve_setup_sessions",
+            "repId": "fece14a6-9de3-4de8-a266-46bba042baed"
+          },
+          {
+            "table": "live_lineup_connection_codes",
+            "repId": "fece14a6-9de3-4de8-a266-46bba042baed"
+          }
+        ],
+        "supportSessionsCreated": 0
+      }
+    ],
+    "cleanup": [
+      {
+        "run": "recovery1793990924534",
+        "accounts": [
+          {
+            "role": "rep",
+            "repId": "0a945d38-cb35-4b59-93a3-f57a6658faa2",
+            "userId": "89829593-2e09-4ecb-a9ea-fd5a223862d0",
+            "deleted": true
+          }
+        ],
+        "remaining": {
+          "reps": 0,
+          "site_settings": 0,
+          "self_serve_setup_sessions": 0,
+          "subscriptions": 0,
+          "live_lineup_connection_codes": 0,
+          "live_lineup_states": 0,
+          "nic_nac_conversations": 0
+        },
+        "authUsersRemaining": 0
+      },
+      {
+        "run": "recoveryfinal1793991185976",
+        "accounts": [
+          {
+            "role": "rep",
+            "repId": "fece14a6-9de3-4de8-a266-46bba042baed",
+            "userId": "920cc268-b8ac-4bb9-baab-b49dc808724f",
+            "deleted": true
+          }
+        ],
+        "remaining": {
+          "reps": 0,
+          "site_settings": 0,
+          "self_serve_setup_sessions": 0,
+          "subscriptions": 0,
+          "live_lineup_connection_codes": 0,
+          "live_lineup_states": 0,
+          "nic_nac_conversations": 0
+        },
+        "authUsersRemaining": 0
+      }
+    ],
+    "independentRemaining": {
+      "reps": 0,
+      "authUsers": 0,
+      "authSessions": 0
+    }
+  },
+  "credentialLogIncident": {
+    "description": "Failed harness shutdown emitted its disposable Supabase session cookie and short-lived Smoke-only Vercel preview-access header. No production credential was involved. Browser route error handling/output capture was corrected before the remaining navigation.",
+    "syntheticAccountsAndSessionsDeleted": true,
+    "localSecretFilesRemoved": true,
+    "previewAccessCredentialExpiresUtc": "2026-11-07T06:48:47.000Z",
+    "previewAccessCredentialRevoked": false,
+    "projectSecuritySettingsChanged": false,
+    "credentialValuesRecorded": false
+  },
+  "unchanged": {
+    "deniedSupportHttp500": true,
+    "identityIsolation": true,
+    "developerSupportAuthorization": true,
+    "pr181Bios": true,
+    "photoGuardrails": true,
+    "productionSettings": true,
+    "repData": true,
+    "liveDeployment": "dpl_ByYrsxYEctXQAXQTRosGSfNF2Ar5",
+    "stableSmokeDeployment": "dpl_2P6FbPEw9Ex2Qt3TEu8NnDAuBw9D"
+  },
+  "newMerges": 0,
+  "newLiveDeployments": 0,
+  "finalDiffReviews": 1,
+  "releaseRecommendation": "Bounded recovery checks passed; stop for Louis release approval. No automatic merge/Live deployment or additional review/test chain.",
+  "remainingLimits": [
+    "Sign-in target inspected but not followed in the completed pass.",
+    "Outage held through browser Retry; real authorized server identity verified, successful retry UI covered by focused unit response case.",
+    "Phone CSS viewport only; no physical-device or slow-network performance claim.",
+    "Historical Katelin Live cause remains unproven; separate denied-support500 is unchanged."
+  ]
+}

@@ -257,7 +257,7 @@
   "productionBrowserLoads": 0,
   "merges": 0,
   "finalDiffReviews": 1,
-  "status": "Privacy/fail-closed check passed on existing Smoke candidate; HOLD Live recommendation because the error screen lacks recovery guidance or controls. Separate denied support500 unchanged; historical Live cause unproven.",
+  "status": "Original recovery UX hold superseded by approved narrow recovery change and passing bounded checks; awaiting Louis release approval. Historical incident cause unproven; denied-support500 unchanged.",
   "additionalApprovedFailureScreen": {
     "deployment": "dpl_7FDqx6BQ6cW271JAYMVWDkAizS8o",
     "testedSha": "46d0a02533811b4c4716de3a5b19346044fc4941",
@@ -357,5 +357,7 @@
     "merges": 0,
     "productionChanges": 0
   },
-  "releaseRecommendation": "Hold Live pending a separately approved narrow recovery-screen improvement. No change to denied-support500 in this patch."
+  "releaseRecommendation": "Hold Live pending a separately approved narrow recovery-screen improvement. No change to denied-support500 in this patch.",
+  "latestRecoveryReceipt": "recovery-receipt.json",
+  "latestTestedSha": "dd97846f1c2f9c737d49ed40a1d3bcfcefac60ba"
 }
