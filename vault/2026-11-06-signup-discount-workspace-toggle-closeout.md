@@ -1,0 +1,10 @@
+# Workspace signup discount toggle — Smoke only
+
+- Draft PR [#183](https://github.com/louis623/sparkle-suite/pull/183), branch `codex/signup-discount-workspace-toggle`; application SHA `28208f3656b7290a667249fe8a0e1b6decd03d47`, from approved `0e136f56`. Louis waived the vault-only difference from Live at 6:17 PM ET.
+- Smoke READY `dpl_DtaskQao4HHpDvHpodWEMxfigKHs`; `sparkle-suite-smoke.vercel.app` verified on it. Migration `20261106232031_ss_signup_discount_toggle_message.sql` applied only to `pukemqiwlyqmyytxkdmo`. No Live changes or merge.
+- Both permitted test files passed once: 45 + 45 = 90 cases, 19 new/changed, no retries. One production build passed TypeScript and 11 layout locks. The 69 full-HTML baselines were untouched; their separate test file was not run.
+- Eight document loads, including three fixture/tool/selector interruptions. Workspace on/code/message save and off-save passed; phone/desktop custom confirmation and actual SMOKETEST clipboard passed; phone off had no discount keys; Lindsey fallback/clipboard unchanged. Katelin fallback unit-covered only. No extra rechecks.
+- Guarded cleanup deleted four signups, four change logs, four outbox rows. Readback: signups/logs/outbox/publications/synthetic conversation messages all zero. Test discount off/empty; exact temporary setup unlock restored. Local report and receipts: `/workspace/codex-runs/suite-signup-discount-workspace-toggle.report.md`.
+- Rollback: Smoke alias back to `dpl_2P6FbPEw9Ex2Qt3TEu8NnDAuBw9D`; schema undo `supabase/manual/20261106232031_ss_signup_discount_toggle_message_undo.sql` (Smoke only).
+- Open Brain write unavailable: capture-tool discovery returned no exposed Open Brain/capture_thought capability. No secrets included in this note.
+- Next-session prompt: Read PR #183 and the final local report; await Louis's review. No more tests, builds, browser loads, merge, or Live release without new authorization. Proposed Live migration/two-row check/separate candidate/domain steps are in the PR body, not executed.
