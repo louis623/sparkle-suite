@@ -31,3 +31,6 @@ Two selected files: tests/reviewer-smoke-ui.test.ts and tests/self-serve-setup-s
 Smoke deployments: 0. Document navigations: 0/4. Fixtures created: 0; no fixture cleanup required yet. Smoke-only database binding was verified; temporary credentials are local/ignored and will be removed at closeout.
 
 Any eventual Smoke reproduction establishes a mechanism, not the historical Live cause. Browser validation will avoid undeletable support audit fixtures; actual request-local support concurrency is covered by the focused case. No merge or Live deployment is authorized.
+
+Draft PR: https://github.com/louis623/sparkle-suite/pull/182. Application commit: eb857d907fea2400d04875c415ac1e449aea9737. No full suite or CI rerun is authorized. The new branch was pushed normally after the unchanged active-branch guard passed; no active Git hooks were configured in this clean clone.
+Temporary Smoke credential file removed; no fixtures or sessions were created. Final diff/receipt review is limited to this draft and its recorded startup blocker.
