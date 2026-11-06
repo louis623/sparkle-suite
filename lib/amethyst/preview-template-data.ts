@@ -113,15 +113,16 @@ function socialKeyForUrl(value: string) {
   return 'website'
 }
 
-function splitAboutNarrative(value: string | undefined): [string, string, string] | null {
+function splitAboutNarrative(value: string | undefined): string[] | null {
   const paragraphs = (value ?? '')
     .split(/\r?\n\s*\r?\n/)
     .map((paragraph) => paragraph.replace(/\s*\r?\n\s*/g, ' ').trim())
     .filter(Boolean)
-    .slice(0, 3)
 
   if (paragraphs.length === 0) return null
-  return [paragraphs[0] ?? '', paragraphs[1] ?? '', paragraphs[2] ?? '']
+  // Keep empty legacy slots for short bios, without limiting longer narratives.
+  while (paragraphs.length < 3) paragraphs.push('')
+  return paragraphs
 }
 
 function mergePrimarySocialLink(
@@ -192,13 +193,15 @@ function applyRequiredSetupDraftToExtras(
 function applyRequiredSetupDraftToHomepage(
   homepage: AmethystHomepageTemplateData,
   state: RequiredSetupState | null | undefined,
+  hasSavedNarrative = false,
 ): AmethystHomepageTemplateData {
   if (!state?.repId) return homepage
   const draft = normalizeRequiredSetupDraftState(state)
-  const aboutParagraphs = [...homepage.aboutParagraphs] as [string, string, string]
+  const aboutParagraphs = [...homepage.aboutParagraphs]
 
-  if (draft.aboutCopy) aboutParagraphs[0] = draft.aboutCopy
-  if (draft.scheduleSummary) {
+  // Setup preview copy only fills an unsaved About; never replaces a saved bio.
+  if (!hasSavedNarrative && draft.aboutCopy) aboutParagraphs[0] = draft.aboutCopy
+  if (!hasSavedNarrative && draft.scheduleSummary) {
     aboutParagraphs[2] = `Live show schedule: ${draft.scheduleSummary}`
   }
 
@@ -371,7 +374,7 @@ function applyBlingKitchenPantryAccess(
 
 function targetedHomepageAboutParagraphs(
   homepage: AmethystHomepageTemplateData,
-): [string, string, string] {
+): string[] {
   const repName = getPublicRepName(homepage.repName)
   const neutral: [string, string, string] = [
     `${repName} will share more about this live reveal community soon.`,
@@ -388,8 +391,8 @@ function targetedHomepageAboutParagraphs(
   }
 
   return homepage.aboutParagraphs.map((paragraph, index) =>
-    isPlaceholder(paragraph) ? neutral[index] : paragraph,
-  ) as [string, string, string]
+    isPlaceholder(paragraph) ? neutral[index] ?? '' : paragraph,
+  )
 }
 
 function buildRepOwnedJoinFaq(
@@ -905,6 +908,7 @@ export async function loadAmethystPreviewTemplateData(
         homepage: applyRequiredSetupDraftToHomepage(
           mapPreviewSettingsToHomepageTemplateData(draftSettings, draftExtras),
           activeSetupDraftState,
+          Boolean(draftSettings.aboutNarrative?.trim()),
         ),
         trade: mapPreviewSettingsToTradeTemplateData(draftSettings, draftExtras),
         join: mapPreviewSettingsToJoinTemplateData(

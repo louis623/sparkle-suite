@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { runInNewContext } from 'node:vm'
+import { buildAmethystHomepageBootstrapScript as buildLegacyHomepageBootstrapScript } from '@/lib/amethyst/legacy/homepage-template-data'
 
 import {
   buildAmethystHomepageBootstrapScript,
@@ -1563,5 +1565,52 @@ describe('Amethyst homepage template data wiring', () => {
     expect(css).toContain('.hp-unsubscribe-toggle')
     expect(css).toContain('.hp-toggle-control')
     expect(css).toMatch(/@media\s+\(pointer:\s*coarse\)[\s\S]*?\.hp-unsubscribe-toggle[\s\S]*?min-height:\s*56px;/)
+  })
+})
+
+
+describe('About narrative regression', () => {
+  const paragraphs = Array.from({ length: 7 }, (_, i) => `Ada Example shares saved paragraph ${i + 1}.`)
+  const payload = {
+    ...defaultAmethystHomepageTemplateData,
+    repName: 'Ada Example',
+    aboutParagraphs: paragraphs,
+    showAboutSection: false,
+  }
+  const contextFor = (script: string) => {
+    const context = { window: {} as Record<string, any> }
+    runInNewContext(script, context)
+    return context.window
+  }
+
+  it('serializes all seven paragraphs through current bootstrap with privacy retained', () => {
+    const script = buildAmethystHomepageBootstrapScript(payload, [], undefined, { targeted: true })
+    const output = contextFor(script).AMETHYST_HOMEPAGE_TEMPLATE_DATA
+    expect(output.aboutParagraphs).toEqual(paragraphs.map(p => p.replaceAll('Ada Example', 'Ada')))
+    expect(output.showAboutSection).toBe(false)
+    expect(script).not.toContain('Ada Example')
+  })
+
+  it('serializes all seven paragraphs through legacy bootstrap with privacy retained', () => {
+    const script = buildLegacyHomepageBootstrapScript(payload, [], undefined, { targeted: true })
+    const output = contextFor(script).AMETHYST_HOMEPAGE_TEMPLATE_DATA
+    expect(output.aboutParagraphs).toEqual(paragraphs.map(p => p.replaceAll('Ada Example', 'Ada')))
+    expect(output.showAboutSection).toBe(false)
+    expect(script).not.toContain('Ada Example')
+  })
+
+  it('preserves placeholder filtering and applies every paragraph slot in both bootstraps', () => {
+    for (const build of [buildAmethystHomepageBootstrapScript, buildLegacyHomepageBootstrapScript]) {
+      const configured = { ...payload, aboutParagraphs: [...paragraphs, 'Add a final paragraph here.'] }
+      const output = contextFor(build(configured, [], undefined, { targeted: true }))
+      const expected = [...paragraphs.map(p => p.replaceAll('Ada Example', 'Ada')), '']
+      expect(output.AMETHYST_HOMEPAGE_TEMPLATE_DATA.aboutParagraphs).toEqual(expected)
+      const nodes = new Map(expected.filter(Boolean).map((_, i) => [`[data-slot="about paragraph ${i + 1}"]`, { textContent: '' }]))
+      const document = { getElementById: () => ({ textContent: '' }), querySelector: (selector: string) => nodes.get(selector) ?? null, querySelectorAll: () => [] }
+      const context = { window: output, document }
+      runInNewContext(build(configured, [], undefined, { targeted: true }), context)
+      runInNewContext('window.AMETHYST_APPLY_HOMEPAGE_TEMPLATE()', context)
+      expect([...nodes.values()].map(node => node.textContent)).toEqual(expected.filter(Boolean))
+    }
   })
 })

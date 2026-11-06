@@ -129,7 +129,7 @@ export interface AmethystHomepageTemplateData {
   tickerTopText: string
   aboutHeadline: string
   aboutSubheading?: string
-  aboutParagraphs: [string, string, string]
+  aboutParagraphs: string[]
   aboutMediaSlots: AmethystHomepageMediaSlot[]
   signupTitle: string
   signupSub: string
@@ -433,7 +433,7 @@ const TARGETED_ABOUT_PLACEHOLDER_MARKERS = [
 /** Drop stock About lines on a real rep site. The shared template file stays locked. */
 export function blankTargetedAboutPlaceholders(
   paragraphs: readonly string[],
-): [string, string, string] {
+): string[] {
   const blanked = paragraphs.map((paragraph) => {
     const normalized = paragraph.toLowerCase()
     return TARGETED_ABOUT_PLACEHOLDER_MARKERS.some((marker) =>
@@ -442,7 +442,7 @@ export function blankTargetedAboutPlaceholders(
       ? ''
       : paragraph
   })
-  return [blanked[0] ?? '', blanked[1] ?? '', blanked[2] ?? '']
+  return blanked
 }
 
 function safeScriptJson(value: unknown) {
@@ -481,7 +481,7 @@ export function buildAmethystHomepageBootstrapScript(
       : data.aboutParagraphs
     ).map((paragraph) =>
       redactPublicRepFullName(paragraph, data.repName),
-    ) as [string, string, string],
+    ),
     signupSub: redactPublicRepFullName(data.signupSub, data.repName),
   }
   const defaults = {
@@ -516,9 +516,7 @@ export function buildAmethystHomepageBootstrapScript(
     `  var showcase = document.querySelector('[data-slot="showcase video"]'); var showcaseSurface = showcase && (showcase.querySelector('.hp-customer-media-empty') || showcase.querySelector('.hp-customer-media-viewport') || showcase); if (showcaseSurface && content.showcaseImageUrl) { showcaseSurface.style.backgroundImage = 'linear-gradient(rgba(14, 8, 32, 0.2), rgba(14, 8, 32, 0.48)), url("' + content.showcaseImageUrl + '")'; showcaseSurface.style.backgroundPosition = 'center'; showcaseSurface.style.backgroundSize = 'cover'; }`,
     `  text('[data-slot="about headline"]', content.aboutHeadline);`,
     `  text('[data-slot="about subheading"]', content.aboutSubheading);`,
-    `  text('[data-slot="about paragraph 1"]', content.aboutParagraphs && content.aboutParagraphs[0]);`,
-    `  text('[data-slot="about paragraph 2"]', content.aboutParagraphs && content.aboutParagraphs[1]);`,
-    `  text('[data-slot="about paragraph 3"]', content.aboutParagraphs && content.aboutParagraphs[2]);`,
+    `  (content.aboutParagraphs || []).forEach(function (paragraph, index) { text('[data-slot="about paragraph ' + (index + 1) + '"]', paragraph); });`,
     `  text('.hp-signup-title', content.signupTitle);`,
     `  text('.hp-signup-sub', content.signupSub);`,
     `  html('.hp-signup-consent', (content.signupConsent || '') + ' <a href="' + (footerLinks.privacy || '#') + '">Privacy policy</a>.');`,

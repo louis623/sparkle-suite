@@ -75,7 +75,9 @@ complete merely because the former has a completed setup session.
   3. public-site slug, prepared Site Settings, business/contact basics, and
      customer-facing social handles;
   4. live public Home, Dance Floor, and Join routes, including tenant-owned
-     copy and no stale demo promotion or identity;
+     copy and no stale demo promotion or identity. Compare the full saved About
+     narrative with the public About output, including its final paragraph;
+     respect intentionally hidden sections and do not enable them for this check;
   5. Calendar and customer-show readiness: configured platform social links
      are the source for public watch actions, never event-specific URLs;
   6. Live Queue operational setup or a clear unfinished handoff—not an

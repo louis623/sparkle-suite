@@ -1,5 +1,17 @@
 # Sparkle Suite Branch Register
 
+## November 6 — Shared About narrative, Smoke only
+
+Louis authorized `codex/about-narrative-smoke` from production
+`a668c05d9a123432ca9481dd4fc27d977443b12c` in disposable clone
+`C:\Users\louis\sparkle-suite-repo\.codex-worktrees\about-narrative-smoke`.
+Scope: preserve full saved bios through public mapping, both bootstrap paths
+and onboarding previews, plus focused regression coverage and the existing
+rep onboarding checklist. Six selected cases in two named files; nine Live
+document loads and at most two Smoke loads. Smoke deployment only when free,
+limited to `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` / preview. No Live, merge,
+rep content/preferences, default branch or production branch changes.
+
 ## November 4 — Favorites form v2, PR only
 
 Louis authorized `codex/favorites-form-v2` from verified tip

@@ -13,7 +13,8 @@
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\coffee-nov12-smoke",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\about-headline-smoke",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\britt-ssr-smoke-20261103",
-    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\landing-preview-images"
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\landing-preview-images",
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\about-narrative-smoke"
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
@@ -58,7 +59,8 @@
     "codex/landing-preview-images",
     "codex/heather-ssr-smoke",
     "codex/favorites-form-v2",
-    "codex/nicnac-photo-guardrails"
+    "codex/nicnac-photo-guardrails",
+    "codex/about-narrative-smoke"
   ],
   "previewBranches": {
     "codex/landing-preview-images": {
@@ -208,6 +210,10 @@
     "codex/nicnac-photo-guardrails": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
+    },
+    "codex/about-narrative-smoke": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
@@ -222,6 +228,7 @@
   "lastReviewed": "2026-10-18",
   "branchBases": {
     "codex/favorites-form-v2": "codex/nic-nac-trade-hardening",
-    "codex/nicnac-photo-guardrails": "codex/nic-nac-trade-hardening"
+    "codex/nicnac-photo-guardrails": "codex/nic-nac-trade-hardening",
+    "codex/about-narrative-smoke": "codex/nic-nac-trade-hardening"
   }
 }
