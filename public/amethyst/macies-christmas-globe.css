@@ -39,6 +39,8 @@ html[data-customer-theme="macies_christmas_globe"] body {
   --hp-form-panel-fg: var(--pine);
   --hp-field-bg: white;
   --hp-field-fg: var(--pine);
+  --hp-final-fg: var(--pine);
+  --hp-final-muted: #354d44;
   --hp-action-fg: var(--ivory);
   --font-heading: 'Macie Baskervville', Georgia, serif;
   --font-body: 'Macie Source Sans', 'Segoe UI', sans-serif;
@@ -52,6 +54,7 @@ html[data-customer-theme="macies_christmas_globe"] {
     background: var(--pine); color: var(--ivory); border-color: var(--brass);
   }
   & :is(.hp-brand-name, .hp-brand-sub, .hp-header-link, .hp-ticker-item, .hp-ticker-label, .hp-trade-preview-link, .hp-lineup-idle-prompt) { color: var(--ivory); }
+  & .hp-footer-bottom, & .hp-footer-bottom :is(p, span, a) { color: #e5d9c8; }
   & :is(.hp-ticker-row, .hp-ticker-label) { background: var(--cranberry); color: var(--ivory); }
   & .hp-ticker-row.reverse .hp-ticker-label { background: var(--pine); }
   & :is(.hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .tp-sheet-submit, .jp-spot-btn, .jp-final-btn, .tp-card-expand-cta) {
@@ -61,6 +64,11 @@ html[data-customer-theme="macies_christmas_globe"] {
     background: #fffaf3; color: var(--pine); border-color: #d7c6aa;
   }
   & :is(.jp-final-card, .hp-final-card) { background: var(--blush); color: var(--pine); }
+  & .jp-hero-card { background: #193b32; color: var(--ivory); border-color: var(--brass); }
+  & .jp-hero-title { color: var(--ivory); }
+  & :is(.jp-hero-pitch, .jp-hero-localized, .jp-hero-compliance) { color: #f4e4d2; }
+  & .jp-hero-eyebrow, & .jp-hero-compliance a { color: #f0ce99; }
+  & :is(.jp-final-title, .jp-final-note a) { color: var(--pine); }
   & :is(.hp-hero, .mhf-hero, .bwb-hero, .bk-home-hero, .bkf-hero) { position: relative; isolation: isolate; }
   & .hp-hero { min-height: max(560px, 56.25vw); display: grid; align-content: start; color: var(--ivory); }
   & .hp-hero-media { background: var(--globe-poster) center / cover no-repeat !important; }
