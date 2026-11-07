@@ -43,7 +43,11 @@ export function utilityPageFonts(properties: Map<string, string>, css: string, p
       rules.push(rule)
     }
   }
-  return [...headingPreloads].map(src => `<link rel="preload" as="font" type="font/woff2" crossorigin href="${src}" data-ssr-heading-font>`).join('') + `<style data-ssr-fonts>${rules.join('\n')}</style><script>if(document.fonts){(function(){
+  return [...headingPreloads].map(src => `<link rel="preload" as="font" type="font/woff2" crossorigin href="${src}" data-ssr-heading-font>`).join('') + embeddedPageFonts(rules.join('\n'), [...warmFonts])
+}
+
+export function embeddedPageFonts(rules: string, warmFonts: string[]) {
+  return `<style data-ssr-fonts>${rules}</style><script>if(document.fonts){(function(){
 // A buffer-backed FontFace is decoded synchronously. Reuse the embedded bytes
 // from CSSOM so WebKit cannot paint fallback metrics while a data-URL face loads.
 // No extra payload, network request, render blocker or deferred motion startup.

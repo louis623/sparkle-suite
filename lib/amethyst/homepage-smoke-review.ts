@@ -37,7 +37,7 @@ export function homepageSmokeReview(data: AmethystPreviewTemplateData, url: URL,
     const display = { businessName: 'Main Gem Co.', repName: 'Katelin' }
     data = {
       ...data,
-      homepage: { ...data.homepage, ...display, heroHeadlineOverride: '', heroHeadline: 'Christmas at Main Gem Co.', heroSub: 'Join Katelin and Macie Grey for live jewelry reveals.' },
+      homepage: { ...data.homepage, ...display, heroMotion: 'sparkle_rise', heroHeadlineOverride: '', heroHeadline: 'Christmas at Main Gem Co.', heroSub: 'Join Katelin and Macie Grey for live jewelry reveals.' },
       trade: { ...data.trade, ...display },
       join: { ...data.join, ...display },
     }

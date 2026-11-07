@@ -13,6 +13,14 @@ for (const name of ['neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pump
 // avoids mobile stylesheet round trips without tracing the entire public tree.
 const styles = Object.fromEntries(['tokens', 'components', 'homepage', 'trade', 'join', 'pantry', 'britt-hero-buttons', 'gnome-garden', 'neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pumpkin-cat', 'gilded-autumn', 'am01-unicorn', 'rose-champagne', 'sunset-beach', 'midnight-rose', 'fall-owl', 'starlight-christmas-hollow', 'macies-christmas-globe', 'gobble-and-fizz', 'pie-please', 'pearl-rose', 'ssr-hero-motion'].map(name => [name + '.css', readFileSync(`public/amethyst/${name}.css`, 'utf8')]))
 styles['framed-hero.css'] = readFileSync('public/amethyst/bling-kitchen/framed-hero.css', 'utf8')
+// The holiday theme uses only these two faces. Pin them in the first response
+// so its measured headline, navigation and control labels keep their metrics.
+const globeCss = styles['macies-christmas-globe.css']
+const globeFontRules = globeCss.match(/@font-face\s*\{[^}]+\}/g)
+if (globeFontRules?.length !== 2) throw new Error('Expected two Macie globe font faces')
+styles['macies-globe-fonts.css'] = globeFontRules.join('\n').replace(/url\('([^']+\.woff2)'\)/g,
+  (_, url) => `url('data:font/woff2;base64,${readFileSync('public' + url).toString('base64')}')`)
+styles['macies-christmas-globe.css'] = globeCss.replace(/@font-face\s*\{[^}]+\}/g, '')
 writeFileSync('lib/amethyst/generated/homepage-styles.json', JSON.stringify(styles))
 // Alpine Opal Trade needs the shared rules, but not their authoring whitespace
 // on its critical HTML path. Preserve every selector, value and rule order.

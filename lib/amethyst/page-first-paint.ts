@@ -6,7 +6,7 @@ import tradeStyles from './generated/trade-styles.json'
 export { earlyHomepageControls } from './hero-motion-controls'
 import runtimeSources from './generated/page-runtimes.json'
 import { webcrypto } from 'node:crypto'
-import { utilityPageFonts } from './utility-page-fonts'
+import { embeddedPageFonts, utilityPageFonts } from './utility-page-fonts'
 import { responsiveHeroCss, heroImagePreload } from './hero-responsive-images'
 import { join } from 'node:path'
 import { Script, createContext } from 'node:vm'
@@ -73,7 +73,7 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
   const macieGlobe = data.appearancePreset === 'macies_christmas_globe'
   const posterPreload = heroImagePreload(markup, data.appearancePreset)
   const fontMarkup = macieGlobe
-    ? ['Baskervville', 'SourceSans3'].map(face => `<link rel="preload" as="font" type="font/woff2" crossorigin href="/amethyst/skins/macies-christmas-globe/fonts/${face}.woff2">`).join('')
+    ? embeddedPageFonts(homepageStyles['macies-globe-fonts.css'], ['16px "Macie Baskervville"', '16px "Macie Source Sans"'])
     : utilityPageFonts(properties,
     [...allowedCss].map(name => homepageStyles[name as keyof typeof homepageStyles]).join('\n'), data.appearancePreset, leanTrade)
   let result = html.replace(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"?]+)[^"]*"[^>]*>/g,
