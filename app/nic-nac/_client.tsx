@@ -13,6 +13,8 @@ import { NicNacGlyph } from './components/NicNacGlyph'
 import { NicNacMobileShell } from './components/NicNacMobileShell'
 import { RequiredSetupHome } from './components/RequiredSetupHome'
 import { WorkspaceAccessPending } from './components/WorkspaceAccessPending'
+import { WorkspaceSetupRecovery } from './components/WorkspaceSetupRecovery'
+import { requestWorkspaceSetupState } from '@/lib/nic-nac/workspace-setup-request'
 import {
   buildConversationStateUrl,
   canUseUrlConversationId,
@@ -34,7 +36,6 @@ import {
 import { resolveNicNacWorkspaceMode } from '@/lib/nic-nac/required-setup-client-mode'
 import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 import {
-  REQUIRED_SETUP_STEPS,
   type RequiredSetupState,
 } from '@/lib/self-serve/required-setup-contract'
 import { createClient } from '@/lib/supabase/client'
@@ -153,54 +154,6 @@ function buildLoginRedirectHref() {
   return `/login?redirect=${encodeURIComponent(returnPath)}`
 }
 
-function buildWorkspaceReviewFallbackState(): SetupStateWithLiveQueue | null {
-  if (typeof window === 'undefined') return null
-
-  const conversationId = getConversationIdFromSearch(window.location.search)
-  if (!conversationId) return null
-
-  return {
-    id: null,
-    repId: 'rep-gracie-smoke-review',
-    status: 'dashboard_unlocked',
-    currentStep: 'final_preview_approval',
-    completedSteps: REQUIRED_SETUP_STEPS.map((step) => step.id),
-    steps: REQUIRED_SETUP_STEPS,
-    answers: {
-      account_basics: {
-        repName: 'Gracie Smoke',
-        businessName: 'Gracie Test Studio 20260605001558',
-        email: 'gracie.smoke@example.test',
-      },
-      site_skin: {
-        preset: 'sparkle_suite_morganite',
-      },
-      welcome_copy: {},
-    },
-    generatedCopy: {},
-    supportState: {
-      review_workspace: {
-        enabled: true,
-        source: 'client_fallback',
-        conversationId,
-      },
-    },
-    dashboardUnlockedAt: null,
-    createdAt: null,
-    updatedAt: null,
-    nextStep: null,
-    canUnlockDashboard: true,
-    liveQueueSyncCode: 'GS2-2335',
-  }
-}
-
-function shouldUseLocalWorkspaceReviewFallback() {
-  if (typeof window === 'undefined') return false
-
-  const host = window.location.hostname
-  return host === 'localhost' || host === '127.0.0.1'
-}
-
 type SetupStateResponse = {
   state?: SetupStateWithLiveQueue
   error?: string
@@ -263,7 +216,6 @@ export default function NicNacClient({
   const [setupStateStatus, setSetupStateStatus] = useState<
     'loading' | 'ready' | 'error'
   >('loading')
-  const [setupStateError, setSetupStateError] = useState<string | null>(null)
   const [reviewerResetBusy, setReviewerResetBusy] = useState(false)
   const [reviewerResetError, setReviewerResetError] = useState<string | null>(null)
 
@@ -308,17 +260,6 @@ export default function NicNacClient({
   const loadSetupState = useCallback(
     async (options: { signal?: AbortSignal; showLoading?: boolean } = {}) => {
       if (options.showLoading) setSetupStateStatus('loading')
-      setSetupStateError(null)
-
-      const localReviewFallbackState =
-        reviewerSmokeVisible && shouldUseLocalWorkspaceReviewFallback()
-          ? buildWorkspaceReviewFallbackState()
-          : null
-      if (localReviewFallbackState) {
-        setSetupState(localReviewFallbackState)
-        setSetupStateStatus('ready')
-        return
-      }
 
       const controller = new AbortController()
       const abortFromCaller = () => controller.abort('caller')
@@ -329,30 +270,16 @@ export default function NicNacClient({
       }, SETUP_STATE_TIMEOUT_MS)
 
       try {
-        const res = await fetch(buildSetupStateUrl(), {
-          credentials: 'include',
-          signal: controller.signal,
-        })
+        const res = await requestWorkspaceSetupState(buildSetupStateUrl(), controller.signal)
         if (!res.ok) {
-          const fallbackState = reviewerSmokeVisible
-            ? buildWorkspaceReviewFallbackState()
-            : null
-          if (fallbackState) {
-            setSetupState(fallbackState)
-            setSetupStateStatus('ready')
-            return
-          }
-
           if (res.status === 401) {
+            setSetupState(null)
+            setSetupStateStatus('error')
             router.replace(buildLoginRedirectHref())
             return
           }
 
-          const body = (await res.json().catch(() => null)) as
-            | SetupStateResponse
-            | null
           setSetupState(null)
-          setSetupStateError(body?.error ?? `Couldn't load setup state (${res.status}).`)
           setSetupStateStatus('error')
           return
         }
@@ -365,41 +292,20 @@ export default function NicNacClient({
       } catch (err) {
         if ((err as { name?: string })?.name === 'AbortError') {
           if (controller.signal.reason === 'timeout') {
-            const fallbackState = reviewerSmokeVisible
-              ? buildWorkspaceReviewFallbackState()
-              : null
-            if (fallbackState) {
-              setSetupState(fallbackState)
-              setSetupStateStatus('ready')
-              return
-            }
-
             setSetupState(null)
-            setSetupStateError(
-              'Setup state did not load. Check local auth and environment configuration, then refresh.',
-            )
             setSetupStateStatus('error')
           }
           return
         }
-        const fallbackState = reviewerSmokeVisible
-          ? buildWorkspaceReviewFallbackState()
-          : null
-        if (fallbackState) {
-          setSetupState(fallbackState)
-          setSetupStateStatus('ready')
-          return
-        }
 
         setSetupState(null)
-        setSetupStateError(`Failed to load setup state: ${(err as Error).message}`)
         setSetupStateStatus('error')
       } finally {
         window.clearTimeout(timeoutId)
         options.signal?.removeEventListener('abort', abortFromCaller)
       }
     },
-    [reviewerSmokeVisible, router],
+    [router],
   )
 
   const syncReturnedCheckoutSession = useCallback(
@@ -446,17 +352,11 @@ export default function NicNacClient({
     ;(async () => {
       if (isFinalizingCheckout) {
         setSetupStateStatus('loading')
-        setSetupStateError(null)
         try {
           await syncReturnedCheckoutSession(checkoutSessionId, controller.signal)
         } catch (err) {
           if ((err as { name?: string })?.name === 'AbortError') return
           setSetupState(null)
-          setSetupStateError(
-            err instanceof Error
-              ? err.message
-              : 'Stripe checkout sync failed.',
-          )
           setSetupStateStatus('error')
           return
         }
@@ -987,7 +887,12 @@ export default function NicNacClient({
   if (setupStateStatus === 'error') {
     return (
       <div className={shellStyles.root}>
-        <div className={shellStyles.loading}>{setupStateError}</div>
+        <div className={shellStyles.recovery}>
+          <WorkspaceSetupRecovery
+            onRetry={() => loadSetupState({ showLoading: true })}
+            signInHref={buildLoginRedirectHref()}
+          />
+        </div>
       </div>
     )
   }

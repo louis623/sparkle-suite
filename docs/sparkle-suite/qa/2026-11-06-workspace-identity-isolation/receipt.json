@@ -1,0 +1,363 @@
+{
+  "baseSha": "0e136f56aca8d202f7ef6b23eb0fb380e7268b3d",
+  "applicationCommit": "eb857d907fea2400d04875c415ac1e449aea9737",
+  "testedSha": "46d0a02533811b4c4716de3a5b19346044fc4941",
+  "pr": "https://github.com/louis623/sparkle-suite/pull/182",
+  "smokeDeployment": {
+    "id": "dpl_7FDqx6BQ6cW271JAYMVWDkAizS8o",
+    "origin": "https://sparkle-suite-smoke-72h6k3tes-louis-2849s-projects.vercel.app",
+    "state": "READY",
+    "target": "preview",
+    "deploymentCount": 1,
+    "stableAliasMoved": false
+  },
+  "historicalIncidentCause": "unproven; production reviewer mode value and original browser response unknown",
+  "reproducedMechanism": "controlled setup HTTP500 displays Gracie and a different connection code while /api/nic-nac/me still identifies the ordinary synthetic rep",
+  "tests": {
+    "files": [
+      "tests/reviewer-smoke-ui.test.ts",
+      "tests/self-serve-setup-state-route.test.ts"
+    ],
+    "startupAttempts": 2,
+    "firstAttemptCaseCount": 0,
+    "approvedRetry": true,
+    "executed": 6,
+    "passed": 6,
+    "failed": 0,
+    "skippedUnselected": 21,
+    "caseNames": [
+      "reviewer smoke UI wiring [identity] never fabricates a reviewer identity after client resolution fails",
+      "reviewer smoke UI wiring [identity] disables all reviewer entry points on production despite enabled settings",
+      "/api/self-serve/setup-state [identity] ordinary rep remains owner despite another conversation in the URL",
+      "/api/self-serve/setup-state [identity] denies unauthenticated preview conversation lookups without reading another rep",
+      "/api/self-serve/setup-state [identity] fails safely when authenticated setup resolution fails",
+      "/api/self-serve/setup-state [identity] concurrent authorized developer context cannot replace a separate rep session"
+    ]
+  },
+  "browser": {
+    "documentNavigations": 4,
+    "navigationBudget": 4,
+    "isolatedSessions": 2,
+    "navigationUrls": [
+      {
+        "role": "rep",
+        "url": "https://sparkle-suite-smoke-5kf9bhra4-louis-2849s-projects.vercel.app/nic-nac?conversationId=c43d0c77-5f4b-48cc-84a1-b36a105006f6"
+      },
+      {
+        "role": "rep",
+        "url": "https://sparkle-suite-smoke-72h6k3tes-louis-2849s-projects.vercel.app/nic-nac?conversationId=c43d0c77-5f4b-48cc-84a1-b36a105006f6"
+      },
+      {
+        "role": "developer",
+        "url": "https://sparkle-suite-smoke-72h6k3tes-louis-2849s-projects.vercel.app/nic-nac?conversationId=c43d0c77-5f4b-48cc-84a1-b36a105006f6"
+      }
+    ],
+    "checks": [
+      {
+        "name": "baseline_gracie_workspace_after_controlled_500",
+        "pass": true,
+        "documentStatus": 200
+      },
+      {
+        "name": "baseline_server_identity_stays_synthetic_rep",
+        "pass": true
+      },
+      {
+        "name": "baseline_displayed_connection_differs_from_authenticated_rep",
+        "pass": true
+      },
+      {
+        "name": "candidate_ordinary_rep_workspace",
+        "pass": true
+      },
+      {
+        "name": "candidate_no_gracie_display",
+        "pass": true
+      },
+      {
+        "name": "candidate_developer_control_center_signin",
+        "pass": true,
+        "status": 200
+      },
+      {
+        "name": "candidate_two_browser_sessions_keep_separate_identities",
+        "pass": true
+      },
+      {
+        "name": "candidate_developer_authorized_rep_denied",
+        "pass": false,
+        "developerStatus": 404,
+        "ordinaryStatus": 500
+      }
+    ],
+    "stoppedOn": "candidate_developer_authorized_rep_denied",
+    "lastSafeFailureViewExecuted": true,
+    "screenshots": [
+      "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\06\\01a1ae65-7c5a-7b32-8ff6-68243a8f5e96\\identity-isolation\\baseline-gracie-masked.png"
+    ],
+    "consoleErrors": [
+      {
+        "role": "rep",
+        "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      },
+      {
+        "role": "rep",
+        "text": "Failed to load resource: the server responded with a status of 404 ()"
+      }
+    ],
+    "scope": "No active rep or existing browser session used. Developer Control Center login succeeded; actual support-target concurrency covered by focused AsyncLocalStorage test. No persistent support session was created.",
+    "additionalApprovedNavigationCount": 1,
+    "failureScreenPrivacyPassed": true,
+    "failureScreenRecoveryPassed": false
+  },
+  "negativeSupportRead": {
+    "developerStatus": 404,
+    "ordinaryStatus": 500,
+    "diagnosis": "gateway catches AuthError in its generic 500 branch; candidate runtime log says Control Center sign in is required; generic error response contains no workspace data",
+    "changedByThisPR": false
+  },
+  "fixtureManifest": {
+    "run": "identity1793987302707",
+    "project": "pukemqiwlyqmyytxkdmo",
+    "accounts": [
+      {
+        "role": "rep",
+        "userId": "64bf2f72-8d12-4d99-8dad-503a716ca01e",
+        "email": "identity1793987302707.rep@example.test",
+        "repId": "c7533ea7-2e41-4686-b0c0-f077342113b7"
+      },
+      {
+        "role": "developer",
+        "userId": "772f216d-bac1-40ca-9ea4-83d896df981c",
+        "email": "identity1793987302707.developer@example.test",
+        "repId": "901213ff-762c-4ad5-94c3-660f72b7cf35"
+      }
+    ],
+    "createdTables": [
+      {
+        "table": "reps",
+        "repId": "c7533ea7-2e41-4686-b0c0-f077342113b7"
+      },
+      {
+        "table": "site_settings",
+        "repId": "c7533ea7-2e41-4686-b0c0-f077342113b7"
+      },
+      {
+        "table": "subscriptions",
+        "repId": "c7533ea7-2e41-4686-b0c0-f077342113b7"
+      },
+      {
+        "table": "self_serve_setup_sessions",
+        "repId": "c7533ea7-2e41-4686-b0c0-f077342113b7"
+      },
+      {
+        "table": "live_lineup_connection_codes",
+        "repId": "c7533ea7-2e41-4686-b0c0-f077342113b7"
+      },
+      {
+        "table": "reps",
+        "repId": "901213ff-762c-4ad5-94c3-660f72b7cf35"
+      },
+      {
+        "table": "site_settings",
+        "repId": "901213ff-762c-4ad5-94c3-660f72b7cf35"
+      },
+      {
+        "table": "subscriptions",
+        "repId": "901213ff-762c-4ad5-94c3-660f72b7cf35"
+      },
+      {
+        "table": "self_serve_setup_sessions",
+        "repId": "901213ff-762c-4ad5-94c3-660f72b7cf35"
+      },
+      {
+        "table": "live_lineup_connection_codes",
+        "repId": "901213ff-762c-4ad5-94c3-660f72b7cf35"
+      }
+    ],
+    "supportSessionsCreated": 0
+  },
+  "cleanup": {
+    "run": "identity1793987302707",
+    "accounts": [
+      {
+        "role": "rep",
+        "repId": "c7533ea7-2e41-4686-b0c0-f077342113b7",
+        "userId": "64bf2f72-8d12-4d99-8dad-503a716ca01e",
+        "deleted": true
+      },
+      {
+        "role": "developer",
+        "repId": "901213ff-762c-4ad5-94c3-660f72b7cf35",
+        "userId": "772f216d-bac1-40ca-9ea4-83d896df981c",
+        "deleted": true
+      }
+    ],
+    "remaining": {
+      "reps": 0,
+      "site_settings": 0,
+      "self_serve_setup_sessions": 0,
+      "subscriptions": 0,
+      "live_lineup_connection_codes": 0,
+      "live_lineup_states": 0,
+      "nic_nac_conversations": 0
+    },
+    "authUsersRemaining": 0
+  },
+  "independentCleanup": {
+    "fixtureReps": 0,
+    "authUsers": 0,
+    "authSessions": 0
+  },
+  "deploymentOnlyFixtureConfiguration": {
+    "project": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+    "environment": "preview",
+    "sourceSha": "46d0a02533811b4c4716de3a5b19346044fc4941",
+    "stableSmokeAliasMoved": false,
+    "fixtureRun": "identity1793987302707",
+    "buildAndRuntimeOverrideNames": [
+      "SPARKLE_ENVIRONMENT",
+      "NEXT_PUBLIC_SPARKLE_ENVIRONMENT",
+      "SPARKLE_REVIEWER_SMOKE_MODE",
+      "SPARKLE_REVIEWER_SMOKE_TOKEN",
+      "CONTROL_CENTER_USERNAME",
+      "CONTROL_CENTER_PASSWORD",
+      "CONTROL_CENTER_OPERATOR_EMAIL",
+      "CONTROL_CENTER_SESSION_SECRET",
+      "CONTROL_CENTER_OWNER_EMAILS",
+      "INTERNAL_OPERATOR_EMAILS",
+      "CONTROL_CENTER_SITE_SUPPORT_OPERATOR_EMAILS",
+      "CONTROL_CENTER_ACCOUNTING_VIEWER_OPERATOR_EMAIL",
+      "CONTROL_CENTER_ADDITIONAL_CREDENTIALS",
+      "SPARKLE_SELF_SERVE_ENABLED",
+      "SPARKLE_PRE_SHOW_SMS_ENABLED",
+      "SPARKLE_PRE_SHOW_EMAIL_ENABLED",
+      "SIGNWELL_SEND_ENABLED",
+      "SPARKLE_LAB_MANUAL_RUNS_ENABLED",
+      "SPARKLE_LAB_WEEKLY_RUNS_ENABLED",
+      "SPARKLE_LAB_MODEL_SYNTHESIS_ENABLED",
+      "SPARKLE_RELEASE_BRANCH",
+      "SPARKLE_RELEASE_REPOSITORY"
+    ],
+    "reviewerMode": true,
+    "reviewerToken": "generated only for this deployment",
+    "operatorAllowlist": "only this run synthetic developer",
+    "allRepsUnaffected": true
+  },
+  "liveAfter": {
+    "deployment": "dpl_ByYrsxYEctXQAXQTRosGSfNF2Ar5",
+    "sha": "7460a63271ed781e037072da971f8bfc8eba12ab",
+    "unchanged": true
+  },
+  "stableSmokeAfter": {
+    "deployment": "dpl_2P6FbPEw9Ex2Qt3TEu8NnDAuBw9D",
+    "unchanged": true
+  },
+  "productionWrites": 0,
+  "productionBrowserLoads": 0,
+  "merges": 0,
+  "finalDiffReviews": 1,
+  "status": "Original recovery UX hold superseded by approved narrow recovery change and passing bounded checks; awaiting Louis release approval. Historical incident cause unproven; denied-support500 unchanged.",
+  "additionalApprovedFailureScreen": {
+    "deployment": "dpl_7FDqx6BQ6cW271JAYMVWDkAizS8o",
+    "testedSha": "46d0a02533811b4c4716de3a5b19346044fc4941",
+    "navigations": [
+      "https://sparkle-suite-smoke-72h6k3tes-louis-2849s-projects.vercel.app/nic-nac?conversationId=c4d8cfdc-8b0d-45be-b39f-4f868b4e0262"
+    ],
+    "setupResponse": {
+      "status": 500,
+      "error": "Failed to load setup state"
+    },
+    "interceptedSetupRequests": 1,
+    "checks": {
+      "exactlyOneDocumentNavigation": true,
+      "failedSetupWasInjected": true,
+      "safeErrorVisible": true,
+      "noGracie": true,
+      "noOtherWorkspaceInformation": true,
+      "noConnectionCredential": true,
+      "noFixtureConnectionCode": true,
+      "noFrameworkOverlay": true
+    },
+    "buttons": [],
+    "links": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "documentStatus": 200,
+    "visibleError": "Failed to load setup state",
+    "recoveryControlPresent": false,
+    "recoveryInstructionPresent": false,
+    "credentialsAndIdentityWithheld": true,
+    "screenshot": "C:/Users/louis/.codex/visualizations/2026/11/06/01a1ae65-7c5a-7b32-8ff6-68243a8f5e96/identity-isolation/candidate-failure-screen-approved.png",
+    "fixtureManifest": {
+      "run": "identityfailure1793989841307",
+      "project": "pukemqiwlyqmyytxkdmo",
+      "accounts": [
+        {
+          "role": "rep",
+          "userId": "bac69160-122d-4907-97a3-591b3dd7c883",
+          "email": "identityfailure1793989841307@example.test",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        }
+      ],
+      "createdTables": [
+        {
+          "table": "reps",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        },
+        {
+          "table": "site_settings",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        },
+        {
+          "table": "subscriptions",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        },
+        {
+          "table": "self_serve_setup_sessions",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        },
+        {
+          "table": "live_lineup_connection_codes",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b"
+        }
+      ],
+      "supportSessionsCreated": 0
+    },
+    "cleanup": {
+      "run": "identityfailure1793989841307",
+      "accounts": [
+        {
+          "role": "rep",
+          "repId": "2c4cc001-8c8b-4d79-8c57-091cf569fc9b",
+          "userId": "bac69160-122d-4907-97a3-591b3dd7c883",
+          "deleted": true
+        }
+      ],
+      "remaining": {
+        "reps": 0,
+        "site_settings": 0,
+        "self_serve_setup_sessions": 0,
+        "subscriptions": 0,
+        "live_lineup_connection_codes": 0,
+        "live_lineup_states": 0,
+        "nic_nac_conversations": 0
+      },
+      "authUsersRemaining": 0
+    },
+    "independentCleanup": {
+      "fixtureReps": 0,
+      "authUsers": 0,
+      "authSessions": 0
+    },
+    "automatedTestsRerun": 0,
+    "deployments": 0,
+    "sourceEdits": 0,
+    "merges": 0,
+    "productionChanges": 0
+  },
+  "releaseRecommendation": "Hold Live pending a separately approved narrow recovery-screen improvement. No change to denied-support500 in this patch.",
+  "latestRecoveryReceipt": "recovery-receipt.json",
+  "latestTestedSha": "dd97846f1c2f9c737d49ed40a1d3bcfcefac60ba"
+}

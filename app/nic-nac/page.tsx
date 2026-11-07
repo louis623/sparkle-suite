@@ -2,7 +2,6 @@ import { Suspense } from 'react'
 import NicNacClient from './_client'
 import {
   reviewerSmokeModeEnabled,
-  workspaceReviewAccessEnabled,
 } from '@/lib/reviewer-smoke/config'
 import styles from './page.module.css'
 import './nic-nac-tokens.css'
@@ -18,7 +17,7 @@ export default function NicNacPage() {
           <NicNacClient
             liveLineupReadOnly={!liveLineupOwnerMutationsAvailable()}
             reviewerSmokeVisible={
-              reviewerSmokeModeEnabled() || workspaceReviewAccessEnabled()
+              reviewerSmokeModeEnabled()
             }
           />
         </Suspense>

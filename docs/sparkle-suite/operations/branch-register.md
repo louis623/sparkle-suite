@@ -1,5 +1,15 @@
 # Sparkle Suite Branch Register
 
+## November 6 — Workspace identity isolation, Smoke only
+
+Louis explicitly approved `codex/workspace-identity-isolation` and disposable checkout
+`C:\Users\louis\sparkle-suite-repo\.codex-worktrees\workspace-identity-isolation-20261106`.
+Base: `0e136f56aca8d202f7ef6b23eb0fb380e7268b3d`, including shipped PR181.
+Only Smoke project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` / preview is authorized.
+Two test files, six selected cases, four document navigations, one deployment maximum.
+GitHub default, Live branch/settings, active reps, photo guardrails and PR180 remain unchanged.
+
+
 ## November 6 — Shared About narrative, Smoke only
 
 Louis authorized `codex/about-narrative-smoke` from production

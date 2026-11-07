@@ -10,13 +10,18 @@ export const REVIEWER_SMOKE_NEXT_PATHS: Record<ReviewerSmokeState, string> = {
 }
 
 export function reviewerSmokeModeEnabled(env: NodeJS.ProcessEnv = process.env) {
+  if (!workspaceReviewAccessEnabled(env)) return false
   const flag = env.SPARKLE_REVIEWER_SMOKE_MODE?.trim().toLowerCase()
   if (flag !== 'true' && flag !== '1') return false
   return getReviewerSmokeToken(env).length >= 12
 }
 
 export function workspaceReviewAccessEnabled(env: NodeJS.ProcessEnv = process.env) {
-  return env.VERCEL_ENV !== 'production'
+  // A production deployment must reject reviewer access even if old reviewer
+  // settings remain configured. Missing platform metadata is not preview access.
+  if (env.VERCEL_ENV === 'production') return false
+  return (env.VERCEL_ENV === 'preview' && env.SPARKLE_ENVIRONMENT === 'smoke') ||
+    (!env.VERCEL_ENV && env.NODE_ENV === 'development')
 }
 
 export function getReviewerSmokeToken(env: NodeJS.ProcessEnv = process.env) {
