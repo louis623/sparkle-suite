@@ -1,0 +1,15 @@
+{
+  "model": "bytedance/seedance-2.5/image-to-video",
+  "input": {
+    "prompt": "Animate this EXACT approved moonlit Christmas gnome village illustration as one restrained continuous 16-second SEAMLESS LOOP for a customer website hero. Fixed tripod camera, identical framing, no zoom or parallax. Preserve all four gnomes, their exact faces, clothing, hats, planted feet, lantern, presents, tree, attached star, cottages, moon, snow banks and stream. Preserve clean empty central text area. The large red-hat blue-coat white-beard gnome at RIGHT stays in place: seconds 1-3 one soft blink and tiny glance toward friends at left; seconds 3-6 lift lantern only a few centimeters with slight natural wrist motion; seconds 6-10 return lantern and head very slowly; seconds 10-16 relaxed starting pose with subtle breathing, eyes fully open at end. Lantern stays attached to same hand, identical brightness, no pendulum swing. LEFT upper gnome on ladder: seconds 5-8 very gently adjusts the ALREADY ATTACHED star, keeping hands near it; seconds 8-12 returns hands to initial positions. Star never leaves tree and stays same shape, location and brightness. LEFT lower gnome at gift: seconds 7-10 lightly smooths an EXISTING red bow; seconds 10-13 returns hands naturally, do not tie a new bow or open gift. Small center-left gift-carrying gnome: seconds 3-7 subtle weight shift and blink, keeping feet planted and exact stack of gifts unchanged, then back to start by second 12. Never walk, add or remove a gift. All movements independent, slow, tiny and physically plausible. Scene stays peaceful, not everyone moving constantly. Fine sparse snow falls slowly continuously throughout with steady density; very slight chimney smoke and continuous fine shimmering stream reflections. Christmas tree lights warm and nearly steady with only a few localized gentle twinkles; no synchronized flashing or global exposure pulse. Moon, stars, buildings, trees and snow geometry completely fixed. Final 3 seconds blend NATURALLY into first 3 seconds in pose, movement direction and speed, illumination and ambience. Return to opening composition well before final frame without snapping or frozen hold. Maintain exact character identity and dimensional painterly detail. No speech, singing, music, audio, new objects, characters, camera motion, cuts, morphing, duplicated limbs, melting hands, floating feet, reversed motion, dramatic gestures, snowfall bursts, text, logos, interfaces or UI.",
+    "duration": 16,
+    "resolution": "720p",
+    "output_format": "mp4",
+    "generate_audio": false
+  },
+  "sourceSha256": "f758d1a936ebe4fde6df65ae190c422c7213b24a5c16af5128ebca7529091151",
+  "requestId": "01a1b371-d978-7f44-a410-df419c5b3055",
+  "startAndEndImage": "approved-hero.png",
+  "quotedCostUsd": 7.3952,
+  "actualChargeVerified": false
+}

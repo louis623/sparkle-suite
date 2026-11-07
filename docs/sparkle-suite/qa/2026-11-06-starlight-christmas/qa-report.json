@@ -1,0 +1,58 @@
+{
+  "input": {
+    "duration": 16.041667,
+    "dimensions": [
+      1280,
+      720
+    ],
+    "codec": "H.264",
+    "audioStreams": 0
+  },
+  "output": {
+    "duration": 15.5,
+    "dimensions": [
+      1280,
+      720
+    ],
+    "codec": "H.264",
+    "fps": 24,
+    "bytes": 3370008,
+    "audioStreams": 0
+  },
+  "music": {
+    "duration": 77.844898,
+    "codec": "MP3",
+    "independentLoop": true,
+    "defaultOff": true
+  },
+  "boundaryMeanAbsolutePixelDifference": {
+    "firstAdjacent": 0.5098958333333333,
+    "lastAdjacent": 2.05208912037037,
+    "loopBoundary": 2.4634780092592594
+  },
+  "extractedFrames": [
+    "C:/Users/louis/sparkle-suite-repo/artifacts/creative/2026-11-06-gnome-christmas-concepts/motion-contact.jpg",
+    "C:/Users/louis/sparkle-suite-repo/artifacts/creative/2026-11-06-gnome-christmas-concepts/video-edit/outputs/loop-boundary.png"
+  ],
+  "visualInspection": [
+    "Original approved identity and four gnomes retained.",
+    "Boundary stills inspected; fixed composition, consistent exposure, matched near-opening pose.",
+    "Browser confirmed video advances and loops, music progresses independently, pause and offscreen behavior work.",
+    "Desktop, 390px phone and 820px tablet reviewed; complete art retained on small screens."
+  ],
+  "expectedDeliverables": [
+    "hero-loop.mp4",
+    "christmas-music-box.mp3",
+    "hero-poster.webp",
+    "portrait flyer",
+    "card front/back and print PDF"
+  ],
+  "missingDeliverables": [],
+  "pass": true,
+  "productionReady": false,
+  "remainingReleaseChecks": [
+    "Deployed Smoke reviewer workflow including actual picker and print exports.",
+    "Slow-4G performance and device playback acceptance.",
+    "Louis Live approval, demo-only stage, then separate Community grant."
+  ]
+}

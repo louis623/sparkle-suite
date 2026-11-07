@@ -1,3 +1,4 @@
+import { starlightThemeBootstrap } from './starlight-theme-bootstrap'
 import { buildPublicSiteVisibilityScript, type PublicSiteVisibility } from '@/lib/public-site/visibility'
 import {
   defaultAmethystHomepageEvents,
@@ -504,7 +505,7 @@ export function buildAmethystHomepageBootstrapScript(
     `window.AMETHYST_RUNTIME_CONTEXT = ${safeScriptJson(publicRuntimeContext)};`,
     buildPublicSiteVisibilityScript(publicData.visibility),
     `window.AMETHYST_HOMEPAGE_TEMPLATE_DATA = ${safeScriptJson(publicData)};`,
-    `window.HOMEPAGE_TWEAK_DEFAULTS = ${safeScriptJson(defaults)};`,
+    `window.HOMEPAGE_TWEAK_DEFAULTS = ${safeScriptJson(defaults)};` + starlightThemeBootstrap(defaults.preset),
     `window.AMETHYST_HOMEPAGE_EVENTS = ${safeScriptJson(events)};`,
     `window.AMETHYST_APPLY_HOMEPAGE_TEMPLATE = function applyHomepageTemplate(currentTweaks) {`,
     `  var content = window.AMETHYST_HOMEPAGE_TEMPLATE_DATA || {};`,

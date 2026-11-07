@@ -1,3 +1,4 @@
+import { starlightThemeBootstrap } from './starlight-theme-bootstrap'
 import { buildPublicSiteVisibilityScript, type PublicSiteVisibility } from '@/lib/public-site/visibility'
 import {
   applyAmethystAppearancePreset,
@@ -447,6 +448,6 @@ export function buildAmethystJoinBootstrapScript(
     `window.AMETHYST_RUNTIME_CONTEXT = ${safeScriptJson(publicRuntimeContext)};`,
     buildPublicSiteVisibilityScript(publicData.visibility),
     `window.AMETHYST_JOIN_TEMPLATE_DATA = ${safeScriptJson(publicData)};`,
-    `window.JOIN_TWEAK_DEFAULTS = ${safeScriptJson(defaults)};`,
+    `window.JOIN_TWEAK_DEFAULTS = ${safeScriptJson(defaults)};` + starlightThemeBootstrap(defaults.preset),
   ].join('\n')
 }

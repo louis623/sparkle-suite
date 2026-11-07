@@ -3,15 +3,15 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 // Keep frozen legacy scripts byte-identical. Only SSR-owned copies skip the
 // scene already present in the React tree (Sunset's card paint still runs).
 mkdirSync('public/amethyst/ssr-motion', { recursive: true })
-for (const name of ['neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pumpkin-cat', 'gilded-autumn', 'am01-unicorn', 'rose-champagne', 'midnight-rose', 'fall-owl', 'thanksgiving-motion', 'pearl-rose', 'sunset-beach']) {
+for (const name of ['neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pumpkin-cat', 'gilded-autumn', 'am01-unicorn', 'rose-champagne', 'midnight-rose', 'fall-owl', 'starlight-christmas-hollow', 'thanksgiving-motion', 'pearl-rose', 'sunset-beach']) {
   const source = readFileSync(`public/amethyst/${name}.js`, 'utf8')
-  const ssrSource = source.replace(/\.hp-hero(?![-\w])/g, '.hp-hero:not([data-ssr-hero])')
+  const ssrSource = name === 'starlight-christmas-hollow' ? source : source.replace(/\.hp-hero(?![-\w])/g, '.hp-hero:not([data-ssr-hero])')
   writeFileSync(`public/amethyst/ssr-motion/${name}.js`, name === 'gilded-autumn'
     ? ssrSource.replace(/\.mhf-hero(?![-\w])/g, '.mhf-hero:not([data-ssr-hero])') : ssrSource)
 }
 // Bundle trusted CSS as immutable server data. Inlining the selected styles
 // avoids mobile stylesheet round trips without tracing the entire public tree.
-const styles = Object.fromEntries(['tokens', 'components', 'homepage', 'trade', 'join', 'pantry', 'britt-hero-buttons', 'gnome-garden', 'neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pumpkin-cat', 'gilded-autumn', 'am01-unicorn', 'rose-champagne', 'sunset-beach', 'midnight-rose', 'fall-owl', 'gobble-and-fizz', 'pie-please', 'pearl-rose', 'ssr-hero-motion'].map(name => [name + '.css', readFileSync(`public/amethyst/${name}.css`, 'utf8')]))
+const styles = Object.fromEntries(['tokens', 'components', 'homepage', 'trade', 'join', 'pantry', 'britt-hero-buttons', 'gnome-garden', 'neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pumpkin-cat', 'gilded-autumn', 'am01-unicorn', 'rose-champagne', 'sunset-beach', 'midnight-rose', 'fall-owl', 'starlight-christmas-hollow', 'gobble-and-fizz', 'pie-please', 'pearl-rose', 'ssr-hero-motion'].map(name => [name + '.css', readFileSync(`public/amethyst/${name}.css`, 'utf8')]))
 styles['framed-hero.css'] = readFileSync('public/amethyst/bling-kitchen/framed-hero.css', 'utf8')
 writeFileSync('lib/amethyst/generated/homepage-styles.json', JSON.stringify(styles))
 // Alpine Opal Trade needs the shared rules, but not their authoring whitespace

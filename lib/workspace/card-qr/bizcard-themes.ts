@@ -8,6 +8,7 @@ export type BizcardKey =
   | 'amethyst'
   | 'gilded-autumn'
   | 'midnight-rose'
+  | 'starlight-christmas-hollow'
   | 'fall-owl'
   | 'gobble-and-fizz'
   | 'pie-please'
@@ -69,6 +70,7 @@ export const BIZCARD_THEMES: Record<BizcardKey, BizcardTheme> = {
     back: '#1c0e08', name: '#ffa04d', ink: '#fff4e8', sub: '#f0c9a0', rule: '#5e3218', title: '#fff4e8', script: '#ffa04d' }),
   amethyst: t({ key: 'amethyst', qrTheme: 'amethyst', align: 'left', tw: 0.4, shadow: true,
     back: '#26105c', name: '#ff8fd0', ink: '#ffffff', sub: '#cdb8ff', rule: '#4f3398', title: '#ffffff', script: '#ff9bd6' }),
+  'starlight-christmas-hollow': t({ key: 'starlight-christmas-hollow', qrTheme: 'starlight_christmas_hollow', align: 'center', maxw: 400, cmaxh: 210, ytop: 160, shadow: true, back: '#0b2039', name: '#f2c77b', ink: '#fff7e9', sub: '#c5d5e5', rule: '#50617a', title: '#fff7e9', script: '#f2c77b' }),
   'fall-owl': t({ key: 'fall-owl', qrTheme: 'fall_owl_harvest_moon', align: 'left', tw: 0.47, shadow: true,
     back: '#201321', name: '#efba73', ink: '#fff3e4', sub: '#ddc8b8', rule: '#70513e', title: '#fff3e4', script: '#efba73' }),
   'midnight-rose': t({ key: 'midnight-rose', qrTheme: 'midnight_rose', align: 'top', shadow: true,
@@ -114,6 +116,7 @@ export const BIZCARD_SHARED_THEMES: Partial<Record<string, BizcardKey>> = {
   amethyst: 'amethyst',
   gilded_autumn: 'gilded-autumn',
   midnight_rose: 'midnight-rose',
+  starlight_christmas_hollow: 'starlight-christmas-hollow',
   fall_owl_harvest_moon: 'fall-owl',
   pearl_rose: 'pearl-rose',
   sunset_beach: 'sunset-beach',

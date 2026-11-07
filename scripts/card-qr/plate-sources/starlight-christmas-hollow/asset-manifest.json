@@ -1,0 +1,37 @@
+[
+  {
+    "file": "scripts/card-qr/plate-sources/starlight-christmas-hollow/approved-hero.png",
+    "bytes": 2976035,
+    "sha256": "f758d1a936ebe4fde6df65ae190c422c7213b24a5c16af5128ebca7529091151"
+  },
+  {
+    "file": "scripts/card-qr/plate-sources/starlight-christmas-hollow/flyer-portrait.png",
+    "bytes": 2187115,
+    "sha256": "6889e216fcb149cc2b145b925380bf5b323a8431a7e0ea18e46074236992dd36"
+  },
+  {
+    "file": "public/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+    "bytes": 290956,
+    "sha256": "a57b887cb9e577af9afd15ca725718d7e64cd2893b01b7e51012b9eb7e7a54d2"
+  },
+  {
+    "file": "public/amethyst/skins/starlight-christmas-hollow/hero-loop.mp4",
+    "bytes": 3370008,
+    "sha256": "6e28d44957471f921721fc92a26f47609934232e9f132c7f18e665175d48ba75"
+  },
+  {
+    "file": "public/amethyst/skins/starlight-christmas-hollow/christmas-music-box.mp3",
+    "bytes": 1246398,
+    "sha256": "35049d72eb7a0ef47ee6daf92dba5e24bcffb9dde57d3ac6663f990224bbf7c8"
+  },
+  {
+    "file": "public/amethyst/skins/starlight-christmas-hollow/flyer/plate.webp",
+    "bytes": 283210,
+    "sha256": "170c03cb5f6b6114bdf567dcad5d4fbf80bae6bc1a744680f8f63fb7d4177cd6"
+  },
+  {
+    "file": "lib/workspace/card-qr/card-plates/starlight-christmas-hollow.jpg",
+    "bytes": 422035,
+    "sha256": "dd958de64d3d72606b59020aea682999dc18f8684d3a574bb9f5cfc205b9116a"
+  }
+]

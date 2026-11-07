@@ -28,6 +28,9 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
   { theme: 'gobble_and_fizz', status: 'art', source: skin('gobble-and-fizz', 'hero-poster.webp'), plate: skin('gobble-and-fizz', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Approved cauldron-only 1080×1920 scene: oversized copper sides, ring handles and fizz remain visible around the unchanged flyer panels.' },
   { theme: 'pie_please', status: 'art', source: skin('pie-please', 'hero-poster-v4.webp'), plate: skin('pie-please', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Approved oversized pumpkin pie: crust and filling left of the QR, whipped cream right, jeweled tray below the instructions; dedicated 1080×1920 plate.' },
   {
+    theme: 'starlight_christmas_hollow', status: 'art', source: skin('starlight-christmas-hollow', 'hero-poster.webp'), plate: skin('starlight-christmas-hollow', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Moonlit village portrait composed around the original flyer overlay.'
+  },
+  {
     theme: 'fall_owl_harvest_moon',
     status: 'art',
     source: skin('fall-owl', 'hero-poster.webp'),

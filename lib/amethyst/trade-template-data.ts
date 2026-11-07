@@ -1,3 +1,4 @@
+import { starlightThemeBootstrap } from './starlight-theme-bootstrap'
 import { type AmethystTradeBoardListing } from './trade-board-listings'
 import { buildPublicSiteVisibilityScript, type PublicSiteVisibility } from '@/lib/public-site/visibility'
 import {
@@ -290,7 +291,7 @@ export function buildAmethystTradeBootstrapScript(
     `window.AMETHYST_RUNTIME_CONTEXT = ${safeScriptJson(publicRuntimeContext)};`,
     buildPublicSiteVisibilityScript(publicData.visibility),
     `window.AMETHYST_TRADE_TEMPLATE_DATA = ${safeScriptJson(publicData)};`,
-    `window.TRADE_TWEAK_DEFAULTS = ${safeScriptJson(defaults)};`,
+    `window.TRADE_TWEAK_DEFAULTS = ${safeScriptJson(defaults)};` + starlightThemeBootstrap(defaults.preset),
     `window.AMETHYST_TRADE_BOARD_LISTINGS = ${safeScriptJson(listings)};`,
   ].join('\n')
 }

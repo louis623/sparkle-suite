@@ -15,6 +15,7 @@ export const AMETHYST_APPEARANCE_PRESET_IDS = [
   'rose_gold',
   'midnight_rose',
   'fall_owl_harvest_moon',
+  'starlight_christmas_hollow',
   'gobble_and_fizz',
   'pie_please',
   'pearl_rose',
@@ -411,6 +412,20 @@ export const AMETHYST_APPEARANCE_PRESETS: Record<
       bgTreatment: 'fall-owl', cardSurface: 'fall-owl',
       textureOverlay: 'none', buttonEnergy: 'fall-owl-lift', ctaEmphasis: 'standard',
       tradeFlair: 'copper-midnight', cursorEffect: 'default', tickerSpeed: 1,
+    },
+  },
+  starlight_christmas_hollow: {
+    id: 'starlight_christmas_hollow',
+    label: 'Starlight Christmas Hollow',
+    description: 'A snowy Christmas gnome village, midnight blue, ivory and lantern gold.',
+    values: {
+      primaryColor: '#f2c77b', accentColor: '#c89b52', bgTone: 'starlightChristmas',
+      headingFont: 'playfair', bodyFont: 'dmSans', headingWeight: 600,
+      shapeRadius: 'soft', density: 'regular', saturation: 100,
+      heroMotion: 'sparkle_rise', sparkleLevel: 'subtle',
+      bgTreatment: 'starlight-christmas-hollow', cardSurface: 'starlight-christmas-hollow',
+      textureOverlay: 'none', buttonEnergy: 'standard', ctaEmphasis: 'standard',
+      tradeFlair: 'none', cursorEffect: 'default', tickerSpeed: 1,
     },
   },
   gobble_and_fizz: {

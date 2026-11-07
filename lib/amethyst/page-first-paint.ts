@@ -97,6 +97,20 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
     return tag // Preserve the original analytics tags exactly once.
   })
   const mileHighFizzControls = page === 'homepage' && data.homepage.publicSiteVariant === 'mile_high_fizz_hybrid' ? earlyMileHighFizzControls : ''
+  // Frozen HTML predates this theme. Add only its missing assets without editing
+  // frozen sources or changing the output of existing themes.
+  if (data.appearancePreset === 'starlight_christmas_hollow') {
+    const name = 'starlight-christmas-hollow'
+    let additions = ''
+    if (!result.includes('data-ssr-style="' + name + '.css"')) {
+      additions += '<style data-ssr-style="' + name + '.css">' + homepageStyles['starlight-christmas-hollow.css'] + '</style>'
+    }
+    if (!result.includes('src="/amethyst/ssr-motion/' + name + '.js"')) {
+      additions += '<script defer data-starlight-runtime src="/amethyst/ssr-motion/' + name + '.js"></script>'
+    }
+    result = result.replace('</head>', additions + '</head>')
+      .replace(/<html\b/, '<html data-customer-theme="starlight_christmas_hollow"')
+  }
   return result
     .replace('</body>', ('ssrReview' in data ? '<aside data-ssr-review-label>Smoke demo · theme/layout review fixture · no saved changes</aside>' : '') + '</body>')
     .replace('</head>', heroImagePreload(markup, data.appearancePreset) + preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint).replace(/</g, '\\u003c')}</script></head>`)
