@@ -60,7 +60,8 @@
     "codex/heather-ssr-smoke",
     "codex/favorites-form-v2",
     "codex/nicnac-photo-guardrails",
-    "codex/about-narrative-smoke"
+    "codex/about-narrative-smoke",
+    "codex/release-1106-integration"
   ],
   "previewBranches": {
     "codex/landing-preview-images": {
@@ -214,6 +215,10 @@
     "codex/about-narrative-smoke": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
+    },
+    "codex/release-1106-integration": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
@@ -229,6 +234,7 @@
   "branchBases": {
     "codex/favorites-form-v2": "codex/nic-nac-trade-hardening",
     "codex/nicnac-photo-guardrails": "codex/nic-nac-trade-hardening",
-    "codex/about-narrative-smoke": "codex/nic-nac-trade-hardening"
+    "codex/about-narrative-smoke": "codex/nic-nac-trade-hardening",
+    "codex/release-1106-integration": "codex/nic-nac-trade-hardening"
   }
 }
