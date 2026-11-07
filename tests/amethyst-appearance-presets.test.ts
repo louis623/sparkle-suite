@@ -91,6 +91,8 @@ describe('Amethyst appearance presets', () => {
       'rose_gold',
       'midnight_rose',
       'fall_owl_harvest_moon',
+      'macies_christmas_globe',
+      'starlight_christmas_hollow',
       'gobble_and_fizz',
       'pie_please',
       'pearl_rose',
@@ -118,6 +120,8 @@ describe('Amethyst appearance presets', () => {
       'Rose Gold',
       'Midnight Rose',
       'Fall Owl and Harvest Moon',
+      "Macie's Christmas Globe",
+      'Starlight Christmas Hollow',
       'Pearl Rose',
       'Sunset Beach',
       'Rose Champagne',
@@ -436,6 +440,11 @@ describe('Amethyst appearance presets', () => {
     )
 
     for (const surface of cardSurfaces) {
+      if (surface === 'macies-christmas-globe' || surface === 'starlight-christmas-hollow') {
+        const css = readFileSync(resolve(process.cwd(), `public/amethyst/${surface}.css`), 'utf8')
+        for (const token of ['--hp-card-fg:', '--hp-card-muted:', '--hp-card-accent:']) expect(css).toContain(token)
+        continue
+      }
       // New collection themes keep palette tokens in their scoped stylesheet.
       const surfaceCss = ['gobble-and-fizz', 'pie-please'].includes(surface)
         ? readFileSync(resolve(process.cwd(), `public/amethyst/${surface}.css`), 'utf8')

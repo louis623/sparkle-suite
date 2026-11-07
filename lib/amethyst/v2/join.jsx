@@ -338,6 +338,15 @@ const PRESETS = {
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
     shapeRadius: "soft", density: "regular",
   },
+  macies_christmas_globe: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "macies-christmas-globe", cardSurface: "macies-christmas-globe",
+    textureOverlay: "none", buttonEnergy: "macies-christmas-globe-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-midnight", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "maciesChristmas", primaryColor: "#862e40", accentColor: "#c5a06a",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
   starlight_christmas_hollow: {
     heroMotion: "sparkle_rise", sparkleLevel: "subtle",
     bgTreatment: "starlight-christmas-hollow", cardSurface: "starlight-christmas-hollow",

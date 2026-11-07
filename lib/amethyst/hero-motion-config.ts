@@ -19,6 +19,7 @@ export interface HeroMotionConfig {
   host?: boolean
   controlsOutsideHost?: boolean
   sound?: string
+  soundAction?: string
   width?: number
   height?: number
 }
@@ -48,6 +49,7 @@ export const HERO_MOTION_THEMES: Record<AmethystAppearancePresetId, HeroMotionCo
   gilded_autumn: video('gilded-autumn', 'ga', { mediaClass: 'ga-art', src: '/amethyst/skins/gilded-autumn/hero-motion.mp4', controlClass: 'ga-motion-control', frameAttribute: 'data-playing', width: 1204, height: 764 }),
   rose_gold: sparkle(),
   midnight_rose: video('midnight-rose', 'mdr'),
+  macies_christmas_globe: video('macies-christmas-globe', 'sch', { soundAction: 'Wind up the globe', script: 'starlight-christmas-hollow.js', host: true, controlsClass: 'sch-controls', sound: 'Christmas music', posterSrcSet: '/amethyst/skins/macies-christmas-globe/hero-poster-phone.webp 640w, /amethyst/skins/macies-christmas-globe/hero-poster.webp 1280w' }),
   starlight_christmas_hollow: video('starlight-christmas-hollow', 'sch', { host: true, controlsClass: 'sch-controls', sound: 'Christmas music', posterSrcSet: '/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp 640w, /amethyst/skins/starlight-christmas-hollow/hero-poster.webp 1280w' }),
   fall_owl_harvest_moon: video('fall-owl', 'fow', { host: true, controlsClass: 'fow-controls', sound: 'autumn sounds' }),
   gobble_and_fizz: video('gobble-and-fizz', 'tg', { host: true, frameAttribute: 'data-has-frame', script: 'thanksgiving-motion.js' }),

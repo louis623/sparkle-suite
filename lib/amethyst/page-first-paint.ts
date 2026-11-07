@@ -70,7 +70,11 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
   // duplicated embedded heading preload. Decode the two original embedded faces
   // before parsing the shared CSS, preserving the original first-paint metrics.
   const leanTrade = page === 'trade' && data.appearancePreset === 'alpine_opal'
-  const fontMarkup = utilityPageFonts(properties,
+  const macieGlobe = data.appearancePreset === 'macies_christmas_globe'
+  const posterPreload = heroImagePreload(markup, data.appearancePreset)
+  const fontMarkup = macieGlobe
+    ? ['Baskervville', 'SourceSans3'].map(face => `<link rel="preload" as="font" type="font/woff2" crossorigin href="/amethyst/skins/macies-christmas-globe/fonts/${face}.woff2">`).join('')
+    : utilityPageFonts(properties,
     [...allowedCss].map(name => homepageStyles[name as keyof typeof homepageStyles]).join('\n'), data.appearancePreset, leanTrade)
   let result = html.replace(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"?]+)[^"]*"[^>]*>/g,
     (_tag, href: string) => {
@@ -79,7 +83,7 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
       return allowedCss.has(name) ? `<style data-ssr-style="${name}">${responsiveHeroCss(css, page === 'homepage' && data.appearancePreset === 'sunset_beach')}</style>` : ''
     })
   // Start embedded face decoding before the large style payload in both engines.
-  result = result.replace('</title>', '</title>' + fontMarkup)
+  result = result.replace('</title>', '</title>' + (macieGlobe ? posterPreload : '') + fontMarkup)
   if (leanTrade) result = result.replace(/<link\b[^>]*rel="preconnect"[^>]*>/g, '')
   // No split CSS, provider runtime loader, or third-party worker. The pinned
   // font faces above are already available when the browser lays out the hero.
@@ -96,24 +100,25 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
     if (src.startsWith('/amethyst/')) return ''
     return tag // Preserve the original analytics tags exactly once.
   })
-  const mileHighFizzControls = page === 'homepage' && data.appearancePreset !== 'starlight_christmas_hollow' && data.homepage.publicSiteVariant === 'mile_high_fizz_hybrid' ? earlyMileHighFizzControls : ''
+  const winterScene = data.appearancePreset === 'starlight_christmas_hollow' || data.appearancePreset === 'macies_christmas_globe'
+  const mileHighFizzControls = page === 'homepage' && !winterScene && data.homepage.publicSiteVariant === 'mile_high_fizz_hybrid' ? earlyMileHighFizzControls : ''
   // Frozen HTML predates this theme. Add only its missing assets without editing
   // frozen sources or changing the output of existing themes.
-  if (data.appearancePreset === 'starlight_christmas_hollow') {
-    const name = 'starlight-christmas-hollow'
+  if (winterScene) {
+    const name = data.appearancePreset === 'macies_christmas_globe' ? 'macies-christmas-globe' : 'starlight-christmas-hollow'
     let additions = ''
     if (!result.includes('data-ssr-style="' + name + '.css"')) {
-      additions += '<style data-ssr-style="' + name + '.css">' + homepageStyles['starlight-christmas-hollow.css'] + '</style>'
+      additions += '<style data-ssr-style="' + name + '.css">' + homepageStyles[`${name}.css`] + '</style>'
     }
-    if (!result.includes('src="/amethyst/ssr-motion/' + name + '.js"')) {
-      additions += '<script defer data-starlight-runtime src="/amethyst/ssr-motion/' + name + '.js"></script>'
+    if (!result.includes('src="/amethyst/ssr-motion/starlight-christmas-hollow.js"')) {
+      additions += '<script defer data-starlight-runtime src="/amethyst/ssr-motion/starlight-christmas-hollow.js"></script>'
     }
     result = result.replace('</head>', additions + '</head>')
-      .replace(/<html\b/, '<html data-customer-theme="starlight_christmas_hollow"')
+      .replace(/<html\b/, '<html data-customer-theme="' + data.appearancePreset + '"')
   }
   return result
     .replace('</body>', ('ssrReview' in data ? '<aside data-ssr-review-label>Smoke demo · theme/layout review fixture · no saved changes</aside>' : '') + '</body>')
-    .replace('</head>', heroImagePreload(markup, data.appearancePreset) + preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint).replace(/</g, '\\u003c')}</script></head>`)
+    .replace('</head>', (macieGlobe ? '' : posterPreload) + preloads + `<style data-ssr-style="ssr-hero-motion.css">${homepageStyles['ssr-hero-motion.css']}</style><script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint).replace(/</g, '\\u003c')}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${escapeAttribute(style)}">`)
     .replace('<body class="' + (page === 'homepage' ? 'homepage' : page + 'page') + '">', `<body class="${escapeAttribute(body.className)}">`)
     .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div><script>${earlyHomepageLocalTime}${earlyHomepageControls}${mileHighFizzControls}</script>`)

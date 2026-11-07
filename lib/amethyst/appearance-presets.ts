@@ -15,6 +15,7 @@ export const AMETHYST_APPEARANCE_PRESET_IDS = [
   'rose_gold',
   'midnight_rose',
   'fall_owl_harvest_moon',
+  'macies_christmas_globe',
   'starlight_christmas_hollow',
   'gobble_and_fizz',
   'pie_please',
@@ -412,6 +413,20 @@ export const AMETHYST_APPEARANCE_PRESETS: Record<
       bgTreatment: 'fall-owl', cardSurface: 'fall-owl',
       textureOverlay: 'none', buttonEnergy: 'fall-owl-lift', ctaEmphasis: 'standard',
       tradeFlair: 'copper-midnight', cursorEffect: 'default', tickerSpeed: 1,
+    },
+  },
+  macies_christmas_globe: {
+    id: 'macies_christmas_globe',
+    label: "Macie's Christmas Globe",
+    description: 'A keepsake snow globe with a snowy cabin and Macie Grey, evergreen, ivory and cranberry.',
+    values: {
+      primaryColor: '#862e40', accentColor: '#c5a06a', bgTone: 'maciesChristmas',
+      headingFont: 'playfair', bodyFont: 'dmSans', headingWeight: 600,
+      shapeRadius: 'soft', density: 'regular', saturation: 100,
+      heroMotion: 'sparkle_rise', sparkleLevel: 'subtle',
+      bgTreatment: 'macies-christmas-globe', cardSurface: 'macies-christmas-globe',
+      textureOverlay: 'none', buttonEnergy: 'standard', ctaEmphasis: 'standard',
+      tradeFlair: 'none', cursorEffect: 'default', tickerSpeed: 1,
     },
   },
   starlight_christmas_hollow: {

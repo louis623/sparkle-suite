@@ -18,6 +18,8 @@ export interface FlyerFontFace {
 }
 
 export const FLYER_FONT_FACES = {
+  Baskervville: { family: 'Baskervville', directory: 'baskervville', sourceUrl: 'https://github.com/google/fonts/tree/main/ofl/baskervville' },
+  'Source Sans 3': { family: 'Source Sans 3', directory: 'source-sans-3', sourceUrl: 'https://github.com/google/fonts/tree/main/ofl/sourcesans3' },
   'Playfair Display': {
     family: 'Playfair Display',
     directory: 'playfair-display',
@@ -102,6 +104,8 @@ export const FLYER_FONT_SUBSTITUTES = {
 } as const satisfies Record<string, FlyerFontFamily>
 
 const SKIN_FONT_TO_FACE: Record<string, FlyerFontFamily> = {
+  Baskervville: 'Baskervville',
+  'Source Sans 3': 'Source Sans 3',
   'Playfair Display': 'Playfair Display',
   'DM Sans': 'DM Sans',
   Italiana: 'Italiana',

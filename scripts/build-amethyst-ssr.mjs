@@ -11,7 +11,7 @@ for (const name of ['neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pump
 }
 // Bundle trusted CSS as immutable server data. Inlining the selected styles
 // avoids mobile stylesheet round trips without tracing the entire public tree.
-const styles = Object.fromEntries(['tokens', 'components', 'homepage', 'trade', 'join', 'pantry', 'britt-hero-buttons', 'gnome-garden', 'neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pumpkin-cat', 'gilded-autumn', 'am01-unicorn', 'rose-champagne', 'sunset-beach', 'midnight-rose', 'fall-owl', 'starlight-christmas-hollow', 'gobble-and-fizz', 'pie-please', 'pearl-rose', 'ssr-hero-motion'].map(name => [name + '.css', readFileSync(`public/amethyst/${name}.css`, 'utf8')]))
+const styles = Object.fromEntries(['tokens', 'components', 'homepage', 'trade', 'join', 'pantry', 'britt-hero-buttons', 'gnome-garden', 'neon-butterfly', 'halloween-pumpkin-witch', 'halloween-pumpkin-cat', 'gilded-autumn', 'am01-unicorn', 'rose-champagne', 'sunset-beach', 'midnight-rose', 'fall-owl', 'starlight-christmas-hollow', 'macies-christmas-globe', 'gobble-and-fizz', 'pie-please', 'pearl-rose', 'ssr-hero-motion'].map(name => [name + '.css', readFileSync(`public/amethyst/${name}.css`, 'utf8')]))
 styles['framed-hero.css'] = readFileSync('public/amethyst/bling-kitchen/framed-hero.css', 'utf8')
 writeFileSync('lib/amethyst/generated/homepage-styles.json', JSON.stringify(styles))
 // Alpine Opal Trade needs the shared rules, but not their authoring whitespace

@@ -41,7 +41,7 @@ describe('Amethyst skin visibility policy', () => {
     expect(AMETHYST_SKIN_CARDS.some(({ id }) => id === 'rose_quartz')).toBe(true)
   })
 
-  it('marks the four issued custom skins private and seasonal Halloween community', () => {
+  it('marks issued custom skins private and seasonal Halloween community', () => {
     expect(
       AMETHYST_SKIN_CARDS
         .filter(({ visibility }) => visibility === 'private')
@@ -51,6 +51,7 @@ describe('Amethyst skin visibility policy', () => {
       'alpine_opal',
       'gnome_garden',
       'neon_butterfly',
+      'macies_christmas_globe',
     ])
     expect(
       AMETHYST_SKIN_CARDS.find(({ id }) => id === 'halloween_pumpkin_witch'),

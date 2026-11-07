@@ -414,8 +414,12 @@ export function buildAmethystHomepageTweakDefaults(
     repName: getPublicRepName(data.repName),
     businessName: data.businessName,
     tagline: data.tagline,
-    heroHeadline: data.heroHeadline,
-    heroSub: redactPublicRepFullName(data.heroSub, data.repName),
+    heroHeadline: appearancePreset === 'macies_christmas_globe'
+      ? data.heroHeadlineOverride?.trim() || `Christmas at ${data.businessName}`
+      : data.heroHeadline,
+    heroSub: appearancePreset === 'macies_christmas_globe'
+      ? `Join ${getPublicRepName(data.repName)} and Macie Grey for live jewelry reveals.`
+      : redactPublicRepFullName(data.heroSub, data.repName),
     tickerTopText: data.tickerTopText,
     ...lockedTweakDefaults,
   }, appearancePreset)

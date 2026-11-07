@@ -1,13 +1,14 @@
 (function starlightChristmas() {
   if (window.sparkleStarlightController) return;
   window.sparkleStarlightController = true;
-  const theme = 'starlight_christmas_hollow';
-  const assets = '/amethyst/skins/starlight-christmas-hollow/';
+  const supported = ['starlight_christmas_hollow', 'macies_christmas_globe'];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let active = null;
   let hydrated = !window.SPARKLE_FIRST_PAINT;
   window.addEventListener('sparkle:homepage-hydrated', () => { hydrated = true; sync(); });
-  function mount(hero) {
+  function mount(hero, theme) {
+    const globe = theme === 'macies_christmas_globe';
+    const assets = '/amethyst/skins/' + theme.replaceAll('_', '-') + '/';
     hero.dataset.schActive = 'true';
     const host = hero.querySelector('.hp-hero-media') || hero;
     const own = !hero.querySelector('.sch-media');
@@ -56,39 +57,42 @@
     }
     video.poster = matchMedia('(max-width: 640px)').matches ? assets + 'hero-poster-phone.webp' : assets + 'hero-poster.webp';
     video.muted = true; video.defaultMuted = true; video.playsInline = true; video.loop = true; video.preload = 'none';
-    const music = document.createElement('audio'); music.preload = 'none'; music.loop = true; music.volume = 0.35;
+    const music = document.createElement('audio'); music.preload = 'none'; music.loop = !globe; music.volume = 0.35;
     music.setAttribute('aria-hidden', 'true'); music.dataset.starlightAudio = 'true'; document.body.append(music);
-    const savedMotion = () => hero.dataset.heroMotion || (
-      ['still', 'none'].includes(window.HOMEPAGE_TWEAK_DEFAULTS?.heroMotion) ? 'off' : 'on');
+    const savedMotion = () => globe && ['still', 'none'].includes(window.HOMEPAGE_TWEAK_DEFAULTS?.heroMotion)
+      ? 'off' : hero.dataset.heroMotion || (
+        ['still', 'none'].includes(window.HOMEPAGE_TWEAK_DEFAULTS?.heroMotion) ? 'off' : 'on');
     let wanted = !reduced.matches && savedMotion() !== 'off' && !slowConnection();
     let musicWanted = false, visible = false, disposed = false, failed = false, pending = false, audioPending = false;
     let interrupted = false, audioInterrupted = false;
     const allowed = () => !disposed && !reduced.matches && savedMotion() !== 'off';
     const shouldPlay = () => allowed() && wanted && mediaReady && visible && !document.hidden;
+    const canPlaySound = () => globe ? !disposed && visible && !document.hidden : shouldPlay();
     function label() {
       motion.textContent = wanted ? 'Pause animation' : 'Play animation';
       motion.setAttribute('aria-pressed', String(wanted));
       motion.disabled = !allowed() || failed;
-      sound.textContent = musicWanted ? 'Mute Christmas music' : 'Enable Christmas music';
+      sound.textContent = musicWanted ? 'Mute Christmas music' : (globe ? 'Wind up the globe' : 'Enable Christmas music');
       sound.setAttribute('aria-pressed', String(musicWanted));
-      sound.disabled = !allowed();
+      sound.disabled = !globe && !allowed();
     }
     function update() {
       if (disposed) return;
-      if (!allowed()) { wanted = false; musicWanted = false; }
+      if (!allowed()) { wanted = false; if (!globe) musicWanted = false; }
       label();
-      if (!shouldPlay()) { if (pending) interrupted = true; if (audioPending) audioInterrupted = true; video.pause(); music.pause(); return; }
-      if (!failed && !video.getAttribute('src')) video.src = assets + (matchMedia('(max-width: 850px)').matches ? 'hero-loop-phone.mp4' : 'hero-loop.mp4');
-      if (!failed && video.paused && !pending) {
+      const animate = shouldPlay();
+      if (!animate) { if (pending) interrupted = true; video.pause(); }
+      if (animate && !failed && !video.getAttribute('src')) video.src = assets + (matchMedia('(max-width: 850px)').matches ? 'hero-loop-phone.mp4' : 'hero-loop.mp4');
+      if (animate && !failed && video.paused && !pending) {
         pending = true; interrupted = false;
         Promise.resolve(video.play()).catch(error => {
           if (error?.name === 'AbortError' && interrupted) return;
-          wanted = false; label(); music.pause();
+          wanted = false; label(); if (!globe) music.pause();
         }).finally(() => {
           pending = false; if (!shouldPlay()) video.pause(); else if (video.paused) update();
         });
       }
-      if (!musicWanted) { if (audioPending) audioInterrupted = true; music.pause(); }
+      if (!musicWanted || !canPlaySound()) { if (audioPending) audioInterrupted = true; music.pause(); }
       else if (music.paused && !audioPending) {
         if (!music.getAttribute('src')) music.src = assets + 'christmas-music-box.mp3';
         audioPending = true; audioInterrupted = false;
@@ -96,16 +100,18 @@
           if (error?.name === 'AbortError' && audioInterrupted) return;
           musicWanted = false; label();
         }).finally(() => {
-          audioPending = false; if (!shouldPlay() || !musicWanted) music.pause();
+          audioPending = false; if (!canPlaySound() || !musicWanted) music.pause();
           else if (music.paused) update();
         });
       }
     }
     function toggle() { if (allowed()) { wanted = !wanted; mediaReady = true; update(); } }
-    function toggleSound() { if (allowed()) { musicWanted = !musicWanted; if (musicWanted) { wanted = true; mediaReady = true; } update(); } }
+    function toggleSound() { if (globe || allowed()) { musicWanted = !musicWanted; if (musicWanted && !globe) { wanted = true; mediaReady = true; } update(); } }
     function playing() { if (shouldPlay()) media.setAttribute('data-sch-has-frame', 'true'); else video.pause(); }
     function videoError() { failed = true; media.removeAttribute('data-sch-has-frame'); wanted = false; update(); }
     function audioError() { musicWanted = false; label(); sound.textContent = 'Music unavailable'; sound.disabled = true; }
+    function musicEnded() { musicWanted = false; music.currentTime = 0; label(); }
+    music.addEventListener('ended', musicEnded);
     motion.addEventListener('click', toggle); sound.addEventListener('click', toggleSound);
     video.addEventListener('playing', playing); video.addEventListener('error', videoError);
     music.addEventListener('error', audioError);
@@ -114,7 +120,7 @@
     observer.observe(hero); update();
     if (document.readyState === 'complete') queueMedia();
     else window.addEventListener('load', queueMedia, { once: true });
-    return { hero, update, dispose() {
+    return { hero, theme, update, dispose() {
       disposed = true;
       window.removeEventListener('load', queueMedia);
       if (idleHandle !== undefined) cancelIdleCallback(idleHandle);
@@ -123,7 +129,7 @@
       document.removeEventListener('visibilitychange', update); reduced.removeEventListener('change', update);
       motion.removeEventListener('click', toggle); sound.removeEventListener('click', toggleSound);
       video.removeEventListener('playing', playing); video.removeEventListener('error', videoError);
-      music.removeEventListener('error', audioError); music.remove();
+      music.removeEventListener('ended', musicEnded); music.removeEventListener('error', audioError); music.remove();
       replaced.forEach(v => v.removeEventListener('playing', stopReplaced));
       delete hero.dataset.schActive;
       if (own) { video.removeAttribute('src'); video.load(); media.remove(); controls.remove(); }
@@ -134,13 +140,13 @@
     const defaults = window.HOMEPAGE_TWEAK_DEFAULTS || window.TRADE_TWEAK_DEFAULTS || window.JOIN_TWEAK_DEFAULTS;
     const candidate = document.querySelector('.hp-hero[data-appearance-preset], .mhf-hero, .bwb-hero, .bk-home-hero, .bkf-hero');
     const selected = candidate?.getAttribute('data-appearance-preset') || defaults?.preset;
-    if (selected === theme) document.documentElement.dataset.customerTheme = theme;
-    else if (document.documentElement.dataset.customerTheme === theme) delete document.documentElement.dataset.customerTheme;
-    const hero = selected === theme ? candidate : null;
-    if (active && active.hero !== hero) { active.dispose(); active = null; }
+    if (supported.includes(selected)) document.documentElement.dataset.customerTheme = selected;
+    else if (supported.includes(document.documentElement.dataset.customerTheme)) delete document.documentElement.dataset.customerTheme;
+    const hero = supported.includes(selected) ? candidate : null;
+    if (active && (active.hero !== hero || active.theme !== selected)) { active.dispose(); active = null; }
     const waitingForHydration = hero && !hero.querySelector('.sch-media') &&
       document.getElementById('root')?.dataset.serverRendered === 'true' && !hydrated;
-    if (hero && !active && !waitingForHydration) active = mount(hero);
+    if (hero && !active && !waitingForHydration) active = mount(hero, selected);
     if (active && records?.some(r => r.target === hero && r.attributeName === 'data-hero-motion')) active.update();
   }
   function start() {

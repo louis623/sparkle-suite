@@ -35,6 +35,13 @@ export const BIZCARD_FONT_FILES = {
     "body600": "DMSansopsz-wght-opsz40-wght600.ttf",
     "body700": "DMSansopsz-wght-opsz40-wght700.ttf"
   },
+  "macies-christmas-globe": {
+    "head": "../baskervville/Baskervville-Regular.ttf",
+    "script": "../baskervville/Baskervville-Regular.ttf",
+    "body": "../source-sans-3/SourceSans3-Regular.ttf",
+    "body600": "../source-sans-3/semibold/SourceSans3-Semibold.ttf",
+    "body700": "../source-sans-3/bold/SourceSans3-Bold.ttf"
+  },
   "starlight-christmas-hollow": {
     "head": "PlayfairDisplaywght-wght600.ttf",
     "script": "PlayfairDisplay-Italic-VariableFont_wght-wght500.ttf",

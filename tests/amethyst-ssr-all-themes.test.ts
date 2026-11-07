@@ -29,6 +29,16 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
       const bootstrap = buildAmethystHomepageBootstrapScript(saved, [], preset, { targeted: true })
       const html = await renderHomepageFirstPaint(source, { homepage: saved, join, trade, appearancePreset: preset }, new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
       const kitchenBespoke = layout === 'bling_kitchen' && preset !== 'halloween_pumpkin_cat'
+      // Christmas scenes have a dedicated idle/visibility-aware controller.
+      if (preset === 'starlight_christmas_hollow' || preset === 'macies_christmas_globe') {
+        expect(html).toContain(`data-customer-theme="${preset}"`)
+        expect(html).toContain('data-server-rendered="true"')
+        expect(html.match(/<h1\b/g)).toHaveLength(1)
+        expect(html).toContain('hero-poster-phone.webp')
+        expect(html).not.toMatch(/<video[^>]*\ssrc="/)
+        expect(html).toContain('/ssr-motion/starlight-christmas-hollow.js')
+        return
+      }
       const bespoke = (layout === 'mile_high_fizz' || layout === 'britt_with_bling') && preset !== 'halloween_pumpkin_cat'
       if (kitchenBespoke) {
         const framed = Boolean(saved.heroImageUrl) && !/halloween|gnome|neon|gilded|unicorn|am01|rose|pearl|witch/i.test(preset)

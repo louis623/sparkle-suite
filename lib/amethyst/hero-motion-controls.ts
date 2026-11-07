@@ -3,7 +3,7 @@
 export const earlyHomepageControls = String.raw`(function(){
 var reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
 function start(){document.querySelectorAll('[data-ssr-hero]').forEach(function(hero){
- if(hero.getAttribute('data-appearance-preset')==='starlight_christmas_hollow')return;
+ if(['starlight_christmas_hollow','macies_christmas_globe'].includes(hero.dataset.appearancePreset))return;
  if(hero.dataset.motionBound)return;hero.dataset.motionBound='true';
  var button=hero.querySelector('[data-hero-motion-toggle]'),sound=hero.querySelector('[data-hero-sound-toggle]'),video=hero.querySelector('[data-hero-video]');
  if(!button)return;

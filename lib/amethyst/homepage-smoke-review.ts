@@ -22,6 +22,7 @@ export function smokeReviewSelection(url: URL, slug?: string | null) {
       process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://pukemqiwlyqmyytxkdmo.supabase.co' ||
       (slug !== 'dudesfizzfest' && slug !== 'milehighfizz')) return null
   const theme = url.searchParams.get('ssrReviewTheme')
+  if (theme === 'macies_christmas_globe' && slug !== 'dudesfizzfest') return null
   const layout = url.searchParams.get('ssrReviewLayout')
   if (!AMETHYST_APPEARANCE_PRESET_IDS.some(id => id === theme) ||
       (layout !== null && !Object.hasOwn(SSR_REVIEW_LAYOUTS, layout))) return null
@@ -32,6 +33,15 @@ export function homepageSmokeReview(data: AmethystPreviewTemplateData, url: URL,
   const selection = smokeReviewSelection(url, slug)
   if (!selection) return data
   const { theme, layout } = selection
+  if (theme === 'macies_christmas_globe' && (!layout || layout === 'standard')) {
+    const display = { businessName: 'Main Gem Co.', repName: 'Katelin' }
+    data = {
+      ...data,
+      homepage: { ...data.homepage, ...display, heroHeadlineOverride: '', heroHeadline: 'Christmas at Main Gem Co.', heroSub: 'Join Katelin and Macie Grey for live jewelry reveals.' },
+      trade: { ...data.trade, ...display },
+      join: { ...data.join, ...display },
+    }
+  }
   if (layout === 'britt_with_bling') {
     const profile = BRITT_WITH_BLING_PROFILE
     const identity = { repName: profile.publicName, businessName: profile.businessName, teamName: profile.teamName }

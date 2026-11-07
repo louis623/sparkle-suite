@@ -22,6 +22,7 @@ export type BizcardKey =
   | 'garnet'
   | 'amber'
   | 'velvet'
+  | 'macies-christmas-globe'
   | 'custom-kim'
   | 'custom-kelly'
   | 'custom-lindsey'
@@ -97,6 +98,8 @@ export const BIZCARD_THEMES: Record<BizcardKey, BizcardTheme> = {
     back: '#4a2608', name: '#ffb46b', ink: '#fff8f1', sub: '#f2d8b8', rule: '#734a26', title: '#3a220c', script: '#b4500c' }),
   velvet: t({ key: 'velvet', qrTheme: 'velvet', align: 'center', shadow: false,
     back: '#1a1024', name: '#d3a6ff', ink: '#f7efff', sub: '#d2c0ea', rule: '#3e2a55', title: '#f7efff', script: '#d3a6ff' }),
+  'macies-christmas-globe': t({ key: 'macies-christmas-globe', qrTheme: 'macies_christmas_globe', align: 'left', tw: 0.43, ytop: 98, cmaxh: 240, shadow: true,
+    back: '#17372f', name: '#fff6e8', ink: '#fff6e8', sub: '#e9cad2', rule: '#c5a06a', title: '#fff6e8', script: '#e9cad2' }),
   'custom-kim': t({ key: 'custom-kim', qrTheme: 'gnome_garden', align: 'top', maxw: 690, cmaxh: 300, ytop: 150, shadow: true,
     back: '#173126', name: '#f4c45e', ink: '#fff3d6', sub: '#e6dcc0', rule: '#3b5a48', title: '#fff3d6', script: '#f4c45e' }),
   'custom-kelly': t({ key: 'custom-kelly', qrTheme: 'neon_butterfly', align: 'top', maxw: 700, cmaxh: 330, ytop: 186, shadow: true,
@@ -166,6 +169,7 @@ export function resolveBizcard(input: {
   publicSiteSlug?: string | null
   customDomain?: string | null
 }): BizcardResolution {
+  if (input.appearancePreset === 'macies_christmas_globe') return { status: 'ready', key: 'macies-christmas-globe' }
   const slug = input.publicSiteSlug?.trim().toLowerCase() || ''
   const host = (normalizeAmethystCustomDomainCandidate(input.customDomain) || '').replace(/^www\./, '')
   for (const rep of BIZCARD_CUSTOM_REPS) {

@@ -1,3 +1,5 @@
+import { getAuthenticatedNicNacContext } from '@/lib/nic-nac/auth'
+import { isAmethystSkinSelectionAvailableToRep } from '@/lib/amethyst/skin-access'
 import {
   renderSkinPreview,
   resolveLineupReviewState,
@@ -18,6 +20,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ skin
     !SKIN_PREVIEW_PAGES.includes(page as SkinPreviewPage)
   ) {
     return new Response('Not found', { status: 404 })
+  }
+  if (skin === 'macies_christmas_globe') {
+    const context = await getAuthenticatedNicNacContext().catch(() => null)
+    if (!context || !await isAmethystSkinSelectionAvailableToRep(context.supabase, skin, context.repId)) {
+      return new Response('Not found', { status: 404 })
+    }
   }
   const origin = new URL(request.url).origin
   return new Response(await renderSkinPreview(skin as SkinPreviewSkin, page as SkinPreviewPage, origin, resolveLineupReviewState(request.url)), {
