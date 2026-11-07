@@ -1,5 +1,16 @@
 # Sparkle Suite Branch Register
 
+## November 6 — pinned combined Smoke integration
+
+Louis authorized `codex/release-1106-integration` from exact `6b04cc03`,
+merging pinned PR #182 `110e9a34` then PR #183 `abd91a60`. Only
+`sparkle-suite-smoke` / preview and database `pukemqiwlyqmyytxkdmo` are allowed.
+One named test run, one production build/deploy, at most 15 document loads.
+Retain both feature entries; regenerate compiled files. No Live, default-branch
+or production-branch changes, and no PR merge. Disposable clone:
+`/workspace/codex-runs/release-1106-clean`.
+
+
 ## November 6 — Workspace identity isolation, Smoke only
 
 Louis explicitly approved `codex/workspace-identity-isolation` and disposable checkout
@@ -8,6 +19,18 @@ Base: `0e136f56aca8d202f7ef6b23eb0fb380e7268b3d`, including shipped PR181.
 Only Smoke project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` / preview is authorized.
 Two test files, six selected cases, four document navigations, one deployment maximum.
 GitHub default, Live branch/settings, active reps, photo guardrails and PR180 remain unchanged.
+## November 6 — Workspace signup discount toggle, Smoke only
+
+Louis authorized `codex/signup-discount-workspace-toggle` from verified tip
+`0e136f56aca8d202f7ef6b23eb0fb380e7268b3d` in disposable clone
+`/workspace/codex-runs/signup-discount-clean`. The notes-only SHA difference
+from Live `7460a632` was explicitly accepted at 6:17 PM ET. Scope: signup
+discount toggle/message, owner settings, public confirmation, migration and
+focused tests in the two named files (at most 20 new/changed cases). One
+production build and at most eight browser loads. Deployment and migration
+are restricted to `sparkle-suite-smoke` (`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`)
+/ preview and database `pukemqiwlyqmyytxkdmo`. One unmerged PR. GitHub default
+branch, Vercel production branch, Live keys/database/domains remain unchanged.
 
 
 ## November 6 — Shared About narrative, Smoke only

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { normalizeSignupDiscountCode, normalizeSignupDiscountMessage } from '@/lib/public-site/signup-discount'
 import { PublicSiteVisibility } from './PublicSiteVisibility'
 import { SocialHandlesSettings } from './SocialHandlesSettings'
 import dynamic from 'next/dynamic'
@@ -9812,6 +9813,12 @@ export function SiteSettingsCard({
   const aboutPortraitSlot = (draft.homepageMediaSlots ?? []).find(
     (slot) => slot.key === 'about_1',
   )
+  const discountCode = draft.signupDiscountCode ?? ''
+  const discountMessage = draft.signupDiscountMessage ?? ''
+  const discountCodeError = (discountCode.trim() || draft.signupDiscountEnabled === true) && !normalizeSignupDiscountCode(discountCode)
+    ? 'Use 1 to 40 letters, numbers, or hyphens.' : null
+  const discountMessageError = discountMessage.trim() && !normalizeSignupDiscountMessage(discountMessage)
+    ? 'Use up to 140 characters of plain text, without < or >.' : null
 
   return (
     <div className={styles.siteSettingsCard}>
@@ -9844,12 +9851,52 @@ export function SiteSettingsCard({
               type="button"
               className={styles.siteSettingsSaveButton}
               onClick={onSave}
-              disabled={actionState?.pending || !hasUnsavedChanges}
+              disabled={actionState?.pending || !hasUnsavedChanges || Boolean(discountCodeError || discountMessageError)}
             >
               {actionState?.pending ? 'Saving...' : 'Save site settings'}
             </button>
           </ControlTip>
         </div>
+      </div>
+      <div className={styles.siteSettingsSection} aria-label="Signup discount">
+        <div className={styles.walletSettingsTitle}>Signup discount</div>
+        <label className={styles.walletToggleRow}>
+          <span className={styles.searchLabel}>Show a discount code after customers sign up for updates</span>
+          <input
+            type="checkbox"
+            role="switch"
+            checked={draft.signupDiscountEnabled === true}
+            onChange={(event) => onDraftChange?.({ signupDiscountEnabled: event.target.checked })}
+          />
+        </label>
+        <div className={styles.siteSettingsGrid}>
+          <label className={styles.searchField}>
+            <span className={styles.searchLabel}>Code</span>
+            <input
+              className={styles.searchInput}
+              value={discountCode}
+              maxLength={40}
+              aria-invalid={Boolean(discountCodeError)}
+              aria-describedby={discountCodeError ? 'signup-discount-code-error' : undefined}
+              onChange={(event) => onDraftChange?.({ signupDiscountCode: event.target.value })}
+            />
+            {discountCodeError ? <span id="signup-discount-code-error" role="alert" className={styles.tickerLinkError}>{discountCodeError}</span> : null}
+          </label>
+          <label className={styles.searchField}>
+            <span className={styles.searchLabel}>Message shown with your code</span>
+            <input
+              className={styles.searchInput}
+              value={discountMessage}
+              maxLength={140}
+              aria-invalid={Boolean(discountMessageError)}
+              aria-describedby="signup-discount-message-count signup-discount-message-error"
+              onChange={(event) => onDraftChange?.({ signupDiscountMessage: event.target.value })}
+            />
+            <span id="signup-discount-message-count" className={styles.helperNote} aria-live="polite">{discountMessage.length}/140 · Plain text</span>
+            <span id="signup-discount-message-error" className={styles.tickerLinkError} role={discountMessageError ? 'alert' : undefined}>{discountMessageError}</span>
+          </label>
+        </div>
+        <p className={styles.helperNote}>Suite only shows this code. Set up the code itself in Bomb Party first.</p>
       </div>
       <div className={styles.calendarHeader}>
         <div className={styles.walletSettingsTitle}>Profile basics</div>

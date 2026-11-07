@@ -53,8 +53,9 @@ describe('Starlight Christmas Hollow', () => {
       // The verified remote baseline includes acd1a823's approved consent-copy
       // correction. Its old snapshot manifest was not refreshed by that change.
       // Lock the actual 0e136f56 source here; do not rewrite that historical manifest.
+      // PR #183 reviewed the toggle/message confirmation change in this one frozen asset.
       const baseline = name === 'homepage.jsx' && record.source === 'snapshot'
-        ? 'eebebf2e0a695dc9d7dfcc7f8834861d89efeb817146a26ac9ade1716ba03200'
+        ? '8cfd2784317e1b04bb83ef4a0f0e4ab526d5d3358ee2265549daf80e8c5f4de1'
         : record.sha256
       expect(hashes,name).toContain(baseline)
     })

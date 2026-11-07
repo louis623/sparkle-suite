@@ -708,6 +708,8 @@ export interface SiteSettingsDashboardResult {
   signupDiscountCode?: string
   /** Short offer phrase, such as "15% off". Omitted when that column was not loaded. */
   signupDiscountOffer?: string
+  signupDiscountEnabled?: boolean
+  signupDiscountMessage?: string
 }
 
 export interface UpdateSiteSettingsDashboardInput {
@@ -749,6 +751,8 @@ export interface UpdateSiteSettingsDashboardInput {
   homepageMediaSlots?: PublicSiteMediaSlot[]
   signupDiscountCode?: string
   signupDiscountOffer?: string
+  signupDiscountEnabled?: boolean
+  signupDiscountMessage?: string
 }
 
 export type AccountBillingSubscriptionStatus =
