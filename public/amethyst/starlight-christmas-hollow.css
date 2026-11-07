@@ -4,6 +4,8 @@ html[data-customer-theme="starlight_christmas_hollow"] {
   background: #0b2039;
   --bg: #0b2039;
   --bg-elevated: #132e4b;
+  --starlight-cranberry: #94283e;
+  --starlight-ribbon: #692337;
 }
 html[data-customer-theme="starlight_christmas_hollow"] body {
   color-scheme: dark;
@@ -55,7 +57,7 @@ html[data-customer-theme="starlight_christmas_hollow"] body .hp-brand-sub { colo
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-header-link[aria-current="page"] { color: #f2c77b; }
 
 html[data-customer-theme="starlight_christmas_hollow"] body :is(.hp-ticker, .hp-ticker-row) {
-  background: #102740;
+  background: var(--starlight-ribbon);
   color: #fff7e9;
   border-color: #50617a;
 }
@@ -64,7 +66,7 @@ html[data-customer-theme="starlight_christmas_hollow"] body :is(.hp-ticker-item,
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #fff7e9; }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #f2c77b; }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-ticker-row .hp-ticker-label {
-  background: #102740;
+  background: var(--starlight-ribbon);
   color: #fff7e9;
 }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-ticker-row.reverse .hp-ticker-label {
@@ -79,10 +81,14 @@ html[data-customer-theme="starlight_christmas_hollow"] body :is(.hp-trade-previe
 html[data-customer-theme="starlight_christmas_hollow"] body :is(.hp-lineup-idle-prompt, .hp-trade-preview-head, .hp-trade-preview-link, .hp-trade-preview-pill) { color: #fff7e9; }
 html[data-customer-theme="starlight_christmas_hollow"] body :is(.hp-trade-preview-updated, .hp-trade-preview-pill .label) { color: #c5d5e5; }
 
-html[data-customer-theme="starlight_christmas_hollow"] body :is(.hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .tp-card-expand-cta, .tp-sheet-submit, .jp-spot-btn, .jp-final-btn) {
-  background: #f2c77b;
-  color: #11263c;
-  border-color: #50617a;
+html[data-customer-theme="starlight_christmas_hollow"] body :is(
+  .hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .tp-card-expand-cta,
+  .tp-sheet-submit, .jp-spot-btn, .jp-final-btn, .jp-why-btn--primary,
+  .mhf-cta-dance-floor, .bwb-cta-dance-floor
+) {
+  background: var(--starlight-cranberry);
+  color: #fff7e9;
+  border-color: #f2c77b;
   box-shadow: 0 9px 24px #0000003b;
 }
 
@@ -179,15 +185,19 @@ html[data-customer-theme="starlight_christmas_hollow"] body .jp-hero-eyebrow::be
 html[data-customer-theme="starlight_christmas_hollow"] body .jp-hero-eyebrow::after { background: #50617a; }
 html[data-customer-theme="starlight_christmas_hollow"] body .jp-hero-compliance a { color: #f2c77b; }
 html[data-customer-theme="starlight_christmas_hollow"] body :is(.hp-event-tag, .hp-event-badge, .jp-hero-promo) {
-  background: #254765;
-  color: #f2c77b;
+  background: var(--starlight-ribbon);
+  color: #fff7e9;
   border-color: #50617a;
 }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-event-pill { background: #f2c77b; color: #11263c; }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-event-pill .pip { background: #11263c; }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-step-num { background: #f2c77b; color: #132e4b; }
 html[data-customer-theme="starlight_christmas_hollow"] body .tp-filter-chip { background: #0b2039; color: #fff7e9; border-color: #50617a; }
-html[data-customer-theme="starlight_christmas_hollow"] body .tp-filter-chip.active { background: #f2c77b; color: #11263c; border-color: #f2c77b; }
+html[data-customer-theme="starlight_christmas_hollow"] body :is(.tp-filter-chip, .tp-filter-pill).active {
+  background: var(--starlight-cranberry);
+  color: #fff7e9;
+  border-color: #f2c77b;
+}
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-footer :is(.hp-footer-brand, .hp-footer-team, .hp-footer-col a) { color: var(--hp-card-fg); }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-footer :is(.hp-footer-tag, .hp-footer-coming-soon, .hp-footer-bottom, .hp-footer-bottom a) { color: var(--hp-card-muted); }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-footer .hp-footer-bottom { border-color: var(--border); }
@@ -461,13 +471,17 @@ html[data-customer-theme="starlight_christmas_hollow"] body.bling-kitchen .bk-ho
 html[data-customer-theme="starlight_christmas_hollow"] body.bling-kitchen .bk-home-hero-ctas{justify-content:center}
 
 html[data-customer-theme='starlight_christmas_hollow'] body.bling-kitchen .bk-home-hero-cta-primary-row > a:first-child{color:#11263c!important}
+html[data-customer-theme="starlight_christmas_hollow"] body.bling-kitchen :is(.bk-home-shop, .bk-home-hero-ctas .bk-home-cta-dance-floor) {
+  background: var(--starlight-cranberry) !important;
+  color: #fff7e9 !important;
+}
 html[data-customer-theme="starlight_christmas_hollow"] body .bkf-hero-inner{display:grid;grid-template-columns:minmax(0,1fr);gap:0;align-self:center}
 html[data-customer-theme="starlight_christmas_hollow"] body .bkf-card{display:none}
 html[data-customer-theme="starlight_christmas_hollow"] body .bkf-hero-copy{width:100%;max-width:none}
 html[data-customer-theme="starlight_christmas_hollow"] body .bkf-ctas{justify-content:center}
 html[data-customer-theme="starlight_christmas_hollow"] body :is(.bkf-tagline,.bkf-sub,.bkf-live){color:#c5d5e5}
 html[data-customer-theme="starlight_christmas_hollow"] body :is(.bkf-links a,.bkf-eyebrow){color:#f2c77b}
-html[data-customer-theme="starlight_christmas_hollow"] body .bkf-btn-primary{background:#f2c77b;color:#11263c;box-shadow:none}
+html[data-customer-theme="starlight_christmas_hollow"] body .bkf-btn-primary{background:var(--starlight-cranberry);color:#fff7e9;box-shadow:none}
 html[data-customer-theme="starlight_christmas_hollow"] body .bkf-btn-secondary{background:#132e4b;color:#fff7e9;border-color:#f2c77b}
 html[data-customer-theme="starlight_christmas_hollow"] body .bkf-hero .bkf-tagline{white-space:normal}
 html[data-customer-theme="starlight_christmas_hollow"] body .bkf-hero h1{white-space:normal;overflow-wrap:break-word}
