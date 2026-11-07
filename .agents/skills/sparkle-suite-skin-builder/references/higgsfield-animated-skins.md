@@ -72,6 +72,7 @@ Preserve the original file. The successful cat source was 1280x720 H.264, 24fps,
 Record model, prompt, reference/input hashes, SDK version, request ID, estimated versus verified actual cost, output provenance, encoding settings and approval. Exclude credentials, authorization headers and signed upload URLs.
 
 ## Integrate desktop and mobile as one experience
+Read [animated-theme-loading.md](animated-theme-loading.md) for poster-first delivery, responsive encodes, hydration and custom-layout media pitfalls, and measured Starlight evidence.
 The first cat implementation incorrectly switched phones to a separate square still and disabled the video at <=1100px. Louis rejected that. Do not repeat a desktop-only approval assumption.
 
 Reuse the approved video and matching poster on phones/tablets unless a different mobile direction is explicitly approved. Keep the cat's face, tail and main pumpkin in frame. The corrected cat uses a right/bottom square crop on phones and 4:3 crop on tablets, with real copy/actions below. Poster and video share the same crop to avoid a visual jump.

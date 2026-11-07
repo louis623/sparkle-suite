@@ -1,0 +1,19 @@
+# Starlight Christmas Hollow — completed build and lessons
+
+November 6–7, 2026. Links use the repository's Git/Obsidian vault.
+
+- Louis selected concept4, Starlight Christmas Hollow / SC-01 / starlight_christmas_hollow, as a shared Community theme inspired by Kim's expressive gnome and a snowy village reference. Final approved palette includes midnight blue, cranberry red, ivory and lantern gold. Kim's existing private design was preserved.
+- One direct Higgsfield API request, Seedance2.5, produced the approved character animation. Estimate $7.3952 against Louis's approximately $12 cap; actual wallet debit remains unverified. Source kept. A forward-only 0.5s circular overlap produced the approved15.5s loop. Christmas Music Box by Music_For_Videos was selected; the separate77.844898s track is optional and tap-to-load. Source/license provenance is retained in scripts/card-qr/plate-sources/starlight-christmas-hollow/README.md.
+- Finished matching QR flyer, business-card front/back and print-PDF renderer integration. Portrait artwork places all four gnomes below real flyer overlays. Actual PNG/JPEG QR decoding and card normal/long-copy safe areas passed. Proofs use sample rep details. Retained art, manifest and deterministic image conversion sources live in scripts/card-qr/plate-sources/starlight-christmas-hollow/.
+- Initial code97b90177 and cranberry correction6b04cc03 were direct commits. PR184 later fixed slow-phone loading from9f956acc. Main lessons are now in the linked theme-building skill reference.
+- Supplied slow-phone baseline FCP2.760s/LCP40.600s and video advancement about334s led to responsive poster-first loading, deferred source assignment, slow-network manual Play and a smaller phone encode. Assets56,354-byte phone poster/301,274-byte phone video retain the approved loop; desktop assets remain290,956/3,370,008bytes.
+- First Smoke deployment failed because the agent put a SHA in Vercel's Git ref field. Stopped at the cap and obtained Louis's explicit retry approval. READY retry dpl_DRmeuJ3roWCdEuoYFTyeBLeU7ZQ5 served approved39164649. With the read-only fixture, exactly2of6loads passed: phone Slow4G/4xCPU FCP2.864s/LCP3.548s; desktop1.564s/1.580s. Both reporteddownlink1.5 and verified manual Play,15.5s wrap and sound toggle. Fast-connection autoplay and physical Safari were not exercised. Tests ran only the named Starlight file,8pass then9pass after review fixes;11layout locks passed.
+- Live preflight initially stopped because receipt commit2a289ba7 moved the expected head. Louis approved it after a five-file evidence-only diff. PR184 mergedac1be76bc9b6254b7873d88096c08d9d6c6af053. READY production dpl_9ooWtHG7evcyQD2Bd6sFiAYuhG5w serves both Suite www/apex domains.
+- Only20261107000100_add_starlight_christmas_hollow.sql applied to Live after READY. Readback allowed the preset, found exactly1Community catalog row with ownerNULL/allow_internal_demo=false and0assignedreps. Bounded3of3acceptance comprised two200homepage loads plus catalog SQL. SparklyButterflies retainedNeon; MileHigh retainedits appearance and enabledMILEHIGHFIZZCUSTOMER/15%off configuration. No rep data changes, logins or signups. Post-signup discount/Copy was outside the read-only check. Rollback target remainsdpl_7RmE5Fatpo14C9q99Vx3NZkM679G/9f956acc.
+- Louis's Nov7 all-rep release approval explicitly removed show-activity timing gates for that release. It is recorded as session-specific authority. No extra deployments or migrations were authorized by this documentation update.
+
+Durable evidence:
+- [[2026-11-07-starlight-live-release]]
+- [Slow-phone report](../docs/sparkle-suite/qa/2026-11-07-starlight-slow-load.report.md)
+- [Archived Live report](../docs/sparkle-suite/qa/2026-11-07-starlight-live.report.md)
+- [Theme-building lessons](../.agents/skills/sparkle-suite-skin-builder/references/animated-theme-loading.md)

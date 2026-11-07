@@ -26,6 +26,7 @@ Louis's standing direction (October 24, 2026): every new theme includes its matc
 Before designing or implementing a skin, read:
 
 - `references/skin-contract.md`
+- `references/animated-theme-loading.md` for responsive poster/video loading, render-path parity, bounded performance checks and catalog activation lessons
 - `references/higgsfield-animated-skins.md` when creating or updating a skin with Higgsfield character motion; covers approved-art animation, cost/credential handling, resumable requests, mobile parity and release QA
 - `references/cinematic-hero-contract.md` when the skin uses custom hero art,
   supplied visual references, source-specific motifs, or ambient animation
@@ -71,7 +72,7 @@ For rep-facing copy or Sparkle Suite brand language, also use `sparkle-suite-mas
    - If an exact supplied shape is required, do not substitute a generic icon
      or approximate AI/SVG interpretation.
 
-5. Add red tests first.
+5. Plan focused regression verification within the current task's test budget.
    - Preset normalization recognizes the new ID.
    - Homepage, Trade, and Join receive the same visual tokens.
    - Site Settings and Nic-Nac can save the new preset.
@@ -107,17 +108,18 @@ Before changing this policy or adding a private/custom skin, read current assign
 Add focused tests for each private/custom skin: its owner, Louis's demo workspace, and each explicitly trusted reviewer can see and select it; every other rep cannot see or save it; Community skins remain available to all reps.
 
 8. Verify.
+   - Follow the current task's explicit named files, individual-test budget, page-load/deployment caps and stopping conditions before the command examples below. Reuse valid evidence and request approval before exceeding a cap. Do not automatically run a broad suite or repeat successful checks.
    - Run `npm exec vitest run tests/customer-site-layout-lock.test.ts tests/customer-site-header.test.ts` before review and release. A lock failure blocks a skin release; do not refresh the baseline to make it pass. Only Louis's explicit authorization for the exact shared layout change permits a separate baseline update.
    - Compare before/after screenshots at desktop, tablet and phone widths, including the entire header and update stack. Check at least one other light and dark skin. Use the current lineup contract and cover waiting/empty, populated and delayed states; a populated appearance fixture alone is insufficient.
    - Confirm differences outside the approved skin/hero area are zero. Preserve real customer copy and actions inside the original slots. State any missing real-account verification honestly; do not substitute a sample fixture and claim the actual account was tested.
-   - Run the focused Vitest suite for Amethyst appearance, Site Settings, Nic-Nac customization, and affected templates.
+   - Select only the authorized focused Vitest files needed for the actual changed behavior, using the appearance, Site Settings, Nic-Nac and template checks as applicable.
    - Run `npx tsc --noEmit --pretty false`.
    - Browser-smoke Homepage, Trade, and Join if rendering logic changed.
    - For animated characters, follow the character-framing release gate in the cinematic contract: full motion, wide/ultrawide and narrow-phone extremes, zoom geometry, visible extremities and truthful audio fallback.
    - For a cinematic hero, complete the asset, responsive, motion,
      accessibility, and visual-comparison gates in
      `references/cinematic-hero-contract.md`.
-   - Run `npm run qa:amethyst` when available and practical.
+   - Run `npm run qa:amethyst` only when it fits the authorized scope and test budget.
 
 ## Output Rules
 
