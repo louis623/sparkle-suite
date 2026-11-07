@@ -96,7 +96,7 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
     if (src.startsWith('/amethyst/')) return ''
     return tag // Preserve the original analytics tags exactly once.
   })
-  const mileHighFizzControls = page === 'homepage' && data.homepage.publicSiteVariant === 'mile_high_fizz_hybrid' ? earlyMileHighFizzControls : ''
+  const mileHighFizzControls = page === 'homepage' && data.appearancePreset !== 'starlight_christmas_hollow' && data.homepage.publicSiteVariant === 'mile_high_fizz_hybrid' ? earlyMileHighFizzControls : ''
   // Frozen HTML predates this theme. Add only its missing assets without editing
   // frozen sources or changing the output of existing themes.
   if (data.appearancePreset === 'starlight_christmas_hollow') {

@@ -19,10 +19,17 @@
       media.setAttribute('aria-hidden', 'true');
       const poster = document.createElement('img');
       poster.className = 'sch-poster'; poster.src = assets + 'hero-poster.webp';
+      poster.srcset = assets + 'hero-poster-phone.webp 640w, ' + assets + 'hero-poster.webp 1280w';
+      poster.sizes = '100vw'; poster.fetchPriority = 'high';
       poster.alt = ''; poster.width = 1280; poster.height = 720;
       video = document.createElement('video'); video.className = 'sch-video';
       video.setAttribute('aria-hidden', 'true'); video.tabIndex = -1;
-      media.append(poster, video); host.prepend(media);
+      const picture = document.createElement('picture');
+      picture.style.display = 'contents';
+      const phone = document.createElement('source');
+      phone.media = '(max-width: 640px)'; phone.srcset = assets + 'hero-poster-phone.webp';
+      picture.append(phone, poster);
+      media.append(picture, video); host.prepend(media);
       controls = document.createElement('div'); controls.className = 'sch-controls';
       controls.setAttribute('role', 'group'); controls.setAttribute('aria-label', 'Christmas scene controls');
       for (let i = 0; i < 2; i++) { const b = document.createElement('button'); b.type = 'button'; b.className = 'sch-toggle'; controls.append(b); }
@@ -36,16 +43,28 @@
     const stopReplaced = () => replaced.forEach(v => v.pause());
     replaced.forEach(v => v.addEventListener('playing', stopReplaced));
     stopReplaced();
+    const connection = navigator.connection;
+    const slowConnection = () => connection?.saveData ||
+      ['slow-2g', '2g', '3g'].includes(connection?.effectiveType) ||
+      (connection?.downlink > 0 && connection.downlink < 2);
+    let mediaReady = false;
+    let idleHandle, fallbackTimer;
+    function enableMedia() { mediaReady = true; update(); }
+    function queueMedia() {
+      if ('requestIdleCallback' in window) idleHandle = requestIdleCallback(enableMedia, { timeout: 2500 });
+      else fallbackTimer = setTimeout(enableMedia, 500);
+    }
+    video.poster = matchMedia('(max-width: 640px)').matches ? assets + 'hero-poster-phone.webp' : assets + 'hero-poster.webp';
     video.muted = true; video.defaultMuted = true; video.playsInline = true; video.loop = true; video.preload = 'none';
     const music = document.createElement('audio'); music.preload = 'none'; music.loop = true; music.volume = 0.35;
     music.setAttribute('aria-hidden', 'true'); music.dataset.starlightAudio = 'true'; document.body.append(music);
     const savedMotion = () => hero.dataset.heroMotion || (
       ['still', 'none'].includes(window.HOMEPAGE_TWEAK_DEFAULTS?.heroMotion) ? 'off' : 'on');
-    let wanted = !reduced.matches && savedMotion() !== 'off';
+    let wanted = !reduced.matches && savedMotion() !== 'off' && !slowConnection();
     let musicWanted = false, visible = false, disposed = false, failed = false, pending = false, audioPending = false;
     let interrupted = false, audioInterrupted = false;
     const allowed = () => !disposed && !reduced.matches && savedMotion() !== 'off';
-    const shouldPlay = () => allowed() && wanted && visible && !document.hidden;
+    const shouldPlay = () => allowed() && wanted && mediaReady && visible && !document.hidden;
     function label() {
       motion.textContent = wanted ? 'Pause animation' : 'Play animation';
       motion.setAttribute('aria-pressed', String(wanted));
@@ -59,7 +78,7 @@
       if (!allowed()) { wanted = false; musicWanted = false; }
       label();
       if (!shouldPlay()) { if (pending) interrupted = true; if (audioPending) audioInterrupted = true; video.pause(); music.pause(); return; }
-      if (!failed && !video.getAttribute('src')) video.src = assets + 'hero-loop.mp4';
+      if (!failed && !video.getAttribute('src')) video.src = assets + (matchMedia('(max-width: 850px)').matches ? 'hero-loop-phone.mp4' : 'hero-loop.mp4');
       if (!failed && video.paused && !pending) {
         pending = true; interrupted = false;
         Promise.resolve(video.play()).catch(error => {
@@ -82,8 +101,8 @@
         });
       }
     }
-    function toggle() { if (allowed()) { wanted = !wanted; update(); } }
-    function toggleSound() { if (allowed()) { musicWanted = !musicWanted; if (musicWanted) wanted = true; update(); } }
+    function toggle() { if (allowed()) { wanted = !wanted; mediaReady = true; update(); } }
+    function toggleSound() { if (allowed()) { musicWanted = !musicWanted; if (musicWanted) { wanted = true; mediaReady = true; } update(); } }
     function playing() { if (shouldPlay()) media.setAttribute('data-sch-has-frame', 'true'); else video.pause(); }
     function videoError() { failed = true; media.removeAttribute('data-sch-has-frame'); wanted = false; update(); }
     function audioError() { musicWanted = false; label(); sound.textContent = 'Music unavailable'; sound.disabled = true; }
@@ -93,8 +112,14 @@
     document.addEventListener('visibilitychange', update); reduced.addEventListener('change', update);
     const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); }, { threshold: 0.01 });
     observer.observe(hero); update();
+    if (document.readyState === 'complete') queueMedia();
+    else window.addEventListener('load', queueMedia, { once: true });
     return { hero, update, dispose() {
-      disposed = true; observer.disconnect(); video.pause(); music.pause();
+      disposed = true;
+      window.removeEventListener('load', queueMedia);
+      if (idleHandle !== undefined) cancelIdleCallback(idleHandle);
+      clearTimeout(fallbackTimer);
+      observer.disconnect(); video.pause(); music.pause();
       document.removeEventListener('visibilitychange', update); reduced.removeEventListener('change', update);
       motion.removeEventListener('click', toggle); sound.removeEventListener('click', toggleSound);
       video.removeEventListener('playing', playing); video.removeEventListener('error', videoError);

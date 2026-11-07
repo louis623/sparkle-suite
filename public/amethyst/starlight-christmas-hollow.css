@@ -1,6 +1,7 @@
 /* Starlight Christmas Hollow: palette and decorative hero only. Shared Amethyst
  * fonts, spacing, header, tickers and Live Lineup geometry stay untouched. */
 html[data-customer-theme="starlight_christmas_hollow"] {
+  --starlight-poster: url('/amethyst/skins/starlight-christmas-hollow/hero-poster.webp');
   background: #0b2039;
   --bg: #0b2039;
   --bg-elevated: #132e4b;
@@ -96,7 +97,7 @@ html[data-customer-theme="starlight_christmas_hollow"] body :is(
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero[data-appearance-preset="starlight_christmas_hollow"] .hp-hero-media,
 html[data-customer-theme="starlight_christmas_hollow"] body .jp-hero-media {
   background: linear-gradient(90deg, rgba(20, 8, 15, .08), rgba(20, 8, 15, 0)),
-    url('/amethyst/skins/starlight-christmas-hollow/hero-poster.webp') center center / cover no-repeat;
+    var(--starlight-poster) center center / cover no-repeat;
   background-blend-mode: normal;
 }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero[data-appearance-preset="starlight_christmas_hollow"] .hp-hero-headline {
@@ -320,7 +321,7 @@ html[data-customer-theme="starlight_christmas_hollow"] body .tp-sheet-error {
 /* Static concept artwork within the actual Amethyst hero; no shared layout edits. */
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero{min-height:max(620px,56.25vw);max-height:none}
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .hp-hero-media{
- background:linear-gradient(90deg,rgba(24,12,26,.32),rgba(24,12,26,.08) 39%,transparent 58%),url('/amethyst/skins/starlight-christmas-hollow/hero-poster.webp') center center/cover no-repeat!important;
+ background:linear-gradient(90deg,rgba(24,12,26,.32),rgba(24,12,26,.08) 39%,transparent 58%),var(--starlight-poster) center center/cover no-repeat!important;
 }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .hp-hero-inner{
  justify-content:start;text-align:left;grid-template-columns:minmax(0,510px);padding:72px 24px;
@@ -337,7 +338,7 @@ html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero::after{cont
 }
 @media(max-width:1100px){
  html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero{display:flex;flex-direction:column;min-height:0;background:#0b2039}
- html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .hp-hero-media{position:relative;inset:auto;width:100%;aspect-ratio:16/9;flex:none;background:url('/amethyst/skins/starlight-christmas-hollow/hero-poster.webp') center center/cover no-repeat!important}
+ html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .hp-hero-media{position:relative;inset:auto;width:100%;aspect-ratio:16/9;flex:none;background:var(--starlight-poster) center center/cover no-repeat!important}
  html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .hp-hero-inner{width:100%;max-width:100%;margin:0;padding:42px 24px 52px;grid-template-columns:minmax(0,620px);justify-content:center;text-align:center}
  html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .hp-hero-headline{font-size:clamp(38px,6vw,56px);max-width:none;margin-inline:auto}
  html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .hp-hero-sub{margin-inline:auto}
@@ -419,7 +420,7 @@ html[data-customer-theme="starlight_christmas_hollow"] {
   --hp-display-font:'Playfair Display',Georgia,serif!important;--hp-body-font:'DM Sans',system-ui,sans-serif!important;--hp-heading-weight:600!important;
 }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .hp-hero-media {
-  background:url('/amethyst/skins/starlight-christmas-hollow/hero-poster.webp') center/cover no-repeat!important;
+  background:var(--starlight-poster) center/cover no-repeat!important;
 }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .hp-hero-media::after,
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .sch-media::after {display:none}
@@ -435,9 +436,9 @@ html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .sch-media:
  html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero :is(.sch-poster,.sch-video){object-position:center!important}
  html[data-customer-theme="starlight_christmas_hollow"] body .hp-hero .hp-hero-inner{background:#0b2039}
 }
-html[data-customer-theme="starlight_christmas_hollow"] body .jp-hero-media{background:linear-gradient(#0b2039a8,#0b2039e0),url('/amethyst/skins/starlight-christmas-hollow/hero-poster.webp') center/cover!important}
+html[data-customer-theme="starlight_christmas_hollow"] body .jp-hero-media{background:linear-gradient(#0b2039a8,#0b2039e0),var(--starlight-poster) center/cover!important}
 /* The existing Mile High Fizz hero retains its copy/actions and receives the same art. */
-html[data-customer-theme="starlight_christmas_hollow"] body :is(.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero){min-height:56.25vw!important;background:#0b2039 url('/amethyst/skins/starlight-christmas-hollow/hero-poster.webp') center/cover;position:relative;overflow:hidden}
+html[data-customer-theme="starlight_christmas_hollow"] body :is(.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero){min-height:56.25vw!important;background:#0b2039 var(--starlight-poster) center/cover;position:relative;overflow:hidden}
 html[data-customer-theme="starlight_christmas_hollow"] body :is(.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero)::after{display:none}
 html[data-customer-theme="starlight_christmas_hollow"] :is(.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero) > :is(.mhf-hero-video,.mhf-hero-shade,.bwb-hero-image,.bwb-hero-shade,.bk-home-hero-image,[data-mhf-video-toggle]){display:none}
 html[data-customer-theme="starlight_christmas_hollow"] :is(.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero) .sch-media{position:absolute;inset:0;pointer-events:none}
@@ -487,3 +488,9 @@ html[data-customer-theme="starlight_christmas_hollow"] body .bkf-hero .bkf-tagli
 html[data-customer-theme="starlight_christmas_hollow"] body .bkf-hero h1{white-space:normal;overflow-wrap:break-word}
 html[data-customer-theme="starlight_christmas_hollow"] body :is(.bkf-links,.bkf-eyebrow){justify-content:center}
 @media(min-width:1101px){html[data-customer-theme="starlight_christmas_hollow"] body .bkf-hero{display:grid;align-items:center}}
+
+@media (max-width: 640px) {
+  html[data-customer-theme="starlight_christmas_hollow"] {
+    --starlight-poster: url('/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp');
+  }
+}
