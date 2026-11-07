@@ -1,0 +1,5 @@
+# Starlight slow phone — Smoke-only, acceptance blocked
+
+Louis requested branch codex/starlight-slow-phone-load from verified production9f956acc. Draft PR184, app SHA fad5a3f844d8aa2764622e447dc732969e636396. Responsive high-priority poster, deferred motion and slow-network manual Play implemented. Phone poster56,354bytes, video301,274bytes with all372frames/15.5sec. Original desktop/music retained. Only Starlight tests ran8pass then9pass after review fixes.11layout locks pass.
+
+One Smoke deployment dpl_4E4Av4Zwf7vChF4z2Hc8Xm98tZLx failed in the branch guard because the agent passed SHA as gitSource.ref, producing a platform-branch mismatch. Cap1/1used; stopped.0/6browserloads. AfterFCP/LCP unmeasured. No rep rows, migrations, Live or stable alias changes. Report docs/sparkle-suite/qa/2026-11-07-starlight-slow-load.report.md and C:/workspace/codex-runs/starlight-slow-load.report.md. Need Louis authorization for another Smoke candidate using the actual branch ref before bounded acceptance. PR remains draft.
