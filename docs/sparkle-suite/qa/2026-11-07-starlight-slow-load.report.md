@@ -1,5 +1,50 @@
 # Starlight slow-phone load report — November 7, 2026
 
+Status: requested Smoke phone performance and desktop sanity acceptance PASS on the explicitly approved additional deployment. No further page loads or tuning performed.
+
+- PR https://github.com/louis623/sparkle-suite/pull/184 . Branch codex/starlight-slow-phone-load.
+- Deployed branch SHA 39164649c805a7e405c0dd9fbff137d4033dfa3d; application code SHA fad5a3f844d8aa2764622e447dc732969e636396. Subsequent report-only commits are receipts.
+- READY deployment dpl_DRmeuJ3roWCdEuoYFTyeBLeU7ZQ5, https://sparkle-suite-smoke-rc2biemn3-louis-2849s-projects.vercel.app . Vercel Git ref confirmed codex/starlight-slow-phone-load, resolved commit39164649.
+- Team team_kvcmZ4RlZB0Hah65NE3280x5; Smoke project prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ; target Preview. Production build/type-check completed in Vercel.
+- sparkle-suite-smoke.vercel.app was assigned to this exact deployment after Louis explicitly approved the alias move. Previous Smoke deployment dpl_2Ca3PPjk1bwFPsVPR6DkSWVV3cRj is retained as rollback provenance.
+- This approval used exactly1/1 additional deployment and2/6 page loads, one phone and one desktop. No reruns, reloads, retries or other document navigations. No additional unit tests ran during this follow-up.
+
+## Measurements
+
+| Load | Conditions | FCP | LCP |
+| --- | --- | --- | --- |
+| Supplied baseline | Slow4G,390x844,4xCPU | 2.760s | 40.600s |
+| 1 phone | Cold cache,1.6Mbps down/0.75Mbps up,562.5ms latency,390x844,DPR2,4xCPU | 2.864s | 3.548s |
+| 2 desktop | Cold cache,1440x1000,DPR1,no artificial network/CPU throttle | 1.564s | 1.580s |
+
+Phone LCP meets the requested <4s threshold. FCP is0.104s later than the supplied baseline. This is a single-run acceptance comparison, not a distribution or physical-device benchmark. The baseline is supplied evidence from the prior host; it was not rerun.
+
+PerformanceObserver recorded paint/LCP before interaction. The final phone LCP candidate was the visible hp-hero-media poster background using hero-poster-phone.webp at3.548s,0.684s after FCP. The640w poster was complete. No desktop poster, video or music request preceded interaction on the phone. DOM screenshot and request timestamps are retained in the evidence JSON.
+
+## Playback and appearance
+
+Both browser-reported connections selected the slow-connection manual-Play policy. Phone reported effectiveType3g/downlink1.5Mbps; desktop reported4g/downlink1.5Mbps despite having no artificial throttle. Fast-connection automatic playback was consequently not exercised in these two loads. No connection properties were mocked.
+
+- Phone requested hero-loop-phone.mp4 only after Play,13.927s after navigation began. It advanced, reported15.5s duration/loop=true, and wrapped once during18seconds of observation.
+- Desktop requested the original hero-loop.mp4 after Play at9.791s, advanced at15.5s duration/loop=true, and wrapped once.
+- Both pages kept audio src empty through initial paint and the animation check. The only music request followed Enable Christmas music. Music advanced, duration77.844898s, and Mute paused it on both pages.
+- Screenshots inspected at both sizes. Navy/cranberry/gold scene, readable copy and controls, all village characters and responsive composition retained. No horizontal overflow or uncaught page errors observed.
+
+## Fixture, scope and evidence
+
+URL used for both checks: https://sparkle-suite-smoke.vercel.app/dudesfizzfest?ssrReviewTheme=starlight_christmas_hollow&ssrReviewLayout=standard . This uses the existing built-in read-only Smoke theme/layout fixture on the Smoke demo mirror. Its code requires the Smoke project ID, Preview environment, Smoke database URL and environment marker. The screenshot visibly labels the fixture. Louis explicitly approved this alternative. No saved rep theme or database row was changed.
+
+Automatic approval review initially rejected the Smoke alias move and synthetic database edit. Louis then approved the alias move and read-only fixture. The database edit was never executed. Stable Smoke alias provenance was re-read after assignment and matched the deployment above. No Live application, environment, account, database, domain or alias changes occurred. No Live migration or other migration was applied.
+
+Before/after sizes and previous tests remain recorded in the historical section below. Current proof files: 2026-11-07-starlight-slow-load/acceptance.json, phone.png, desktop.png. Validation used isolated headless Chrome via Playwright/CDP; the Browser plugin/browser skill is absent, so the frontend-testing-debugging skill's regular-Playwright path was used for exact network and CPU throttling. No personal Chrome session or authentication was used.
+
+The requested file is mirrored to C:/workspace/codex-runs/starlight-slow-load.report.md, the Windows resolution of /workspace/codex-runs/starlight-slow-load.report.md.
+
+## Historical first attempt and implementation checks
+
+The following text records the earlier failed attempt before Louis authorized this successful additional candidate. Its pending/blocked statements are superseded by the acceptance evidence above.
+
+
 Status: implementation proposed, Smoke acceptance blocked by the failed single candidate deployment.
 
 - PR https://github.com/louis623/sparkle-suite/pull/184 (draft).
