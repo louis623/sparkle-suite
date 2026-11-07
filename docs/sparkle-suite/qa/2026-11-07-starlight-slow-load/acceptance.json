@@ -1,0 +1,706 @@
+{
+  "loadsUsed": 2,
+  "loads": [
+    {
+      "number": 1,
+      "mode": "phone",
+      "url": "https://sparkle-suite-smoke.vercel.app/dudesfizzfest?ssrReviewTheme=starlight_christmas_hollow&ssrReviewLayout=standard",
+      "requests": [
+        {
+          "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp",
+          "atMs": 2438
+        },
+        {
+          "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-loop-phone.mp4",
+          "atMs": 13927
+        },
+        {
+          "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/christmas-music-box.mp3",
+          "atMs": 33343
+        }
+      ],
+      "errors": [],
+      "finalUrl": "https://sparkle-suite-smoke.vercel.app/dudesfizzfest?ssrReviewTheme=starlight_christmas_hollow&ssrReviewLayout=standard",
+      "status": 200,
+      "beforeInteraction": {
+        "video": [
+          {
+            "src": "",
+            "paused": true,
+            "time": 0,
+            "duration": null,
+            "loop": true,
+            "readyState": 0
+          }
+        ],
+        "audio": [
+          {
+            "src": "",
+            "paused": true,
+            "time": 0,
+            "duration": null
+          }
+        ],
+        "poster": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp",
+            "complete": true,
+            "width": 640
+          }
+        ],
+        "overflow": false,
+        "connection": {
+          "effectiveType": "3g",
+          "downlink": 1.5,
+          "saveData": false
+        },
+        "paints": {
+          "paints": [
+            {
+              "name": "first-paint",
+              "startTime": 2864
+            },
+            {
+              "name": "first-contentful-paint",
+              "startTime": 2864
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 2864,
+              "size": 4403,
+              "url": "",
+              "tag": "A",
+              "className": "hp-ticker-trade"
+            },
+            {
+              "startTime": 3064,
+              "size": 22714,
+              "url": "",
+              "tag": "SPAN",
+              "className": ""
+            },
+            {
+              "startTime": 3548,
+              "size": 85410,
+              "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp",
+              "tag": "DIV",
+              "className": "hp-hero-media"
+            }
+          ]
+        }
+      },
+      "fcpMs": 2864,
+      "lcpMs": 3548,
+      "afterVideoStart": {
+        "video": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-loop-phone.mp4",
+            "paused": false,
+            "time": 0.3179,
+            "duration": 15.5,
+            "loop": true,
+            "readyState": 4
+          }
+        ],
+        "audio": [
+          {
+            "src": "",
+            "paused": true,
+            "time": 0,
+            "duration": null
+          }
+        ],
+        "poster": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp",
+            "complete": true,
+            "width": 640
+          }
+        ],
+        "overflow": false,
+        "connection": {
+          "effectiveType": "3g",
+          "downlink": 1.5,
+          "saveData": false
+        },
+        "paints": {
+          "paints": [
+            {
+              "name": "first-paint",
+              "startTime": 2864
+            },
+            {
+              "name": "first-contentful-paint",
+              "startTime": 2864
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 2864,
+              "size": 4403,
+              "url": "",
+              "tag": "A",
+              "className": "hp-ticker-trade"
+            },
+            {
+              "startTime": 3064,
+              "size": 22714,
+              "url": "",
+              "tag": "SPAN",
+              "className": ""
+            },
+            {
+              "startTime": 3548,
+              "size": 85410,
+              "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp",
+              "tag": "DIV",
+              "className": "hp-hero-media"
+            }
+          ]
+        }
+      },
+      "loop": {
+        "last": 2.6651,
+        "wraps": 1
+      },
+      "beforeAudioTap": {
+        "video": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-loop-phone.mp4",
+            "paused": false,
+            "time": 2.8326,
+            "duration": 15.5,
+            "loop": true,
+            "readyState": 4
+          }
+        ],
+        "audio": [
+          {
+            "src": "",
+            "paused": true,
+            "time": 0,
+            "duration": null
+          }
+        ],
+        "poster": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp",
+            "complete": true,
+            "width": 640
+          }
+        ],
+        "overflow": false,
+        "connection": {
+          "effectiveType": "3g",
+          "downlink": 1.5,
+          "saveData": false
+        },
+        "paints": {
+          "paints": [
+            {
+              "name": "first-paint",
+              "startTime": 2864
+            },
+            {
+              "name": "first-contentful-paint",
+              "startTime": 2864
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 2864,
+              "size": 4403,
+              "url": "",
+              "tag": "A",
+              "className": "hp-ticker-trade"
+            },
+            {
+              "startTime": 3064,
+              "size": 22714,
+              "url": "",
+              "tag": "SPAN",
+              "className": ""
+            },
+            {
+              "startTime": 3548,
+              "size": 85410,
+              "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp",
+              "tag": "DIV",
+              "className": "hp-hero-media"
+            }
+          ]
+        }
+      },
+      "afterAudioTap": {
+        "video": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-loop-phone.mp4",
+            "paused": false,
+            "time": 4.1678,
+            "duration": 15.5,
+            "loop": true,
+            "readyState": 4
+          }
+        ],
+        "audio": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/christmas-music-box.mp3",
+            "paused": false,
+            "time": 0.216831,
+            "duration": 77.844898
+          }
+        ],
+        "poster": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp",
+            "complete": true,
+            "width": 640
+          }
+        ],
+        "overflow": false,
+        "connection": {
+          "effectiveType": "3g",
+          "downlink": 1.5,
+          "saveData": false
+        },
+        "paints": {
+          "paints": [
+            {
+              "name": "first-paint",
+              "startTime": 2864
+            },
+            {
+              "name": "first-contentful-paint",
+              "startTime": 2864
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 2864,
+              "size": 4403,
+              "url": "",
+              "tag": "A",
+              "className": "hp-ticker-trade"
+            },
+            {
+              "startTime": 3064,
+              "size": 22714,
+              "url": "",
+              "tag": "SPAN",
+              "className": ""
+            },
+            {
+              "startTime": 3548,
+              "size": 85410,
+              "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp",
+              "tag": "DIV",
+              "className": "hp-hero-media"
+            }
+          ]
+        }
+      },
+      "afterMute": {
+        "video": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-loop-phone.mp4",
+            "paused": false,
+            "time": 4.2428,
+            "duration": 15.5,
+            "loop": true,
+            "readyState": 4
+          }
+        ],
+        "audio": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/christmas-music-box.mp3",
+            "paused": true,
+            "time": 0.274797,
+            "duration": 77.844898
+          }
+        ],
+        "poster": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp",
+            "complete": true,
+            "width": 640
+          }
+        ],
+        "overflow": false,
+        "connection": {
+          "effectiveType": "3g",
+          "downlink": 1.5,
+          "saveData": false
+        },
+        "paints": {
+          "paints": [
+            {
+              "name": "first-paint",
+              "startTime": 2864
+            },
+            {
+              "name": "first-contentful-paint",
+              "startTime": 2864
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 2864,
+              "size": 4403,
+              "url": "",
+              "tag": "A",
+              "className": "hp-ticker-trade"
+            },
+            {
+              "startTime": 3064,
+              "size": 22714,
+              "url": "",
+              "tag": "SPAN",
+              "className": ""
+            },
+            {
+              "startTime": 3548,
+              "size": 85410,
+              "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp",
+              "tag": "DIV",
+              "className": "hp-hero-media"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "number": 2,
+      "mode": "desktop",
+      "url": "https://sparkle-suite-smoke.vercel.app/dudesfizzfest?ssrReviewTheme=starlight_christmas_hollow&ssrReviewLayout=standard",
+      "requests": [
+        {
+          "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+          "atMs": 796
+        },
+        {
+          "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-loop.mp4",
+          "atMs": 9791
+        },
+        {
+          "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/christmas-music-box.mp3",
+          "atMs": 28378
+        }
+      ],
+      "errors": [],
+      "finalUrl": "https://sparkle-suite-smoke.vercel.app/dudesfizzfest?ssrReviewTheme=starlight_christmas_hollow&ssrReviewLayout=standard",
+      "status": 200,
+      "beforeInteraction": {
+        "video": [
+          {
+            "src": "",
+            "paused": true,
+            "time": 0,
+            "duration": null,
+            "loop": true,
+            "readyState": 0
+          }
+        ],
+        "audio": [
+          {
+            "src": "",
+            "paused": true,
+            "time": 0,
+            "duration": null
+          }
+        ],
+        "poster": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+            "complete": true,
+            "width": 1440
+          }
+        ],
+        "overflow": false,
+        "connection": {
+          "effectiveType": "4g",
+          "downlink": 1.5,
+          "saveData": false
+        },
+        "paints": {
+          "paints": [
+            {
+              "name": "first-paint",
+              "startTime": 1564
+            },
+            {
+              "name": "first-contentful-paint",
+              "startTime": 1564
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 1564,
+              "size": 28304,
+              "url": "",
+              "tag": "P",
+              "className": "hp-hero-sub slot"
+            },
+            {
+              "startTime": 1580,
+              "size": 904533,
+              "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+              "tag": "DIV",
+              "className": "hp-hero-media"
+            }
+          ]
+        }
+      },
+      "fcpMs": 1564,
+      "lcpMs": 1580,
+      "afterVideoStart": {
+        "video": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-loop.mp4",
+            "paused": false,
+            "time": 0.3108,
+            "duration": 15.5,
+            "loop": true,
+            "readyState": 4
+          }
+        ],
+        "audio": [
+          {
+            "src": "",
+            "paused": true,
+            "time": 0,
+            "duration": null
+          }
+        ],
+        "poster": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+            "complete": true,
+            "width": 1440
+          }
+        ],
+        "overflow": false,
+        "connection": {
+          "effectiveType": "4g",
+          "downlink": 1.5,
+          "saveData": false
+        },
+        "paints": {
+          "paints": [
+            {
+              "name": "first-paint",
+              "startTime": 1564
+            },
+            {
+              "name": "first-contentful-paint",
+              "startTime": 1564
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 1564,
+              "size": 28304,
+              "url": "",
+              "tag": "P",
+              "className": "hp-hero-sub slot"
+            },
+            {
+              "startTime": 1580,
+              "size": 904533,
+              "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+              "tag": "DIV",
+              "className": "hp-hero-media"
+            }
+          ]
+        }
+      },
+      "loop": {
+        "last": 2.6536,
+        "wraps": 1
+      },
+      "beforeAudioTap": {
+        "video": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-loop.mp4",
+            "paused": false,
+            "time": 2.8109,
+            "duration": 15.5,
+            "loop": true,
+            "readyState": 4
+          }
+        ],
+        "audio": [
+          {
+            "src": "",
+            "paused": true,
+            "time": 0,
+            "duration": null
+          }
+        ],
+        "poster": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+            "complete": true,
+            "width": 1440
+          }
+        ],
+        "overflow": false,
+        "connection": {
+          "effectiveType": "4g",
+          "downlink": 1.5,
+          "saveData": false
+        },
+        "paints": {
+          "paints": [
+            {
+              "name": "first-paint",
+              "startTime": 1564
+            },
+            {
+              "name": "first-contentful-paint",
+              "startTime": 1564
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 1564,
+              "size": 28304,
+              "url": "",
+              "tag": "P",
+              "className": "hp-hero-sub slot"
+            },
+            {
+              "startTime": 1580,
+              "size": 904533,
+              "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+              "tag": "DIV",
+              "className": "hp-hero-media"
+            }
+          ]
+        }
+      },
+      "afterAudioTap": {
+        "video": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-loop.mp4",
+            "paused": false,
+            "time": 3.3565,
+            "duration": 15.5,
+            "loop": true,
+            "readyState": 4
+          }
+        ],
+        "audio": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/christmas-music-box.mp3",
+            "paused": false,
+            "time": 0.219349,
+            "duration": 77.844898
+          }
+        ],
+        "poster": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+            "complete": true,
+            "width": 1440
+          }
+        ],
+        "overflow": false,
+        "connection": {
+          "effectiveType": "4g",
+          "downlink": 1.5,
+          "saveData": false
+        },
+        "paints": {
+          "paints": [
+            {
+              "name": "first-paint",
+              "startTime": 1564
+            },
+            {
+              "name": "first-contentful-paint",
+              "startTime": 1564
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 1564,
+              "size": 28304,
+              "url": "",
+              "tag": "P",
+              "className": "hp-hero-sub slot"
+            },
+            {
+              "startTime": 1580,
+              "size": 904533,
+              "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+              "tag": "DIV",
+              "className": "hp-hero-media"
+            }
+          ]
+        }
+      },
+      "afterMute": {
+        "video": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-loop.mp4",
+            "paused": false,
+            "time": 3.3962,
+            "duration": 15.5,
+            "loop": true,
+            "readyState": 4
+          }
+        ],
+        "audio": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/christmas-music-box.mp3",
+            "paused": true,
+            "time": 0.250427,
+            "duration": 77.844898
+          }
+        ],
+        "poster": [
+          {
+            "src": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+            "complete": true,
+            "width": 1440
+          }
+        ],
+        "overflow": false,
+        "connection": {
+          "effectiveType": "4g",
+          "downlink": 1.5,
+          "saveData": false
+        },
+        "paints": {
+          "paints": [
+            {
+              "name": "first-paint",
+              "startTime": 1564
+            },
+            {
+              "name": "first-contentful-paint",
+              "startTime": 1564
+            }
+          ],
+          "lcp": [
+            {
+              "startTime": 1564,
+              "size": 28304,
+              "url": "",
+              "tag": "P",
+              "className": "hp-hero-sub slot"
+            },
+            {
+              "startTime": 1580,
+              "size": 904533,
+              "url": "https://sparkle-suite-smoke.vercel.app/amethyst/skins/starlight-christmas-hollow/hero-poster.webp",
+              "tag": "DIV",
+              "className": "hp-hero-media"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -10,6 +10,7 @@ export interface HeroMotionConfig {
   poster?: string
   src?: string
   mediaClass?: string
+  posterSrcSet?: string
   posterClass?: string
   videoClass?: string
   controlClass?: string
@@ -47,7 +48,7 @@ export const HERO_MOTION_THEMES: Record<AmethystAppearancePresetId, HeroMotionCo
   gilded_autumn: video('gilded-autumn', 'ga', { mediaClass: 'ga-art', src: '/amethyst/skins/gilded-autumn/hero-motion.mp4', controlClass: 'ga-motion-control', frameAttribute: 'data-playing', width: 1204, height: 764 }),
   rose_gold: sparkle(),
   midnight_rose: video('midnight-rose', 'mdr'),
-  starlight_christmas_hollow: video('starlight-christmas-hollow', 'sch', { host: true, controlsClass: 'sch-controls', sound: 'Christmas music' }),
+  starlight_christmas_hollow: video('starlight-christmas-hollow', 'sch', { host: true, controlsClass: 'sch-controls', sound: 'Christmas music', posterSrcSet: '/amethyst/skins/starlight-christmas-hollow/hero-poster-phone.webp 640w, /amethyst/skins/starlight-christmas-hollow/hero-poster.webp 1280w' }),
   fall_owl_harvest_moon: video('fall-owl', 'fow', { host: true, controlsClass: 'fow-controls', sound: 'autumn sounds' }),
   gobble_and_fizz: video('gobble-and-fizz', 'tg', { host: true, frameAttribute: 'data-has-frame', script: 'thanksgiving-motion.js' }),
   pie_please: video('pie-please', 'tg', { host: true, frameAttribute: 'data-has-frame', script: 'thanksgiving-motion.js', poster: '/amethyst/skins/pie-please/hero-poster-v4.webp', src: '/amethyst/skins/pie-please/hero-loop-v4.mp4' }),

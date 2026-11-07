@@ -1,3 +1,4 @@
+import { heroImagePreload } from '../lib/amethyst/hero-responsive-images'
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
@@ -14,6 +15,10 @@ import { decodeFlyerQr } from '../lib/workspace/card-qr/flyer-decode'
 import { AMETHYST_APPEARANCE_PRESETS, normalizeAmethystAppearancePreset } from '../lib/amethyst/appearance-presets'
 
 describe('Starlight Christmas Hollow', () => {
+  it('preloads only displayed Starlight posters', () => {
+    expect(heroImagePreload('<section class="tp-hero">', 'starlight_christmas_hollow')).toBe('')
+    expect(heroImagePreload('<section class="mhf-hero">', 'starlight_christmas_hollow')).toContain('hero-poster-phone.webp')
+  })
   it('normalizes the new community selection without changing existing selections', () => {
     expect(normalizeAmethystAppearancePreset('starlight_christmas_hollow')).toBe('starlight_christmas_hollow')
     expect(normalizeAmethystAppearancePreset('gnome_garden')).toBe('gnome_garden')
@@ -65,6 +70,9 @@ describe('Starlight Christmas Hollow', () => {
     for (const publicSiteVariant of [undefined,'mile_high_fizz_hybrid','britt_with_bling_hybrid','bling_kitchen_hybrid'] as const) {
       const saved={...homepage,publicSiteVariant}
       const html=await renderHomepageFirstPaint(source,{homepage:saved,join,trade,appearancePreset:'starlight_christmas_hollow'},new URL('https://example.com/'),buildAmethystHomepageBootstrapScript(saved,[],'starlight_christmas_hollow'))
+      expect(html).toContain('hero-poster-phone.webp');
+      expect(html).toContain('fetchpriority="high" data-ssr-hero-preload');
+      expect(html).not.toMatch(/<video[^>]* src="/);
       expect(html).toContain('data-server-rendered="true"')
       expect(html).toContain('data-customer-theme="starlight_christmas_hollow"')
       expect(html.match(/data-ssr-style="starlight-christmas-hollow.css"/g)).toHaveLength(1)

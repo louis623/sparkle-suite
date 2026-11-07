@@ -15,7 +15,8 @@
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\britt-ssr-smoke-20261103",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\landing-preview-images",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\about-narrative-smoke",
-    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\workspace-identity-isolation-20261106"
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\workspace-identity-isolation-20261106",
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\starlight-slow-phone-load"
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
@@ -64,7 +65,8 @@
     "codex/about-narrative-smoke",
     "codex/release-1106-integration",
     "codex/workspace-identity-isolation",
-    "codex/signup-discount-workspace-toggle"
+    "codex/signup-discount-workspace-toggle",
+    "codex/starlight-slow-phone-load"
   ],
   "previewBranches": {
     "codex/landing-preview-images": {
@@ -230,6 +232,10 @@
     "codex/release-1106-integration": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
+    },
+    "codex/starlight-slow-phone-load": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
@@ -248,6 +254,7 @@
     "codex/about-narrative-smoke": "codex/nic-nac-trade-hardening",
     "codex/signup-discount-workspace-toggle": "codex/nic-nac-trade-hardening",
     "codex/workspace-identity-isolation": "codex/nic-nac-trade-hardening",
-    "codex/release-1106-integration": "codex/nic-nac-trade-hardening"
+    "codex/release-1106-integration": "codex/nic-nac-trade-hardening",
+    "codex/starlight-slow-phone-load": "codex/nic-nac-trade-hardening"
   }
 }

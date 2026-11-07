@@ -359,3 +359,6 @@ Louis authorized one draft PR on `codex/heather-ssr-smoke` from verified `5a1ba1
 ## November 4 — Nic-Nac photo guardrails
 
 Louis approved `codex/nicnac-photo-guardrails` by name on Nov 4, 2026, as the narrow rebuild that replaces PR #141: six code-enforced guards so a photo cannot be saved onto the wrong piece. One PR from production `634320e6`. Preview only: `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`. No Live project, aliases, database change, merge, or production/default branch change.
+
+## Starlight slow phone — November 7, 2026
+Louis explicitly requested codex/starlight-slow-phone-load from 9f956acc, with its own PR and Smoke-only deployment. Registered solely for sparkle-suite-smoke preview. Production branch and project remain governed by existing policy.
