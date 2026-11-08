@@ -33,7 +33,7 @@ describe("Macie's Christmas Globe", () => {
       }
     }
   })
-  it('previews motion on the Smoke demo while preserving saved settings', () => {
+  it('uses the saved motion preference in the Smoke preview', () => {
     const saved = { appearancePreset: 'amethyst' as const, homepage: { ...defaultAmethystHomepageTemplateData, heroMotion: 'still' as const }, join, trade }
     const url = new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest?ssrReviewTheme=' + id)
     try {
@@ -41,7 +41,7 @@ describe("Macie's Christmas Globe", () => {
       vi.stubEnv('VERCEL_PROJECT_ID', 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ')
       vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
       vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://pukemqiwlyqmyytxkdmo.supabase.co')
-      expect(homepageSmokeReview(saved, url, 'dudesfizzfest').homepage.heroMotion).toBe('sparkle_rise')
+      expect(homepageSmokeReview(saved, url, 'dudesfizzfest').homepage.heroMotion).toBe('still')
       expect(homepageSmokeReview(saved, url, 'milehighfizz')).toBe(saved)
       vi.stubEnv('VERCEL_ENV', 'production')
       expect(homepageSmokeReview(saved, url, 'dudesfizzfest')).toBe(saved)

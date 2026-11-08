@@ -63,15 +63,17 @@
       ? 'off' : hero.dataset.heroMotion || (
         ['still', 'none'].includes(window.HOMEPAGE_TWEAK_DEFAULTS?.heroMotion) ? 'off' : 'on');
     let wanted = !reduced.matches && savedMotion() !== 'off' && !slowConnection();
+    let visitorStartedGlobe = false;
     let musicWanted = false, visible = false, disposed = false, failed = false, pending = false, audioPending = false;
     let interrupted = false, audioInterrupted = false;
-    const allowed = () => !disposed && !reduced.matches && savedMotion() !== 'off';
+    const canChooseMotion = () => !disposed && !reduced.matches && (globe || savedMotion() !== 'off');
+    const allowed = () => canChooseMotion() && (savedMotion() !== 'off' || visitorStartedGlobe);
     const shouldPlay = () => allowed() && wanted && mediaReady && visible && !document.hidden;
     const canPlaySound = () => globe ? !disposed && visible && !document.hidden : shouldPlay();
     function label() {
       motion.textContent = wanted ? 'Pause animation' : 'Play animation';
       motion.setAttribute('aria-pressed', String(wanted));
-      motion.disabled = !allowed() || failed;
+      motion.disabled = !canChooseMotion() || failed;
       sound.textContent = musicWanted ? 'Mute Christmas music' : (globe ? 'Wind up the globe' : 'Enable Christmas music');
       sound.setAttribute('aria-pressed', String(musicWanted));
       sound.disabled = !globe && !allowed();
@@ -105,7 +107,13 @@
         });
       }
     }
-    function toggle() { if (allowed()) { wanted = !wanted; mediaReady = true; update(); } }
+    function toggle() {
+      if (!canChooseMotion() || failed) return;
+      wanted = !wanted;
+      visitorStartedGlobe = globe && wanted;
+      mediaReady = true;
+      update();
+    }
     function toggleSound() { if (globe || allowed()) { musicWanted = !musicWanted; if (musicWanted && !globe) { wanted = true; mediaReady = true; } update(); } }
     function playing() { if (shouldPlay()) media.setAttribute('data-sch-has-frame', 'true'); else video.pause(); }
     function videoError() { failed = true; media.removeAttribute('data-sch-has-frame'); wanted = false; update(); }
