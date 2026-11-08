@@ -114,6 +114,7 @@ Add focused tests for each private/custom skin: its owner, Louis's demo workspac
    - Confirm differences outside the approved skin/hero area are zero. Preserve real customer copy and actions inside the original slots. State any missing real-account verification honestly; do not substitute a sample fixture and claim the actual account was tested.
    - Select only the authorized focused Vitest files needed for the actual changed behavior, using the appearance, Site Settings, Nic-Nac and template checks as applicable.
    - Run `npx tsc --noEmit --pretty false`.
+   - Verify that Fizz Fest can select every available theme in Site Settings in each environment. On Suite Smoke, apply the theme migration and refresh the dedicated Some Dude's Fizz Fest fixture with `scripts/smoke-environment/fizz-fest-theme-access.ts` when an unreleased private owner is absent. Verify the picker RPC with the demo's authenticated identity, a save, and another rep's exclusion. On Live, verify the existing Fizz Fest demo entitlement at the approved release. Preserve private ownership and the previous saved demo selection during automated checks.
    - Browser-smoke Homepage, Trade, and Join if rendering logic changed.
    - For animated characters, follow the character-framing release gate in the cinematic contract: full motion, wide/ultrawide and narrow-phone extremes, zoom geometry, visible extremities and truthful audio fallback.
    - For a cinematic hero, complete the asset, responsive, motion,
