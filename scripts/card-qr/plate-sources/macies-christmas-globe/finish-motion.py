@@ -7,7 +7,7 @@ import subprocess as sp
 import sys
 from pathlib import Path
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 src, plate, out = sys.argv[1:]
 out = Path(out)
@@ -31,8 +31,86 @@ gx,gy=grid(568,0,1178,514)
 # All living subjects inside the glass remain in the original take, including the blink.
 ell=np.sqrt(((gx-873)/296)**2+((gy-266)/267)**2)
 gm=smooth((1.003-ell)/.045)*smooth((511-gy)/14)
-hx,hy=grid(783,95,1021,329)
-hw=smooth((1.25-np.sqrt(((hx-902)/100)**2+((hy-214)/123)**2))/.28)*smooth((323-hy)/42)
+# Trace the actual silhouette in reference pixels. Keep the snowfall in camera
+# coordinates, even when an ear or the hat moves past it.
+hx,hy=grid(780,90,1020,335)
+outline=np.asarray([
+    (54,79),(55,69),(57,59),(61,50),(69,44),(80,40),(89,34),(99,30),
+    (110,23),(120,18),(129,17),(139,18),(150,20),(160,25),(170,32),
+    (179,41),(187,52),(193,64),(197,77),(199,91),(199,105),(196,115),
+    (202,119),(207,125),(210,132),(211,139),(208,147),(204,153),
+    (198,157),(190,159),(180,158),(172,154),(166,149),(163,141),
+    (163,134),(157,133),(151,135),(149,144),(153,157),(155,170),
+    (156,178),(163,186),(172,205),(173,225),(47,225),(46,199),
+    (48,186),(52,175),(52,165),(48,154),(46,145),(47,139),(42,136),
+    (40,133),(33,133),(27,131),(24,128),(25,122),(27,115),(29,109),
+    (31,102),(36,94),(41,87),(48,83)
+],dtype=np.float32)+[790,110]
+# Find the closest point on the contour and its outward direction, fixed for
+# the entire shot. An edge trimap below adapts to the tiny native movements.
+near=np.full(hx.shape,1e9); inside=np.zeros(hx.shape,bool)
+edge_x=hx.copy(); edge_y=hy.copy()
+for a,b in zip(outline,np.roll(outline,-1,axis=0)):
+    vx,vy=b-a
+    u=np.clip(((hx-a[0])*vx+(hy-a[1])*vy)/(vx*vx+vy*vy),0,1)
+    px=a[0]+u*vx; py=a[1]+u*vy
+    dist=(hx-px)**2+(hy-py)**2
+    use=dist<near
+    edge_x[use]=px[use]; edge_y[use]=py[use]; near=np.minimum(near,dist)
+    if vy!=0: inside^=((a[1]>hy)!=(b[1]>hy)) & (hx<(a[0]+(hy-a[1])*vx/vy))
+sd=np.sqrt(near).astype(np.float32)*np.where(inside,1.,-1.)
+# Smoothed normals avoid seams at polygon corners in the hidden plate.
+ny,nx=np.gradient(-sd); length=np.maximum(np.hypot(nx,ny),.001)
+nx=(nx/length).astype(np.float32); ny=(ny/length).astype(np.float32)
+band=(np.abs(sd)<7.0)&(hy<325)
+# Exclude the whole original contour plus its lens-softened fringe before
+# estimating exposed sky. Sampling across the contour leaves a ghost of the hat.
+known=np.uint8(sd < -5.5)*255
+def blur(pixels,radius):
+    return np.asarray(Image.fromarray(pixels).filter(ImageFilter.GaussianBlur(radius)),dtype=np.float32)
+den=[blur(known,r) for r in (4,12,32)]
+def sky_under_subject(src):
+    data=(np.uint8(src)*(known>0)[...,None]).astype(np.uint8)
+    fill=np.zeros_like(src)
+    for radius,weight in reversed(list(zip((4,12,32),den))):
+        color=blur(data,radius)*(255/np.maximum(weight,1))[:,:,None]
+        fill=mix(fill,color,smooth((weight-14)/64))
+    return fill
+def small_sample(im,x,y):
+    x=np.clip(x,0,im.shape[1]-1.001); y=np.clip(y,0,im.shape[0]-1.001)
+    ix=x.astype(np.int32); iy=y.astype(np.int32)
+    dx=(x-ix).astype(np.float32)[...,None]; dy=(y-iy).astype(np.float32)[...,None]
+    return (im[iy,ix]*(1-dx)+im[iy,ix+1]*dx)*(1-dy)+(im[iy+1,ix]*(1-dx)+im[iy+1,ix+1]*dx)*dy
+def edge_color(im,direction):
+    colors=[small_sample(im,edge_x[band]+direction*nx[band]*dist-ny[band]*side,
+                            edge_y[band]+direction*ny[band]*dist+nx[band]*side)
+            for dist,side in ((6,-2),(7,0),(6,2),(8,1),(8,-1))]
+    return np.median(colors,axis=0)
+def tilt_subject(frame,im,t):
+    strength=smooth((319-hy)/49)
+    ang=math.radians(3.9*math.sin(t)**3+.85*(1-math.cos(t)))*strength
+    dx=hx-883; dy=hy-299
+    xs=883+np.cos(ang)*dx+np.sin(ang)*dy
+    ys=299-np.sin(ang)*dx+np.cos(ang)*dy-2.1*strength*math.sin(t)**2
+    src=im[90:335,780:1020].astype(np.float32)
+    alpha=inside.astype(np.float32)
+    fg=edge_color(im,-1); bg=edge_color(im,1); delta=fg-bg
+    # Project each edge pixel's color between local fur/velvet and night sky.
+    estimate=np.sum((src[band]-bg)*delta,axis=1)/np.maximum(60,np.sum(delta*delta,axis=1))
+    prior=smooth((sd[band]+4.5)/9)
+    alpha[band]=smooth((np.clip(estimate,0,1)*.88+prior*.12-.08)/.84)
+    # Reconstruct only the narrow strip uncovered by the tilt, using surrounding
+    # sky from this instant. No donor coordinate or snow layer follows the head.
+    coverage=smooth((sd+5.5)/2.5)
+    clean=mix(src,sky_under_subject(src),coverage)
+    premul=np.clip(src-clean*(1-alpha[...,None]),0,255*alpha[...,None])
+    warped=small_sample(np.dstack((premul,alpha)),xs-780,ys-90)
+    value=clean*(1-warped[:,:,3:4])+warped[:,:,:3]
+    displacement=np.hypot(hx-xs,hy-ys)
+    changed=((coverage>.002)|(warped[:,:,3]>.002)) & (displacement>.001)
+    patch=frame[90:335,780:1020]
+    result=mix(src,value,smooth(displacement/1.2))
+    patch[changed]=np.uint8(np.clip(result[changed]+.5,0,255))
 fx,fy=grid(0,434,187,686)
 # Constrain motion to the hearth, leaving the gift box and the lip of the table rigid.
 edge=130+np.clip((601-fy)*1.3,0,57)
@@ -63,13 +141,7 @@ for i in range(N):
     t=2*math.pi*i/N
     frame=base.copy()
     frame[0:514,568:1178]=mix(base[0:514,568:1178],im[0:514,568:1178],gm)
-    # Tilt the head together with the ears and hat, tapering to zero at the necklace.
-    ang=math.radians(5.3*math.sin(t)**3+1.2*(1-math.cos(t)))*hw
-    dx=hx-883; dy=hy-299
-    xs=883+np.cos(ang)*dx+np.sin(ang)*dy
-    ys=299-np.sin(ang)*dx+np.cos(ang)*dy-2.1*hw*math.sin(t)**2
-    patch=frame[95:329,783:1021]
-    patch[:]=mix(patch,sample(im,xs,ys),hw)
+    tilt_subject(frame,im,t)
     # Animate photographic flame shapes about their bases. Neighbouring tongues flicker
     # at different phases/speeds. The low fire reflection receives only soft spill.
     wave=np.sin(9*t+fx*.039)+.51*np.sin(16*t-fx*.060)+.26*np.cos(23*t+fx*.031)
