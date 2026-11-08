@@ -1,5 +1,13 @@
 # Sparkle Suite Branch Register
 
+## November 8 — Signature Nic-Nac home visual review
+
+Louis requested a visual-only PR from fetched production tip `b617799d` on
+`codex/nic-nac-signature-home`, isolated in the `nic-nac-signature-home` worktree.
+Authorized only for `sparkle-suite-smoke` (`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`),
+preview environment, and the normal Smoke alias. No Live, merge, database writes,
+migrations, environment changes, or production/default branch changes.
+
 ## November 6 — pinned combined Smoke integration
 
 Louis authorized `codex/release-1106-integration` from exact `6b04cc03`,

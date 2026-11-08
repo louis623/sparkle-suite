@@ -1,4 +1,5 @@
-.dashboard {
+.dashboard,
+.palette {
   --dash-amethyst: #171034;
   --dash-cream: #f8efe4;
   --dash-lilac: #f1eafd;
@@ -6,6 +7,9 @@
   --dash-magenta-hot: #ff4cae;
   --dash-violet: #7345ca;
   --dash-violet-deep: #6f2bd0;
+}
+
+.dashboard {
   container: repdash / inline-size;
   display: flex;
   flex-direction: column;

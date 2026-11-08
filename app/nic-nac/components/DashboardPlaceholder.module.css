@@ -8022,6 +8022,168 @@
   height: 18px;
 }
 
+/* Home-only treatment; palette and hero are shared with RepDashboard. */
+.signatureHome {
+  composes: palette from './RepDashboard.module.css';
+  color: var(--dash-amethyst);
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+}
+
+.signatureHero {
+  composes: showCard from './RepDashboard.module.css';
+}
+
+.signatureHome .conceptCenter {
+  padding-top: 0;
+}
+
+.signatureHome .nicNacHero {
+  align-items: stretch;
+  gap: 12px;
+  padding: 22px;
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.signatureEyebrow {
+  composes: kickerLight from './RepDashboard.module.css';
+  color: var(--dash-cream);
+}
+
+.signatureHome .nicNacHeroTitleRow {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.signatureHome .nicNacHero h1 {
+  margin: 0;
+  color: var(--dash-cream);
+  font-family: var(--font-prelaunch-display), 'Playfair Display', Georgia, serif;
+  font-size: clamp(30px, 3vw, 40px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.signatureHome .nicNacHero p {
+  color: var(--dash-cream);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.signatureHome .nicNacHeroBadge {
+  background: var(--dash-magenta);
+  color: var(--dash-cream);
+}
+
+.signatureHome .nicNacHeroActions button {
+  min-height: 40px;
+  border-color: rgba(248, 239, 228, 0.3);
+  background: rgba(248, 239, 228, 0.14);
+  color: var(--dash-cream);
+}
+
+.signatureHome .nicNacHeroActions button:hover:not(:disabled) {
+  background: var(--dash-cream);
+  color: var(--dash-amethyst);
+}
+
+.signatureHome .nicNacHeroActions button:disabled {
+  color: var(--dash-cream);
+  opacity: 0.6;
+}
+
+.signatureHome .conceptPanel,
+.signatureHome .railLaunchAction,
+.signatureHome .railLiveLineup > :first-child {
+  border: 1px solid rgba(115, 69, 202, 0.16);
+  border-radius: 22px;
+  background: #fffdfb;
+  box-shadow: 0 12px 32px rgba(23, 16, 52, 0.06);
+}
+
+.signatureHome .conceptPanel {
+  padding: 18px;
+}
+
+.signatureHome .panelTitle {
+  color: var(--dash-amethyst);
+  font-family: var(--font-prelaunch-display), 'Playfair Display', Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.signatureHome .panelHeader {
+  flex-wrap: wrap;
+}
+
+.signatureHome .panelTitle svg,
+.signatureHome .nextShowIcon,
+.signatureHome .publicSiteStatusIcon,
+.signatureHome .coffeeReminderIcon,
+.signatureHome .helpPreview svg {
+  color: var(--dash-violet);
+}
+
+.signatureHome .nextShowIcon,
+.signatureHome .publicSiteStatusIcon,
+.signatureHome .coffeeReminderIcon,
+.signatureHome .helpPreview svg {
+  background: var(--dash-lilac);
+}
+
+.signatureHome .panelCtaButton,
+.signatureHome .railLaunchAction,
+.signatureHome .mobileHeroQuickActions button {
+  background: var(--dash-magenta);
+  color: var(--dash-cream);
+  border-color: transparent;
+  font-weight: 700;
+}
+
+.signatureHome .railLaunchPieceIcon {
+  background: transparent;
+  color: inherit;
+}
+
+.signatureHome .panelCtaButton:hover,
+.signatureHome .railLaunchAction:hover,
+.signatureHome .mobileHeroQuickActions button:hover {
+  background: var(--workspace-accent-hover);
+}
+
+.signatureHome button:focus-visible,
+.signatureHome a:focus-visible {
+  outline: 3px solid var(--dash-magenta-hot);
+  outline-offset: 3px;
+}
+
+@media (max-width: 840px) {
+  .signatureHome .nicNacHero {
+    padding: 20px;
+    margin-bottom: 8px;
+  }
+
+  .signatureHome .nicNacHeroActions button {
+    width: auto;
+    height: auto;
+    flex: 0 1 auto;
+    padding: 8px 12px;
+    font-size: 0.74rem;
+  }
+
+  .signatureHome .nicNacHeroActions button::before {
+    content: none;
+  }
+
+  .signatureHome .mobileHeroQuickActions {
+    margin-top: 4px;
+  }
+}
+
 @media (max-width: 840px) {
   .toolsHub {
     display: block;
