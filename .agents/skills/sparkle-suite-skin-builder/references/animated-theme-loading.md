@@ -53,3 +53,13 @@ Evidence and retained source:
 - docs/sparkle-suite/qa/2026-11-07-starlight-live.report.md.
 - scripts/card-qr/plate-sources/starlight-christmas-hollow/.
 - vault/2026-11-07-starlight-build-and-lessons.md.
+
+## Lessons from Macie's Christmas Globe (MG-01)
+
+**Check the subject and its surroundings separately.** In the first head-tilt edit, an oval mask carried snow along with the dog's head. For a local correction, follow the subject's silhouette and reconstruct only the narrow strip revealed at the edge. Compare the extreme poses with the original take at full size. Check the blink, flame contours, lights and stationary product box individually, then watch both encodes through several restarts at normal speed. Use those same desktop and phone videos for rep approval. The [finishing script](../../../../scripts/card-qr/plate-sources/macies-christmas-globe/finish-motion.py) shows how this shot was repaired without another paid take.
+
+**Use the palette below the fold.** For a color-only brief, assign the approved hero colors to existing surfaces. On MG-01, evergreen carried the reveal and About areas, cranberry carried signup and FAQ, and ivory cards kept text readable. Compare Home, Trade and Join at the same desktop and phone widths before and after. Inspect empty media slots, form labels, active filters and footer links for leftover default colors and contrast. Check section positions against baseline. Leave additional artwork out of a palette revision.
+
+**Test the saved URL before touching a control.** The review preview initially forced motion on while the ordinary Smoke demo had Still saved and a disabled Play button. With motion enabled and a normal connection, verify video time advances before interaction. Then Pause, Play and watch time advance again. When the design permits explicit Play from Still, verify that gesture separately. Check reduced motion, slow connections and visitor-started sound under their own rules. For a slow paint, record the LCP element and server response time alongside poster transfer timing before changing the encode.
+
+**Verify an options-only release without selecting the theme.** Resolve the owner by stable ID and public slug and record the saved preset. After the approved app and private catalog entry are Live, read the same list used by the picker for the owner, the active Fizz Fest demo and an unrelated rep. Confirm the saved preset and public appearance against the baseline. An anonymous request to the private theme preview should return 404. Report picker-query verification as such. Reserve save/reload tests for the authorized synthetic fixture.

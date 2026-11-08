@@ -26,7 +26,7 @@ Louis's standing direction (October 24, 2026): every new theme includes its matc
 Before designing or implementing a skin, read:
 
 - `references/skin-contract.md`
-- `references/animated-theme-loading.md` for responsive poster/video loading, render-path parity, bounded performance checks and catalog activation lessons
+- [Animated theme loading](references/animated-theme-loading.md) covers responsive loading and render-path parity. The [MG-01 lessons](references/animated-theme-loading.md#lessons-from-macies-christmas-globe-mg-01) cover subject motion, whole-site color, saved-site playback and private picker verification.
 - `references/higgsfield-animated-skins.md` when creating or updating a skin with Higgsfield character motion; covers approved-art animation, cost/credential handling, resumable requests, mobile parity and release QA
 - `references/cinematic-hero-contract.md` when the skin uses custom hero art,
   supplied visual references, source-specific motifs, or ambient animation
