@@ -119,3 +119,81 @@ html[data-customer-theme="macies_christmas_globe"] {
 @media (max-width: 640px) {
   html[data-customer-theme="macies_christmas_globe"] { --globe-poster: url('/amethyst/skins/macies-christmas-globe/hero-poster-phone.webp'); }
 }
+
+/* Echo the globe's fir, red velvet and aged brass on the existing page surfaces. */
+html[data-customer-theme="macies_christmas_globe"] {
+  --fir: #194735;
+  --dark-fir: #143a2d;
+  --velvet: #802739;
+  --deep-velvet: #642330;
+  --candlelight: #fff8ea;
+  --champagne: #efcf95;
+  --parchment: #f3e8d3;
+  --sage-paper: #e4ebde;
+
+  & :is(#events, #about, .jp-why, .jp-final) { background-color: var(--parchment); }
+  & #wibp { --hp-bg-elevated: var(--fir); }
+  & :is(.hp-wibp-card, .hp-event-card, .jp-benefit-card, .tp-card, .tp-filters, .hp-signup-card) {
+    background: var(--candlelight);
+    color: var(--dark-fir);
+    border-color: #bc9d68;
+    box-shadow: 0 8px 24px #2b241614;
+  }
+  & :is(.hp-wibp-title, .hp-signup-title, .jp-benefit-title, .tp-card-name) { color: var(--dark-fir); }
+  & :is(.hp-step, .jp-faq-note) { background: var(--sage-paper); border-color: #b5c2a9; }
+  & :is(.hp-step-num, .jp-benefit-icon) { background: var(--velvet); color: var(--candlelight); }
+
+  & .hp-about-copy {
+    --hp-card-fg: var(--candlelight);
+    --hp-card-muted: #f1e5cf;
+    --hp-card-accent: var(--champagne);
+    background: var(--dark-fir); border-color: var(--brass);
+  }
+  & .hp-about-copy :is(.hp-section-title, .hp-about-body, .hp-about-body p) { color: var(--candlelight); }
+  & .hp-about-copy .hp-section-eyebrow { color: var(--champagne); }
+  & .hp-customer-media-card {
+    --hp-media-card-header-bg: var(--velvet);
+    --hp-media-card-accent-contrast: var(--candlelight);
+    --hp-media-icon-fg: var(--champagne);
+    --hp-media-icon-bg: var(--deep-velvet);
+    background: var(--sage-paper); border-color: #b89962;
+    box-shadow: 0 8px 24px #2b241619;
+  }
+  & .hp-customer-media-header { background: var(--velvet); color: var(--candlelight); }
+  & .hp-customer-media-empty { background: var(--sage-paper); color: var(--dark-fir); border-color: #adbca5; }
+  & .hp-customer-media-empty-icon { background: var(--fir); color: var(--champagne); border-color: var(--brass); }
+
+  & #signup { background: var(--deep-velvet); }
+  & #signup .hp-signup-card { background: var(--candlelight); border-color: var(--brass); }
+  & :is(.hp-signup-eyebrow, .hp-wibp-eyebrow, .tp-card-collection) { color: var(--velvet); }
+  & .hp-footer { background: var(--dark-fir); border-top-color: var(--brass); }
+  & .hp-footer :is(.hp-footer-brand, .hp-footer-col h4) { color: var(--champagne); }
+  & .hp-footer :is(.hp-footer-tag, .hp-footer-team, .hp-footer-col a) { color: var(--candlelight); }
+
+  & .tp-hero { background: var(--deep-velvet); }
+  & .tp-hero .tp-hero-title { color: var(--candlelight); -webkit-text-fill-color: currentColor; background: none; }
+  & .tp-hero .tp-hero-sub { color: #f5e7d4; }
+  & .tp-screenshot-tip { background: var(--dark-fir); color: var(--candlelight); border-color: var(--brass); }
+  & .tp-board { background: var(--sage-paper); }
+  & :is(.tp-filter-pill.active, .tp-filter-chip.active) { background: var(--fir); border-color: var(--fir); color: var(--candlelight); }
+  & .tp-card-body { background: var(--candlelight); }
+
+  & .jp-hero-media { background: var(--dark-fir); }
+  & .jp-hero-card { background: var(--fir); border-color: var(--brass); }
+  & .jp-why .jp-section-title { color: var(--velvet); -webkit-text-fill-color: currentColor; background: none; }
+  & #faq { background: var(--deep-velvet); }
+  & #faq .jp-section-title { color: var(--candlelight); -webkit-text-fill-color: currentColor; background: none; }
+  & #faq :is(.jp-section-eyebrow, .jp-faq-link a) { color: var(--champagne); border-color: var(--brass); }
+  & #faq .jp-section-sub { color: #f5e7d4; }
+  & .jp-faq-item { background: var(--deep-velvet); border-color: #b98d78; }
+  & #faq :is(.jp-faq-q, .jp-faq-a-inner) { color: var(--candlelight); }
+  & #faq .jp-faq-q .chev { color: var(--champagne); }
+  & .jp-final-card {
+    --hp-final-fg: var(--candlelight);
+    --hp-final-muted: #f1e5cf;
+    background: var(--fir); color: var(--candlelight); border-color: var(--brass);
+    box-shadow: 0 12px 30px #20372624;
+  }
+  & .jp-final-card :is(.jp-final-title, .jp-final-sub) { color: var(--candlelight); }
+  & .jp-final-note a { color: var(--champagne); }
+}
