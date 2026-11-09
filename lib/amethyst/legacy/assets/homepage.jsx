@@ -1161,37 +1161,6 @@ function getFacebookVideoEmbedUrl(value) {
   }
 }
 
-// One page-wide initialization slot. Readiness/failure releases it; iframe load
-// alone does not mean TikTok's player has finished initializing.
-function createTikTokLoadQueue() {
-  const pending = [];
-  let active = null;
-  const drain = () => {
-    if (active || pending.length === 0) return;
-    const job = pending.shift();
-    active = job;
-    job.start(() => {
-      if (active !== job) return;
-      active = null;
-      drain();
-    });
-  };
-  return (start) => {
-    const job = { start };
-    pending.push(job);
-    drain();
-    return () => {
-      const index = pending.indexOf(job);
-      if (index >= 0) pending.splice(index, 1);
-      if (active === job) {
-        active = null;
-        drain();
-      }
-    };
-  };
-}
-const enqueueTikTokPlayer = createTikTokLoadQueue();
-
 // The mount reserves the existing card area, but owns no iframe until visible.
 // React leaves its children to the external player controller.
 function connectTikTokPlayer(mount, isMuted) {
@@ -1201,9 +1170,6 @@ function connectTikTokPlayer(mount, isMuted) {
   let timer = 0;
   let inView = false;
   let disposed = false;
-  let queued = false;
-  let cancelQueued = null;
-  let release = null;
   const send = (type) => frame?.contentWindow?.postMessage(
     { type, "x-tiktok-player": true }, "https://www.tiktok.com",
   );
@@ -1228,19 +1194,12 @@ function connectTikTokPlayer(mount, isMuted) {
   const failed = () => {
     ready = false;
     playing = false;
-    release?.();
-    release = null;
   };
   const settle = () => {
     window.clearTimeout(timer);
     if (disposed) return;
     syncPlayback();
-    if (queued && !visible()) {
-      cancelQueued?.();
-      cancelQueued = null;
-      queued = false;
-    }
-    if (frame || queued || !visible()) return;
+    if (frame || !visible()) return;
     const box = mount.getBoundingClientRect();
     timer = window.setTimeout(() => {
       if (disposed || !visible()) return;
@@ -1249,25 +1208,17 @@ function connectTikTokPlayer(mount, isMuted) {
         settle();
         return;
       }
-      queued = true;
-      cancelQueued = enqueueTikTokPlayer((done) => {
-        queued = false;
-        release = done;
-        if (disposed || !visible()) {
-          done();
-          return;
-        }
-        frame = document.createElement("iframe");
-        frame.className = "ss-tiktok-embed-frame";
-        frame.title = mount.dataset.title || "TikTok video";
-        frame.allow = "autoplay; fullscreen";
-        frame.allowFullscreen = true;
-        // Visibility and the shared queue already gate creation/navigation.
-        frame.loading = "eager";
-        frame.addEventListener("error", failed);
-        frame.src = mount.dataset.src;
-        mount.appendChild(frame);
-      });
+      // Each visible card initializes independently of every other player.
+      frame = document.createElement("iframe");
+      frame.className = "ss-tiktok-embed-frame";
+      frame.title = mount.dataset.title || "TikTok video";
+      frame.allow = "autoplay; fullscreen";
+      frame.allowFullscreen = true;
+      // Visibility and settled dimensions already gate creation/navigation.
+      frame.loading = "eager";
+      frame.addEventListener("error", failed);
+      frame.src = mount.dataset.src;
+      mount.appendChild(frame);
     }, 120);
   };
   const onMessage = (event) => {
@@ -1277,8 +1228,6 @@ function connectTikTokPlayer(mount, isMuted) {
     if (message.type === "onPlayerReady") {
       ready = true;
       syncPlayback();
-      release?.();
-      release = null;
     } else if (message.type === "onPlayerError" || message.type === "onError") {
       failed();
     }
@@ -1307,9 +1256,7 @@ function connectTikTokPlayer(mount, isMuted) {
     window.removeEventListener("pageshow", settle);
     document.removeEventListener("visibilitychange", settle);
     frame?.removeEventListener("error", failed);
-    // Remove any unfinished frame before another queued player may start.
     frame?.remove();
-    cancelQueued?.();
   };
 }
 

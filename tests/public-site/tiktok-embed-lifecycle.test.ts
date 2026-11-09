@@ -27,8 +27,8 @@ function environment(source: string) {
   type Frame = ReturnType<typeof createElement>
   const document = { visibilityState: 'visible', addEventListener, removeEventListener, createElement }
   const disconnect = vi.fn()
-  const start = runInNewContext('(() => { function createTikTokLoadQueue(' +
-    source.split('function createTikTokLoadQueue(')[1].split('\nfunction TikTokEmbed(')[0] + '\nreturn connectTikTokPlayer; })()', {
+  const start = runInNewContext('(() => { function connectTikTokPlayer(' +
+    source.split('function connectTikTokPlayer(')[1].split('\nfunction TikTokEmbed(')[0] + '\nreturn connectTikTokPlayer; })()', {
     window, document,
     IntersectionObserver: class {
       target: object | undefined
@@ -70,7 +70,7 @@ beforeEach(() => vi.useFakeTimers())
 afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs() })
 for (const [index, path] of paths.entries()) describe(`TikTok embed lifecycle: ${path}`, () => {
   it('delays navigation until visible with settled nonzero dimensions and waits for readiness', () => {
-    const components = sources.map(source => source.split('function createTikTokLoadQueue(')[1].split('\nfunction CustomerVideoEmbed(')[0])
+    const components = sources.map(source => source.split('function connectTikTokPlayer(')[1].split('\nfunction CustomerVideoEmbed(')[0])
     expect(components[0]).toBe(components[1]); expect(components[1]).toBe(components[2])
     expect(components[index]).toContain('data-src={`https://www.tiktok.com/player/v1/${videoId}')
     expect(components[index].split('function TikTokEmbed(')[1]).not.toContain('<iframe')
@@ -96,17 +96,22 @@ for (const [index, path] of paths.entries()) describe(`TikTok embed lifecycle: $
     expect(m.navigations).toHaveLength(0)
     vi.advanceTimersByTime(120); expect(m.navigations).toHaveLength(1)
   })
-  it('accepts only readiness from this TikTok frame and serializes visible players through ready and failure', () => {
+  it('initializes visible cards independently while each waits for its own readiness', () => {
     const env = environment(sources[index]), m = env.mount(), second = env.mount(), third = env.mount()
     m.intersect(true, 0.1); second.intersect(true); third.intersect(true); vi.advanceTimersByTime(120)
-    expect(env.createElement).toHaveBeenCalledTimes(1)
-    m.frame.emit('load'); m.message('onPlayerReady', 'https://other.example'); m.message('onPlayerReady', 'https://www.tiktok.com', {})
-    expect(m.postMessage).not.toHaveBeenCalled(); expect(second.navigations).toHaveLength(0)
-    m.message(); m.message()
-    expect(m.postMessage).toHaveBeenCalledTimes(2); expect(env.createElement).toHaveBeenCalledTimes(2)
-    second.message('onPlayerError'); second.message('onError')
-    expect(env.createElement).toHaveBeenCalledTimes(3); expect(third.navigations).toHaveLength(1)
+    // The first player remains silent: no load, ready, error, or timeout releases another.
+    expect(env.createElement).toHaveBeenCalledTimes(3)
+    expect(second.navigations).toHaveLength(1); expect(third.navigations).toHaveLength(1)
+    expect(m.postMessage).not.toHaveBeenCalled(); expect(second.postMessage).not.toHaveBeenCalled()
+    second.frame.emit('load'); second.message('onPlayerReady', 'https://other.example')
+    second.message('onPlayerReady', 'https://www.tiktok.com', {})
     expect(second.postMessage).not.toHaveBeenCalled()
+    second.message(); second.message()
+    expect(second.postMessage.mock.calls.map(call => call[0].type)).toEqual(['mute', 'play'])
+    expect(m.postMessage).not.toHaveBeenCalled(); expect(third.postMessage).not.toHaveBeenCalled()
+    third.message('onPlayerError'); third.message('onError')
+    expect(env.createElement).toHaveBeenCalledTimes(3)
+    expect(third.postMessage).not.toHaveBeenCalled()
   })
   it('pauses offscreen and resumes after fold without replacing the iframe or resetting sound', () => {
     const m = mount(sources[index]); m.intersect(true); vi.advanceTimersByTime(120); m.message(); m.unmute()
@@ -120,8 +125,9 @@ for (const [index, path] of paths.entries()) describe(`TikTok embed lifecycle: $
   })
   it('does not start a player that reports readiness after scrolling away or hiding the page', () => {
     const env = environment(sources[index]), m = env.mount(), waiting = env.mount()
-    m.intersect(true); waiting.intersect(true); vi.advanceTimersByTime(120)
-    waiting.intersect(false); m.intersect(false); m.message()
+    m.intersect(true); waiting.intersect(true); vi.advanceTimersByTime(119)
+    waiting.intersect(false); vi.advanceTimersByTime(1)
+    m.intersect(false); m.message()
     expect(m.postMessage).not.toHaveBeenCalled(); expect(waiting.navigations).toHaveLength(0)
     m.intersect(true); m.document.visibilityState = 'hidden'; m.emit('visibilitychange')
     expect(m.postMessage.mock.lastCall?.[0].type).toBe('pause')
@@ -136,8 +142,8 @@ for (const [index, path] of paths.entries()) describe(`TikTok embed lifecycle: $
     expect(m.navigations).toHaveLength(0); expect(m.postMessage).not.toHaveBeenCalled()
     expect(m.disconnect).toHaveBeenCalledTimes(2)
     const active = env.mount(), pending = env.mount(), tail = env.mount()
-    active.intersect(true); pending.intersect(true); tail.intersect(true); vi.advanceTimersByTime(120)
-    pending.cleanup(); active.cleanup()
+    active.intersect(true); pending.intersect(true); tail.intersect(true); vi.advanceTimersByTime(119)
+    pending.cleanup(); vi.advanceTimersByTime(1); active.cleanup()
     expect(active.frame.remove).toHaveBeenCalledOnce(); expect(pending.navigations).toHaveLength(0)
     expect(tail.navigations).toHaveLength(1)
     tail.frame.emit('error'); tail.message('onError')

@@ -232,8 +232,8 @@
     },
     "homepage.jsx": {
       "blob": "f38cb250c4e403efe1896b1e3b4e2c8c74cbe357",
-      "sha256": "e0bee119566d0881706fcb93c2a48baaad47d18d809428fab18e44dcff591619",
-      "bytes": 185606,
+      "sha256": "3b8d1296b240d2e8a9a4087845851055e83d3771162e523503b455da49b8100e",
+      "bytes": 184290,
       "source": "snapshot"
     },
     "join-runtime.js": {
