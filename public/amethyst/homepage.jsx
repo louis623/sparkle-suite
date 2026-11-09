@@ -1182,12 +1182,41 @@ function getFacebookVideoEmbedUrl(value) {
 // The mount reserves the existing card area, but owns no iframe until visible.
 // React leaves its children to the external player controller.
 function connectTikTokPlayer(mount, isMuted) {
+  // Shared by this page's cards; only the active owner may have an iframe.
+  const pool = connectTikTokPlayer.pool ||= {
+    active: null, gate: null, queue: [], timeout: 0, backoff: 0,
+    drain() {
+      this.queue = this.queue.filter(owner => owner.eligible());
+      if (this.gate || this.backoff || !this.queue.length) return;
+      this.active?.destroy();
+      const next = this.queue.shift();
+      this.active = next;
+      this.gate = next;
+      this.timeout = window.setTimeout(() => this.finish(next, false), 2000);
+      next.start();
+    },
+    finish(owner, limited) {
+      if (this.active !== owner && this.gate !== owner) return;
+      window.clearTimeout(this.timeout);
+      this.gate = null;
+      if (limited) {
+        window.clearTimeout(this.backoff);
+        this.backoff = window.setTimeout(() => {
+          this.backoff = 0;
+          this.drain();
+        }, 3000);
+      }
+      this.drain();
+    },
+  };
   let frame = null;
   let ready = false;
   let playing = false;
   let timer = 0;
   let inView = false;
   let disposed = false;
+  let attempted = false;
+  let failedPlayer = false;
   const send = (type) => frame?.contentWindow?.postMessage(
     { type, "x-tiktok-player": true }, "https://www.tiktok.com",
   );
@@ -1209,45 +1238,75 @@ function connectTikTokPlayer(mount, isMuted) {
     }
     playing = nextPlaying;
   };
-  const failed = () => {
+  const failed = (limited = false) => {
     ready = false;
     playing = false;
+    failedPlayer = true;
+    pool.finish(owner, limited === true);
   };
-  const settle = () => {
-    window.clearTimeout(timer);
-    if (disposed) return;
-    syncPlayback();
-    if (frame || !visible()) return;
-    const box = mount.getBoundingClientRect();
-    timer = window.setTimeout(() => {
-      if (disposed || !visible()) return;
-      const next = mount.getBoundingClientRect();
-      if (Math.abs(next.width - box.width) > 1 || Math.abs(next.height - box.height) > 1) {
-        settle();
-        return;
-      }
-      // Each visible card initializes independently of every other player.
+  const owner = {
+    eligible: () => !disposed && !attempted && !failedPlayer && visible(),
+    destroy() {
+      frame?.removeEventListener("error", failed);
+      frame?.remove();
+      frame = null;
+      ready = false;
+      playing = false;
+      if (pool.active === owner) pool.active = null;
+    },
+    start() {
+      attempted = true;
       frame = document.createElement("iframe");
       frame.className = "ss-tiktok-embed-frame";
       frame.title = mount.dataset.title || "TikTok video";
       frame.allow = "autoplay; fullscreen";
       frame.allowFullscreen = true;
-      // Visibility and settled dimensions already gate creation/navigation.
       frame.loading = "eager";
       frame.addEventListener("error", failed);
       frame.src = mount.dataset.src;
       mount.appendChild(frame);
+    },
+  };
+  const settle = () => {
+    window.clearTimeout(timer);
+    if (disposed) return;
+    pool.queue = pool.queue.filter(entry => entry !== owner);
+    if (!visible()) {
+      owner.destroy();
+      pool.queue = pool.queue.filter(entry => entry !== owner);
+      attempted = false;
+      // Destruction does not bypass the previous player's pacing deadline.
+      pool.drain();
+      return;
+    }
+    syncPlayback();
+    if (frame || attempted || failedPlayer) return;
+    const box = mount.getBoundingClientRect();
+    timer = window.setTimeout(() => {
+      if (!owner.eligible()) return;
+      const next = mount.getBoundingClientRect();
+      if (Math.abs(next.width - box.width) > 1 || Math.abs(next.height - box.height) > 1) {
+        settle();
+        return;
+      }
+      if (!pool.queue.includes(owner)) pool.queue.push(owner);
+      pool.drain();
     }, 120);
   };
   const onMessage = (event) => {
     if (!frame || event.origin !== "https://www.tiktok.com" || event.source !== frame.contentWindow) return;
     const message = event.data;
     if (message?.["x-tiktok-player"] !== true) return;
-    if (message.type === "onPlayerReady") {
+    if (message.type === "onPlayerReady" && !failedPlayer) {
       ready = true;
       syncPlayback();
+      pool.finish(owner, false);
     } else if (message.type === "onPlayerError" || message.type === "onError") {
-      failed();
+      const code = message.value?.errorCode ?? message.value ?? message.errorCode;
+      const type = message.value?.errorType ?? message.errorType;
+      // Cross-origin item HTTP responses are opaque here; TikTok reports them
+      // through its authenticated player errors (2005 / TOO_MANY_REQUESTS).
+      failed(Number(code) === 2005 || Number(code) === 429 || type === "TOO_MANY_REQUESTS");
     }
   };
   const intersection = new IntersectionObserver(([entry]) => {
@@ -1273,8 +1332,9 @@ function connectTikTokPlayer(mount, isMuted) {
     window.removeEventListener("orientationchange", settle);
     window.removeEventListener("pageshow", settle);
     document.removeEventListener("visibilitychange", settle);
-    frame?.removeEventListener("error", failed);
-    frame?.remove();
+    owner.destroy();
+    pool.queue = pool.queue.filter(entry => entry !== owner);
+    pool.drain();
   };
 }
 

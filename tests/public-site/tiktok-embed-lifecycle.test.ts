@@ -16,10 +16,12 @@ function environment(source: string) {
   }
   const removeEventListener = (name: string, fn: (event?: unknown) => void) => listeners.get(name)?.delete(fn)
   const window = { innerWidth: 344, innerHeight: 500, setTimeout, clearTimeout, addEventListener, removeEventListener }
+  const live = new Set<object>()
+  let maxAlive = 0
   const createElement = vi.fn(() => {
     const events = new Map<string, () => void>()
     return { src: '', className: '', title: '', loading: '', allow: '', allowFullscreen: false,
-      contentWindow: { postMessage: vi.fn() }, remove: vi.fn(),
+      contentWindow: { postMessage: vi.fn() }, remove: vi.fn(function (this: object) { live.delete(this) }),
       addEventListener: (name: string, fn: () => void) => events.set(name, fn),
       removeEventListener: (name: string) => events.delete(name),
       emit: (name: string) => events.get(name)?.() }
@@ -49,21 +51,21 @@ function environment(source: string) {
     const history: Frame[] = []
     const host = { dataset: { src: 'https://www.tiktok.com/player/v1/7476510653268806958', title: 'Test TikTok' },
       // DOMRect measurements are snapshots, including when width changes later.
-      getBoundingClientRect: () => ({ ...box }), appendChild: (frame: Frame) => history.push(frame) }
+      getBoundingClientRect: () => ({ ...box }), appendChild: (frame: Frame) => { history.push(frame); live.add(frame); maxAlive = Math.max(maxAlive, live.size) } }
     const emptyPostMessage = vi.fn()
     let muted = true
     const cleanup = start(host, () => muted)
-    const message = (type = 'onPlayerReady', origin = 'https://www.tiktok.com', source: object = history[0]?.contentWindow) => emit('message', {
-      origin, source, data: { type, 'x-tiktok-player': true },
+    const message = (type = 'onPlayerReady', origin = 'https://www.tiktok.com', source: object = history.at(-1)?.contentWindow, value?: unknown) => emit('message', {
+      origin, source, data: { type, 'x-tiktok-player': true, value },
     })
     return { box, window, document, host, history, cleanup, emit, message, disconnect,
-      get frame() { return history[0] },
-      get postMessage() { return history[0]?.contentWindow.postMessage || emptyPostMessage },
+      get frame() { return history.at(-1)! },
+      get postMessage() { return history.at(-1)?.contentWindow.postMessage || emptyPostMessage },
       get navigations() { return history.map(frame => frame.src) },
       intersect: (visible: boolean, ratio = 0.2) => intersections.get(host)?.([{ isIntersecting: visible, intersectionRatio: ratio }]),
       resize: () => resizes.get(host)?.(), unmute: () => { muted = false } }
   }
-  return { mount, createElement }
+  return { mount, createElement, live, get maxAlive() { return maxAlive } }
 }
 function mount(source: string) { return environment(source).mount() }
 beforeEach(() => vi.useFakeTimers())
@@ -96,46 +98,62 @@ for (const [index, path] of paths.entries()) describe(`TikTok embed lifecycle: $
     expect(m.navigations).toHaveLength(0)
     vi.advanceTimersByTime(120); expect(m.navigations).toHaveLength(1)
   })
-  it('initializes visible cards independently while each waits for its own readiness', () => {
+  it('keeps one alive, advances after authenticated ready/error or a two-second silence, and never plays before own ready', () => {
     const env = environment(sources[index]), m = env.mount(), second = env.mount(), third = env.mount()
-    m.intersect(true, 0.1); second.intersect(true); third.intersect(true); vi.advanceTimersByTime(120)
-    // The first player remains silent: no load, ready, error, or timeout releases another.
-    expect(env.createElement).toHaveBeenCalledTimes(3)
-    expect(second.navigations).toHaveLength(1); expect(third.navigations).toHaveLength(1)
-    expect(m.postMessage).not.toHaveBeenCalled(); expect(second.postMessage).not.toHaveBeenCalled()
-    second.frame.emit('load'); second.message('onPlayerReady', 'https://other.example')
-    second.message('onPlayerReady', 'https://www.tiktok.com', {})
+    m.intersect(true); second.intersect(true); third.intersect(true); vi.advanceTimersByTime(120)
+    expect(env.createElement).toHaveBeenCalledTimes(1)
+    m.frame.emit('load'); m.message('onPlayerReady', 'https://other.example'); m.message('onPlayerReady', 'https://www.tiktok.com', {})
+    vi.advanceTimersByTime(1999); expect(env.createElement).toHaveBeenCalledTimes(1)
+    const oldWindow = m.frame.contentWindow
+    vi.advanceTimersByTime(1)
+    expect(m.frame.remove).toHaveBeenCalledOnce(); expect(second.navigations).toHaveLength(1)
     expect(second.postMessage).not.toHaveBeenCalled()
-    second.message(); second.message()
+    second.message('onPlayerReady', 'https://www.tiktok.com', oldWindow)
+    expect(second.postMessage).not.toHaveBeenCalled()
+    second.message()
     expect(second.postMessage.mock.calls.map(call => call[0].type)).toEqual(['mute', 'play'])
-    expect(m.postMessage).not.toHaveBeenCalled(); expect(third.postMessage).not.toHaveBeenCalled()
+    expect(second.frame.remove).toHaveBeenCalledOnce(); expect(third.navigations).toHaveLength(1)
     third.message('onPlayerError'); third.message('onError')
-    expect(env.createElement).toHaveBeenCalledTimes(3)
     expect(third.postMessage).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(10000); expect(env.createElement).toHaveBeenCalledTimes(3)
+    expect(env.maxAlive).toBe(1); expect(env.live.size).toBe(1)
   })
-  it('pauses offscreen and resumes after fold without replacing the iframe or resetting sound', () => {
-    const m = mount(sources[index]); m.intersect(true); vi.advanceTimersByTime(120); m.message(); m.unmute()
+  it('destroys offscreen players and recreates after fold with preserved sound and fresh readiness', () => {
+    const env = environment(sources[index]), m = env.mount()
+    m.intersect(true); vi.advanceTimersByTime(120); m.message(); m.unmute()
     const original = m.frame
     m.intersect(false)
-    expect(m.postMessage.mock.lastCall?.[0].type).toBe('pause')
+    expect(original.remove).toHaveBeenCalledOnce(); expect(env.live.size).toBe(0)
     m.window.innerWidth = 880; m.box.width = 348; m.intersect(true); m.resize(); m.emit('resize'); m.emit('orientationchange'); m.emit('pageshow')
-    vi.advanceTimersByTime(500)
-    expect(m.frame).toBe(original); expect(m.navigations).toHaveLength(1)
-    expect(m.postMessage.mock.calls.map(call => call[0].type)).toEqual(['mute', 'play', 'pause', 'unMute', 'play'])
+    vi.advanceTimersByTime(120)
+    expect(m.frame).not.toBe(original); expect(m.navigations).toHaveLength(2)
+    expect(m.postMessage).not.toHaveBeenCalled()
+    m.message('onPlayerReady', 'https://www.tiktok.com', original.contentWindow)
+    expect(m.postMessage).not.toHaveBeenCalled()
+    m.message()
+    expect(m.postMessage.mock.calls.map(call => call[0].type)).toEqual(['unMute', 'play'])
+    expect(env.maxAlive).toBe(1)
   })
-  it('does not start a player that reports readiness after scrolling away or hiding the page', () => {
-    const env = environment(sources[index]), m = env.mount(), waiting = env.mount()
-    m.intersect(true); waiting.intersect(true); vi.advanceTimersByTime(119)
-    waiting.intersect(false); vi.advanceTimersByTime(1)
-    m.intersect(false); m.message()
-    expect(m.postMessage).not.toHaveBeenCalled(); expect(waiting.navigations).toHaveLength(0)
-    m.intersect(true); m.document.visibilityState = 'hidden'; m.emit('visibilitychange')
-    expect(m.postMessage.mock.lastCall?.[0].type).toBe('pause')
-    m.document.visibilityState = 'visible'; m.emit('visibilitychange')
-    expect(m.postMessage.mock.lastCall?.[0].type).toBe('play')
-    waiting.intersect(true); vi.advanceTimersByTime(120); expect(waiting.navigations).toHaveLength(1)
+  it('backs off three seconds after rate limits, cancels hidden cards and does not retry failed players', () => {
+    const env = environment(sources[index]), m = env.mount(), second = env.mount(), third = env.mount()
+    m.intersect(true); second.intersect(true); third.intersect(true); vi.advanceTimersByTime(120)
+    m.message('onPlayerError', 'https://www.tiktok.com', m.frame.contentWindow, { errorCode: 2005, errorType: 'TOO_MANY_REQUESTS' })
+    m.intersect(false); m.intersect(true); m.resize(); vi.advanceTimersByTime(2999)
+    expect(env.createElement).toHaveBeenCalledTimes(1)
+    vi.advanceTimersByTime(1); expect(second.navigations).toHaveLength(1)
+    second.message('onError', 'https://www.tiktok.com', second.frame.contentWindow, { errorCode: 429 })
+    third.intersect(false); vi.advanceTimersByTime(3000)
+    expect(third.navigations).toHaveLength(0); expect(m.navigations).toHaveLength(1)
+    third.intersect(true); vi.advanceTimersByTime(120); third.message()
+    third.document.visibilityState = 'hidden'; third.emit('visibilitychange')
+    expect(third.frame.remove).toHaveBeenCalledOnce(); expect(env.live.size).toBe(0)
+    third.message(); expect(env.live.size).toBe(0)
+    third.document.visibilityState = 'visible'; third.emit('visibilitychange'); vi.advanceTimersByTime(120)
+    expect(third.navigations).toHaveLength(2); expect(third.postMessage).not.toHaveBeenCalled()
+    third.message(); expect(third.postMessage.mock.lastCall?.[0].type).toBe('play')
+    expect(env.maxAlive).toBe(1)
   })
-  it('cleans pending navigation, observers, and listeners on unmount or video change', () => {
+  it('cleans pending navigation, observers, and listeners without bypassing pacing on unmount', () => {
     const env = environment(sources[index]), m = env.mount()
     m.intersect(true); m.cleanup(); vi.advanceTimersByTime(500)
     m.resize(); m.emit('resize'); m.message()
@@ -145,9 +163,10 @@ for (const [index, path] of paths.entries()) describe(`TikTok embed lifecycle: $
     active.intersect(true); pending.intersect(true); tail.intersect(true); vi.advanceTimersByTime(119)
     pending.cleanup(); vi.advanceTimersByTime(1); active.cleanup()
     expect(active.frame.remove).toHaveBeenCalledOnce(); expect(pending.navigations).toHaveLength(0)
-    expect(tail.navigations).toHaveLength(1)
+    vi.advanceTimersByTime(1999); expect(tail.navigations).toHaveLength(0)
+    vi.advanceTimersByTime(1); expect(tail.navigations).toHaveLength(1)
     tail.frame.emit('error'); tail.message('onError')
-    expect(env.createElement).toHaveBeenCalledTimes(2)
+    expect(env.createElement).toHaveBeenCalledTimes(2); expect(env.maxAlive).toBe(1)
   })
 })
 it('TikTok embed lifecycle keeps the same-video review fixture disabled outside the approved Smoke preview', () => {
