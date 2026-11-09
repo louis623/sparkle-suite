@@ -2131,14 +2131,24 @@ function AboutSection({ repName, hideEmptyMedia = false }) {
   const aboutParagraphs = Array.isArray(CONTENT.aboutParagraphs)
     ? CONTENT.aboutParagraphs
     : neutralAbout;
-  const visibleAboutParagraphs = aboutParagraphs.filter(Boolean);
+  const visibleAboutParagraphs = aboutParagraphs.filter((paragraph) =>
+    typeof paragraph === "string" && paragraph.trim() &&
+    (!RUNTIME_CONTEXT.targeted || paragraph.trim().toLowerCase() !== "live schedule coming soon")
+  );
+  const hasAboutCopy = !RUNTIME_CONTEXT.targeted || visibleAboutParagraphs.length > 0;
+  const hasPortrait = Boolean(getAboutMediaSlot(0)?.mediaUrl);
+  const hasShorts = [1, 2, 3].some((index) => {
+    const slot = getAboutMediaSlot(index);
+    return Boolean(slot?.mediaUrl || getCustomerVideoPresentation(slot?.href).provider);
+  });
+  if (!hasAboutCopy && !hasPortrait && !hasShorts) return null;
   const aboutHeadline = CONTENT.aboutHeadline || `Meet ${repName} and the story behind the sparkle.`;
 
   return (
     <section className="hp-section" id="about">
       <div className="hp-container">
-        <div className="hp-about-grid">
-          <div className="hp-about-copy">
+        {(hasAboutCopy || hasPortrait) ? <div className="hp-about-grid">
+          {hasAboutCopy ? <div className="hp-about-copy">
             <div className="hp-section-eyebrow">About the rep</div>
             <h2 className="hp-section-title slot" data-slot="about headline">{aboutHeadline}</h2>
             {CONTENT.aboutSubheading ? (
@@ -2153,15 +2163,15 @@ function AboutSection({ repName, hideEmptyMedia = false }) {
                 </p>
               ))}
             </div>
-          </div>
+          </div> : null}
 
           <AboutPortraitCard fallbackCaption={`${repName} - ${CONTENT.businessName || "Sparkle Suite"}`} />
-        </div>
-        <div className="hp-about-shorts-grid">
-          <AboutShortCard index={0} hideEmptyMedia={hideEmptyMedia} />
-          <AboutShortCard index={1} hideEmptyMedia={hideEmptyMedia} />
-          <AboutShortCard index={2} hideEmptyMedia={hideEmptyMedia} />
-        </div>
+        </div> : null}
+        {(hasAboutCopy || hasShorts) ? <div className="hp-about-shorts-grid">
+          <AboutShortCard index={0} hideEmptyMedia={hideEmptyMedia || !hasAboutCopy} />
+          <AboutShortCard index={1} hideEmptyMedia={hideEmptyMedia || !hasAboutCopy} />
+          <AboutShortCard index={2} hideEmptyMedia={hideEmptyMedia || !hasAboutCopy} />
+        </div> : null}
       </div>
     </section>
   );

@@ -1059,3 +1059,82 @@ describe('About narrative regression', () => {
     expect((context.window.AMETHYST_HOMEPAGE_TEMPLATE_DATA as typeof data.homepage).aboutParagraphs).toEqual(paragraphs)
   })
 })
+
+
+describe('Public About empty-story and caption display', () => {
+  const rendererFiles = [
+    'public/amethyst/homepage.jsx',
+    'lib/amethyst/legacy/assets/homepage.jsx',
+    'lib/amethyst/v2/homepage.jsx',
+  ]
+  const renderAboutFunction = (file: string, name: string, context: Record<string, unknown>) => {
+    const source = readFileSync(resolve(process.cwd(), file), 'utf8')
+    const start = source.indexOf(`function ${name}(`)
+    const end = source.indexOf('\n}', start + 1) + 2
+    const code = transformSync(source.slice(start, end), {
+      loader: 'jsx', jsx: 'transform', jsxFactory: 'React.createElement',
+    }).code
+    return renderToStaticMarkup(runInNewContext(`${code}; ${name}({ repName: 'Ada', fallbackCaption: 'Ada - Ada Sparkles' })`, {
+      React, RUNTIME_CONTEXT: { targeted: true }, ...context,
+    }))
+  }
+
+  it('hides an empty narrative in legacy and v2 public About while retaining real media', () => {
+    const homepage = mapPreviewSettingsToHomepageTemplateData({
+      ...demoSettings, aboutNarrative: ' \n ', homepageMediaSlots: [],
+    })
+    expect(homepage.aboutParagraphs.filter(Boolean)).toEqual([])
+    for (const file of rendererFiles) {
+      let slots: typeof homepage.aboutMediaSlots = []
+      const context = {
+        CONTENT: { ...homepage, aboutParagraphs: ['', '  ', 'Live schedule coming soon'] },
+        getAboutMediaSlot: (index: number) => slots[index],
+        getCustomerVideoPresentation: (href: string) => ({ provider: href?.includes('youtube.com') ? 'youtube' : '' }),
+        AboutPortraitCard: () => React.createElement('img', { src: slots[0]?.mediaUrl, alt: 'Real portrait' }),
+        AboutShortCard: ({ index }: { index: number }) => slots[index + 1]?.href
+          ? React.createElement('iframe', { src: slots[index + 1].href, title: 'Real video' }) : null,
+      }
+      expect(renderAboutFunction(file, 'AboutSection', context)).toBe('')
+      slots = [{ typeLabel: 'Portrait photo', caption: '', href: '#', mediaUrl: 'https://example.com/portrait.jpg' }]
+      const portraitOnly = renderAboutFunction(file, 'AboutSection', context)
+      expect(portraitOnly).toContain('portrait.jpg')
+      expect(portraitOnly).not.toContain('hp-about-copy')
+      expect(portraitOnly).not.toContain('hp-about-shorts-grid')
+      expect(portraitOnly).not.toContain('Live schedule coming soon')
+      slots = [
+        { typeLabel: 'Portrait photo', caption: '', href: '#' },
+        { typeLabel: 'Short video 1', caption: 'My reveal', href: 'https://www.youtube.com/shorts/real' },
+      ]
+      const videoOnly = renderAboutFunction(file, 'AboutSection', context)
+      expect(videoOnly).toContain('youtube.com/shorts/real')
+      expect(videoOnly).not.toContain('hp-about-copy')
+      expect(videoOnly).not.toContain('Real portrait')
+    }
+  })
+
+  it('keeps a public portrait with no caption free of editor hints and preserves authored captions', () => {
+    const portrait = { key: 'about_1' as const, caption: '', imageUrl: 'https://example.com/portrait.jpg', videoUrl: '' }
+    const homepage = mapPreviewSettingsToHomepageTemplateData({
+      ...demoSettings, homepageMediaSlots: [portrait],
+    })
+    expect(homepage.aboutMediaSlots[0].caption).toBe('')
+    expect(homepage.aboutMediaSlots[0].mediaUrl).toBe(portrait.imageUrl)
+    const authored = mapPreviewSettingsToHomepageTemplateData({
+      ...demoSettings, homepageMediaSlots: [{ ...portrait, caption: 'At my first reveal!' }],
+    })
+    expect(authored.aboutMediaSlots[0].caption).toBe('At my first reveal!')
+    for (const file of rendererFiles) {
+      for (const data of [homepage, authored]) {
+        const markup = renderAboutFunction(file, 'AboutPortraitCard', {
+          getAboutMediaSlot: () => data.aboutMediaSlots[0],
+          responsiveRepImage: (src: string, props: Record<string, unknown>) => ({ src, alt: props.alt }),
+          CustomerMediaCard: ({ children, footer }: { children: React.ReactNode; footer: React.ReactNode }) =>
+            React.createElement('figure', {}, children, footer),
+        })
+        expect(markup).toContain('portrait.jpg')
+        expect(markup).not.toContain('Your portrait photo appears beside your About story')
+        if (data === authored) expect(markup).toContain('At my first reveal!')
+      }
+    }
+  })
+})

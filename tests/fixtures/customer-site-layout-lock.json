@@ -8,7 +8,7 @@
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
-      "sha256": "550021cd2b554634105a9e51d619b81020e278da9aad89fddc914a56646edaa3"
+      "sha256": "c44055ea4b23445f0dcbcbc242d59a3e93f4310e84f207cefcecafdba74cfd7f"
     },
     {
       "path": "public/amethyst/homepage.jsx",
@@ -70,5 +70,13 @@
     "behavior": "Preserve every saved About paragraph through mapping/targeting and both bootstraps; generated onboarding preview copy fills only an unsaved bio. Existing normalization, placeholders, privacy and visibility behavior stay intact.",
     "path": "lib/amethyst/preview-template-data.ts",
     "previousSha256": "69274daea4748791ab4f31f00136c18ed9f10f42f5d9edb198234dedd713514d"
+  },
+  "approvedPublicAboutDisplayChange": {
+    "date": "2026-11-08",
+    "base": "b617799da95a82eca54e09de876cfccd85847c9f",
+    "approval": "Louis explicitly requested shared public About empty-story suppression and removal of the template portrait-caption fallback, including v2 SSR. Smoke and PR only; no Live.",
+    "behavior": "Map an unsaved narrative to empty legacy slots and preserve saved paragraphs; use only authored media captions. Targeted About renderers hide empty copy while retaining real media.",
+    "path": "lib/amethyst/preview-template-data.ts",
+    "previousSha256": "550021cd2b554634105a9e51d619b81020e278da9aad89fddc914a56646edaa3"
   }
 }

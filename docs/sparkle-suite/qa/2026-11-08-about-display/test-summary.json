@@ -1,0 +1,18 @@
+{
+  "invocations": 1,
+  "files": [
+    {
+      "file": "amethyst-homepage-template.test.ts",
+      "passed": 56
+    },
+    {
+      "file": "amethyst-preview-template-data.test.ts",
+      "passed": 59
+    }
+  ],
+  "total": 115,
+  "passed": 115,
+  "failed": 0,
+  "newCases": 2,
+  "fullSuiteRun": false
+}

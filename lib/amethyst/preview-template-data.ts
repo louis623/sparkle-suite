@@ -602,7 +602,7 @@ export function mapPreviewSettingsToHomepageTemplateData(
       `Meet ${repName} and the story behind ${withFinalPunctuation(businessName)}`,
     ),
     aboutSubheading: settings.aboutSubheading?.trim() || undefined,
-    ...(aboutParagraphs ? { aboutParagraphs } : {}),
+    aboutParagraphs: aboutParagraphs ?? ['', '', ''],
     signupSub: `Get a heads-up when ${repName} goes live, plus first dibs on new drops.`,
     signupConsent: `Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from ${withFinalPunctuation(businessName)} Msg & data rates may apply. Reply STOP to unsubscribe.`,
     footerTagline: tagline,
@@ -631,13 +631,13 @@ export function mapPreviewSettingsToHomepageTemplateData(
     ),
     showcaseImageUrl: '',
     aboutMediaSlots: defaultAmethystHomepageTemplateData.aboutMediaSlots.map(
-      (fallback, index) => {
+      (_fallback, index) => {
         const media = aboutMedia[index]
         const isPortrait = index === 0
         const mediaVisible = media?.isVisible !== false
         return {
           typeLabel: isPortrait ? 'Portrait photo' : `Short video ${index}`,
-          caption: mediaVisible ? media?.caption || (isPortrait ? fallback.caption : '') : '',
+          caption: mediaVisible ? media?.caption || '' : '',
           href: isPortrait || !mediaVisible ? '#' : media?.videoUrl || '#',
           mediaUrl: isPortrait && mediaVisible ? media?.imageUrl || undefined : undefined,
           portraitFocusX: isPortrait ? media?.portraitFocusX : undefined,
