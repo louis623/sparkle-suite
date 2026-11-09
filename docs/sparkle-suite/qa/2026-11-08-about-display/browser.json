@@ -1,0 +1,23 @@
+{
+  "url": "https://sparkle-suite-smoke.vercel.app/milehighfizz#about",
+  "targeted": true,
+  "slug": "milehighfizz",
+  "paragraphs": [
+    "",
+    "",
+    ""
+  ],
+  "aboutSections": 0,
+  "aboutCopyBlocks": 0,
+  "editorHintVisible": false,
+  "aboutStockVisible": false,
+  "horizontalOverflow": false,
+  "phoneHorizontalOverflow": false,
+  "status": 200,
+  "loads": 1,
+  "errors": [],
+  "blocked": [
+    "POST /g/collect",
+    "POST /g/collect"
+  ]
+}
