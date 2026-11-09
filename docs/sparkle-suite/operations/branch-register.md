@@ -1,5 +1,21 @@
 # Sparkle Suite Branch Register
 
+## November 8 — Public About display fixes, Smoke only
+
+Louis authorized a new PR branch from freshly fetched
+`codex/nic-nac-trade-hardening` (`b617799da95a82eca54e09de876cfccd85847c9f`).
+Branch: `codex/public-about-display-fixes`; disposable clone:
+`/tmp/sparkle-about-20261108`. Scope: suppress empty/stock public About text,
+retain real media and saved narratives, and prevent editor portrait-caption
+fallbacks in legacy and v2 SSR. Only Smoke project
+`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` / preview is authorized. Run only
+`tests/amethyst-homepage-template.test.ts` and
+`tests/amethyst-preview-template-data.test.ts`, once, adding exactly one
+empty-narrative case and one portrait-without-caption case. At most two Smoke
+page loads: an empty-bio rep and `maingemco`. No DB writes, environment changes,
+Live deployment, merge, GitHub default or Vercel production-branch changes.
+The branch entries are the explicitly requested Smoke-only PR exception.
+
 ## November 6 — pinned combined Smoke integration
 
 Louis authorized `codex/release-1106-integration` from exact `6b04cc03`,
