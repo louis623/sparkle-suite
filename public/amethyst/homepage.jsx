@@ -1179,50 +1179,99 @@ function getFacebookVideoEmbedUrl(value) {
   }
 }
 
+// Delay the navigation until this card is visible and its layout has settled.
+// Native lazy iframes may initialize several screens ahead of the visitor.
+function connectTikTokPlayer(frame, isMuted) {
+  let ready = false;
+  let started = false;
+  let playing = false;
+  let timer = 0;
+  let inView = false;
+  let disposed = false;
+  const send = (type) => frame.contentWindow?.postMessage(
+    { type, "x-tiktok-player": true }, "https://www.tiktok.com",
+  );
+  const visible = () => {
+    const box = frame.getBoundingClientRect();
+    return document.visibilityState !== "hidden" && inView &&
+      box.width > 0 && box.height > 0 && box.bottom > 0 && box.right > 0 &&
+      box.top < window.innerHeight && box.left < window.innerWidth;
+  };
+  const syncPlayback = () => {
+    if (!ready) return;
+    const nextPlaying = visible();
+    if (nextPlaying === playing) return;
+    if (nextPlaying) {
+      send(isMuted() ? "mute" : "unMute");
+      send("play");
+    } else {
+      send("pause");
+    }
+    playing = nextPlaying;
+  };
+  const settle = () => {
+    window.clearTimeout(timer);
+    syncPlayback();
+    if (started || !visible()) return;
+    const box = frame.getBoundingClientRect();
+    timer = window.setTimeout(() => {
+      if (disposed || !visible()) return;
+      const next = frame.getBoundingClientRect();
+      if (Math.abs(next.width - box.width) > 1 || Math.abs(next.height - box.height) > 1) {
+        settle();
+        return;
+      }
+      started = true;
+      frame.src = frame.dataset.src;
+    }, 120);
+  };
+  const onMessage = (event) => {
+    if (!started || event.origin !== "https://www.tiktok.com" || event.source !== frame.contentWindow) return;
+    const message = event.data;
+    if (message?.["x-tiktok-player"] === true && message.type === "onPlayerReady") {
+      ready = true;
+      syncPlayback();
+    }
+  };
+  const intersection = new IntersectionObserver(([entry]) => {
+    // A tall portrait player can never reach 50% visibility on a folded phone.
+    inView = entry.isIntersecting && entry.intersectionRatio > 0;
+    settle();
+  }, { threshold: [0, 0.01] });
+  const resize = typeof ResizeObserver === "function" ? new ResizeObserver(settle) : null;
+  window.addEventListener("message", onMessage);
+  window.addEventListener("resize", settle);
+  window.addEventListener("orientationchange", settle);
+  window.addEventListener("pageshow", settle);
+  document.addEventListener("visibilitychange", settle);
+  intersection.observe(frame);
+  resize?.observe(frame);
+  return () => {
+    disposed = true;
+    window.clearTimeout(timer);
+    intersection.disconnect();
+    resize?.disconnect();
+    window.removeEventListener("message", onMessage);
+    window.removeEventListener("resize", settle);
+    window.removeEventListener("orientationchange", settle);
+    window.removeEventListener("pageshow", settle);
+    document.removeEventListener("visibilitychange", settle);
+    frame.removeAttribute("src");
+  };
+}
+
 function TikTokEmbed({ className = "", videoUrl, title, children, dataSlot }) {
   const frameRef = useRef(null);
   const videoId = getTikTokVideoId(videoUrl);
   const [muted, setMuted] = useState(true);
 
+  const mutedRef = useRef(true);
   useEffect(() => {
     const frame = frameRef.current;
     if (!frame || !videoId) return undefined;
-
-    const send = (type) => {
-      frame.contentWindow?.postMessage(
-        { type, "x-tiktok-player": true },
-        "https://www.tiktok.com",
-      );
-    };
-    const playMuted = () => {
-      send("mute");
-      setMuted(true);
-      send("play");
-    };
-    const handlePlayerMessage = (event) => {
-      if (event.origin !== "https://www.tiktok.com" || event.source !== frame.contentWindow) return;
-      const message = event.data;
-      if (message?.["x-tiktok-player"] === true && message.type === "onPlayerReady") {
-        playMuted();
-      }
-    };
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-          playMuted();
-        }
-      },
-      { threshold: [0, 0.5] },
-    );
-
-    observer.observe(frame);
-    window.addEventListener("message", handlePlayerMessage);
-    frame.addEventListener("load", playMuted);
-    return () => {
-      window.removeEventListener("message", handlePlayerMessage);
-      frame.removeEventListener("load", playMuted);
-      observer.disconnect();
-    };
+    mutedRef.current = true;
+    setMuted(true);
+    return connectTikTokPlayer(frame, () => mutedRef.current);
   }, [videoId]);
 
   if (!videoId) {
@@ -1238,6 +1287,7 @@ function TikTokEmbed({ className = "", videoUrl, title, children, dataSlot }) {
 
   const toggleMute = () => {
     const nextMuted = !muted;
+    mutedRef.current = nextMuted;
     frameRef.current?.contentWindow?.postMessage(
       { type: nextMuted ? "mute" : "unMute", "x-tiktok-player": true },
       "https://www.tiktok.com",
@@ -1252,8 +1302,8 @@ function TikTokEmbed({ className = "", videoUrl, title, children, dataSlot }) {
         allow="autoplay; fullscreen"
         allowFullScreen
         className="ss-tiktok-embed-frame"
-        loading="lazy"
-        src={`https://www.tiktok.com/player/v1/${videoId}?autoplay=0&muted=0&loop=1&controls=0&volume_control=0&description=0&music_info=0&rel=0`}
+        loading="eager"
+        data-src={`https://www.tiktok.com/player/v1/${videoId}?autoplay=0&muted=0&loop=1&controls=0&volume_control=0&description=0&music_info=0&rel=0`}
         title={title || "TikTok video"}
       />
       <button

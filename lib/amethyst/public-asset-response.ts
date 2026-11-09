@@ -570,6 +570,7 @@ export async function renderAmethystPublicAssetResponse(
     const endpoint = new URL(source.replace(/&amp;/g, '&'), requestUrl)
     endpoint.searchParams.set('ssrReviewTheme', selection.theme)
     if (selection.layout !== null) endpoint.searchParams.set('ssrReviewLayout', selection.layout)
+    if (selection.tiktok) endpoint.searchParams.set('ssrReviewTikTok', selection.tiktok)
     // Preserve the original loader, runtime and network sequence for a fair
     // legacy comparison. Its normal API applies the same guarded selection.
     html = html.replace(loader, () => `data-template-src="${(endpoint.pathname + endpoint.search).replace(/&/g, '&amp;')}"`)
@@ -629,6 +630,7 @@ export async function renderAmethystPublicAssetResponse(
     if (reviewSelection) {
       bootstrapUrl.searchParams.set('ssrReviewTheme', reviewSelection.theme)
       if (reviewSelection.layout !== null) bootstrapUrl.searchParams.set('ssrReviewLayout', reviewSelection.layout)
+      if (reviewSelection.tiktok) bootstrapUrl.searchParams.set('ssrReviewTikTok', reviewSelection.tiktok)
     }
     // Start all data reads before waiting for the template used by metadata.
     const bootstrapTask = page === 'pantry' ? Promise.resolve(null) : page !== 'homepage'

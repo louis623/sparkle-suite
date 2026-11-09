@@ -1,0 +1,117 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { runInNewContext } from 'node:vm'
+import { smokeReviewSelection, homepageSmokeReview } from '@/lib/amethyst/homepage-smoke-review'
+
+const paths = ['public/amethyst/homepage.jsx', 'lib/amethyst/v2/homepage.jsx', 'lib/amethyst/legacy/assets/homepage.jsx']
+const sources = paths.map(path => readFileSync(path, 'utf8'))
+function mount(source: string) {
+  let io: (entries: { isIntersecting: boolean; intersectionRatio: number }[]) => void = () => {}
+  let ro: () => void = () => {}
+  const listeners = new Map<string, Set<(event?: unknown) => void>>()
+  const addEventListener = (name: string, fn: (event?: unknown) => void) => {
+    if (!listeners.has(name)) listeners.set(name, new Set())
+    listeners.get(name)!.add(fn)
+  }
+  const removeEventListener = (name: string, fn: (event?: unknown) => void) => listeners.get(name)?.delete(fn)
+  const window = { innerWidth: 344, innerHeight: 500, setTimeout, clearTimeout, addEventListener, removeEventListener }
+  const document = { visibilityState: 'visible', addEventListener, removeEventListener }
+  const box = { width: 294, height: 523, top: 100, left: 24, right: 318, bottom: 623 }
+  const postMessage = vi.fn()
+  const navigations: string[] = []
+  const frame = { dataset: { src: 'https://www.tiktok.com/player/v1/7476510653268806958' },
+    src: '', contentWindow: { postMessage }, getBoundingClientRect: () => ({ ...box }),
+    removeAttribute: vi.fn() }
+  Object.defineProperty(frame, 'src', { set: (url: string) => navigations.push(url) })
+  const disconnect = vi.fn()
+  const start = runInNewContext(source.split('function connectTikTokPlayer(')[1].split('\nfunction TikTokEmbed(')[0]
+    .replace(/^/, '(function connectTikTokPlayer(').trim() + ')', {
+    window, document,
+    IntersectionObserver: class { constructor(cb: typeof io) { io = cb } observe() {} disconnect = disconnect },
+    ResizeObserver: class { constructor(cb: typeof ro) { ro = cb } observe() {} disconnect = disconnect },
+  }) as (frame: object, muted: () => boolean) => () => void
+  let muted = true
+  const cleanup = start(frame, () => muted)
+  const emit = (name: string, event?: unknown) => listeners.get(name)?.forEach(fn => fn(event))
+  const message = (type = 'onPlayerReady', origin = 'https://www.tiktok.com', source: object = frame.contentWindow) => emit('message', {
+    origin, source, data: { type, 'x-tiktok-player': true },
+  })
+  return { box, window, document, frame, postMessage, navigations, disconnect, cleanup, emit, message,
+    intersect: (visible: boolean, ratio = 0.2) => io([{ isIntersecting: visible, intersectionRatio: ratio }]),
+    resize: () => ro(), unmute: () => { muted = false } }
+}
+beforeEach(() => vi.useFakeTimers())
+afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs() })
+for (const [index, path] of paths.entries()) describe(`TikTok embed lifecycle: ${path}`, () => {
+  it('delays navigation until visible with settled nonzero dimensions and waits for readiness', () => {
+    const components = sources.map(source => source.split('function connectTikTokPlayer(')[1].split('\nfunction CustomerVideoEmbed(')[0])
+    expect(components[0]).toBe(components[1]); expect(components[1]).toBe(components[2])
+    expect(components[index]).toContain('data-src={`https://www.tiktok.com/player/v1/${videoId}')
+    expect(components[index]).not.toContain('key=')
+    const m = mount(sources[index])
+    m.resize(); vi.advanceTimersByTime(200)
+    expect(m.navigations).toEqual([])
+    m.intersect(true, 0.2); vi.advanceTimersByTime(119)
+    expect(m.navigations).toEqual([])
+    vi.advanceTimersByTime(1)
+    expect(m.navigations).toHaveLength(1)
+    expect(m.postMessage).not.toHaveBeenCalled()
+    m.emit('load')
+    expect(m.postMessage).not.toHaveBeenCalled()
+    m.message()
+    expect(m.postMessage.mock.calls.map(call => call[0].type)).toEqual(['mute', 'play'])
+  })
+  it('waits through changing layout and zero width without assuming a minimum provider width', () => {
+    const m = mount(sources[index]); m.box.width = 0; m.intersect(true)
+    vi.advanceTimersByTime(200); expect(m.navigations).toHaveLength(0)
+    m.box.width = 294; m.resize(); vi.advanceTimersByTime(60)
+    m.box.width = 320; vi.advanceTimersByTime(60)
+    expect(m.navigations).toHaveLength(0)
+    vi.advanceTimersByTime(120); expect(m.navigations).toHaveLength(1)
+  })
+  it('accepts only readiness from this TikTok frame and plays when a tall frame is partly visible', () => {
+    const m = mount(sources[index]); m.intersect(true, 0.1); vi.advanceTimersByTime(120)
+    m.message('onPlayerReady', 'https://other.example'); m.message('onPlayerReady', 'https://www.tiktok.com', {})
+    expect(m.postMessage).not.toHaveBeenCalled()
+    m.message(); m.message()
+    expect(m.postMessage).toHaveBeenCalledTimes(2)
+  })
+  it('pauses offscreen and resumes after fold without replacing the iframe or resetting sound', () => {
+    const m = mount(sources[index]); m.intersect(true); vi.advanceTimersByTime(120); m.message(); m.unmute()
+    m.intersect(false)
+    expect(m.postMessage.mock.lastCall?.[0].type).toBe('pause')
+    m.window.innerWidth = 880; m.box.width = 348; m.intersect(true); m.resize(); m.emit('resize'); m.emit('orientationchange'); m.emit('pageshow')
+    vi.advanceTimersByTime(500)
+    expect(m.navigations).toHaveLength(1)
+    expect(m.postMessage.mock.calls.map(call => call[0].type)).toEqual(['mute', 'play', 'pause', 'unMute', 'play'])
+  })
+  it('does not start a player that reports readiness after scrolling away or hiding the page', () => {
+    const m = mount(sources[index]); m.intersect(true); vi.advanceTimersByTime(120); m.intersect(false); m.message()
+    expect(m.postMessage).not.toHaveBeenCalled()
+    m.intersect(true); m.document.visibilityState = 'hidden'; m.emit('visibilitychange')
+    expect(m.postMessage.mock.lastCall?.[0].type).toBe('pause')
+    m.document.visibilityState = 'visible'; m.emit('visibilitychange')
+    expect(m.postMessage.mock.lastCall?.[0].type).toBe('play')
+  })
+  it('cleans pending navigation, observers, and listeners on unmount or video change', () => {
+    const m = mount(sources[index]); m.intersect(true); m.cleanup(); vi.advanceTimersByTime(500)
+    m.resize(); m.emit('resize'); m.message()
+    expect(m.navigations).toHaveLength(0)
+    expect(m.postMessage).not.toHaveBeenCalled()
+    expect(m.disconnect).toHaveBeenCalledTimes(2)
+    expect(m.frame.removeAttribute).toHaveBeenCalledWith('src')
+  })
+})
+it('TikTok embed lifecycle keeps the same-video review fixture disabled outside the approved Smoke preview', () => {
+  const url = new URL('https://smoke.example/?ssrReviewTheme=amethyst&ssrReviewLayout=britt_with_bling&ssrReviewTikTok=same-videos')
+  vi.stubEnv('VERCEL_ENV', 'preview'); vi.stubEnv('VERCEL_PROJECT_ID', 'prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ')
+  vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke'); vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://pukemqiwlyqmyytxkdmo.supabase.co')
+  expect(smokeReviewSelection(url, 'dudesfizzfest')?.tiktok).toBe('same-videos')
+  expect(smokeReviewSelection(url, 'brittwithbling')).toBeNull()
+  vi.stubEnv('VERCEL_ENV', 'production')
+  expect(smokeReviewSelection(url, 'dudesfizzfest')).toBeNull()
+  const untouched = {} as Parameters<typeof homepageSmokeReview>[0]
+  expect(homepageSmokeReview(untouched, url, 'dudesfizzfest')).toBe(untouched)
+  vi.stubEnv('VERCEL_ENV', 'preview'); vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'live')
+  expect(smokeReviewSelection(url, 'dudesfizzfest')).toBeNull()
+})

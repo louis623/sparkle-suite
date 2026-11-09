@@ -68,7 +68,8 @@
     "codex/workspace-identity-isolation",
     "codex/signup-discount-workspace-toggle",
     "codex/starlight-slow-phone-load",
-    "codex/public-about-display-fixes"
+    "codex/public-about-display-fixes",
+    "codex/tiktok-embed-lifecycle-smoke"
   ],
   "previewBranches": {
     "codex/landing-preview-images": {
@@ -242,6 +243,10 @@
     "codex/public-about-display-fixes": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
+    },
+    "codex/tiktok-embed-lifecycle-smoke": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
@@ -262,6 +267,7 @@
     "codex/workspace-identity-isolation": "codex/nic-nac-trade-hardening",
     "codex/release-1106-integration": "codex/nic-nac-trade-hardening",
     "codex/starlight-slow-phone-load": "codex/nic-nac-trade-hardening",
-    "codex/public-about-display-fixes": "codex/nic-nac-trade-hardening"
+    "codex/public-about-display-fixes": "codex/nic-nac-trade-hardening",
+    "codex/tiktok-embed-lifecycle-smoke": "codex/nic-nac-trade-hardening"
   }
 }
