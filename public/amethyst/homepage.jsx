@@ -1179,20 +1179,54 @@ function getFacebookVideoEmbedUrl(value) {
   }
 }
 
-// Delay the navigation until this card is visible and its layout has settled.
-// Native lazy iframes may initialize several screens ahead of the visitor.
-function connectTikTokPlayer(frame, isMuted) {
+// One page-wide initialization slot. Readiness/failure releases it; iframe load
+// alone does not mean TikTok's player has finished initializing.
+function createTikTokLoadQueue() {
+  const pending = [];
+  let active = null;
+  const drain = () => {
+    if (active || pending.length === 0) return;
+    const job = pending.shift();
+    active = job;
+    job.start(() => {
+      if (active !== job) return;
+      active = null;
+      drain();
+    });
+  };
+  return (start) => {
+    const job = { start };
+    pending.push(job);
+    drain();
+    return () => {
+      const index = pending.indexOf(job);
+      if (index >= 0) pending.splice(index, 1);
+      if (active === job) {
+        active = null;
+        drain();
+      }
+    };
+  };
+}
+const enqueueTikTokPlayer = createTikTokLoadQueue();
+
+// The mount reserves the existing card area, but owns no iframe until visible.
+// React leaves its children to the external player controller.
+function connectTikTokPlayer(mount, isMuted) {
+  let frame = null;
   let ready = false;
-  let started = false;
   let playing = false;
   let timer = 0;
   let inView = false;
   let disposed = false;
-  const send = (type) => frame.contentWindow?.postMessage(
+  let queued = false;
+  let cancelQueued = null;
+  let release = null;
+  const send = (type) => frame?.contentWindow?.postMessage(
     { type, "x-tiktok-player": true }, "https://www.tiktok.com",
   );
   const visible = () => {
-    const box = frame.getBoundingClientRect();
+    const box = mount.getBoundingClientRect();
     return document.visibilityState !== "hidden" && inView &&
       box.width > 0 && box.height > 0 && box.bottom > 0 && box.right > 0 &&
       box.top < window.innerHeight && box.left < window.innerWidth;
@@ -1209,28 +1243,62 @@ function connectTikTokPlayer(frame, isMuted) {
     }
     playing = nextPlaying;
   };
+  const failed = () => {
+    ready = false;
+    playing = false;
+    release?.();
+    release = null;
+  };
   const settle = () => {
     window.clearTimeout(timer);
+    if (disposed) return;
     syncPlayback();
-    if (started || !visible()) return;
-    const box = frame.getBoundingClientRect();
+    if (queued && !visible()) {
+      cancelQueued?.();
+      cancelQueued = null;
+      queued = false;
+    }
+    if (frame || queued || !visible()) return;
+    const box = mount.getBoundingClientRect();
     timer = window.setTimeout(() => {
       if (disposed || !visible()) return;
-      const next = frame.getBoundingClientRect();
+      const next = mount.getBoundingClientRect();
       if (Math.abs(next.width - box.width) > 1 || Math.abs(next.height - box.height) > 1) {
         settle();
         return;
       }
-      started = true;
-      frame.src = frame.dataset.src;
+      queued = true;
+      cancelQueued = enqueueTikTokPlayer((done) => {
+        queued = false;
+        release = done;
+        if (disposed || !visible()) {
+          done();
+          return;
+        }
+        frame = document.createElement("iframe");
+        frame.className = "ss-tiktok-embed-frame";
+        frame.title = mount.dataset.title || "TikTok video";
+        frame.allow = "autoplay; fullscreen";
+        frame.allowFullscreen = true;
+        // Visibility and the shared queue already gate creation/navigation.
+        frame.loading = "eager";
+        frame.addEventListener("error", failed);
+        frame.src = mount.dataset.src;
+        mount.appendChild(frame);
+      });
     }, 120);
   };
   const onMessage = (event) => {
-    if (!started || event.origin !== "https://www.tiktok.com" || event.source !== frame.contentWindow) return;
+    if (!frame || event.origin !== "https://www.tiktok.com" || event.source !== frame.contentWindow) return;
     const message = event.data;
-    if (message?.["x-tiktok-player"] === true && message.type === "onPlayerReady") {
+    if (message?.["x-tiktok-player"] !== true) return;
+    if (message.type === "onPlayerReady") {
       ready = true;
       syncPlayback();
+      release?.();
+      release = null;
+    } else if (message.type === "onPlayerError" || message.type === "onError") {
+      failed();
     }
   };
   const intersection = new IntersectionObserver(([entry]) => {
@@ -1244,8 +1312,8 @@ function connectTikTokPlayer(frame, isMuted) {
   window.addEventListener("orientationchange", settle);
   window.addEventListener("pageshow", settle);
   document.addEventListener("visibilitychange", settle);
-  intersection.observe(frame);
-  resize?.observe(frame);
+  intersection.observe(mount);
+  resize?.observe(mount);
   return () => {
     disposed = true;
     window.clearTimeout(timer);
@@ -1256,7 +1324,10 @@ function connectTikTokPlayer(frame, isMuted) {
     window.removeEventListener("orientationchange", settle);
     window.removeEventListener("pageshow", settle);
     document.removeEventListener("visibilitychange", settle);
-    frame.removeAttribute("src");
+    frame?.removeEventListener("error", failed);
+    // Remove any unfinished frame before another queued player may start.
+    frame?.remove();
+    cancelQueued?.();
   };
 }
 
@@ -1288,7 +1359,7 @@ function TikTokEmbed({ className = "", videoUrl, title, children, dataSlot }) {
   const toggleMute = () => {
     const nextMuted = !muted;
     mutedRef.current = nextMuted;
-    frameRef.current?.contentWindow?.postMessage(
+    frameRef.current?.querySelector("iframe")?.contentWindow?.postMessage(
       { type: nextMuted ? "mute" : "unMute", "x-tiktok-player": true },
       "https://www.tiktok.com",
     );
@@ -1297,14 +1368,12 @@ function TikTokEmbed({ className = "", videoUrl, title, children, dataSlot }) {
 
   return (
     <div className={`ss-tiktok-embed ${className}`} data-slot={dataSlot} data-tiktok-embed="true">
-      <iframe
+      <div
         ref={frameRef}
-        allow="autoplay; fullscreen"
-        allowFullScreen
-        className="ss-tiktok-embed-frame"
-        loading="eager"
+        className="ss-tiktok-player-mount"
+        style={{ position: "absolute", inset: 0 }}
         data-src={`https://www.tiktok.com/player/v1/${videoId}?autoplay=0&muted=0&loop=1&controls=0&volume_control=0&description=0&music_info=0&rel=0`}
-        title={title || "TikTok video"}
+        data-title={title || "TikTok video"}
       />
       <button
         aria-label={muted ? "Unmute TikTok video" : "Mute TikTok video"}

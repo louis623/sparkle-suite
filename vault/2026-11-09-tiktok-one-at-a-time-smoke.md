@@ -1,0 +1,8 @@
+# November 9 — TikTok lazy one-at-a-time Smoke continuation
+
+- Louis authorized continuing PR187 only, keeping the fifth Brittany featured player and prior visibility/settling/ready/offscreen-pause patches. One Smoke deploy, four document loads, named component set once; no Live, DB/env writes, posters, fallback, retry or PR185 work.
+- Fresh clone `/workspace/codex-runs/suite-tiktok-lazy-one-at-a-time` from verified PR tip `becc6f1478e69cebab84f64818f4151c56f6a490`; fetched production still `210d51629637b45f895c5e13afdaa57b9c09ec45`, already ancestor. No merge required.
+- Empty card mounts create no iframe until visible/settled and granted a page-wide initialization slot. Provider ready/error or iframe error releases the slot; offscreen pending jobs cancel, active unmount removes its iframe before releasing. No retries or fallback UI. v2/authoring/legacy copies match; single manifest record plus generated runtime updated. Shared CSS and fifth player intact.
+- Named set once: lifecycle file plus only existing homepage TikTok case, 20 passed/55 unrelated skipped; previous DOMRect snapshot correction now verified. TypeScript, bundle, ESLint and 11 layout locks passed. Remote Smoke build and browser result pending in external report.
+- Final evidence goes to `/workspace/codex-runs/suite-tiktok-lazy-one-at-a-time.report.md`. Preserve distinctions between provider interstitial, normal player imagery and confirmed playback; no claim about Louis's actual phone error/quota.
+- Open Brain capture unavailable: no capture_thought MCP tool exposed. Next action is the one bounded Smoke deployment and four-load comparison, then stop.
