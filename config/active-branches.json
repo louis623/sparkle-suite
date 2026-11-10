@@ -23,6 +23,7 @@
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
+    "codex/tiktok-remove-video",
     "codex/tiktok-link-queue",
     "codex/nic-nac-signature-home",
     "codex/nic-nac-trade-hardening",
@@ -254,6 +255,10 @@
     "codex/public-about-display-fixes": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
+    },
+    "codex/tiktok-remove-video": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
@@ -276,6 +281,7 @@
     "codex/workspace-identity-isolation": "codex/nic-nac-trade-hardening",
     "codex/release-1106-integration": "codex/nic-nac-trade-hardening",
     "codex/starlight-slow-phone-load": "codex/nic-nac-trade-hardening",
-    "codex/public-about-display-fixes": "codex/nic-nac-trade-hardening"
+    "codex/public-about-display-fixes": "codex/nic-nac-trade-hardening",
+    "codex/tiktok-remove-video": "codex/nic-nac-trade-hardening"
   }
 }
