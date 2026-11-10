@@ -7937,7 +7937,7 @@ function ConceptHomeWorkspace({
   const coffeeReminder = getNextCoffeeWithLouisSession()
 
   return (
-    <section className={styles.conceptHome} aria-label="Nic-Nac first workspace">
+    <section className={`${styles.conceptHome} ${styles.signatureHome}`} aria-label="Nic-Nac first workspace">
       <aside className={styles.conceptRail} aria-label="Swap info at a glance">
         <button
           type="button"
@@ -7965,7 +7965,8 @@ function ConceptHomeWorkspace({
       </aside>
 
       <div className={styles.conceptCenter}>
-        <div className={styles.nicNacHero}>
+        <div className={`${styles.nicNacHero} ${styles.signatureHero}`}>
+          <span className={styles.signatureEyebrow}>Your assistant</span>
           <div className={styles.nicNacHeroTitleRow}>
             <h1>
               <span className={styles.nicNacHeroBadge} aria-hidden="true">
