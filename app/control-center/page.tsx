@@ -54,6 +54,11 @@ export default async function SparkleSuiteControlCenterPage({
   }
 
   const admin = createAdminClient()
+  let tiktokPendingCount: number | undefined
+  if (access.scope === 'owner' && access.method === 'control_center_session') {
+    const result = await admin.from('tiktok_video_queue').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+    if (!result.error) tiktokPendingCount = result.count ?? 0
+  }
   if (access.scope === 'site_support') {
     const { data: customers, error } = await admin
       .from('reps')
@@ -99,6 +104,7 @@ export default async function SparkleSuiteControlCenterPage({
 
   return (
     <SupportCommandCenter
+      tiktokPendingCount={tiktokPendingCount}
       customers={customers as unknown as OperatorCustomerRecord[]}
       reports={reports as unknown as SupportReportRecord[]}
       waitlist={waitlist}

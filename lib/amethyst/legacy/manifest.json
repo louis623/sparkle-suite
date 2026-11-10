@@ -225,15 +225,15 @@
       "source": "snapshot"
     },
     "homepage.css": {
-      "blob": "678588f75942b2215125aa33fb6df395decc5a3b",
-      "sha256": "2089d703683ded2a456250ff349caf5d49cbb4c09d9a17316b9a055b6fd45f00",
-      "bytes": 182159,
+      "blob": "48602502024038b390f23000842657399991527b",
+      "sha256": "b5e58af6ab58012efa6a7c26241847bc60f75ea00d7a558fad919cd2dc889286",
+      "bytes": 183174,
       "source": "snapshot"
     },
     "homepage.jsx": {
-      "blob": "cb64e48ab84690ef37235bdb3655f90c681b8e00",
-      "sha256": "0294c43c51258eb661be7fe62a8eceecbb4e49f6e53e7632515260e084c057d7",
-      "bytes": 180342,
+      "blob": "ec78158c1e49962349080beee05520d7d58144bb",
+      "sha256": "fcc34f9803f1f3294324adf6ae96d65b60594961247fc72e6eafedf19ee50a30",
+      "bytes": 188725,
       "source": "snapshot"
     },
     "join-runtime.js": {

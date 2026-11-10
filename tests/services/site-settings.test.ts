@@ -958,3 +958,26 @@ describe('Workspace signup discount save', () => {
     await expect(updateSiteSettingsDashboard({ from: () => site.api } as never, 'rep-owner', { signupDiscountEnabled: true })).rejects.toMatchObject({ code: 'SITE_SETTINGS_UPDATE_FAILED' })
   })
 })
+
+it('tiktok status: queued, ready, replace and reopen lines; lookup failure keeps the save', async () => {
+  const { attachTikTokSlotStatus } = await import('@/lib/services/site-settings')
+  const { tiktokTestClient } = await import('../fixtures/tiktok-test-client')
+  const admin = await import('@/lib/supabase/admin')
+  const mock = tiktokTestClient({
+    public_site_videos:[{tiktok_video_id:'12345678',status:'live'}],
+    tiktok_video_queue:[{tiktok_video_id:'12345678',status:'pending'},{tiktok_video_id:'87654321',status:'pending'}],
+  },{tiktok_hosted_video_enabled:true})
+  const spy = vi.spyOn(admin,'createAdminClient').mockReturnValue(mock.client)
+  try {
+    const settings = {homepageMediaSlots:[{key:'showcase',videoUrl:'https://www.tiktok.com/embed/12345678',imageUrl:'',caption:''}]} as unknown as import('@/lib/services/types').SiteSettingsDashboardResult
+    expect((await attachTikTokSlotStatus(mock.client,'rep',settings)).homepageMediaSlots?.[0].tiktokVideoStatus).toBe('live')
+    const replaced = {...settings,homepageMediaSlots:settings.homepageMediaSlots!.map(slot => ({...slot,videoUrl:'https://www.tiktok.com/embed/87654321'}))}
+    expect((await attachTikTokSlotStatus(mock.client,'rep',replaced)).homepageMediaSlots?.[0].tiktokVideoStatus).toBe('queued')
+    const empty = {...settings,homepageMediaSlots:settings.homepageMediaSlots!.map(slot => ({...slot,videoUrl:''}))}
+    expect((await attachTikTokSlotStatus(mock.client,'rep',empty)).homepageMediaSlots?.[0].tiktokVideoStatus).toBe(null)
+    mock.api.from.mockImplementation(() => { throw new Error('lookup failed') })
+    expect((await attachTikTokSlotStatus(mock.client,'rep',settings)).homepageMediaSlots?.[0].tiktokVideoStatus).toBe(null)
+    resolveTikTokShortVideoUrlMock.mockRejectedValue(new TikTokShortLinkError())
+    await expect(normalizePublicSiteMediaSlotsForSave([{key:'showcase',videoUrl:'https://vm.tiktok.com/ZMabcdef/'}])).rejects.toMatchObject({userMessage:expect.stringContaining('Open the TikTok and copy the full video link')})
+  } finally { spy.mockRestore() }
+})

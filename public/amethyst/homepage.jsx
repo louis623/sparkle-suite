@@ -989,6 +989,97 @@ function syncDynamicTickerTracks() {
   });
 }
 
+// tiktok-id-parser:start
+function getTikTokIdFromUrl(raw) {
+  try {
+    const url = new URL(String(raw || ""));
+    if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || (url.port && url.port !== "443")) return null;
+    if (!["tiktok.com", "www.tiktok.com"].includes(url.hostname)) return null;
+    return url.pathname.match(/^(?:\/@[A-Za-z0-9._]{2,24}\/video|\/video|\/player\/v1|\/embed|\/embed\/v2)\/([0-9]{8,22})\/?$/)?.[1] || null;
+  } catch { return null; }
+}
+function tiktokCanonicalHref(raw) {
+  const id = getTikTokIdFromUrl(raw);
+  if (!id) return null;
+  const user = new URL(raw).pathname.match(/^\/(@[A-Za-z0-9._]{2,24})\/video\//)?.[1];
+  return user ? "https://www.tiktok.com/" + user + "/video/" + id : "https://www.tiktok.com/embed/v2/" + id;
+}
+function isTikTokCardUrl(raw) {
+  try {
+    const url = new URL(String(raw || ""));
+    return url.protocol === "https:" && !url.username && !url.password && !url.port &&
+      ["tiktok.com", "www.tiktok.com", "vm.tiktok.com", "vt.tiktok.com"].includes(url.hostname);
+  } catch { return false; }
+}
+// tiktok-id-parser:end
+
+function getSlotVideoPresentation(url, hostedVideo, tiktokPoster) {
+  const original = getCustomerVideoPresentation(url);
+  if (CONTENT.tiktokHostedMode !== true) return { ...original, isPopulated: Boolean(original.provider) };
+  if (hostedVideo?.src) return { kind: "hosted", provider: "tiktok", isPopulated: true, outboundUrl: tiktokCanonicalHref(url), hostedVideo };
+  if (getTikTokIdFromUrl(url) || isTikTokCardUrl(url)) {
+    return { kind: "tiktok-card", provider: "tiktok", isPopulated: true, outboundUrl: tiktokCanonicalHref(url) || url, tiktokPoster };
+  }
+  return { ...original, kind: original.provider ? "provider" : "none", isPopulated: Boolean(original.provider) };
+}
+
+function TikTokLinkCard({ href, poster, title, caption, className = "", children }) {
+  return (
+    <a className={("ss-tiktok-embed ss-hosted-link " + className).trim()} href={href} target="_blank" rel="noopener noreferrer" aria-label={title || "Watch on TikTok"}>
+      {poster ? <img src={poster} alt="" loading="lazy" width="720" height="1280" className="ss-hosted-poster" /> : <SocialLogo label="TikTok" />}
+      <span className="ss-hosted-link-label">Watch on TikTok</span>
+      {caption ? <span>{caption}</span> : null}
+      {children}
+    </a>
+  );
+}
+
+function HostedVideo({ src, poster, width, height, title, className = "", dataSlot, fallbackHref, children }) {
+  const videoRef = useRef(null);
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const [manual, setManual] = useState(false);
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setManual(reduced.matches);
+    const motionChanged = () => { setManual(reduced.matches); if (reduced.matches) video.pause(); };
+    reduced.addEventListener?.("change", motionChanged);
+    if (!("IntersectionObserver" in window)) { setLoaded(true); setManual(true); return () => reduced.removeEventListener?.("change", motionChanged); }
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting && entry.rootBounds) setLoaded(true);
+      }
+    }, { rootMargin: "300px" });
+    const playback = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.intersectionRatio >= 0.5 && !reduced.matches) {
+          video.play().catch(() => setManual(true));
+        } else if (entry.intersectionRatio < 0.5) video.pause();
+      }
+    }, { threshold: [0, 0.5, 1] });
+    observer.observe(video);
+    playback.observe(video);
+    return () => { observer.disconnect(); playback.disconnect(); video.pause(); reduced.removeEventListener?.("change", motionChanged); };
+  }, [src, loaded]);
+  if (failed) return <TikTokLinkCard href={fallbackHref} poster={poster} title={title} className={className}>{children}</TikTokLinkCard>;
+  return (
+    <div className={("ss-tiktok-embed ss-hosted-video " + className).trim()} data-slot={dataSlot}>
+      <video ref={videoRef} data-hosted-tiktok="true" className="ss-tiktok-embed-frame" muted={muted} loop playsInline preload="none" poster={poster} aria-label={title}
+        src={loaded ? src : undefined}
+        style={{ aspectRatio: width && height ? width + " / " + height : "9 / 16", objectFit: width >= height ? "contain" : "cover" }}
+        onError={() => setFailed(true)}
+        onPlay={(event) => document.querySelectorAll("video[data-hosted-tiktok]").forEach(other => { if (other !== event.currentTarget) other.pause(); })}
+      />
+      {manual ? <button type="button" className="ss-hosted-play" aria-label="Play video" onClick={() => { setLoaded(true); videoRef.current?.play().catch(() => {}); }}>Play video</button> : null}
+      <button type="button" className="ss-tiktok-sound-toggle" aria-label={muted ? "Unmute video" : "Mute video"} onClick={() => setMuted(value => !value)}>{muted ? "Sound on" : "Mute"}</button>
+      {children}
+    </div>
+  );
+}
+
 function getTikTokVideoId(value) {
   const input = String(value || "");
   const sourceUrl = getCustomerVideoSourceUrl(input);
@@ -1117,8 +1208,10 @@ function CustomerVideoCard({
   subtitle,
   videoUrl,
   variant,
+  hostedVideo,
+  tiktokPoster,
 }) {
-  const presentation = getCustomerVideoPresentation(videoUrl);
+  const presentation = getSlotVideoPresentation(videoUrl, hostedVideo, tiktokPoster);
   const sampleVideo = getThemeSampleVideoPath(videoUrl);
   const caption = String(subtitle || "").trim();
   return (
@@ -1137,18 +1230,21 @@ function CustomerVideoCard({
       ) : presentation.outboundUrl ? (
         <figcaption className="hp-customer-media-footer hp-customer-video-footer">
           {caption ? <span className="hp-customer-video-caption">{caption}</span> : null}
-          <a className="hp-customer-media-action" href={presentation.outboundUrl} target="_blank" rel="noreferrer noopener">
+          {presentation.kind !== "tiktok-card" ? <a className="hp-customer-media-action" href={presentation.outboundUrl} target="_blank" rel="noreferrer noopener">
             <CustomerMediaIcon name={presentation.provider || "play"} />
-            <span>{presentation.ctaLabel}</span>
+            <span>{presentation.ctaLabel || "Watch on TikTok"}</span>
             <CustomerMediaIcon name="external-link" />
-          </a>
+          </a> : null}
         </figcaption>
       ) : null}
     >
       <CustomerVideoEmbed
         className="hp-customer-media-player"
         title={title}
+        key={videoUrl}
         videoUrl={videoUrl}
+        hostedVideo={hostedVideo}
+        tiktokPoster={tiktokPoster}
       />
     </CustomerMediaCard>
   );
@@ -1268,7 +1364,10 @@ function TikTokEmbed({ className = "", videoUrl, title, children, dataSlot }) {
   );
 }
 
-function CustomerVideoEmbed({ className = "", videoUrl, title, children, dataSlot }) {
+function CustomerVideoEmbed({ className = "", videoUrl, title, children, dataSlot, hostedVideo, tiktokPoster }) {
+  const presentation = getSlotVideoPresentation(videoUrl, hostedVideo, tiktokPoster);
+  if (presentation.kind === "hosted") return <HostedVideo {...hostedVideo} title={title} className={className} dataSlot={dataSlot} fallbackHref={presentation.outboundUrl}>{children}</HostedVideo>;
+  if (presentation.kind === "tiktok-card") return <TikTokLinkCard href={presentation.outboundUrl} poster={tiktokPoster} title={title} className={className}>{children}</TikTokLinkCard>;
   const sampleVideo = getThemeSampleVideoPath(videoUrl);
   if (sampleVideo) {
     const poster = sampleVideo.replace(/hero-loop(-v\d+)?\.mp4$/, "hero-poster$1.webp");
@@ -1382,8 +1481,8 @@ function AboutPortraitCard({ fallbackCaption }) {
 
 function AboutShortCard({ index, hideEmptyMedia = false }) {
   const slot = getAboutMediaSlot(index + 1);
-  const presentation = getCustomerVideoPresentation(slot?.href);
-  if (slot?.mediaUrl && !presentation.provider) {
+  const presentation = getSlotVideoPresentation(slot?.href, slot?.hostedVideo, slot?.tiktokPoster);
+  if (slot?.mediaUrl && !presentation.isPopulated) {
     return (
       <CustomerMediaCard
         className="hp-about-short-card slot"
@@ -1404,7 +1503,7 @@ function AboutShortCard({ index, hideEmptyMedia = false }) {
       </CustomerMediaCard>
     );
   }
-  if (hideEmptyMedia && !presentation.provider) return null;
+  if (hideEmptyMedia && !presentation.isPopulated) return null;
 
   return (
     <CustomerVideoCard
@@ -1413,6 +1512,8 @@ function AboutShortCard({ index, hideEmptyMedia = false }) {
       subtitle={slot?.caption}
       title={`Sparkle moment ${index + 1}`}
       videoUrl={slot?.href}
+      hostedVideo={slot?.hostedVideo}
+      tiktokPoster={slot?.tiktokPoster}
       variant="short"
     />
   );
@@ -2067,7 +2168,9 @@ function Wibp({ repName }) {
             dataSlot="showcase video"
             subtitle={CONTENT.showcaseVideoCaption}
             title="Watch a Live Reveal"
-            videoUrl={CONTENT.showcaseVideoUrl}
+            videoUrl={CONTENT.tiktokHostedMode && CONTENT.showcaseVideoVisible === false ? "#" : CONTENT.showcaseVideoUrl}
+            hostedVideo={CONTENT.showcaseVideoVisible === false ? undefined : CONTENT.showcaseHostedVideo}
+            tiktokPoster={CONTENT.showcaseTikTokPoster}
             variant="showcase"
           />
         </div>
@@ -2112,7 +2215,9 @@ function BlingKitchenRevealGuide({ repName }) {
         dataSlot="showcase video"
         subtitle={CONTENT.showcaseVideoCaption || `Reveal moments with ${repName}`}
         title="Watch a Live Reveal"
-        videoUrl={CONTENT.showcaseVideoUrl}
+        videoUrl={CONTENT.tiktokHostedMode && CONTENT.showcaseVideoVisible === false ? "#" : CONTENT.showcaseVideoUrl}
+            hostedVideo={CONTENT.showcaseVideoVisible === false ? undefined : CONTENT.showcaseHostedVideo}
+            tiktokPoster={CONTENT.showcaseTikTokPoster}
         variant="showcase"
       />
     </section>
@@ -2139,7 +2244,7 @@ function AboutSection({ repName, hideEmptyMedia = false }) {
   const hasPortrait = Boolean(getAboutMediaSlot(0)?.mediaUrl);
   const hasShorts = [1, 2, 3].some((index) => {
     const slot = getAboutMediaSlot(index);
-    return Boolean(slot?.mediaUrl || getCustomerVideoPresentation(slot?.href).provider);
+    return Boolean(slot?.mediaUrl || getSlotVideoPresentation(slot?.href, slot?.hostedVideo, slot?.tiktokPoster).isPopulated);
   });
   if (!hasAboutCopy && !hasPortrait && !hasShorts) return null;
   const aboutHeadline = CONTENT.aboutHeadline || `Meet ${repName} and the story behind the sparkle.`;
@@ -3429,6 +3534,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
 function BrittWithBlingFeaturedReveal() {
   const reveal = CONTENT.featuredReveal;
   if (!reveal) return null;
+  const FeaturedVideo = CONTENT.tiktokHostedMode ? CustomerVideoEmbed : TikTokEmbed;
 
   return (
     <section id="legacy" className="bwb-featured-reveal" aria-labelledby="bwb-featured-title">
@@ -3442,7 +3548,9 @@ function BrittWithBlingFeaturedReveal() {
             {reveal.ctaLabel}
           </a>
         </div>
-        <TikTokEmbed
+        <FeaturedVideo
+          hostedVideo={reveal.hostedVideo}
+          tiktokPoster={reveal.tiktokPoster}
           className="bwb-featured-video"
           title={reveal.videoTitle}
           videoUrl={reveal.videoUrl}
@@ -3450,7 +3558,7 @@ function BrittWithBlingFeaturedReveal() {
           <span className="bwb-video-play" aria-hidden="true">▶</span>
           <span className="bwb-video-kicker">Featured TikTok</span>
           <span className="bwb-video-title">{reveal.videoTitle}</span>
-        </TikTokEmbed>
+        </FeaturedVideo>
       </div>
     </section>
   );
@@ -3460,9 +3568,9 @@ function BrittWithBlingRevealExplainer() {
   const explainer = CONTENT.revealExplainer;
   if (!explainer) return null;
   const showcaseVisible = CONTENT.showcaseVideoVisible !== false;
-  const configuredShowcase = getCustomerVideoProvider(CONTENT.showcaseVideoUrl)
-    ? CONTENT.showcaseVideoUrl
-    : explainer.videoUrl;
+  const configuredShowcase = CONTENT.tiktokHostedMode
+    ? (CONTENT.showcaseVideoExplicit && getSlotVideoPresentation(CONTENT.showcaseVideoUrl, CONTENT.showcaseHostedVideo, CONTENT.showcaseTikTokPoster).isPopulated ? CONTENT.showcaseVideoUrl : explainer.videoUrl)
+    : (getCustomerVideoProvider(CONTENT.showcaseVideoUrl) ? CONTENT.showcaseVideoUrl : explainer.videoUrl);
 
   return (
     <section id="wibp" className="bwb-source-explainer" aria-labelledby="bwb-explainer-title">
@@ -3489,6 +3597,8 @@ function BrittWithBlingRevealExplainer() {
             subtitle={explainer.videoCaption || explainer.videoHandle || CONTENT.showcaseVideoCaption}
             title="Watch a Live Reveal"
             videoUrl={configuredShowcase}
+            hostedVideo={configuredShowcase === CONTENT.showcaseVideoUrl ? CONTENT.showcaseHostedVideo : explainer.hostedVideo}
+            tiktokPoster={configuredShowcase === CONTENT.showcaseVideoUrl ? CONTENT.showcaseTikTokPoster : explainer.tiktokPoster}
             variant="showcase"
           />
         ) : null}

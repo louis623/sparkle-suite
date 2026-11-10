@@ -1,4 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
+import { attachHostedTikTokVideos } from '@/lib/amethyst/preview-template-data'
+import { applyBrittWithBlingHomepage } from '@/lib/britt-with-bling/profile'
+import { tiktokTestClient } from './fixtures/tiktok-test-client'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { runInNewContext } from 'node:vm'
@@ -1137,4 +1140,23 @@ describe('Public About empty-story and caption display', () => {
       }
     }
   })
+})
+
+it('tiktok enrich: uses final URLs after profile overrides and falls back to cards on lookup failure', async () => {
+  const final = applyBrittWithBlingHomepage({...defaultAmethystHomepageTemplateData,showcaseVideoUrl:'#'})
+  const mock = tiktokTestClient({
+    public_site_videos:[{tiktok_video_id:'7609434971228425486',storage_path:'rep/featured.mp4',poster_path:'rep/poster.webp',width:720,height:1280}],
+    tiktok_video_queue:[],
+  },{tiktok_hosted_video_enabled:true})
+  const attached = await attachHostedTikTokVideos(mock.client,'rep',final)
+  expect(attached.tiktokHostedMode).toBe(true)
+  expect(attached.featuredReveal?.hostedVideo?.src).toContain('rep/featured.mp4')
+  expect(attached.showcaseVideoExplicit).toBe(false)
+  expect(mock.queries.some(query => query.operation === 'in' && JSON.stringify(query.args).includes('7609434971228425486'))).toBe(true)
+  mock.api.from.mockImplementation(() => { throw new Error('asset lookup failed') })
+  const fallback = await attachHostedTikTokVideos(mock.client,'rep',final)
+  expect(fallback).toMatchObject({repName:final.repName,tiktokHostedMode:true})
+  expect(fallback.featuredReveal?.hostedVideo).toBeUndefined()
+  mock.api.rpc.mockResolvedValue({data:false,error:null})
+  expect(await attachHostedTikTokVideos(mock.client,'rep',final)).toBe(final)
 })

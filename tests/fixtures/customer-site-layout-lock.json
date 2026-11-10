@@ -4,11 +4,11 @@
   "locks": [
     {
       "path": "public/amethyst/homepage.css",
-      "sha256": "2089d703683ded2a456250ff349caf5d49cbb4c09d9a17316b9a055b6fd45f00"
+      "sha256": "b5e58af6ab58012efa6a7c26241847bc60f75ea00d7a558fad919cd2dc889286"
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
-      "sha256": "c44055ea4b23445f0dcbcbc242d59a3e93f4310e84f207cefcecafdba74cfd7f"
+      "sha256": "056797001768a9b4f964d7360ab37eb8a28486575623be8d215314af21404a0c"
     },
     {
       "path": "public/amethyst/homepage.jsx",
@@ -78,5 +78,10 @@
     "behavior": "Map an unsaved narrative to empty legacy slots and preserve saved paragraphs; use only authored media captions. Targeted About renderers hide empty copy while retaining real media.",
     "path": "lib/amethyst/preview-template-data.ts",
     "previousSha256": "550021cd2b554634105a9e51d619b81020e278da9aad89fddc914a56646edaa3"
+  },
+  "approvedTikTokQueueSmokeChange": {
+    "date": "2026-11-10",
+    "base": "c19fc975",
+    "approval": "Louis authorized the pinned TikTok Link Queue plan, gated to dudesfizzfest on Smoke, including additive hosted-video CSS and final homepage enrichment."
   }
 }

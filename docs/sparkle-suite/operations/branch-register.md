@@ -1,5 +1,16 @@
 # Sparkle Suite Branch Register
 
+## November 10 — TikTok Link Queue, Smoke only
+
+Louis authorized `codex/tiktok-link-queue` from verified `c19fc975` in the
+disposable `tiktok-link-queue-20261110` clone. Only Smoke project
+`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` / preview and database
+`pukemqiwlyqmyytxkdmo` are authorized. One draft PR, twenty named cases,
+seven page loads and one cleanup request. Gate only Smoke `dudesfizzfest`.
+Every commit includes `[skip ci]`. Live, merge, gate widening and PR187
+changes await explicit authorization. These entries implement this
+authorized Smoke review exception.
+
 ## November 8 — Public About display fixes, Smoke only
 
 Louis authorized a new PR branch from freshly fetched

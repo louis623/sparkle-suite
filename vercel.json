@@ -35,6 +35,10 @@
     {
       "path": "/api/internal/card-qr/approver-emails?slot=14",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/internal/tiktok-queue/cleanup",
+      "schedule": "45 5 * * *"
     }
   ]
 }
