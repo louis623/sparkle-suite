@@ -10187,7 +10187,9 @@ export function SiteSettingsCard({
             <p>
               Use a public TikTok, YouTube Short, Instagram Reel, or Facebook Reel/video.
               Paste its link or the platform&apos;s embed code into the video spot you want.
-              TikTok and YouTube play muted, loop, and do not show a pause control.
+              {draft.tiktokQueueEnabled
+                ? 'TikTok videos are added to your site by the Sparkle Suite team within 24–48 hours. Until then, your site shows a tap-to-watch TikTok card.'
+                : 'TikTok and YouTube play muted, loop, and do not show a pause control.'}
               Instagram and Facebook use their native player controls.
             </p>
           </aside>
@@ -10289,12 +10291,18 @@ export function SiteSettingsCard({
                         const videoUrl = event.target.value
                         onHomepageMediaChange?.(slot.key, {
                           videoUrl,
+                          tiktokVideoStatus: null,
                           ...(isBrittWithBling
                             ? { isVisible: Boolean(videoUrl.trim()) }
                             : {}),
                         })
                       }}
                     />
+                    {draft.tiktokQueueEnabled && slot.tiktokVideoStatus ? (
+                      <span role="status">{slot.tiktokVideoStatus === 'live'
+                        ? 'Video is ready and now playing on your site.'
+                        : 'Video is queued to be pulled and placed on your site. This can take up to 24–48 hours.'}</span>
+                    ) : null}
                   </label>
                 ) : null}
                 {allowsVideo ? (

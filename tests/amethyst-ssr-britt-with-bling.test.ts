@@ -99,3 +99,23 @@ it('keeps review parameters in the actual deferred URL only while the Smoke guar
   }
   expect(parameters).toEqual([[true, 'black_diamond', 'britt_with_bling'], [true, null, null]])
 })
+
+it('tiktok britt: saved showcase vs profile fallback and featured reveal card', async () => {
+  const { applyBrittWithBlingHomepage } = await import('@/lib/britt-with-bling/profile')
+  const { renderTikTokCard } = await import('./fixtures/tiktok-render')
+  const source = readFileSync('lib/amethyst/v2/homepage.jsx','utf8')
+  const fallback = {...applyBrittWithBlingHomepage({...homepage,showcaseVideoUrl:'#'}),tiktokHostedMode:true}
+  expect(fallback.showcaseVideoExplicit).toBe(false)
+  const fallbackHtml = renderTikTokCard(source,fallback,'BrittWithBlingRevealExplainer')
+  expect(fallbackHtml).toContain(fallback.revealExplainer!.videoUrl.replace('/embed/', '/embed/v2/'))
+  const saved = {...applyBrittWithBlingHomepage({...homepage,showcaseVideoUrl:'https://www.tiktok.com/@saved/video/12345678'}),tiktokHostedMode:true}
+  expect(saved.showcaseVideoExplicit).toBe(true)
+  expect(renderTikTokCard(source,saved,'BrittWithBlingRevealExplainer')).toContain('https://www.tiktok.com/@saved/video/12345678')
+  const featured = renderTikTokCard(source,fallback,'BrittWithBlingFeaturedReveal')
+  expect(featured).toContain('https://www.tiktok.com/embed/v2/7609434971228425486')
+  expect(featured).not.toContain('<iframe')
+  const bootstrap = buildAmethystHomepageBootstrapScript(fallback,[], 'black_diamond',{targeted:true})
+  const html = await renderAmethystPageFirstPaint('homepage',readFileSync('public/amethyst/Homepage.html','utf8'),{...original,homepage:fallback,appearancePreset:'black_diamond'},url,bootstrap)
+  expect(html).toContain('ss-hosted-link')
+  expect(html).not.toContain('src="https://www.tiktok.com/player/v1')
+})

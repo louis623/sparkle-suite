@@ -1,0 +1,96 @@
+[
+  {
+    "url": "https://www.tiktok.com/@user/video/12345678",
+    "id": "12345678",
+    "canonical": "https://www.tiktok.com/@user/video/12345678",
+    "card": true
+  },
+  {
+    "url": "https://www.tiktok.com/embed/12345678?x=1",
+    "id": "12345678",
+    "canonical": "https://www.tiktok.com/embed/v2/12345678",
+    "card": true
+  },
+  {
+    "url": "https://tiktok.com/embed/v2/12345678",
+    "id": "12345678",
+    "canonical": "https://www.tiktok.com/embed/v2/12345678",
+    "card": true
+  },
+  {
+    "url": "http://tiktok.com:443/player/v1/12345678",
+    "id": "12345678",
+    "canonical": "https://www.tiktok.com/embed/v2/12345678",
+    "card": false
+  },
+  {
+    "url": "https://www.tiktok.com/@user/video/12345678901234567890123",
+    "id": null,
+    "canonical": null,
+    "card": true
+  },
+  {
+    "url": "https://www.tiktok.com/video/123/extra",
+    "id": null,
+    "canonical": null,
+    "card": true
+  },
+  {
+    "url": "https://evil-tiktok.com/video/12345678",
+    "id": null,
+    "canonical": null,
+    "card": false
+  },
+  {
+    "url": "https://tiktok.com.evil.io/video/12345678",
+    "id": null,
+    "canonical": null,
+    "card": false
+  },
+  {
+    "url": "https://m.tiktok.com/@user/video/12345678",
+    "id": null,
+    "canonical": null,
+    "card": false
+  },
+  {
+    "url": "https://vm.tiktok.com/ZMabcdef/",
+    "id": null,
+    "canonical": null,
+    "card": true,
+    "source": "direct-write"
+  },
+  {
+    "url": "https://www.tiktok.com/t/ZMabcdef/",
+    "id": null,
+    "canonical": null,
+    "card": true,
+    "source": "direct-write"
+  },
+  {
+    "url": "https://www.tiktok.com/@user",
+    "id": null,
+    "canonical": null,
+    "card": true,
+    "source": "direct-write"
+  },
+  {
+    "url": "https://www.tiktok.com/@user?next=/video/12345678",
+    "id": null,
+    "canonical": null,
+    "card": true,
+    "source": "direct-write"
+  },
+  {
+    "url": "https://www.tiktok.com/player/v1/12345678#watch",
+    "id": "12345678",
+    "canonical": "https://www.tiktok.com/embed/v2/12345678",
+    "card": true
+  },
+  {
+    "url": "https://www.tiktok.com/embed/v2/12345678/",
+    "id": "12345678",
+    "canonical": "https://www.tiktok.com/embed/v2/12345678",
+    "card": true
+  }
+]

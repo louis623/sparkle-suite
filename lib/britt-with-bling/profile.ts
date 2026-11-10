@@ -465,6 +465,7 @@ export function applyBrittWithBlingHomepage(
     showAboutSection:
       homepage.aboutMediaManaged === true ? homepage.showAboutSection : true,
     showcaseVideoCaption: '@brittwithbling live reveal highlights',
+    showcaseVideoExplicit: Boolean(homepage.showcaseVideoUrl.trim() && homepage.showcaseVideoUrl !== '#'),
     // Keep a rep-configured customer video intact; this profile URL is only
     // the fallback for the legacy site configuration.
     showcaseVideoUrl:

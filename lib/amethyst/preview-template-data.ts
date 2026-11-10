@@ -1,4 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { isHostedTikTokEnabled, loadHostedTikTokForRep } from '@/lib/services/tiktok-video-queue'
+import { getTikTokVideoId } from '@/lib/public-site/tiktok-video-id'
 import { resolveSocialHeroLinks, resolveSocialPlatformUrl } from '@/lib/public-site/social-hero'
 import { isSocialHeroEnabled } from '@/lib/public-site/social-visibility'
 import { resolvePublicSiteVisibility } from '@/lib/public-site/visibility'
@@ -845,6 +848,28 @@ function canLoadPreviewData(env: Record<string, string | undefined>) {
   return Boolean(env.NEXT_PUBLIC_SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY)
 }
 
+export async function attachHostedTikTokVideos(admin: SupabaseClient, repId: string, homepage: AmethystHomepageTemplateData): Promise<AmethystHomepageTemplateData> {
+  try {
+    if (!await isHostedTikTokEnabled(admin, repId)) return homepage
+  } catch { return homepage }
+  const enabled = { ...homepage, tiktokHostedMode: true }
+  try {
+    const urls = [homepage.showcaseVideoUrl, ...homepage.aboutMediaSlots.map(slot => slot.href), homepage.featuredReveal?.videoUrl, homepage.revealExplainer?.videoUrl]
+    const ids = [...new Set(urls.map(url => getTikTokVideoId(url ?? '')).filter((id): id is string => Boolean(id)))]
+    const { videos, posters } = await loadHostedTikTokForRep(admin, repId, ids)
+    const media = (url: string) => {
+      const id = getTikTokVideoId(url)
+      return id ? { hostedVideo: videos[id], tiktokPoster: posters[id] } : {}
+    }
+    const showcase = media(homepage.showcaseVideoUrl)
+    return { ...enabled, showcaseHostedVideo: showcase.hostedVideo, showcaseTikTokPoster: showcase.tiktokPoster,
+      aboutMediaSlots: homepage.aboutMediaSlots.map(slot => ({ ...slot, ...media(slot.href) })),
+      featuredReveal: homepage.featuredReveal ? { ...homepage.featuredReveal, ...media(homepage.featuredReveal.videoUrl) } : undefined,
+      revealExplainer: homepage.revealExplainer ? { ...homepage.revealExplainer, ...media(homepage.revealExplainer.videoUrl) } : undefined,
+    }
+  } catch { return enabled }
+}
+
 export async function loadAmethystPreviewTemplateData(
   options: LoadPreviewTemplateDataOptions = {},
 ): Promise<AmethystPreviewTemplateData> {
@@ -900,7 +925,7 @@ export async function loadAmethystPreviewTemplateData(
     }
     const draftExtras = applyRequiredSetupDraftToExtras(extras, activeSetupDraftState)
 
-    return applyCustomerTarget(
+    const finalData = applyCustomerTarget(
       {
         appearancePreset: normalizeAmethystAppearancePreset(
           draftSettings.appearancePreset,
@@ -920,6 +945,7 @@ export async function loadAmethystPreviewTemplateData(
       requestedRepId ?? rep.id,
       requestedPublicSiteSlug,
     )
+    return { ...finalData, homepage: await attachHostedTikTokVideos(admin, rep.id, finalData.homepage) }
   } catch {
     return defaultPreviewTemplateData
   }

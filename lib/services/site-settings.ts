@@ -1,4 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { isHostedTikTokEnabled } from './tiktok-video-queue'
+import { getTikTokVideoId } from '@/lib/public-site/tiktok-video-id'
 import { isSocialVisibilityValue, normalizeSocialVisibility } from '@/lib/public-site/social-visibility'
 import { ServiceError, errors } from '@/lib/services/errors'
 import {
@@ -502,10 +505,10 @@ export async function getSiteSettingsDashboard(
     }
   }
 
-  return buildDashboardResult({
+  return attachTikTokSlotStatus(supabase, repId, buildDashboardResult({
     siteSettings,
     repProfile: repProfileResult.data as RepProfileRow,
-  })
+  }))
 }
 
 export async function getTargetedJoinPageAccessFlags(
@@ -809,8 +812,30 @@ export async function updateSiteSettingsDashboard(
     repProfileRow = data as RepProfileRow
   }
 
-  return buildDashboardResult({
+  return attachTikTokSlotStatus(supabase, repId, buildDashboardResult({
     siteSettings: siteSettingsRow,
     repProfile: repProfileRow,
-  })
+  }))
+}
+
+export async function attachTikTokSlotStatus(supabase: SupabaseClient, repId: string, settings: SiteSettingsDashboardResult): Promise<SiteSettingsDashboardResult> {
+  try {
+    if (!await isHostedTikTokEnabled(createAdminClient(), repId)) return settings
+    const [assets, queue] = await Promise.all([
+      supabase.from('public_site_videos').select('tiktok_video_id,status').eq('rep_id', repId).eq('status', 'live'),
+      supabase.from('tiktok_video_queue').select('tiktok_video_id,status').eq('rep_id', repId).eq('status', 'pending'),
+    ])
+    if (assets.error || queue.error) throw new Error('tiktok_status_unavailable')
+    return { ...settings, tiktokQueueEnabled: true, homepageMediaSlots: settings.homepageMediaSlots?.map(slot => {
+      const id = getTikTokVideoId(slot.videoUrl)
+      let tiktokVideoStatus: 'live' | 'queued' | null = null
+      if (id && slot.isVisible !== false) {
+        if (assets.data.some(asset => asset.tiktok_video_id === id)) tiktokVideoStatus = 'live'
+        else if (queue.data.some(item => item.tiktok_video_id === id)) tiktokVideoStatus = 'queued'
+      }
+      return { ...slot, tiktokVideoStatus }
+    }) }
+  } catch {
+    return { ...settings, homepageMediaSlots: settings.homepageMediaSlots?.map(slot => ({ ...slot, tiktokVideoStatus: null })) }
+  }
 }

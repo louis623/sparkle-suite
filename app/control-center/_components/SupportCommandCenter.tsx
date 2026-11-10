@@ -69,6 +69,7 @@ export type OperatorCustomerRecord = {
 }
 
 interface SupportCommandCenterProps {
+  tiktokPendingCount?: number
   reports: SupportReportRecord[]
   customers: OperatorCustomerRecord[]
   waitlist: CustomerWaitlistLead[]
@@ -405,6 +406,7 @@ function CustomerProfile({
 }
 
 export function SupportCommandCenter({
+  tiktokPendingCount,
   customers,
   reports,
   waitlist,
@@ -475,6 +477,10 @@ export function SupportCommandCenter({
                 <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs text-violet-700">
                   Publisher
                 </span>
+              </Link>
+              <Link className="mt-1 flex items-center justify-between rounded-md px-3 py-2 text-sm font-semibold text-violet-800 hover:bg-violet-50" href="/control-center/tiktok-queue">
+                TikTok Queue
+                {tiktokPendingCount !== undefined ? <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs">{tiktokPendingCount}</span> : null}
               </Link>
               <Link
                 className="mt-1 flex items-center justify-between rounded-md px-3 py-2 text-sm font-semibold text-violet-800 hover:bg-violet-50"

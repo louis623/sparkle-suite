@@ -1,0 +1,10 @@
+export const VIDEO_MIME = ['video/mp4', 'video/quicktime'] as const
+export const VIDEO_MAX_BYTES = 52_428_800
+export const POSTER_SOURCE_MAX_BYTES = 2_097_152
+export const THUMB_MAX_BYTES = 1_572_864
+export const VIDEO_MIN_SECONDS = 0.5
+export const VIDEO_MAX_SECONDS = 180
+export const VIDEO_MIN_DIMENSION = 16
+export const VIDEO_MAX_DIMENSION = 4096
+export const VIDEO_CAP_MESSAGE = 'This video is over the 50 MB / 3-minute limit. Trim or compress it and try again.'
+export const VIDEO_CODEC_MESSAGE = "This file won't play in every browser. Export it as MP4 (H.264) and try again."
