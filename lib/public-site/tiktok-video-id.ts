@@ -17,7 +17,7 @@ export function canonicalTikTokUrl(raw: string) {
 export function isTikTokCardUrl(raw: string) {
   try {
     const url = new URL(raw)
-    return url.protocol === 'https:' && !url.username && !url.password && !url.port &&
+    return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password && !url.port &&
       ['tiktok.com', 'www.tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com'].includes(url.hostname)
   } catch { return false }
 }
