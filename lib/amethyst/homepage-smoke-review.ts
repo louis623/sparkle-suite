@@ -26,7 +26,9 @@ export function smokeReviewSelection(url: URL, slug?: string | null) {
   const layout = url.searchParams.get('ssrReviewLayout')
   if (!AMETHYST_APPEARANCE_PRESET_IDS.some(id => id === theme) ||
       (layout !== null && !Object.hasOwn(SSR_REVIEW_LAYOUTS, layout))) return null
-  return { theme: theme as AmethystPreviewTemplateData['appearancePreset'], layout }
+  const tiktok = url.searchParams.get('ssrReviewTikTok')
+  if (tiktok !== null && tiktok !== 'same-videos') return null
+  return { theme: theme as AmethystPreviewTemplateData['appearancePreset'], layout, tiktok }
 }
 
 export function homepageSmokeReview(data: AmethystPreviewTemplateData, url: URL, slug?: string | null) {
@@ -64,6 +66,22 @@ export function homepageSmokeReview(data: AmethystPreviewTemplateData, url: URL,
       trade: { ...applyBlingKitchenTrade({ ...data.trade, ...identity }), pantryPageUrl: undefined },
       join: { ...applyBlingKitchenJoin({ ...data.join, ...identity }), pantryPageUrl: undefined },
     }
+  }
+  if (selection.tiktok === 'same-videos') {
+    // Controlled same-video comparison, not a copy of another rep's saved data.
+    // These public IDs came from Louis's evidence. No fixture is persisted.
+    const ids = ['7476510653268806958', '7387364398832094495', '7338490860503387434']
+    const britt = layout === 'britt_with_bling'
+    data = { ...data, homepage: { ...data.homepage,
+      showcaseVideoUrl: britt ? BRITT_WITH_BLING_PROFILE.showcaseVideoUrl
+        : 'https://www.tiktok.com/@brittwithbling/video/7602795836380073229',
+      showcaseVideoVisible: true, showAboutSection: true, aboutMediaManaged: true,
+      aboutMediaSlots: [
+        { typeLabel: 'Portrait', caption: '', href: '', mediaUrl: BRITT_WITH_BLING_PROFILE.heroImageUrl },
+        ...ids.map((id, index) => ({ typeLabel: `Short video ${index + 1}`, caption: '',
+          href: `https://www.tiktok.com/@brittwithbling/video/${id}`, mediaUrl: '' })),
+      ],
+    } }
   }
   const variant = layout === null ? data.homepage.publicSiteVariant : SSR_REVIEW_LAYOUTS[layout as keyof typeof SSR_REVIEW_LAYOUTS]
   return { ...data, ssrReview: true, appearancePreset: theme as AmethystPreviewTemplateData['appearancePreset'],

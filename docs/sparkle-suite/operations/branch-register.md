@@ -386,3 +386,7 @@ Louis approved `codex/nicnac-photo-guardrails` by name on Nov 4, 2026, as the na
 
 ## Starlight slow phone — November 7, 2026
 Louis explicitly requested codex/starlight-slow-phone-load from 9f956acc, with its own PR and Smoke-only deployment. Registered solely for sparkle-suite-smoke preview. Production branch and project remain governed by existing policy.
+
+## November 8 — TikTok lifecycle Smoke review
+
+Louis requested one PR from verified tip `210d51629637b45f895c5e13afdaa57b9c09ec45` and one Smoke deployment, with no Live, database or environment writes. `codex/tiktok-embed-lifecycle-smoke` is a review exception limited to `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` / preview, in disposable clone `/workspace/codex-runs/suite-tiktok-embed-fix`. No default/production branch or alias change; the normal provenance guard remains mandatory. Four page loads maximum and TikTok component tests only, once.
