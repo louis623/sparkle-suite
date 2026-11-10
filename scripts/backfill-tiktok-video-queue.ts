@@ -1,4 +1,12 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { pathToFileURL } from 'node:url'
+import { BRITT_WITH_BLING_SHOWCASE_VIDEO_URL } from '../lib/britt-with-bling/constants'
+import { getTikTokVideoId } from '../lib/public-site/tiktok-video-id'
+
+const brittStaticUrls = [
+  'https://www.tiktok.com/embed/7609434971228425486',
+  BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
+]
 
 async function main() {
   const args = process.argv.slice(2)
@@ -12,22 +20,27 @@ async function main() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) throw new Error('Supply the selected environment through protected environment variables.')
   const admin = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
-  const apply = args.includes('--apply')
+  await backfillTikTokQueue(admin, slugs, args.includes('--apply'))
+}
+
+export async function backfillTikTokQueue(admin: SupabaseClient, slugs: string[], apply: boolean, output: (line: string) => void = console.info) {
   for (const slug of [...new Set(slugs)]) {
     const repResult = await admin.from('reps').select('id,status,public_site_slug').eq('public_site_slug', slug).maybeSingle()
     if (repResult.error) throw repResult.error
     const rep = repResult.data
-    if (!rep) { console.info(`${slug}: skipped, rep not present`); continue }
+    if (!rep) { output(`${slug}: skipped, rep not present`); continue }
     const enabled = await admin.rpc('tiktok_hosted_video_enabled', { p_rep_id: rep.id })
     if (enabled.error) throw enabled.error
-    if (!enabled.data || rep.status !== 'active') { console.info(`${slug}: skipped, inactive or not enabled`); continue }
-    if (slug === 'sparkle-reviewer-preview') { console.info('skipped reviewer fixture'); continue }
+    if (!enabled.data || rep.status !== 'active') { output(`${slug}: skipped, inactive or not enabled`); continue }
+    if (slug === 'sparkle-reviewer-preview') { output('skipped reviewer fixture'); continue }
     if (apply) {
       const sync = await admin.rpc('tiktok_sync_rep', { p_rep_id: rep.id, p_origin: 'backfill' })
       if (sync.error) throw sync.error
       if (slug === 'brittwithbling') {
-        const featured = await admin.rpc('tiktok_queue_add_static', { p_rep_id: rep.id, p_url: 'https://www.tiktok.com/embed/7609434971228425486' })
-        if (featured.error) throw featured.error
+        for (const url of brittStaticUrls) {
+          const item = await admin.rpc('tiktok_queue_add_static', { p_rep_id: rep.id, p_url: url })
+          if (item.error) throw item.error
+        }
       }
     }
     const [slots, assets, dismissals, pending] = await Promise.all([
@@ -44,13 +57,18 @@ async function main() {
       if (!wanted.has(slot.vid)) wanted.set(slot.vid, new Set())
       wanted.get(slot.vid)!.add(slot.slot_key)
     }
-    if (slug === 'brittwithbling' && !completed.has('7609434971228425486')) {
-      if (!wanted.has('7609434971228425486')) wanted.set('7609434971228425486', new Set())
-      wanted.get('7609434971228425486')!.add('featured_reveal')
+    if (slug === 'brittwithbling') for (const url of brittStaticUrls) {
+      const id = getTikTokVideoId(url)!
+      if (completed.has(id)) continue
+      if (!wanted.has(id)) wanted.set(id, new Set())
+      // Existing SQL uses this key as the durable static-assignment marker.
+      wanted.get(id)!.add('featured_reveal')
     }
     const newCount = [...wanted.keys()].filter(id => !(pending.data ?? []).some(item => item.tiktok_video_id === id)).length
-    console.info(JSON.stringify({ rep: slug, mode: apply ? 'applied' : 'dry-run', pendingItems: pending.data?.length ?? 0, wouldCreate: newCount, slots: [...wanted.values()].map(keys => [...keys].sort()) }))
+    output(JSON.stringify({ rep: slug, mode: apply ? 'applied' : 'dry-run', pendingItems: pending.data?.length ?? 0, wouldCreate: newCount, slots: [...wanted.values()].map(keys => [...keys].sort()) }))
   }
-  if (!slugs.includes('brittwithbling')) console.info('skipped: brittwithbling not selected')
+  if (!slugs.includes('brittwithbling')) output('skipped: brittwithbling not selected')
 }
-main().catch(() => { console.error('TikTok backfill failed. Verify the selected Smoke configuration.'); process.exitCode = 1 })
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch(() => { console.error('TikTok backfill failed. Verify the selected Smoke configuration.'); process.exitCode = 1 })
+}

@@ -3,21 +3,26 @@ import { PGlite } from '@electric-sql/pglite'
 import { readFileSync } from 'node:fs'
 import fixtures from './fixtures/tiktok-url-cases.json'
 import { getTikTokVideoId, canonicalTikTokUrl } from '@/lib/public-site/tiktok-video-id'
+import { backfillTikTokQueue } from '../scripts/backfill-tiktok-video-queue'
+import { BRITT_WITH_BLING_SHOWCASE_VIDEO_URL } from '@/lib/britt-with-bling/constants'
 
 const rep = '11111111-1111-4111-8111-111111111111'
 const other = '22222222-2222-4222-8222-222222222222'
 const migration = readFileSync('supabase/migrations/20261110120000_tiktok_video_queue.sql', 'utf8')
+const helperGrants = readFileSync('supabase/migrations/20261110180244_tiktok_queue_internal_helper_grants.sql', 'utf8')
 async function withDb(run: (db: PGlite) => Promise<void>) {
   const db = new PGlite()
   try {
     await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
+      alter default privileges in schema public grant execute on functions to service_role;
       create schema auth; create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
       create schema storage; create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
       create table public.reps(id uuid primary key,status text,auth_user_id uuid,public_site_slug text);
-      grant usage on schema public,auth to authenticated,service_role; grant select on public.reps to authenticated;
+      grant usage on schema public,auth to authenticated,service_role; grant select on public.reps to authenticated,service_role;
       create table public.site_settings(rep_id uuid primary key references public.reps(id),homepage_media_slots jsonb);
       insert into reps values ('${rep}','active','${rep}','dudesfizzfest'),('${other}','active','${other}','otherrep');`)
     await db.exec(migration)
+    await db.exec(helperGrants)
     await db.query('insert into tiktok_hosted_video_reps(rep_id) values($1)', [rep])
     await run(db)
   } finally { await db.close() }
@@ -110,11 +115,74 @@ it('tiktok sql: daily maintenance isolates a failing rep and retries it next run
   expect((await rows(db,'select * from tiktok_queue_reconcile'))[0].attempts).toBe(2)
 }))
 it('tiktok sql: grants hide private columns and functions from reps', () => withDb(async db => {
+  for (const signature of ['tiktok_sync_locked(uuid,text)', 'tiktok_queue_try_sync(uuid)', 'tiktok_queue_lock_key(uuid)', 'site_settings_tiktok_queue_trigger()', 'reps_tiktok_queue_trigger()']) {
+    expect((await db.query<{ allowed: boolean }>("select has_function_privilege('service_role',$1,'EXECUTE') allowed", [signature])).rows[0].allowed).toBe(false)
+  }
+  expect((await db.query<{ allowed: boolean }>("select has_function_privilege('service_role','tiktok_current_slot_ids(uuid)','EXECUTE') allowed")).rows[0].allowed).toBe(true)
   await save(db)
+  await db.exec('set role service_role')
+  await expect(db.query('select tiktok_queue_try_sync($1)', [rep])).rejects.toThrow(/permission denied/)
+  await db.query('select tiktok_sync_rep($1)', [rep])
+  expect((await db.query('select * from tiktok_current_slot_ids($1)', [rep])).rows).toHaveLength(1)
+  await db.exec('reset role')
   await db.exec(`set role authenticated; set request.jwt.claim.sub='${rep}'`)
   expect(await rows(db,'select rep_id,tiktok_video_id,status from tiktok_video_queue')).toHaveLength(1)
   await expect(rows(db,'select operator_note from tiktok_video_queue')).rejects.toThrow(/permission denied/)
   await expect(db.query('select reopen_tiktok_dismissal($1,$2)',[rep,'12345678'])).rejects.toThrow(/permission denied/)
   await db.exec(`set request.jwt.claim.sub='${other}'`)
   expect(await rows(db,'select rep_id,tiktok_video_id,status from tiktok_video_queue')).toHaveLength(0)
+}))
+
+it('tiktok backfill: Britt explainer and featured reveal queue once and survive sync', () => withDb(async db => {
+  await db.query("update reps set public_site_slug='brittwithbling' where id=$1", [rep])
+  const explainer = getTikTokVideoId(BRITT_WITH_BLING_SHOWCASE_VIDEO_URL)!
+  const featured = '7609434971228425486'
+  await save(db, [{ key: 'showcase', videoUrl: `https://www.tiktok.com/embed/${featured}` }])
+  const rpcNames: string[] = []
+  const client = {
+    async rpc(name: string, args: Record<string, unknown>) {
+      rpcNames.push(name)
+      expect(['tiktok_hosted_video_enabled','tiktok_sync_rep','tiktok_queue_add_static','tiktok_current_slot_ids']).toContain(name)
+      const params = Object.values(args)
+      const call = `${name}(${params.map((_, i) => `$${i + 1}`).join(',')})`
+      const result = await db.query<{ result: unknown }>(name === 'tiktok_current_slot_ids' ? `select * from ${call}` : `select ${call} result`, params)
+      return { data: name === 'tiktok_current_slot_ids' ? result.rows : result.rows[0].result, error: null }
+    },
+    from(table: string) {
+      expect(['reps','public_site_videos','tiktok_video_dismissals','tiktok_video_queue']).toContain(table)
+      return { select(columns: string) {
+        const filters: Array<[string, unknown]> = []
+        const query = async () => ({ data: (await db.query(`select ${columns} from ${table} where ${filters.map(([column], i) => `${column}=$${i + 1}`).join(' and ')}`, filters.map(([, value]) => value))).rows, error: null })
+        const chain = {
+          eq(column: string, value: unknown) { filters.push([column, value]); return chain },
+          async maybeSingle() { const result = await query(); return { ...result, data: result.data[0] ?? null } },
+          then(resolve: (result: unknown) => unknown, reject: (error: unknown) => unknown) { return query().then(resolve, reject) },
+        }
+        return chain
+      } }
+    },
+  } as unknown as Parameters<typeof backfillTikTokQueue>[0]
+  const output: string[] = []
+  await db.exec('set role service_role')
+  await backfillTikTokQueue(client, ['brittwithbling'], false, line => output.push(line))
+  expect(JSON.parse(output.pop()!)).toMatchObject({ mode: 'dry-run', pendingItems: 1, wouldCreate: 1 })
+  expect(rpcNames).not.toContain('tiktok_sync_rep')
+  expect(rpcNames).not.toContain('tiktok_queue_add_static')
+  expect(await rows(db)).toHaveLength(1)
+  await backfillTikTokQueue(client, ['brittwithbling'], true, line => output.push(line))
+  await backfillTikTokQueue(client, ['brittwithbling'], true, line => output.push(line))
+  expect(await rows(db)).toEqual(expect.arrayContaining([
+    expect.objectContaining({ tiktok_video_id: featured, slot_keys: ['featured_reveal', 'showcase'] }),
+    expect.objectContaining({ tiktok_video_id: explainer, slot_keys: ['featured_reveal'], origin: 'static' }),
+  ]))
+  expect(await rows(db)).toHaveLength(2)
+  await db.exec('reset role')
+  await save(db, [])
+  expect((await rows(db)).every(item => item.status === 'pending')).toBe(true)
+  const item = (await rows(db)).find(item => item.tiktok_video_id === explainer)!
+  await db.query('select archive_tiktok_queue_item($1,$2)', [item.id, 'Unavailable'])
+  await db.exec('set role service_role')
+  await backfillTikTokQueue(client, ['brittwithbling'], true, line => output.push(line))
+  expect(JSON.parse(output.pop()!)).toMatchObject({ pendingItems: 1, wouldCreate: 0 })
+  expect(await rows(db,"select * from tiktok_video_queue where status='pending'")).toHaveLength(1)
 }))

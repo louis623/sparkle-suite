@@ -3,6 +3,8 @@
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { TikTokQueueItem, TikTokDismissal } from '@/lib/services/tiktok-video-queue'
+import { BRITT_WITH_BLING_SHOWCASE_VIDEO_URL } from '@/lib/britt-with-bling/constants'
+import { getTikTokVideoId } from '@/lib/public-site/tiktok-video-id'
 import {
   VIDEO_MIME, VIDEO_MAX_BYTES, POSTER_SOURCE_MAX_BYTES, VIDEO_MIN_SECONDS, VIDEO_MAX_SECONDS,
   VIDEO_MIN_DIMENSION, VIDEO_MAX_DIMENSION, VIDEO_CAP_MESSAGE, VIDEO_CODEC_MESSAGE,
@@ -69,8 +71,8 @@ async function makePoster(file: File) {
   }
 }
 
-function slotLabel(key: string, slug: string) {
-  if (key === 'featured_reveal') return 'Brittany featured reveal'
+function slotLabel(key: string, slug: string, videoId: string) {
+  if (key === 'featured_reveal') return videoId === getTikTokVideoId(BRITT_WITH_BLING_SHOWCASE_VIDEO_URL) ? 'Brittany reveal explainer' : 'Brittany featured reveal'
   if (key === 'showcase') return slug === 'brittwithbling' ? 'What is a Bomb Party? showcase video' : 'Live reveal video'
   return `${slug === 'brittwithbling' ? 'Sparkle moment' : 'About short video'} ${Number(key.slice(-1)) - 1}`
 }
@@ -149,7 +151,7 @@ export function TikTokQueuePanel({ initialQueue, initialArchive }: { initialQueu
         <h2 className="text-xl font-semibold">{item.reps.business_name || item.reps.display_name}</h2>
         <p>{item.reps.display_name} {item.reps.status !== 'active' ? '· Rep inactive' : ''}</p>
         <a className="text-violet-700 underline" href={`/${item.reps.public_site_slug}`} target="_blank" rel="noopener noreferrer">Open her site</a>
-        <div className="my-3 flex flex-wrap gap-2">{item.slot_keys.map(key => <span key={key} className="rounded-full bg-violet-50 px-3 py-1 text-sm">{slotLabel(key, item.reps.public_site_slug)}</span>)}</div>
+        <div className="my-3 flex flex-wrap gap-2">{item.slot_keys.map(key => <span key={key} className="rounded-full bg-violet-50 px-3 py-1 text-sm">{slotLabel(key, item.reps.public_site_slug, item.tiktok_video_id)}</span>)}</div>
         <p className="break-all text-sm">{item.source_url}</p>
         <div className="my-3 flex gap-3"><a className="text-violet-700 underline" href={item.source_url} target="_blank" rel="noopener noreferrer">Open link</a><button className="text-violet-700 underline" onClick={() => navigator.clipboard.writeText(item.source_url).then(() => setFeedback('Link copied.')).catch(() => setFeedback('Copy failed. Select and copy the link.'))}>Copy link</button></div>
         <p className="text-sm text-slate-600">Added {date(item.created_at)} · Waiting {Math.max(0, Math.floor((Date.now() - Date.parse(item.created_at)) / 86400000))} days</p>
@@ -170,6 +172,6 @@ export function TikTokQueuePanel({ initialQueue, initialArchive }: { initialQueu
       </article>)}
     </div>
     {!items.length ? <p className="my-6">{tab === 'queue' ? 'No pending videos.' : 'No closed videos.'}</p> : null}
-    {tab === 'archive' && archive.dismissals.length ? <section className="mt-8"><h2 className="mb-4 text-xl font-semibold">Dismissed</h2>{archive.dismissals.filter(d => visible(d.reps)).map(d => <article className="mb-4 rounded-xl border bg-white p-5" key={`${d.rep_id}/${d.tiktok_video_id}`}><h3>{d.reps.business_name || d.reps.display_name}</h3><p>Archived (record purged) · {date(d.created_at)}</p><p>{d.slot_keys.map(key => slotLabel(key, d.reps.public_site_slug)).join(', ')}</p><a href={d.source_url} target="_blank" rel="noopener noreferrer" className="break-all text-violet-700 underline">{d.source_url}</a><p>{d.note}</p><button disabled={Boolean(busy)} className="mt-3 rounded border px-3 py-2" onClick={() => action(d.tiktok_video_id, () => post('dismissals/reopen', { repId: d.rep_id, tiktokVideoId: d.tiktok_video_id }))}>Reopen</button></article>)}</section> : null}
+    {tab === 'archive' && archive.dismissals.length ? <section className="mt-8"><h2 className="mb-4 text-xl font-semibold">Dismissed</h2>{archive.dismissals.filter(d => visible(d.reps)).map(d => <article className="mb-4 rounded-xl border bg-white p-5" key={`${d.rep_id}/${d.tiktok_video_id}`}><h3>{d.reps.business_name || d.reps.display_name}</h3><p>Archived (record purged) · {date(d.created_at)}</p><p>{d.slot_keys.map(key => slotLabel(key, d.reps.public_site_slug, d.tiktok_video_id)).join(', ')}</p><a href={d.source_url} target="_blank" rel="noopener noreferrer" className="break-all text-violet-700 underline">{d.source_url}</a><p>{d.note}</p><button disabled={Boolean(busy)} className="mt-3 rounded border px-3 py-2" onClick={() => action(d.tiktok_video_id, () => post('dismissals/reopen', { repId: d.rep_id, tiktokVideoId: d.tiktok_video_id }))}>Reopen</button></article>)}</section> : null}
   </>
 }
