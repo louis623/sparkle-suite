@@ -43,9 +43,17 @@ Louis approved the Fizz Festival order-insert cut as the reference for this seri
 - When jewelry is visible, source the actual piece photo from an authorized listing and keep the photographed BP display card or packaging with it. Use generated scenery for the outer shipping carton or tissue. A generic velvet pouch gives the wrong impression of how the piece comes packaged.
 - Match moving site elements to live playback. For frame-by-frame captures, advance the hero and both ticker animations on the same timeline. Measure each ticker’s direction and travel over one second on the live page, then compare two frames one second apart in the encoded MP4. Capture enough footage for the entire shot so the tickers do not jump back mid-scroll.
 
+### Live Lineup and shopper narration
+
+For the second pin, use the approved `marketing/tiktok/2026-11-11-fizzfest-lineup/Fizz-Festival-My-Reveal-Voice-Only.mp4` as the reference. Vary the community theme across pins so each feature shows another side of the same demo shop. Pin 2 pairs Chasing Unicorns with a shopper finding her turn.
+
+- Write in the shopper’s voice. Give her a concrete reason to love the rep, then let the interface prove it. Jess places an order, finds herself third, and says her reveal is coming up soon.
+- For a filmed lineup, use plausible staged first names in the real customer interface. Populate them in the isolated recording. Keep the public show and its customer data untouched. On this pin Louis wanted eight feminine first names and no added sample label in the ad.
+- Hold one phone framing as the lineup opens. Give viewers time to read the names and keep Jess’s position visible through her final line. Fade directly to the CTA. A jewelry cutaway interrupted the payoff, and the earlier fast reframing and bright bell attacks distracted from her voice.
+
 ## Sound, revisions and delivery
 
-Inspect the theme's source streams and provenance. Follow the sound direction for that ad. For ambience only, map the theme audio directly, audition the loop seam and adjust gain for phone playback. For TikTok-selected music, export video only and confirm the audio-stream count is zero. For a soundtrack-only change, stream-copy the approved picture and compare video-stream hashes. Keep sibling ads and previously approved elements intact.
+Inspect the theme's source streams and provenance. Follow the sound direction for that ad. For ambience only, map the theme audio directly, audition the loop seam and adjust gain for phone playback. When Louis will add music in TikTok, keep any approved narration on its own audio track and omit baked-in music. For a fully silent version, export with zero audio streams. Verify the final streams and listen for the intended sound. For a soundtrack-only change, stream-copy the approved picture and compare video-stream hashes. Keep sibling ads and previously approved elements intact.
 
 Keep sources, reproducible edits, final MP4s, playback proofs and captions in a dated folder under `marketing/tiktok/`. The historical scripts contain machine-specific paths: resolve the current approved checkout, source assets, fonts and local encoder before adapting them. Render to a new output while iterating.
 
