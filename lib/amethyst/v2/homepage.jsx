@@ -1,3 +1,4 @@
+import "../../../public/amethyst/hosted-video.js";
 import { initialLineup } from "./initial-lineup.jsx";
 import { HeroCopyReservation } from "./hero-copy-reservation.jsx";
 import { HeroMotionScene, GnomeGardenScene } from "./hero-motion.jsx";
@@ -1045,50 +1046,12 @@ function TikTokLinkCard({ href, poster, title, caption, className = "", children
   );
 }
 
-function HostedVideo({ src, poster, width, height, title, className = "", dataSlot, fallbackHref, children }) {
-  const videoRef = useRef(null);
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const [muted, setMuted] = useState(true);
-  const [manual, setManual] = useState(false);
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setManual(reduced.matches);
-    const motionChanged = () => { setManual(reduced.matches); if (reduced.matches) video.pause(); };
-    reduced.addEventListener?.("change", motionChanged);
-    if (!("IntersectionObserver" in window)) { setLoaded(true); setManual(true); return () => reduced.removeEventListener?.("change", motionChanged); }
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting && entry.rootBounds) setLoaded(true);
-      }
-    }, { rootMargin: "300px" });
-    const playback = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.intersectionRatio >= 0.5 && !reduced.matches) {
-          video.play().catch(() => setManual(true));
-        } else if (entry.intersectionRatio < 0.5) video.pause();
-      }
-    }, { threshold: [0, 0.5, 1] });
-    observer.observe(video);
-    playback.observe(video);
-    return () => { observer.disconnect(); playback.disconnect(); video.pause(); reduced.removeEventListener?.("change", motionChanged); };
-  }, [src, loaded]);
-  if (failed) return <TikTokLinkCard href={fallbackHref} poster={poster} title={title} className={className}>{children}</TikTokLinkCard>;
-  return (
-    <div className={("ss-tiktok-embed ss-hosted-video " + className).trim()} data-slot={dataSlot}>
-      <video ref={videoRef} data-hosted-tiktok="true" className="ss-tiktok-embed-frame" muted={muted} loop playsInline preload="none" poster={poster} aria-label={title}
-        src={loaded ? src : undefined}
-        style={{ aspectRatio: width && height ? width + " / " + height : "9 / 16", objectFit: width >= height ? "contain" : "cover" }}
-        onError={() => setFailed(true)}
-        onPlay={(event) => document.querySelectorAll("video[data-hosted-tiktok]").forEach(other => { if (other !== event.currentTarget) other.pause(); })}
-      />
-      {manual ? <button type="button" className="ss-hosted-play" aria-label="Play video" onClick={() => { setLoaded(true); videoRef.current?.play().catch(() => {}); }}>Play video</button> : null}
-      <button type="button" className="ss-tiktok-sound-toggle" aria-label={muted ? "Unmute video" : "Mute video"} onClick={() => setMuted(value => !value)}>{muted ? "Sound on" : "Mute"}</button>
-      {children}
-    </div>
-  );
+function HostedVideo(props) {
+  if (typeof window.SparkleCardVideo?.createPlayer !== "function") {
+    return <TikTokLinkCard href={props.fallbackHref || props.src} poster={props.poster} title={props.title} className={props.className}>{props.children}</TikTokLinkCard>;
+  }
+  const Player = window.SparkleCardVideo.createPlayer(React, TikTokLinkCard);
+  return <Player {...props} />;
 }
 
 function getTikTokVideoId(value) {
@@ -1382,18 +1345,7 @@ function CustomerVideoEmbed({ className = "", videoUrl, title, children, dataSlo
   const sampleVideo = getThemeSampleVideoPath(videoUrl);
   if (sampleVideo) {
     const poster = sampleVideo.replace(/hero-loop(-v\d+)?\.mp4$/, "hero-poster$1.webp");
-    return (
-      <video
-        autoPlay
-        className={`hp-theme-sample-video ${className}`.trim()}
-        loop
-        muted
-        playsInline
-        poster={poster}
-        preload="metadata"
-        src={sampleVideo}
-      />
-    );
+    return <video autoPlay muted loop playsInline preload="metadata" className={`hp-theme-sample-video ${className}`.trim()} poster={poster} src={sampleVideo} />;
   }
   const sourceUrl = getCustomerVideoSourceUrl(videoUrl);
   const tiktokVideoId = getTikTokVideoId(sourceUrl || videoUrl);
@@ -3545,7 +3497,7 @@ function BrittWithBlingFeaturedReveal() {
           title={reveal.videoTitle}
           videoUrl={reveal.videoUrl}
         >
-          <span className="bwb-video-play" aria-hidden="true">▶</span>
+          {!(CONTENT.tiktokHostedMode && reveal.hostedVideo?.src) && <span className="bwb-video-play" aria-hidden="true">▶</span>}
           <span className="bwb-video-kicker">Featured TikTok</span>
           <span className="bwb-video-title">{reveal.videoTitle}</span>
         </FeaturedVideo>
