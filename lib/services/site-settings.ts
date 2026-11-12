@@ -656,7 +656,7 @@ export async function updateSiteSettingsDashboard(
         }
         const raw = row.videoUrl.trim()
         const link = queueVideoLink(raw.startsWith('<') ? normalizePublicMediaUrl(raw) : raw)
-        if (!link.id) throw errors.INVALID_INPUT('invalid video link', link.error)
+        if (link.id === null) throw errors.INVALID_INPUT('invalid video link', link.error)
         const prior = queueVideoLink(old)
         return { ...row, videoUrl: prior.provider === link.provider && prior.id === link.id ? old : link.canonical }
       })
