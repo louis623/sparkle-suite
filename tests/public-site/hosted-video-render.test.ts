@@ -21,10 +21,21 @@ it('tiktok render: hosted, card and no-ID card in all 3 sources with the shared 
     const hosted = renderTikTokCard(source,{tiktokHostedMode:true},'CustomerVideoCard',props)
     expect(hosted).toContain('<video')
     expect(hosted).toContain('playsInline=""')
-    expect(hosted).toContain('muted=""')
+    const videoTag = hosted.match(/<video\b[^>]*>/)?.[0] ?? ''
+    expect(videoTag).not.toMatch(/\s(?:muted|autoplay|src)=/i)
     expect(hosted).toContain('preload="none"')
     expect(hosted).toContain('poster="https://fixture/poster.webp"')
     expect(hosted).not.toContain('<iframe')
+    expect(hosted).toContain('aria-label="Play video"')
+    expect(hosted).toContain('aria-label="Turn sound off"')
+    const missingRuntime = renderTikTokCard(source,{tiktokHostedMode:true},'CustomerVideoCard',props,{withoutPlayerRuntime:true})
+    expect(missingRuntime).toContain('Watch on TikTok')
+    expect(missingRuntime).toContain(`href="${props.videoUrl}"`)
+    expect(missingRuntime).not.toContain('<video')
+    const featured = renderTikTokCard(source,{tiktokHostedMode:true,featuredReveal:{videoUrl:props.videoUrl,videoTitle:'Featured reveal',hostedVideo:props.hostedVideo}},'BrittWithBlingFeaturedReveal')
+    expect(featured).toContain('aria-label="Play video"')
+    expect(featured).not.toContain('bwb-video-play')
+    expect(featured).not.toContain('▶')
     const pending = renderTikTokCard(source,{tiktokHostedMode:true},'CustomerVideoCard',{...props,hostedVideo:undefined})
     expect(pending).toContain('Watch on TikTok')
     expect(pending).not.toContain('<iframe')
@@ -34,6 +45,23 @@ it('tiktok render: hosted, card and no-ID card in all 3 sources with the shared 
     expect(source).toContain('getSlotVideoPresentation(slot?.href, slot?.hostedVideo, slot?.tiktokPoster).isPopulated')
   }
   expect(new Set(blocks).size).toBe(1)
+})
+it('tiktok render: theme samples keep the autoplay muted loop and original sample class', () => {
+  for (const path of paths) for (const theme of ['pie-please','gobble-and-fizz']) {
+    const source = readFileSync(path,'utf8')
+    const sample = `/amethyst/skins/${theme}/hero-loop.mp4`
+    const html = renderTikTokCard(source,{tiktokHostedMode:true},'CustomerVideoEmbed',{videoUrl:sample,className:'hp-customer-media-player'},{withoutPlayerRuntime:true})
+    expect(html).toContain('autoPlay=""')
+    expect(html).toContain('muted=""')
+    expect(html).toContain('loop=""')
+    expect(html).toContain('playsInline=""')
+    expect(html).toContain('preload="metadata"')
+    expect(html).toContain('class="hp-theme-sample-video hp-customer-media-player"')
+    expect(html).toContain(`src="${sample}"`)
+    expect(html).toContain(`poster="/amethyst/skins/${theme}/hero-poster.webp"`)
+    expect(html).not.toContain('<button')
+    expect(html).not.toContain('ss-hosted-video')
+  }
 })
 it("tiktok render: disabled rep keeps today's output", () => {
   for (const path of paths) {
@@ -47,9 +75,12 @@ it("tiktok render: disabled rep keeps today's output", () => {
 })
 it('tiktok artifacts: legacy manifest and page runtimes match served files', () => {
   const manifest = JSON.parse(readFileSync('lib/amethyst/legacy/manifest.json','utf8'))
-  const bytes = readFileSync('lib/amethyst/legacy/assets/homepage.jsx')
-  const blob = createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex')
-  expect(manifest.files['homepage.jsx']).toMatchObject({blob,sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length})
+  for (const name of ['homepage.jsx','Homepage.html','hosted-video.js']) {
+    const path = manifest.files[name].source === 'shared' ? `public/amethyst/${name}` : `lib/amethyst/legacy/assets/${name}`
+    const bytes = readFileSync(path)
+    const blob = createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex')
+    expect(manifest.files[name]).toMatchObject({blob,sha256:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length})
+  }
   const runtimes = JSON.parse(readFileSync('lib/amethyst/generated/page-runtimes.json','utf8'))
   expect(runtimes['compiled/homepage.js']).toBe(readFileSync('public/amethyst/compiled/homepage.js','utf8'))
 })

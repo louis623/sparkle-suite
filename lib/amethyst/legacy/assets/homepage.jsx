@@ -1017,6 +1017,9 @@ function TikTokLinkCard({ href, poster, title, caption, className = "", children
 }
 
 function HostedVideo(props) {
+  if (typeof window.SparkleCardVideo?.createPlayer !== "function") {
+    return <TikTokLinkCard href={props.fallbackHref || props.src} poster={props.poster} title={props.title} className={props.className}>{props.children}</TikTokLinkCard>;
+  }
   const Player = window.SparkleCardVideo.createPlayer(React, TikTokLinkCard);
   return <Player {...props} />;
 }
@@ -1312,7 +1315,7 @@ function CustomerVideoEmbed({ className = "", videoUrl, title, children, dataSlo
   const sampleVideo = getThemeSampleVideoPath(videoUrl);
   if (sampleVideo) {
     const poster = sampleVideo.replace(/hero-loop(-v\d+)?\.mp4$/, "hero-poster$1.webp");
-    return <HostedVideo src={sampleVideo} poster={poster} title={title} className={className} dataSlot={dataSlot} fallbackHref={sampleVideo}>{children}</HostedVideo>;
+    return <video autoPlay muted loop playsInline preload="metadata" className={`hp-theme-sample-video ${className}`.trim()} poster={poster} src={sampleVideo} />;
   }
   const sourceUrl = getCustomerVideoSourceUrl(videoUrl);
   const tiktokVideoId = getTikTokVideoId(sourceUrl || videoUrl);
@@ -3463,7 +3466,7 @@ function BrittWithBlingFeaturedReveal() {
           title={reveal.videoTitle}
           videoUrl={reveal.videoUrl}
         >
-          <span className="bwb-video-play" aria-hidden="true">▶</span>
+          {!(CONTENT.tiktokHostedMode && reveal.hostedVideo?.src) && <span className="bwb-video-play" aria-hidden="true">▶</span>}
           <span className="bwb-video-kicker">Featured TikTok</span>
           <span className="bwb-video-title">{reveal.videoTitle}</span>
         </FeaturedVideo>

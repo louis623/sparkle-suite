@@ -9,9 +9,9 @@
       "source": "snapshot"
     },
     "Homepage.html": {
-      "blob": "b45971a6c05cfdc2a839590bb67e6917b86e94a5",
-      "sha256": "66fa66524af86b0fddd8e6ce4021fef8323091e40e2b9fd3e85fedd92fbbc094",
-      "bytes": 5941,
+      "blob": "9a650c3f5abd1584f6724c997b43a1301f72b0b4",
+      "sha256": "7c2a02e8786409b045a769efed0255ba2355702acca3c922d3ea5c3328746f62",
+      "bytes": 5942,
       "source": "snapshot"
     },
     "Join.html": {
@@ -231,9 +231,9 @@
       "source": "snapshot"
     },
     "homepage.jsx": {
-      "blob": "f66257b66767bb90a9e5c6adb6bf265a35572126",
-      "sha256": "fd7f77b7c18bf014304817d7ee10e9e8f48a07bc1e79557f051ad8cedc37bc03",
-      "bytes": 185985,
+      "blob": "efa1ea6104606bf16e7ccee21b42cc8672afc4a9",
+      "sha256": "d4c0a2482fe90b5691d99072a27818af50ed28e500878b74017a21f9c69ea2e6",
+      "bytes": 186285,
       "source": "snapshot"
     },
     "join-runtime.js": {
