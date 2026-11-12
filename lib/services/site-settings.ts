@@ -650,7 +650,7 @@ export async function updateSiteSettingsDashboard(
       if (Array.isArray(slots)) slots = slots.map(row => {
         if (!row || row.key === 'about_1' || typeof row.videoUrl !== 'string' || !row.videoUrl.trim()) return row
         const old = previous.find(slot => slot.key === row.key)?.videoUrl
-        if (old === row.videoUrl.trim()) {
+        if (old !== undefined && old === row.videoUrl.trim()) {
           acceptedSaved.set(row.key, old)
           return row
         }
