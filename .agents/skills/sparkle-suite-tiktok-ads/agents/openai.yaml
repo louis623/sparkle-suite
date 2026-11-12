@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sparkle Suite TikTok Ads"
+  short_description: "Create theme-led TikTok ads for Sparkle Suite reps"
+  default_prompt: "Use $sparkle-suite-tiktok-ads to make a Sparkle Suite TikTok ad using an approved theme and a real product demonstration."
