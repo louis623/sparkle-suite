@@ -51,6 +51,17 @@ For the second pin, use the approved `marketing/tiktok/2026-11-11-fizzfest-lineu
 - For a filmed lineup, use plausible staged first names in the real customer interface. Populate them in the isolated recording. Keep the public show and its customer data untouched. On this pin Louis wanted eight feminine first names and no added sample label in the ad.
 - Hold one phone framing as the lineup opens. Give viewers time to read the names and keep Jess’s position visible through her final line. Fade directly to the CTA. A jewelry cutaway interrupted the payoff, and the earlier fast reframing and bright bell attacks distracted from her voice.
 
+### Pinned overview and full phone framing
+
+Louis approved `marketing/tiktok/2026-11-11-welcome-to-sparkle-suite/Welcome-to-Sparkle-Suite.mp4` as the 60-second overview. Its sources include `handset-capture.cjs`, `edit.py`, and `verify-handset.py`. Use this reference for a broad service introduction with fresh rep-facing copy. An overview can introduce the product directly without a shopper scenario or reused dialogue from a feature ad.
+
+- For website shots presented inside a phone, fit the entire captured mobile viewport proportionally into a tall handset. Put the speaker and home indicator in the bezel. Check the bottom edge, buttons, and headline in the encoded video at phone size. The first overview cropped away the brightest part of Midnight Rose and cut through the hero text.
+- Show the actual theme video playing inside the site. Wait for loaded frames and check its computed opacity so the poster cannot cover it. Scroll the native viewport enough to reveal the animation and complete controls together. Advance the hero and tickers at their native speeds throughout the shot.
+- Check motion in the artwork itself using encoded frames separated in time. Ticker movement alone cannot demonstrate theme animation. The approved revision also extends the original Midnight Rose loop behind the handset, making the landscape shimmer visible around the device.
+- Keep the phone proportions and full viewport treatment consistent through the website, calendar, lineup, and Dance Floor shots. Let the frame hold still while the site moves.
+- A rep-calendar to public-calendar cut should show the same title and time. In this ad, isolated workspace captures use Fizz Festival's existing public Friday show as fixture data. Email and text previews stay grounded in that same schedule.
+- For a picture-only revision, stream-copy the approved narration and compare audio-stream hashes. Verify both print QR codes from the revised export and checksum the final Downloads copy.
+
 ## Sound, revisions and delivery
 
 Inspect the theme's source streams and provenance. Follow the sound direction for that ad. For ambience only, map the theme audio directly, audition the loop seam and adjust gain for phone playback. When Louis will add music in TikTok, keep any approved narration on its own audio track and omit baked-in music. For a fully silent version, export with zero audio streams. Verify the final streams and listen for the intended sound. For a soundtrack-only change, stream-copy the approved picture and compare video-stream hashes. Keep sibling ads and previously approved elements intact.
