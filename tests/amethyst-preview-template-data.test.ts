@@ -1092,7 +1092,7 @@ describe('Public About empty-story and caption display', () => {
       const context = {
         CONTENT: { ...homepage, aboutParagraphs: ['', '  ', 'Live schedule coming soon'] },
         getAboutMediaSlot: (index: number) => slots[index],
-        getCustomerVideoPresentation: (href: string) => ({ provider: href?.includes('youtube.com') ? 'youtube' : '' }),
+        getSlotVideoPresentation: (href?: string) => ({ isPopulated: Boolean(href?.includes('youtube.com')) }),
         AboutPortraitCard: () => React.createElement('img', { src: slots[0]?.mediaUrl, alt: 'Real portrait' }),
         AboutShortCard: ({ index }: { index: number }) => slots[index + 1]?.href
           ? React.createElement('iframe', { src: slots[index + 1].href, title: 'Real video' }) : null,
@@ -1145,9 +1145,9 @@ describe('Public About empty-story and caption display', () => {
 it('tiktok enrich: uses final URLs after profile overrides and falls back to cards on lookup failure', async () => {
   const final = applyBrittWithBlingHomepage({...defaultAmethystHomepageTemplateData,showcaseVideoUrl:'#'})
   const mock = tiktokTestClient({
-    public_site_videos:[{tiktok_video_id:'7609434971228425486',storage_path:'rep/featured.mp4',poster_path:'rep/poster.webp',width:720,height:1280}],
+    public_site_videos:[{source_provider:'tiktok',tiktok_video_id:'7609434971228425486',storage_path:'rep/featured.mp4',poster_path:'rep/poster.webp',width:720,height:1280}],
     tiktok_video_queue:[],
-  },{tiktok_hosted_video_enabled:true})
+  },{tiktok_hosted_video_enabled:true,video_all_sources:false})
   const attached = await attachHostedTikTokVideos(mock.client,'rep',final)
   expect(attached.tiktokHostedMode).toBe(true)
   expect(attached.featuredReveal?.hostedVideo?.src).toContain('rep/featured.mp4')

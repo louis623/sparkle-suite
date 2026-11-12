@@ -479,7 +479,7 @@ export function SupportCommandCenter({
                 </span>
               </Link>
               <Link className="mt-1 flex items-center justify-between rounded-md px-3 py-2 text-sm font-semibold text-violet-800 hover:bg-violet-50" href="/control-center/tiktok-queue">
-                TikTok Queue
+                Video queue
                 {tiktokPendingCount !== undefined ? <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs">{tiktokPendingCount}</span> : null}
               </Link>
               <Link

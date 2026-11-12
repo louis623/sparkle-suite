@@ -67,6 +67,7 @@ export const OPERATOR_SUPPORT_ROUTE_INVENTORY_ROOTS = [
 ] as const
 
 export const OPERATOR_SUPPORT_ROUTE_INVENTORY_ADDITIONAL_FILES = [
+  'app/api/control-center/tiktok-queue/dismissals/reopen/route.ts',
   'app/api/workspace/live-lineup/route.ts',
 ] as const
 
@@ -77,6 +78,13 @@ export const OPERATOR_SUPPORT_PROVIDER_ROUTE_ROOTS = [
 ] as const
 
 export const OPERATOR_SUPPORT_ROUTE_INVENTORY = [
+  {
+    file: 'app/api/control-center/tiktok-queue/dismissals/reopen/route.ts',
+    path: '/api/control-center/tiktok-queue/dismissals/reopen',
+    methods: ['POST'],
+    classification: 'support_blocked_sensitive',
+    rationale: 'Only an interactive Control Center owner can reopen a dismissed video.',
+  },
   {
     file: 'app/api/nic-nac/owner-direct/[conversationId]/attachments/[attachmentId]/route.ts',
     path: '/api/nic-nac/owner-direct/[conversationId]/attachments/[attachmentId]',

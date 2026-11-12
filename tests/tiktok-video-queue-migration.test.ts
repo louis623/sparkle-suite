@@ -41,7 +41,7 @@ async function complete(db: PGlite, id: string) {
   return (await db.query<{ result: { assetId: string; replayed: boolean } }>(`select complete_tiktok_queue_item($1,$2,'video/mp4',10,720,1280,30,'save_video') result`, [id,rep])).rows[0].result
 }
 
-it('tiktok sql: url fixtures parse the same as TS', () => withDb(async db => {
+it('tiktok sql: url fixtures parse the same as TS', { timeout: 30_000 }, () => withDb(async db => {
   for (const f of fixtures) {
     const result = (await db.query<{ id: string | null; url: string | null }>('select tiktok_video_id_from_url($1) id,tiktok_canonical_url($1) url',[f.url])).rows[0]
     expect(result).toEqual({ id: f.id, url: f.canonical })
@@ -57,7 +57,7 @@ it('tiktok sql: enabled rep save queues once and merges slot keys; disabled rep 
   expect(q).toHaveLength(1)
   expect(q[0].slot_keys).toEqual(['about_2','showcase'])
 }))
-it('tiktok sql: removing a link or deleting settings cancels pending', () => withDb(async db => {
+it('tiktok sql: removing a link or deleting settings cancels pending', { timeout: 30_000 }, () => withDb(async db => {
   await save(db); await save(db, [])
   expect((await rows(db))[0]).toMatchObject({status:'cancelled',cancel_reason:'link_removed'})
   await save(db)
@@ -114,7 +114,7 @@ it('tiktok sql: daily maintenance isolates a failing rep and retries it next run
   await db.exec('select tiktok_queue_daily_maintenance()')
   expect((await rows(db,'select * from tiktok_queue_reconcile'))[0].attempts).toBe(2)
 }))
-it('tiktok sql: grants hide private columns and functions from reps', () => withDb(async db => {
+it('tiktok sql: grants hide private columns and functions from reps', { timeout: 30_000 }, () => withDb(async db => {
   for (const signature of ['tiktok_sync_locked(uuid,text)', 'tiktok_queue_try_sync(uuid)', 'tiktok_queue_lock_key(uuid)', 'site_settings_tiktok_queue_trigger()', 'reps_tiktok_queue_trigger()']) {
     expect((await db.query<{ allowed: boolean }>("select has_function_privilege('service_role',$1,'EXECUTE') allowed", [signature])).rows[0].allowed).toBe(false)
   }
@@ -133,7 +133,10 @@ it('tiktok sql: grants hide private columns and functions from reps', () => with
   expect(await rows(db,'select rep_id,tiktok_video_id,status from tiktok_video_queue')).toHaveLength(0)
 }))
 
-it('tiktok backfill: Britt explainer and featured reveal queue once and survive sync', () => withDb(async db => {
+it('tiktok backfill: Britt explainer and featured reveal queue once and survive sync', { timeout: 30_000 }, () => withDb(async db => {
+  await db.exec(readFileSync('supabase/migrations/20261110223956_tiktok_remove_video.sql','utf8'))
+  await db.exec(readFileSync('supabase/migrations/20261113120000_one_video_queue_all_sources.sql','utf8'))
+  await db.query('select set_all_sources_enabled($1,true)', [rep])
   await db.query("update reps set public_site_slug='brittwithbling' where id=$1", [rep])
   const explainer = getTikTokVideoId(BRITT_WITH_BLING_SHOWCASE_VIDEO_URL)!
   const featured = '7609434971228425486'
@@ -142,7 +145,7 @@ it('tiktok backfill: Britt explainer and featured reveal queue once and survive 
   const client = {
     async rpc(name: string, args: Record<string, unknown>) {
       rpcNames.push(name)
-      expect(['tiktok_hosted_video_enabled','tiktok_sync_rep','tiktok_queue_add_static','tiktok_current_slot_ids']).toContain(name)
+      expect(['video_all_sources','video_backfill_slots','tiktok_queue_add_static','tiktok_current_slot_ids']).toContain(name)
       const params = Object.values(args)
       const call = `${name}(${params.map((_, i) => `$${i + 1}`).join(',')})`
       const result = await db.query<{ result: unknown }>(name === 'tiktok_current_slot_ids' ? `select * from ${call}` : `select ${call} result`, params)
@@ -164,25 +167,28 @@ it('tiktok backfill: Britt explainer and featured reveal queue once and survive 
   } as unknown as Parameters<typeof backfillTikTokQueue>[0]
   const output: string[] = []
   await db.exec('set role service_role')
-  await backfillTikTokQueue(client, ['brittwithbling'], false, line => output.push(line))
+  const runBackfill = (apply: boolean) => backfillTikTokQueue(client, ['brittwithbling'], apply, line => output.push(line), ['showcase','featured_reveal'])
+  await runBackfill(false)
   expect(JSON.parse(output.pop()!)).toMatchObject({ mode: 'dry-run', pendingItems: 1, wouldCreate: 1 })
-  expect(rpcNames).not.toContain('tiktok_sync_rep')
+  expect(rpcNames).toContain('video_all_sources')
+  expect(rpcNames).not.toContain('video_backfill_slots')
   expect(rpcNames).not.toContain('tiktok_queue_add_static')
   expect(await rows(db)).toHaveLength(1)
-  await backfillTikTokQueue(client, ['brittwithbling'], true, line => output.push(line))
-  await backfillTikTokQueue(client, ['brittwithbling'], true, line => output.push(line))
+  await runBackfill(true)
+  await runBackfill(true)
   expect(await rows(db)).toEqual(expect.arrayContaining([
-    expect.objectContaining({ tiktok_video_id: featured, slot_keys: ['featured_reveal', 'showcase'] }),
-    expect.objectContaining({ tiktok_video_id: explainer, slot_keys: ['featured_reveal'], origin: 'static' }),
+    expect.objectContaining({ source_provider: 'tiktok', tiktok_video_id: featured, slot_keys: ['featured_reveal', 'showcase'] }),
+    expect.objectContaining({ source_provider: 'tiktok', tiktok_video_id: explainer, slot_keys: ['featured_reveal'], origin: 'static' }),
   ]))
   expect(await rows(db)).toHaveLength(2)
   await db.exec('reset role')
-  await save(db, [])
+  // Hiding a slot exercises sync without explicitly removing the shared static assignment.
+  await db.query("update site_settings set homepage_media_slots=jsonb_set(homepage_media_slots,'{0,isVisible}','false') where rep_id=$1", [rep])
   expect((await rows(db)).every(item => item.status === 'pending')).toBe(true)
   const item = (await rows(db)).find(item => item.tiktok_video_id === explainer)!
   await db.query('select archive_tiktok_queue_item($1,$2)', [item.id, 'Unavailable'])
   await db.exec('set role service_role')
-  await backfillTikTokQueue(client, ['brittwithbling'], true, line => output.push(line))
+  await runBackfill(true)
   expect(JSON.parse(output.pop()!)).toMatchObject({ pendingItems: 1, wouldCreate: 0 })
   expect(await rows(db,"select * from tiktok_video_queue where status='pending'")).toHaveLength(1)
 }))

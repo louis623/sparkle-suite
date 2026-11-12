@@ -8,7 +8,7 @@
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
-      "sha256": "056797001768a9b4f964d7360ab37eb8a28486575623be8d215314af21404a0c"
+      "sha256": "9fb3cfd9b92bf045e344d815b2e5fa5e20a36165dec3cc52472b562a44e538bf"
     },
     {
       "path": "public/amethyst/homepage.jsx",
@@ -83,5 +83,15 @@
     "date": "2026-11-10",
     "base": "c19fc975",
     "approval": "Louis authorized the pinned TikTok Link Queue plan, gated to dudesfizzfest on Smoke, including additive hosted-video CSS and final homepage enrichment."
+  },
+  "approvedOneVideoQueueSmokeChange": {
+    "date": "2026-11-12",
+    "base": "9bdb4075b4cae3aaead4f9834e984fc7b48d0422",
+    "applicationSource": "fb54a2e53f54a2078cc752c7787d34c530f30fac",
+    "approval": "Louis authorized the gated One Video Queue build on Smoke and requested this receipt for draft PR #191.",
+    "behavior": "The preview data mapping marks queue-managed assignments and looks up assets by provider and video ID. Existing preserved assignments keep their embeds.",
+    "path": "lib/amethyst/preview-template-data.ts",
+    "previousSha256": "056797001768a9b4f964d7360ab37eb8a28486575623be8d215314af21404a0c",
+    "sha256": "9fb3cfd9b92bf045e344d815b2e5fa5e20a36165dec3cc52472b562a44e538bf"
   }
 }

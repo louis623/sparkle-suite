@@ -416,3 +416,7 @@ C:\Users\louis\sparkle-suite-repo\.codex-worktrees\tiktok-player-tap-to-play-202
 Only the shared public native video card/player/controller is in scope. Preview
 project prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ and shared Smoke alias only. No migrations,
 merge, Live deploy, gate widening, Workspace/Control Center behavior or other PR edits.
+
+## November 12 - One Video Queue
+
+Louis approved codex/one-video-queue from 9bdb4075 in the registered PR 190 checkout for sparkle-suite-smoke Preview only. Draft PR into codex/nic-nac-trade-hardening.

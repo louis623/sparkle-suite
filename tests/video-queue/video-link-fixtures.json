@@ -1,0 +1,373 @@
+[
+  {
+    "test": "T01",
+    "url": "https://youtube.com/watch?v=aBcDeF12_-Z",
+    "provider": "youtube",
+    "id": "aBcDeF12_-Z",
+    "error": null
+  },
+  {
+    "test": "T01",
+    "url": "https://m.youtube.com/shorts/aBcDeF12_-Z",
+    "provider": "youtube",
+    "id": "aBcDeF12_-Z",
+    "error": null
+  },
+  {
+    "test": "T01",
+    "url": "https://youtube.com/live/aBcDeF12_-Z",
+    "provider": "youtube",
+    "id": "aBcDeF12_-Z",
+    "error": null
+  },
+  {
+    "test": "T01",
+    "url": "https://youtube.com/embed/aBcDeF12_-Z",
+    "provider": "youtube",
+    "id": "aBcDeF12_-Z",
+    "error": null
+  },
+  {
+    "test": "T01",
+    "url": "https://www.youtube-nocookie.com/embed/aBcDeF12_-Z",
+    "provider": "youtube",
+    "id": "aBcDeF12_-Z",
+    "error": null
+  },
+  {
+    "test": "T01",
+    "url": "https://youtu.be/aBcDeF12_-Z",
+    "provider": "youtube",
+    "id": "aBcDeF12_-Z",
+    "error": null
+  },
+  {
+    "test": "T02",
+    "url": "https://instagram.com/reel/AbCd_12/",
+    "provider": "instagram",
+    "id": "AbCd_12",
+    "error": null
+  },
+  {
+    "test": "T02",
+    "url": "https://instagram.com/reels/AbCd_12",
+    "provider": "instagram",
+    "id": "AbCd_12",
+    "error": null
+  },
+  {
+    "test": "T02",
+    "url": "https://www.instagram.com/p/AbCd_12",
+    "provider": "instagram",
+    "id": "AbCd_12",
+    "error": null
+  },
+  {
+    "test": "T02",
+    "url": "https://instagram.com/Rep.Name/reel/AbCd_12",
+    "provider": "instagram",
+    "id": "AbCd_12",
+    "error": null
+  },
+  {
+    "test": "T02",
+    "url": "https://instagram.com/Rep/p/AbCd_12",
+    "provider": "instagram",
+    "id": "AbCd_12",
+    "error": null
+  },
+  {
+    "test": "T03",
+    "url": "https://facebook.com/reel/12345678",
+    "provider": "facebook",
+    "id": "12345678",
+    "error": null
+  },
+  {
+    "test": "T03",
+    "url": "https://www.facebook.com/watch?v=12345678",
+    "provider": "facebook",
+    "id": "12345678",
+    "error": null
+  },
+  {
+    "test": "T03",
+    "url": "https://facebook.com/watch/?v=12345678",
+    "provider": "facebook",
+    "id": "12345678",
+    "error": null
+  },
+  {
+    "test": "T03",
+    "url": "https://facebook.com/videos/12345678",
+    "provider": "facebook",
+    "id": "12345678",
+    "error": null
+  },
+  {
+    "test": "T03",
+    "url": "https://facebook.com/rep/videos/12345678",
+    "provider": "facebook",
+    "id": "12345678",
+    "error": null
+  },
+  {
+    "test": "T03",
+    "url": "https://facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Freel%2F12345678",
+    "provider": "facebook",
+    "id": "12345678",
+    "error": null
+  },
+  {
+    "test": "T04",
+    "url": "https://tiktok.com/@user/video/12345678",
+    "provider": "tiktok",
+    "id": "12345678",
+    "error": null
+  },
+  {
+    "test": "T04",
+    "url": "https://tiktok.com/player/v1/12345678",
+    "provider": "tiktok",
+    "id": "12345678",
+    "error": null
+  },
+  {
+    "test": "T04",
+    "url": "https://www.tiktok.com/embed/12345678",
+    "provider": "tiktok",
+    "id": "12345678",
+    "error": null
+  },
+  {
+    "test": "T04",
+    "url": "https://tiktok.com/embed/v2/12345678",
+    "provider": "tiktok",
+    "id": "12345678",
+    "error": null
+  },
+  {
+    "test": "T04",
+    "url": "https://tiktok.com/video/12345678",
+    "provider": "tiktok",
+    "id": "12345678",
+    "error": null
+  },
+  {
+    "test": "T05",
+    "url": "https://youtube.com.evil.org/watch?v=aBcDeF12_-Z",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T05",
+    "url": "https://user@youtube.com/watch?v=aBcDeF12_-Z",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T05",
+    "url": "https://youtube.com:444/shorts/aBcDeF12_-Z",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T05",
+    "url": "https://youtube.com/playlist?list=aBcDeF12_-Z",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T05",
+    "url": "https://youtu.be/abc",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T05",
+    "url": "https://music.youtube.com/watch?v=aBcDeF12_-Z",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T05",
+    "url": "https://youtube.com/channel/aBcDeF12_-Z",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T06",
+    "url": "https://instagram.com/share/AbCd_12",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T06",
+    "url": "https://l.instagram.com/?u=AbCd_12",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T06",
+    "url": "https://instagram.com/stories/rep/AbCd_12",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T06",
+    "url": "https://instagram.com/rep",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T06",
+    "url": "https://instagr.am/p/AbCd_12",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T07",
+    "url": "https://fb.watch/abc",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T07",
+    "url": "https://facebook.com/share/v/abc",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T07",
+    "url": "https://facebook.com/share/r/abc",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T07",
+    "url": "https://facebook.com/profile",
+    "provider": null,
+    "id": null,
+    "error": "Paste a Facebook video or Reel link."
+  },
+  {
+    "test": "T07",
+    "url": "https://facebook.com/groups/12345678",
+    "provider": null,
+    "id": null,
+    "error": "Paste a Facebook video or Reel link."
+  },
+  {
+    "test": "T07",
+    "url": "https://facebook.com/groups/videos/12345678",
+    "provider": null,
+    "id": null,
+    "error": "Paste a Facebook video or Reel link."
+  },
+  {
+    "test": "T07",
+    "url": "https://facebook.com/picture?v=12345678",
+    "provider": null,
+    "id": null,
+    "error": "Paste a Facebook video or Reel link."
+  },
+  {
+    "test": "T08",
+    "url": "https://tiktok.com/@user/video/123",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T08",
+    "url": "https://tiktok.com/video/12345678/extra",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T08",
+    "url": "https://tiktok.com.evil.org/embed/12345678",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T08",
+    "url": "https://tiktok.com/t/ZMabcdef/",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T08",
+    "url": "https://vm.tiktok.com/ZMabcdef/",
+    "provider": null,
+    "id": null,
+    "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T19",
+    "url": "https://www.youtube.com/embed/videoseries?list=PLfixture",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://www.youtube-nocookie.com/embed/videoseries/",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://m.youtube.com/embed/short",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://youtube.com/embed/123456789012",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://youtube.com/embed/abc!efghijk",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://youtube.com/embed/",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://youtube.com/embed/aBcDeF12_-Z/extra",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  }
+]

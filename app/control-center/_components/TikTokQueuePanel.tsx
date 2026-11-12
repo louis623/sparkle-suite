@@ -135,6 +135,7 @@ export function TikTokQueuePanel({ initialQueue, initialArchive }: { initialQueu
       await finish(completion)
     })
   }
+  const providerNames = { tiktok: 'TikTok', youtube: 'YouTube', instagram: 'Instagram', facebook: 'Facebook' }
   const visible = (rep: TikTokQueueItem['reps']) => !hideDemo || rep.account_classification !== 'demo' || rep.public_site_slug === 'dudesfizzfest'
   const items = (tab === 'queue' ? queue.items : archive.items).filter(item => visible(item.reps))
   return <>
@@ -152,15 +153,16 @@ export function TikTokQueuePanel({ initialQueue, initialArchive }: { initialQueu
         <p>{item.reps.display_name} {item.reps.status !== 'active' ? '· Rep inactive' : ''}</p>
         <a className="text-violet-700 underline" href={`/${item.reps.public_site_slug}`} target="_blank" rel="noopener noreferrer">Open her site</a>
         <div className="my-3 flex flex-wrap gap-2">{item.slot_keys.map(key => <span key={key} className="rounded-full bg-violet-50 px-3 py-1 text-sm">{slotLabel(key, item.reps.public_site_slug, item.tiktok_video_id)}</span>)}</div>
+        <p>{providerNames[item.source_provider]}</p>
         <p className="break-all text-sm">{item.source_url}</p>
         <div className="my-3 flex gap-3"><a className="text-violet-700 underline" href={item.source_url} target="_blank" rel="noopener noreferrer">Open link</a><button className="text-violet-700 underline" onClick={() => navigator.clipboard.writeText(item.source_url).then(() => setFeedback('Link copied.')).catch(() => setFeedback('Copy failed. Select and copy the link.'))}>Copy link</button></div>
         <p className="text-sm text-slate-600">Added {date(item.created_at)} · Waiting {Math.max(0, Math.floor((Date.now() - Date.parse(item.created_at)) / 86400000))} days</p>
         {tab === 'queue' ? <>
-          <button className="my-3 text-violet-700 underline" disabled={Boolean(busy)} onClick={() => action(item.id, () => post(`${item.id}/thumbnail`, {}))}>Get TikTok thumbnail</button>
+          {item.source_provider === 'tiktok' && <button className="my-3 text-violet-700 underline" disabled={Boolean(busy)} onClick={() => action(item.id, () => post(`${item.id}/thumbnail`, {}))}>Get TikTok thumbnail</button>}
           {item.thumbnail_attempted_at ? <p className="text-sm">Thumbnail {item.thumbnail_status} · {date(item.thumbnail_attempted_at)}</p> : null}
-          <label className="my-3 block">Method<select className="ml-2 rounded border p-2" value={methods[item.id] ?? 'save_video'} onChange={event => setMethods(current => ({ ...current, [item.id]: event.target.value as Method }))}><option value="save_video">Saved from TikTok</option><option value="screen_record">Screen recording</option></select></label>
+          <label className="my-3 block">Method<select className="ml-2 rounded border p-2" value={methods[item.id] ?? 'save_video'} onChange={event => setMethods(current => ({ ...current, [item.id]: event.target.value as Method }))}><option value="save_video">Saved from {providerNames[item.source_provider]}</option><option value="screen_record">Screen recording</option></select></label>
           <label className="my-4 block rounded-lg border-2 border-dashed border-violet-300 p-5" onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); if (!busy && event.dataTransfer.files[0]) void upload(item, event.dataTransfer.files[0]) }}>Drop the MP4 here or tap to choose<input aria-label={`Upload ${item.slot_keys.join(', ')}`} className="mt-3 block w-full" type="file" accept="video/mp4,video/quicktime" disabled={Boolean(busy)} onChange={event => { const file = event.target.files?.[0]; if (file) { if (file.size > 25 * 1024 * 1024) setFeedback('Large file, it will use more data for visitors. Trim if you can.'); void upload(item, file) } event.target.value = '' }} /></label>
-          <details className="my-3 text-sm"><summary>How to get the file</summary>Open link → Share → Save video. If Save video isn’t there, screen-record with Snipping Tool, trim to the clip, and save as MP4.</details>
+          <details className="my-3 text-sm"><summary>How to get the file</summary>{item.source_provider === 'tiktok' ? "Open link → Share → Save video." : `Open the ${providerNames[item.source_provider]} link and save the MP4 if the app allows it.`} Otherwise, screen-record with Snipping Tool, trim to the clip, and save as MP4.</details>
           <label className="block text-sm">Archive note<input className="my-2 w-full rounded border p-2" maxLength={500} value={notes[item.id] ?? ''} onChange={event => setNotes(current => ({ ...current, [item.id]: event.target.value }))} /></label>
           <button disabled={Boolean(busy)} className="rounded border px-3 py-2" onClick={() => action(item.id, () => post(`${item.id}/archive`, { note: notes[item.id] ?? '' }))}>Can’t get this one</button>
         </> : <div className="mt-4 space-y-2">
@@ -172,6 +174,6 @@ export function TikTokQueuePanel({ initialQueue, initialArchive }: { initialQueu
       </article>)}
     </div>
     {!items.length ? <p className="my-6">{tab === 'queue' ? 'No pending videos.' : 'No closed videos.'}</p> : null}
-    {tab === 'archive' && archive.dismissals.length ? <section className="mt-8"><h2 className="mb-4 text-xl font-semibold">Dismissed</h2>{archive.dismissals.filter(d => visible(d.reps)).map(d => <article className="mb-4 rounded-xl border bg-white p-5" key={`${d.rep_id}/${d.tiktok_video_id}`}><h3>{d.reps.business_name || d.reps.display_name}</h3><p>Archived (record purged) · {date(d.created_at)}</p><p>{d.slot_keys.map(key => slotLabel(key, d.reps.public_site_slug, d.tiktok_video_id)).join(', ')}</p><a href={d.source_url} target="_blank" rel="noopener noreferrer" className="break-all text-violet-700 underline">{d.source_url}</a><p>{d.note}</p><button disabled={Boolean(busy)} className="mt-3 rounded border px-3 py-2" onClick={() => action(d.tiktok_video_id, () => post('dismissals/reopen', { repId: d.rep_id, tiktokVideoId: d.tiktok_video_id }))}>Reopen</button></article>)}</section> : null}
+    {tab === 'archive' && archive.dismissals.length ? <section className="mt-8"><h2 className="mb-4 text-xl font-semibold">Dismissed</h2>{archive.dismissals.filter(d => visible(d.reps)).map(d => <article className="mb-4 rounded-xl border bg-white p-5" key={`${d.rep_id}/${d.source_provider}:${d.tiktok_video_id}`}><h3>{d.reps.business_name || d.reps.display_name}</h3><p>{providerNames[d.source_provider]} · Archived (record purged) · {date(d.created_at)}</p><p>{d.slot_keys.map(key => slotLabel(key, d.reps.public_site_slug, d.tiktok_video_id)).join(', ')}</p><a href={d.source_url} target="_blank" rel="noopener noreferrer" className="break-all text-violet-700 underline">{d.source_url}</a><p>{d.note}</p><button disabled={Boolean(busy)} className="mt-3 rounded border px-3 py-2" onClick={() => action(`${d.rep_id}/${d.source_provider}:${d.tiktok_video_id}`, () => post('dismissals/reopen', { repId: d.rep_id, provider: d.source_provider, tiktokVideoId: d.tiktok_video_id }))}>Reopen</button></article>)}</section> : null}
   </>
 }

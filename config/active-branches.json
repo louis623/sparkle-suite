@@ -75,7 +75,8 @@
     "codex/workspace-identity-isolation",
     "codex/signup-discount-workspace-toggle",
     "codex/starlight-slow-phone-load",
-    "codex/public-about-display-fixes"
+    "codex/public-about-display-fixes",
+    "codex/one-video-queue"
   ],
   "previewBranches": {
     "codex/tiktok-link-queue": {
@@ -265,6 +266,10 @@
     "codex/tiktok-player-tap-to-play": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
+    },
+    "codex/one-video-queue": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
@@ -289,6 +294,7 @@
     "codex/starlight-slow-phone-load": "codex/nic-nac-trade-hardening",
     "codex/public-about-display-fixes": "codex/nic-nac-trade-hardening",
     "codex/tiktok-remove-video": "codex/nic-nac-trade-hardening",
-    "codex/tiktok-player-tap-to-play": "codex/nic-nac-trade-hardening"
+    "codex/tiktok-player-tap-to-play": "codex/nic-nac-trade-hardening",
+    "codex/one-video-queue": "codex/nic-nac-trade-hardening"
   }
 }

@@ -42,7 +42,7 @@ it('tiktok render: hosted, card and no-ID card in all 3 sources with the shared 
     const noId = renderTikTokCard(source,{tiktokHostedMode:true},'CustomerVideoCard',{...props,hostedVideo:undefined,videoUrl:'https://vm.tiktok.com/ZMabcdef/'})
     expect(noId).toContain('href="https://vm.tiktok.com/ZMabcdef/"')
     expect(noId).not.toContain('coming soon')
-    expect(source).toContain('getSlotVideoPresentation(slot?.href, slot?.hostedVideo, slot?.tiktokPoster).isPopulated')
+    expect(source).toContain('getSlotVideoPresentation(slot?.href, slot?.hostedVideo, slot?.tiktokPoster, slot?.queueManaged).isPopulated')
   }
   expect(new Set(blocks).size).toBe(1)
 })
