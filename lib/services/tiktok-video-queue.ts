@@ -1,6 +1,7 @@
 import 'server-only'
 import { randomUUID } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { queueVideoLink, type VideoProvider } from '@/lib/public-site/queue-video-link'
 import sharp from 'sharp'
 import { ServiceError } from './errors'
 import { inspectTikTokVideo } from '@/lib/public-site/iso-bmff'
@@ -11,16 +12,16 @@ export const TIKTOK_VIDEO_BUCKET = 'public-site-videos'
 const REP_SELECT = 'reps(display_name,business_name,public_site_slug,status,account_classification)'
 export type TikTokRep = { display_name: string; business_name: string; public_site_slug: string; status: string; account_classification: string }
 export type TikTokQueueItem = {
-  id: string; rep_id: string; tiktok_video_id: string; source_url: string; slot_keys: string[]
+  id: string; rep_id: string; source_provider: VideoProvider; tiktok_video_id: string; source_url: string; slot_keys: string[]
   status: string; cancel_reason: string | null; operator_note: string | null; created_at: string
   closed_at: string | null; pending_poster_path: string | null; thumbnail_status: string
   thumbnail_attempted_at: string | null; asset_id: string | null; reps: TikTokRep
   videoUrl?: string
 }
-export type TikTokDismissal = { rep_id: string; tiktok_video_id: string; source_url: string; slot_keys: string[]; note: string | null; created_at: string; reps: TikTokRep }
+export type TikTokDismissal = { rep_id: string; source_provider: VideoProvider; tiktok_video_id: string; source_url: string; slot_keys: string[]; note: string | null; created_at: string; reps: TikTokRep }
 export type HostedTikTokVideo = { src: string; poster: string; width: number; height: number }
 type Ticket = {
-  id: string; item_id: string; rep_id: string; tiktok_video_id: string; operator_rep_id: string
+  id: string; item_id: string; rep_id: string; source_provider: VideoProvider; tiktok_video_id: string; operator_rep_id: string
   video_path: string; video_content_type: string; video_byte_size: number; poster_staging_path: string
   poster_staging_content_type: string; poster_staging_byte_size: number; poster_path: string
   expires_at: string; consumed_at: string | null; asset_id: string | null
@@ -51,6 +52,20 @@ export async function isHostedTikTokEnabled(admin: SupabaseClient, repId: string
   return await tiktokQueueRpc<boolean>(admin, 'tiktok_hosted_video_enabled', { p_rep_id: repId }) === true
 }
 
+export async function allVideoSourcesEnabled(admin: SupabaseClient, repId: string) {
+  return await tiktokQueueRpc<boolean>(admin, 'video_all_sources', { p_rep_id: repId }) === true
+}
+
+export async function preservedVideos(admin: SupabaseClient, repId: string) {
+  return checked(await admin.from('tiktok_video_preserved_assignments')
+    .select('slot_key,source_provider,source_id').eq('rep_id', repId))
+}
+
+export function isPreserved(rows: {slot_key: string; source_provider: string; source_id: string}[], slot: string, url: string) {
+  const link = queueVideoLink(url)
+  return rows.some(row => row.slot_key === slot && row.source_provider === (link.provider ?? 'legacy') && row.source_id === (link.id ?? url))
+}
+
 export async function listTikTokQueue(admin: SupabaseClient, tab: 'queue' | 'archive') {
   let query = admin.from('tiktok_video_queue').select(`*,${REP_SELECT}`)
   query = tab === 'queue' ? query.eq('status', 'pending').order('created_at') : query.neq('status', 'pending').order('closed_at', { ascending: false }).limit(200)
@@ -67,8 +82,8 @@ export async function listTikTokQueue(admin: SupabaseClient, tab: 'queue' | 'arc
   if (tab === 'archive') {
     const all = checked(await admin.from('tiktok_video_dismissals').select(`*,${REP_SELECT}`).order('created_at', { ascending: false })) as unknown as TikTokDismissal[]
     // Query archived identities independently of the 200-row display limit.
-    const archived = checked(await admin.from('tiktok_video_queue').select('rep_id,tiktok_video_id').eq('status', 'archived'))
-    dismissals = all.filter(d => !archived.some(q => q.rep_id === d.rep_id && q.tiktok_video_id === d.tiktok_video_id))
+    const archived = checked(await admin.from('tiktok_video_queue').select('rep_id,source_provider,tiktok_video_id').eq('status', 'archived'))
+    dismissals = all.filter(d => !archived.some(q => q.rep_id === d.rep_id && q.source_provider === d.source_provider && q.tiktok_video_id === d.tiktok_video_id))
   }
   return { items, dismissals }
 }
@@ -82,7 +97,7 @@ export async function createTikTokUploadTicket(admin: SupabaseClient, input: {
     fail('TIKTOK_INVALID_UPLOAD', 'Choose a video and poster within the upload limits.', 400)
   }
   const item = checked(await admin.from('tiktok_video_queue').select('*,reps(status)').eq('id', input.itemId).single()) as unknown as TikTokQueueItem
-  if (item.status !== 'pending' || item.reps?.status !== 'active' || !await isHostedTikTokEnabled(admin, item.rep_id)) {
+  if (item.status !== 'pending' || item.reps?.status !== 'active' || (item.source_provider !== 'tiktok' && !await allVideoSourcesEnabled(admin, item.rep_id)) || !await isHostedTikTokEnabled(admin, item.rep_id)) {
     fail('TIKTOK_SOURCE_CHANGED', 'This video changed since you opened the page. Refresh and try again.', 409)
   }
   const id = randomUUID()
@@ -90,7 +105,7 @@ export async function createTikTokUploadTicket(admin: SupabaseClient, input: {
   const videoPath = `${base}.${input.videoContentType === 'video/quicktime' ? 'mov' : 'mp4'}`
   const posterStagingPath = `${base}-poster-src.${input.posterContentType === 'image/webp' ? 'webp' : 'jpg'}`
   checked(await admin.from('tiktok_video_upload_tickets').insert({
-    id, item_id: item.id, rep_id: item.rep_id, tiktok_video_id: item.tiktok_video_id, operator_rep_id: input.operatorRepId,
+    id, item_id: item.id, rep_id: item.rep_id, source_provider: item.source_provider, tiktok_video_id: item.tiktok_video_id, operator_rep_id: input.operatorRepId,
     video_path: videoPath, video_content_type: input.videoContentType, video_byte_size: input.videoByteSize,
     poster_staging_path: posterStagingPath, poster_staging_content_type: input.posterContentType,
     poster_staging_byte_size: input.posterByteSize, poster_path: `${base}-poster.webp`,
@@ -142,8 +157,8 @@ export async function archiveTikTokQueueItem(admin: SupabaseClient, input: { ite
 export async function reopenTikTokQueueItem(admin: SupabaseClient, input: { itemId: string }) {
   return tiktokQueueRpc<string>(admin, 'reopen_tiktok_queue_item', { p_item_id: input.itemId })
 }
-export async function reopenTikTokDismissal(admin: SupabaseClient, input: { repId: string; tiktokVideoId: string }) {
-  return tiktokQueueRpc<string>(admin, 'reopen_tiktok_dismissal', { p_rep_id: input.repId, p_tiktok_video_id: input.tiktokVideoId })
+export async function reopenTikTokDismissal(admin: SupabaseClient, input: { repId: string; tiktokVideoId: string; provider?: VideoProvider }) {
+  return tiktokQueueRpc<string>(admin, 'reopen_tiktok_dismissal', { p_rep_id: input.repId, p_tiktok_video_id: input.tiktokVideoId, p_provider: input.provider ?? 'tiktok' })
 }
 
 async function limitedImage(response: Response) {
@@ -164,7 +179,7 @@ async function limitedImage(response: Response) {
 }
 export async function fetchTikTokThumbnail(admin: SupabaseClient, itemId: string) {
   const item = checked(await admin.from('tiktok_video_queue').select('*').eq('id', itemId).single()) as TikTokQueueItem
-  if (item.status !== 'pending' || !await isHostedTikTokEnabled(admin, item.rep_id)) fail('TIKTOK_SOURCE_CHANGED', 'This item is no longer pending.', 409)
+  if (item.source_provider !== 'tiktok' || item.status !== 'pending' || !await isHostedTikTokEnabled(admin, item.rep_id)) fail('TIKTOK_SOURCE_CHANGED', 'This item is no longer pending.', 409)
   checked(await admin.from('tiktok_video_queue').update({ thumbnail_attempted_at: new Date().toISOString() }).eq('id', itemId))
   try {
     const url = canonicalTikTokUrl(item.source_url)
@@ -190,15 +205,15 @@ export async function fetchTikTokThumbnail(admin: SupabaseClient, itemId: string
   }
 }
 
-export async function loadHostedTikTokForRep(admin: SupabaseClient, repId: string, videoIds: string[]) {
+export async function loadHostedTikTokForRep(admin: SupabaseClient, repId: string, videoIds: string[], qualified = false) {
   const videos: Record<string, HostedTikTokVideo> = {}
   const posters: Record<string, string> = {}
   if (!videoIds.length) return { videos, posters }
-  const assets = checked(await admin.from('public_site_videos').select('tiktok_video_id,storage_path,poster_path,width,height').eq('rep_id', repId).eq('status', 'live').in('tiktok_video_id', videoIds))
-  const pending = checked(await admin.from('tiktok_video_queue').select('tiktok_video_id,pending_poster_path').eq('rep_id', repId).eq('status', 'pending').in('tiktok_video_id', videoIds))
+  const assets = checked(await admin.from('public_site_videos').select('source_provider,tiktok_video_id,storage_path,poster_path,width,height').eq('rep_id', repId).eq('status', 'live').in('tiktok_video_id', videoIds))
+  const pending = checked(await admin.from('tiktok_video_queue').select('source_provider,tiktok_video_id,pending_poster_path').eq('rep_id', repId).eq('status', 'pending').in('tiktok_video_id', videoIds))
   const bucket = admin.storage.from(TIKTOK_VIDEO_BUCKET)
-  for (const asset of assets) videos[asset.tiktok_video_id] = { src: bucket.getPublicUrl(asset.storage_path).data.publicUrl, poster: bucket.getPublicUrl(asset.poster_path).data.publicUrl, width: asset.width, height: asset.height }
-  for (const item of pending) if (item.pending_poster_path) posters[item.tiktok_video_id] = bucket.getPublicUrl(item.pending_poster_path).data.publicUrl
+  for (const asset of assets) if (qualified || asset.source_provider === 'tiktok') videos[qualified ? `${asset.source_provider}:${asset.tiktok_video_id}` : asset.tiktok_video_id] = { src: bucket.getPublicUrl(asset.storage_path).data.publicUrl, poster: bucket.getPublicUrl(asset.poster_path).data.publicUrl, width: asset.width, height: asset.height }
+  for (const item of pending) if ((qualified || item.source_provider === 'tiktok') && item.pending_poster_path) posters[qualified ? `${item.source_provider}:${item.tiktok_video_id}` : item.tiktok_video_id] = bucket.getPublicUrl(item.pending_poster_path).data.publicUrl
   return { videos, posters }
 }
 

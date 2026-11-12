@@ -611,7 +611,8 @@ export type PublicSiteMediaSlotKey =
   | 'about_4'
 
 export interface PublicSiteMediaSlot {
-  tiktokVideoStatus?: 'queued' | 'live' | null
+  videoPreserved?: boolean
+  tiktokVideoStatus?: 'queued' | 'live' | 'unavailable' | null
   key: PublicSiteMediaSlotKey
   caption: string
   imageUrl: string
@@ -654,6 +655,7 @@ export type SiteAppearancePreset =
 
 export interface SiteSettingsDashboardResult {
   tiktokQueueEnabled?: boolean
+  allSourcesEnabled?: boolean
   displayName: string
   businessName: string
   email: string

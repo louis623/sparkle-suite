@@ -1,5 +1,6 @@
 'use client'
 
+import { isQueuedVideoUrl } from '@/lib/public-site/queue-video-link'
 import { isTikTokCardUrl } from '@/lib/public-site/tiktok-video-id'
 
 import Link from 'next/link'
@@ -10175,10 +10176,10 @@ export function SiteSettingsCard({
       <div className={styles.siteSettingsSection}>
         <div>
           <div className={styles.walletSettingsTitle}>
-            {isBrittWithBling ? 'Brittany custom media' : 'Homepage photos and videos'}
+            {!draft.allSourcesEnabled && isBrittWithBling ? 'Brittany custom media' : 'Homepage photos and videos'}
           </div>
           <p className={styles.siteSettingsPreviewNote}>
-            {isBrittWithBling
+            {draft.allSourcesEnabled ? 'Add one portrait photo and up to four videos. Paste a public TikTok, YouTube, Instagram, or Facebook video link into the spot you want. Videos can be up to 3 minutes. Visitors tap Play to watch. Videos already on your site will stay as they are until you remove or replace them. A new video can take 24–48 hours to be ready. Until then, visitors see a card they can tap to watch it on that app.' : isBrittWithBling
               ? 'Manage the changeable media on Britt with Bling. Your theme and all standard site settings remain available above.'
               : 'Add one clean portrait photo and up to four customer videos.'}
           </p>
@@ -10210,7 +10211,7 @@ export function SiteSettingsCard({
           </label>
         ) : null}
         <div className={styles.homepageMediaGrid}>
-          <aside className={styles.homepageMediaHelp} aria-label="Video links and embeds">
+          {!draft.allSourcesEnabled && <aside className={styles.homepageMediaHelp} aria-label="Video links and embeds">
             <strong>Video links and embeds</strong>
             <p>
               Use a public TikTok, YouTube Short, Instagram Reel, or Facebook Reel/video.
@@ -10220,7 +10221,7 @@ export function SiteSettingsCard({
                 : 'TikTok and YouTube play muted, loop, and do not show a pause control.'}
               Instagram and Facebook use their native player controls.
             </p>
-          </aside>
+          </aside>}
           {(draft.homepageMediaSlots ?? EMPTY_HOMEPAGE_MEDIA_SLOTS).map((slot) => {
             const label =
               slot.key === 'showcase'
@@ -10237,7 +10238,7 @@ export function SiteSettingsCard({
             const allowsPhoto = slot.key === 'about_1'
             const allowsVideo = slot.key !== 'about_1'
             const savedVideoUrl = state.settings?.homepageMediaSlots?.find(saved => saved.key === slot.key)?.videoUrl ?? ''
-            const lockedTikTok = Boolean(draft.tiktokQueueEnabled && isTikTokCardUrl(savedVideoUrl))
+            const lockedTikTok = Boolean(draft.tiktokQueueEnabled && !slot.videoPreserved && (draft.allSourcesEnabled ? isQueuedVideoUrl(savedVideoUrl) : isTikTokCardUrl(savedVideoUrl)))
             const isUploading = mediaUploadKey === slot.key
             const hasVisiblePhoto =
               allowsPhoto && Boolean(slot.imageUrl) && slot.isVisible !== false
@@ -10310,12 +10311,12 @@ export function SiteSettingsCard({
                 {allowsVideo ? (
                   <label className={styles.searchField}>
                     <span className={styles.searchLabel}>
-                      Video link or embed
+                      {draft.allSourcesEnabled ? 'Video link' : 'Video link or embed'}
                     </span>
                     <input
                       className={styles.searchInput}
                       type="text"
-                      placeholder="Paste a public video link or embed code"
+                      placeholder={draft.allSourcesEnabled ? "Paste a public TikTok, YouTube, Instagram, or Facebook video link" : "Paste a public video link or embed code"}
                       value={slot.videoUrl}
                       readOnly={lockedTikTok}
                       aria-describedby={lockedTikTok ? `remove-video-help-${slot.key}` : undefined}
@@ -10332,7 +10333,7 @@ export function SiteSettingsCard({
                     />
                     {lockedTikTok ? <span id={`remove-video-help-${slot.key}`}>Remove this video before adding a new link.</span> : null}
                     {draft.tiktokQueueEnabled && slot.tiktokVideoStatus ? (
-                      <span role="status">{slot.tiktokVideoStatus === 'live'
+                      <span role="status">{draft.allSourcesEnabled ? (slot.tiktokVideoStatus === 'live' ? 'Your video is ready. Visitors can tap Play to watch.' : slot.tiktokVideoStatus === 'unavailable' ? "We couldn't use this video. It may be private or too long. Remove it and try another link, or contact us." : 'Your video is queued. This can take 24–48 hours.') : slot.tiktokVideoStatus === 'live'
                         ? 'Video is ready and now playing on your site.'
                         : 'Video is queued to be pulled and placed on your site. This can take up to 24–48 hours.'}</span>
                     ) : null}
@@ -10340,11 +10341,11 @@ export function SiteSettingsCard({
                 ) : null}
                 {allowsVideo ? (
                   <label className={styles.searchField}>
-                    <span className={styles.searchLabel}>Video caption (optional)</span>
+                    <span className={styles.searchLabel}>{draft.allSourcesEnabled ? 'Caption (optional)' : 'Video caption (optional)'}</span>
                     <input
                       className={styles.searchInput}
                       maxLength={180}
-                      placeholder="Add a short caption shown below the video"
+                      placeholder={draft.allSourcesEnabled ? "A short line under the video" : "Add a short caption shown below the video"}
                       value={slot.caption}
                       onChange={(event) =>
                         onHomepageMediaChange?.(slot.key, { caption: event.target.value })
@@ -10447,7 +10448,7 @@ export function SiteSettingsCard({
                     Remove photo
                   </button>
                 ) : null}
-                {lockedTikTok ? (
+                {lockedTikTok || slot.videoPreserved ? (
                   <button
                     type="button"
                     className={styles.homepageMediaRemoveButton}

@@ -995,9 +995,58 @@ function isTikTokCardUrl(raw) {
 }
 // tiktok-id-parser:end
 
-function getSlotVideoPresentation(url, hostedVideo, tiktokPoster) {
+// queue-video-parser:start
+function queueVideoLink(raw) {
+  const unsupported = "This needs a public TikTok, YouTube, Instagram, or Facebook video link.";
+  const share = "Open the video and copy the full link.";
+  const invalid = (error = unsupported) => ({ provider: null, id: null, canonical: null, error });
+  const source = String(raw || "").trim();
+  if (!/^https?:\/\/[a-z0-9.-]+(?::443)?(?:[/?#]|$)/i.test(source) || /[\\\s]/.test(source)) return invalid();
+  try {
+    const url = new URL(source);
+    if (["www.youtu.be", "www.m.youtube.com", "www.fb.watch", "www.l.instagram.com"].includes(url.hostname)) return invalid();
+    const host = url.hostname.replace(/^www\./, "");
+    const path = url.pathname.replace(/\/$/, "");
+    const result = (provider, id, canonical) => ({ provider, id, canonical, error: null });
+    if (host === "tiktok.com") {
+      const m = path.match(/^(?:\/(@[A-Za-z0-9._]{2,24})\/video|\/video|\/player\/v1|\/embed(?:\/v2)?)\/(\d{8,22})$/);
+      if (m) return result("tiktok", m[2], "https://www.tiktok.com/" + (m[1] ? m[1] + "/video/" : "embed/v2/") + m[2]);
+    }
+    if (["youtube.com", "m.youtube.com", "youtu.be", "youtube-nocookie.com"].includes(host)) {
+      const id = host === "youtu.be" ? path.slice(1) : path === "/watch" ? url.searchParams.get("v") : path.match(/^\/(?:shorts|embed|live)\/([^/]+)$/)?.[1];
+      if (id && /^[A-Za-z0-9_-]{11}$/.test(id)) return result("youtube", id, "https://www.youtube.com/watch?v=" + id);
+    }
+    if (host === "l.instagram.com" || host === "fb.watch") return invalid(share);
+    if (host === "instagram.com") {
+      if (/^\/share(?:\/|$)/.test(path)) return invalid(share);
+      const m = path.match(/^\/(?:[A-Za-z0-9._]+\/)?(reel|p|reels)\/([A-Za-z0-9_-]{5,32})(?:\/embed)?$/);
+      if (m && !/^\/(?:stories|tv)\//.test(path) && !/^\/[^/]+\/reels\//.test(path)) return result("instagram", m[2], "https://www.instagram.com/" + (m[1] === "p" ? "p" : "reel") + "/" + m[2] + "/");
+    }
+    if (host === "facebook.com") {
+      if (/^\/share(?:\/|$)/.test(path)) return invalid(share);
+      if (path === "/plugins/video.php") {
+        const href = url.searchParams.get("href") || "";
+        if (/^https?:\/\/(?:www\.)?facebook\.com\/(?:reel\/|watch[/?]|videos\/|[A-Za-z0-9._-]+\/videos\/)/i.test(href)) return queueVideoLink(href);
+      }
+      const id = path === "/watch" ? url.searchParams.get("v") : path.match(/^\/(?:reel|videos|[A-Za-z0-9._-]+\/videos)\/([0-9]+)$/)?.[1];
+      if (id && !/^\/groups\//.test(path) && /^\d{5,25}$/.test(id)) return result("facebook", id, "https://www.facebook.com/watch/?v=" + id);
+      return invalid("Paste a Facebook video or Reel link.");
+    }
+  } catch { /* Invalid URL. */ }
+  return invalid();
+}
+// queue-video-parser:end
+
+const videoSources = {
+  tiktok: ["TikTok", "Watch on TikTok"], youtube: ["YouTube", "Watch on YouTube"],
+  instagram: ["Instagram", "Open on Instagram"], facebook: ["Facebook", "Watch on Facebook"],
+};
+
+function getSlotVideoPresentation(url, hostedVideo, tiktokPoster, queueManaged) {
   const original = getCustomerVideoPresentation(url);
   if (CONTENT.tiktokHostedMode !== true) return { ...original, isPopulated: Boolean(original.provider) };
+  const link = queueManaged && queueVideoLink(url);
+  if (link && link.id) return { kind: hostedVideo?.src ? "hosted" : "tiktok-card", provider: link.provider, isPopulated: true, outboundUrl: link.canonical, ctaLabel: videoSources[link.provider][1], hostedVideo, tiktokPoster };
   if (hostedVideo?.src) return { kind: "hosted", provider: "tiktok", isPopulated: true, outboundUrl: tiktokCanonicalHref(url), hostedVideo };
   if (getTikTokIdFromUrl(url) || isTikTokCardUrl(url)) {
     return { kind: "tiktok-card", provider: "tiktok", isPopulated: true, outboundUrl: tiktokCanonicalHref(url) || url, tiktokPoster };
@@ -1006,10 +1055,11 @@ function getSlotVideoPresentation(url, hostedVideo, tiktokPoster) {
 }
 
 function TikTokLinkCard({ href, poster, title, caption, className = "", children }) {
+  const [label, action] = videoSources[queueVideoLink(href).provider] || videoSources.tiktok;
   return (
-    <a className={("ss-tiktok-embed ss-hosted-link " + className).trim()} href={href} target="_blank" rel="noopener noreferrer" aria-label={title || "Watch on TikTok"}>
-      {poster ? <img src={poster} alt="" loading="lazy" width="720" height="1280" className="ss-hosted-poster" /> : <SocialLogo label="TikTok" />}
-      <span className="ss-hosted-link-label">Watch on TikTok</span>
+    <a className={("ss-tiktok-embed ss-hosted-link " + className).trim()} href={href} target="_blank" rel="noopener noreferrer" aria-label={label === "TikTok" ? title || action : [action, title].filter(Boolean).join(" - ")}>
+      {poster ? <img src={poster} alt="" loading="lazy" width="720" height="1280" className="ss-hosted-poster" /> : <SocialLogo label={label} />}
+      <span className="ss-hosted-link-label">{action}</span>
       {caption ? <span>{caption}</span> : null}
       {children}
     </a>
@@ -1154,8 +1204,9 @@ function CustomerVideoCard({
   variant,
   hostedVideo,
   tiktokPoster,
+  queueManaged,
 }) {
-  const presentation = getSlotVideoPresentation(videoUrl, hostedVideo, tiktokPoster);
+  const presentation = getSlotVideoPresentation(videoUrl, hostedVideo, tiktokPoster, queueManaged);
   const sampleVideo = getThemeSampleVideoPath(videoUrl);
   const caption = String(subtitle || "").trim();
   return (
@@ -1188,6 +1239,7 @@ function CustomerVideoCard({
         key={videoUrl}
         videoUrl={videoUrl}
         hostedVideo={hostedVideo}
+        queueManaged={queueManaged}
         tiktokPoster={tiktokPoster}
       />
     </CustomerMediaCard>
@@ -1308,8 +1360,8 @@ function TikTokEmbed({ className = "", videoUrl, title, children, dataSlot }) {
   );
 }
 
-function CustomerVideoEmbed({ className = "", videoUrl, title, children, dataSlot, hostedVideo, tiktokPoster }) {
-  const presentation = getSlotVideoPresentation(videoUrl, hostedVideo, tiktokPoster);
+function CustomerVideoEmbed({ className = "", videoUrl, title, children, dataSlot, hostedVideo, tiktokPoster, queueManaged }) {
+  const presentation = getSlotVideoPresentation(videoUrl, hostedVideo, tiktokPoster, queueManaged);
   if (presentation.kind === "hosted") return <HostedVideo {...hostedVideo} title={title} className={className} dataSlot={dataSlot} fallbackHref={presentation.outboundUrl}>{children}</HostedVideo>;
   if (presentation.kind === "tiktok-card") return <TikTokLinkCard href={presentation.outboundUrl} poster={tiktokPoster} title={title} className={className}>{children}</TikTokLinkCard>;
   const sampleVideo = getThemeSampleVideoPath(videoUrl);
@@ -1414,7 +1466,7 @@ function AboutPortraitCard({ fallbackCaption }) {
 
 function AboutShortCard({ index, hideEmptyMedia = false }) {
   const slot = getAboutMediaSlot(index + 1);
-  const presentation = getSlotVideoPresentation(slot?.href, slot?.hostedVideo, slot?.tiktokPoster);
+  const presentation = getSlotVideoPresentation(slot?.href, slot?.hostedVideo, slot?.tiktokPoster, slot?.queueManaged);
   if (slot?.mediaUrl && !presentation.isPopulated) {
     return (
       <CustomerMediaCard
@@ -1446,6 +1498,7 @@ function AboutShortCard({ index, hideEmptyMedia = false }) {
       title={`Sparkle moment ${index + 1}`}
       videoUrl={slot?.href}
       hostedVideo={slot?.hostedVideo}
+      queueManaged={slot?.queueManaged}
       tiktokPoster={slot?.tiktokPoster}
       variant="short"
     />
@@ -2103,6 +2156,7 @@ function Wibp({ repName }) {
             title="Watch a Live Reveal"
             videoUrl={CONTENT.tiktokHostedMode && CONTENT.showcaseVideoVisible === false ? "#" : CONTENT.showcaseVideoUrl}
             hostedVideo={CONTENT.showcaseVideoVisible === false ? undefined : CONTENT.showcaseHostedVideo}
+            queueManaged={CONTENT.showcaseQueueManaged}
             tiktokPoster={CONTENT.showcaseTikTokPoster}
             variant="showcase"
           />
@@ -2150,6 +2204,7 @@ function BlingKitchenRevealGuide({ repName }) {
         title="Watch a Live Reveal"
         videoUrl={CONTENT.tiktokHostedMode && CONTENT.showcaseVideoVisible === false ? "#" : CONTENT.showcaseVideoUrl}
             hostedVideo={CONTENT.showcaseVideoVisible === false ? undefined : CONTENT.showcaseHostedVideo}
+            queueManaged={CONTENT.showcaseQueueManaged}
             tiktokPoster={CONTENT.showcaseTikTokPoster}
         variant="showcase"
       />
@@ -2177,7 +2232,7 @@ function AboutSection({ repName, hideEmptyMedia = false }) {
   const hasPortrait = Boolean(getAboutMediaSlot(0)?.mediaUrl);
   const hasShorts = [1, 2, 3].some((index) => {
     const slot = getAboutMediaSlot(index);
-    return Boolean(slot?.mediaUrl || getSlotVideoPresentation(slot?.href, slot?.hostedVideo, slot?.tiktokPoster).isPopulated);
+    return Boolean(slot?.mediaUrl || getSlotVideoPresentation(slot?.href, slot?.hostedVideo, slot?.tiktokPoster, slot?.queueManaged).isPopulated);
   });
   if (!hasAboutCopy && !hasPortrait && !hasShorts) return null;
   const aboutHeadline = CONTENT.aboutHeadline || `Meet ${repName} and the story behind the sparkle.`;
@@ -3461,6 +3516,7 @@ function BrittWithBlingFeaturedReveal() {
         </div>
         <FeaturedVideo
           hostedVideo={reveal.hostedVideo}
+          queueManaged={reveal.queueManaged}
           tiktokPoster={reveal.tiktokPoster}
           className="bwb-featured-video"
           title={reveal.videoTitle}
@@ -3480,7 +3536,7 @@ function BrittWithBlingRevealExplainer() {
   if (!explainer) return null;
   const showcaseVisible = CONTENT.showcaseVideoVisible !== false;
   const configuredShowcase = CONTENT.tiktokHostedMode
-    ? (CONTENT.showcaseVideoExplicit && getSlotVideoPresentation(CONTENT.showcaseVideoUrl, CONTENT.showcaseHostedVideo, CONTENT.showcaseTikTokPoster).isPopulated ? CONTENT.showcaseVideoUrl : explainer.videoUrl)
+    ? (CONTENT.showcaseVideoExplicit && getSlotVideoPresentation(CONTENT.showcaseVideoUrl, CONTENT.showcaseHostedVideo, CONTENT.showcaseTikTokPoster, CONTENT.showcaseQueueManaged).isPopulated ? CONTENT.showcaseVideoUrl : explainer.videoUrl)
     : (getCustomerVideoProvider(CONTENT.showcaseVideoUrl) ? CONTENT.showcaseVideoUrl : explainer.videoUrl);
 
   return (
@@ -3509,6 +3565,7 @@ function BrittWithBlingRevealExplainer() {
             title="Watch a Live Reveal"
             videoUrl={configuredShowcase}
             hostedVideo={configuredShowcase === CONTENT.showcaseVideoUrl ? CONTENT.showcaseHostedVideo : explainer.hostedVideo}
+            queueManaged={configuredShowcase === CONTENT.showcaseVideoUrl ? CONTENT.showcaseQueueManaged : explainer.queueManaged}
             tiktokPoster={configuredShowcase === CONTENT.showcaseVideoUrl ? CONTENT.showcaseTikTokPoster : explainer.tiktokPoster}
             variant="showcase"
           />

@@ -16,6 +16,7 @@ import { buildPublicLiveLineup } from '../public-live-lineup'
 
 export interface AmethystHomepageMediaSlot {
   hostedVideo?: { src: string; poster?: string; width?: number; height?: number }
+  queueManaged?: boolean
   tiktokPoster?: string
   typeLabel: string
   caption: string
@@ -34,6 +35,7 @@ export interface AmethystHomepageSocialLink {
 
 export interface AmethystHomepageFeaturedReveal {
   hostedVideo?: { src: string; poster?: string; width?: number; height?: number }
+  queueManaged?: boolean
   tiktokPoster?: string
   eyebrow: string
   title: string
@@ -51,6 +53,7 @@ export interface AmethystHomepageRevealExplainerStep {
 
 export interface AmethystHomepageRevealExplainer {
   hostedVideo?: { src: string; poster?: string; width?: number; height?: number }
+  queueManaged?: boolean
   tiktokPoster?: string
   title: string
   body: string
@@ -99,6 +102,7 @@ export interface AmethystHomepageTemplateData {
   tiktokHostedMode?: boolean
   showcaseVideoExplicit?: boolean
   showcaseHostedVideo?: { src: string; poster?: string; width?: number; height?: number }
+  showcaseQueueManaged?: boolean
   showcaseTikTokPoster?: string
   liveQueueCalendarHref?: string | null
   visibility?: PublicSiteVisibility

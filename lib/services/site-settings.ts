@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { isHostedTikTokEnabled } from './tiktok-video-queue'
+import { queueVideoLink } from '@/lib/public-site/queue-video-link'
+import { allVideoSourcesEnabled, preservedVideos, isPreserved, isHostedTikTokEnabled } from './tiktok-video-queue'
 import { getTikTokVideoId } from '@/lib/public-site/tiktok-video-id'
 import { isSocialVisibilityValue, normalizeSocialVisibility } from '@/lib/public-site/social-visibility'
 import { ServiceError, errors } from '@/lib/services/errors'
@@ -279,7 +280,7 @@ export async function normalizePublicSiteMediaSlotsForSave(value: unknown) {
 
 export function normalizePublicSiteMediaSlots(
   value: unknown,
-  options: { rejectInvalidUrls?: boolean } = {},
+  options: { rejectInvalidUrls?: boolean; acceptedSaved?: Map<string, string> } = {},
 ): PublicSiteMediaSlot[] {
   const rows = Array.isArray(value) ? value : []
   const byKey = new Map<string, Record<string, unknown>>()
@@ -312,6 +313,7 @@ export function normalizePublicSiteMediaSlots(
       options.rejectInvalidUrls &&
       typeof row?.videoUrl === 'string' &&
       row.videoUrl.trim() &&
+      options.acceptedSaved?.get(key) !== videoUrl &&
       (!videoUrl || !isSupportedPublicVideoUrl(videoUrl))
     ) {
       throw errors.INVALID_INPUT(
@@ -638,9 +640,30 @@ export async function updateSiteSettingsDashboard(
     siteSettingsPatch.about_narrative = normalizeAboutNarrative(input.aboutNarrative)
   }
   if (input.homepageMediaSlots !== undefined) {
-    siteSettingsPatch.homepage_media_slots = await normalizePublicSiteMediaSlotsForSave(
-      input.homepageMediaSlots,
-    )
+    let slots: unknown = input.homepageMediaSlots
+    const acceptedSaved = new Map<string, string>()
+    if (await allVideoSourcesEnabled(createAdminClient(), repId)) {
+      const saved = await supabase.from('site_settings').select('homepage_media_slots').eq('rep_id', repId).maybeSingle()
+      if (saved.error) throw saved.error
+      const previous = normalizePublicSiteMediaSlots(saved.data?.homepage_media_slots)
+      slots = await resolveTikTokShortLinksInMediaSlots(slots)
+      if (Array.isArray(slots)) slots = slots.map(row => {
+        if (!row || row.key === 'about_1' || typeof row.videoUrl !== 'string' || !row.videoUrl.trim()) return row
+        const old = previous.find(slot => slot.key === row.key)?.videoUrl
+        if (old === row.videoUrl.trim()) {
+          acceptedSaved.set(row.key, old)
+          return row
+        }
+        const raw = row.videoUrl.trim()
+        const link = queueVideoLink(raw.startsWith('<') ? normalizePublicMediaUrl(raw) : raw)
+        if (!link.id) throw errors.INVALID_INPUT('invalid video link', link.error)
+        const prior = queueVideoLink(old)
+        return { ...row, videoUrl: prior.provider === link.provider && prior.id === link.id ? old : link.canonical }
+      })
+    }
+    siteSettingsPatch.homepage_media_slots = acceptedSaved.size
+      ? normalizePublicSiteMediaSlots(slots, { rejectInvalidUrls: true, acceptedSaved })
+      : await normalizePublicSiteMediaSlotsForSave(slots)
   }
   if (input.signupDiscountEnabled !== undefined) {
     if (typeof input.signupDiscountEnabled !== 'boolean') {
@@ -824,18 +847,26 @@ export async function updateSiteSettingsDashboard(
 
 export async function attachTikTokSlotStatus(supabase: SupabaseClient, repId: string, settings: SiteSettingsDashboardResult): Promise<SiteSettingsDashboardResult> {
   try {
-    if (!await isHostedTikTokEnabled(createAdminClient(), repId)) return settings
+    const admin = createAdminClient()
+    if (!await isHostedTikTokEnabled(admin, repId)) return settings
+    const qualified = await allVideoSourcesEnabled(admin, repId)
+    const preserved = qualified ? await preservedVideos(admin, repId) : []
+    const dismissed = qualified ? await admin.from('tiktok_video_dismissals').select('source_provider,tiktok_video_id').eq('rep_id', repId) : { data: [], error: null }
+    if (dismissed.error) throw dismissed.error
     const [assets, queue] = await Promise.all([
-      supabase.from('public_site_videos').select('tiktok_video_id,status').eq('rep_id', repId).eq('status', 'live'),
-      supabase.from('tiktok_video_queue').select('tiktok_video_id,status').eq('rep_id', repId).eq('status', 'pending'),
+      supabase.from('public_site_videos').select('source_provider,tiktok_video_id,status').eq('rep_id', repId).eq('status', 'live'),
+      supabase.from('tiktok_video_queue').select('source_provider,tiktok_video_id,status').eq('rep_id', repId).eq('status', 'pending'),
     ])
     if (assets.error || queue.error) throw new Error('tiktok_status_unavailable')
-    return { ...settings, tiktokQueueEnabled: true, homepageMediaSlots: settings.homepageMediaSlots?.map(slot => {
-      const id = getTikTokVideoId(slot.videoUrl)
-      let tiktokVideoStatus: 'live' | 'queued' | null = null
-      if (id && slot.isVisible !== false) {
-        if (assets.data.some(asset => asset.tiktok_video_id === id)) tiktokVideoStatus = 'live'
-        else if (queue.data.some(item => item.tiktok_video_id === id)) tiktokVideoStatus = 'queued'
+    return { ...settings, ...(qualified ? { allSourcesEnabled: true } : {}), tiktokQueueEnabled: true, homepageMediaSlots: settings.homepageMediaSlots?.map(slot => {
+      if (qualified && isPreserved(preserved, slot.key, slot.videoUrl)) return { ...slot, videoPreserved: true, tiktokVideoStatus: null }
+      const link = qualified ? queueVideoLink(slot.videoUrl) : { provider: 'tiktok', id: getTikTokVideoId(slot.videoUrl) }
+      const same = (row: {source_provider: string; tiktok_video_id: string}) => row.source_provider === link.provider && row.tiktok_video_id === link.id
+      let tiktokVideoStatus: PublicSiteMediaSlot['tiktokVideoStatus'] = null
+      if (link.id && slot.isVisible !== false) {
+        if (assets.data.some(same)) tiktokVideoStatus = 'live'
+        else if (queue.data.some(same)) tiktokVideoStatus = 'queued'
+        else if (dismissed.data?.some(same)) tiktokVideoStatus = 'unavailable'
       }
       return { ...slot, tiktokVideoStatus }
     }) }

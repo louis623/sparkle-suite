@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { isHostedTikTokEnabled, loadHostedTikTokForRep } from '@/lib/services/tiktok-video-queue'
+import { queueVideoLink } from '@/lib/public-site/queue-video-link'
+import { allVideoSourcesEnabled, preservedVideos, isPreserved, isHostedTikTokEnabled, loadHostedTikTokForRep } from '@/lib/services/tiktok-video-queue'
 import { getTikTokVideoId } from '@/lib/public-site/tiktok-video-id'
 import { resolveSocialHeroLinks, resolveSocialPlatformUrl } from '@/lib/public-site/social-hero'
 import { isSocialHeroEnabled } from '@/lib/public-site/social-visibility'
@@ -854,16 +855,24 @@ export async function attachHostedTikTokVideos(admin: SupabaseClient, repId: str
   } catch { return homepage }
   const enabled = { ...homepage, tiktokHostedMode: true }
   try {
+    const qualified = await allVideoSourcesEnabled(admin, repId)
+    const preserved = qualified ? await preservedVideos(admin, repId) : []
     const urls = [homepage.showcaseVideoUrl, ...homepage.aboutMediaSlots.map(slot => slot.href), homepage.featuredReveal?.videoUrl, homepage.revealExplainer?.videoUrl]
-    const ids = [...new Set(urls.map(url => getTikTokVideoId(url ?? '')).filter((id): id is string => Boolean(id)))]
-    const { videos, posters } = await loadHostedTikTokForRep(admin, repId, ids)
-    const media = (url: string) => {
+    const ids = [...new Set(urls.map(url => qualified ? queueVideoLink(url).id : getTikTokVideoId(url ?? '')).filter((id): id is string => Boolean(id)))]
+    const { videos, posters } = await loadHostedTikTokForRep(admin, repId, ids, qualified).catch(() => ({ videos: {}, posters: {} } as Awaited<ReturnType<typeof loadHostedTikTokForRep>>))
+    const media = (url: string, slot = 'featured_reveal') => {
+      if (qualified) {
+        const link = queueVideoLink(url)
+        if (!link.id || isPreserved(preserved, slot, url)) return {}
+        const key = `${link.provider}:${link.id}`
+        return { queueManaged: true, hostedVideo: videos[key], tiktokPoster: posters[key] }
+      }
       const id = getTikTokVideoId(url)
       return id ? { hostedVideo: videos[id], tiktokPoster: posters[id] } : {}
     }
-    const showcase = media(homepage.showcaseVideoUrl)
-    return { ...enabled, showcaseHostedVideo: showcase.hostedVideo, showcaseTikTokPoster: showcase.tiktokPoster,
-      aboutMediaSlots: homepage.aboutMediaSlots.map(slot => ({ ...slot, ...media(slot.href) })),
+    const showcase = media(homepage.showcaseVideoUrl, 'showcase')
+    return { ...enabled, showcaseQueueManaged: showcase.queueManaged, showcaseHostedVideo: showcase.hostedVideo, showcaseTikTokPoster: showcase.tiktokPoster,
+      aboutMediaSlots: homepage.aboutMediaSlots.map((slot, index) => ({ ...slot, ...media(slot.href, `about_${index + 1}`) })),
       featuredReveal: homepage.featuredReveal ? { ...homepage.featuredReveal, ...media(homepage.featuredReveal.videoUrl) } : undefined,
       revealExplainer: homepage.revealExplainer ? { ...homepage.revealExplainer, ...media(homepage.revealExplainer.videoUrl) } : undefined,
     }

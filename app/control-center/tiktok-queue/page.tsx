@@ -16,5 +16,5 @@ export default async function TikTokQueuePage() {
   }
   const admin = createAdminClient()
   const [queue, archive] = await Promise.all([listTikTokQueue(admin, 'queue'), listTikTokQueue(admin, 'archive')])
-  return <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950"><div className="mx-auto max-w-5xl"><Link href="/control-center" className="text-violet-700">Control Center</Link><h1 className="my-5 text-3xl font-semibold">TikTok Queue</h1><TikTokQueuePanel initialQueue={queue} initialArchive={archive} /></div></main>
+  return <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950"><div className="mx-auto max-w-5xl"><Link href="/control-center" className="text-violet-700">Control Center</Link><h1 className="my-5 text-3xl font-semibold">Video queue</h1><TikTokQueuePanel initialQueue={queue} initialArchive={archive} /></div></main>
 }
