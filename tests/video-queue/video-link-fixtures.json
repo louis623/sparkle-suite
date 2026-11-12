@@ -320,5 +320,54 @@
     "provider": null,
     "id": null,
     "error": "This needs a public TikTok, YouTube, Instagram, or Facebook video link."
+  },
+  {
+    "test": "T19",
+    "url": "https://www.youtube.com/embed/videoseries?list=PLfixture",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://www.youtube-nocookie.com/embed/videoseries/",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://m.youtube.com/embed/short",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://youtube.com/embed/123456789012",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://youtube.com/embed/abc!efghijk",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://youtube.com/embed/",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
+  },
+  {
+    "test": "T19",
+    "url": "https://youtube.com/embed/aBcDeF12_-Z/extra",
+    "provider": null,
+    "id": null,
+    "error": "Open the video and copy the full link."
   }
 ]

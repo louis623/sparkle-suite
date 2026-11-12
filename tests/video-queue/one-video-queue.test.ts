@@ -12,7 +12,7 @@ import { normalizePublicMediaUrl } from '@/lib/public-site/media-url'
 import { renderTikTokCard } from '../fixtures/tiktok-render'
 import fixtures from './video-link-fixtures.json'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { attachTikTokSlotStatus } from '@/lib/services/site-settings'
+import { attachTikTokSlotStatus, updateSiteSettingsDashboard } from '@/lib/services/site-settings'
 import { attachHostedTikTokVideos } from '@/lib/amethyst/preview-template-data'
 import { defaultAmethystHomepageTemplateData } from '@/lib/amethyst/homepage-template-data'
 import type { SiteSettingsDashboardResult } from '@/lib/services/types'
@@ -66,7 +66,10 @@ async function database() {
     return db
 }
 
-const followup = readFileSync('supabase/migrations/20261113120000_one_video_queue_all_sources.sql', 'utf8')
+const followup = [
+  '20261113120000_one_video_queue_all_sources.sql',
+  '20261113130000_one_video_queue_playlist_and_static_guard.sql',
+].map(file => readFileSync('supabase/migrations/' + file, 'utf8')).join('\n')
 const sources = ['lib/amethyst/v2/homepage.jsx','lib/amethyst/legacy/assets/homepage.jsx','public/amethyst/homepage.jsx'].map(p => readFileSync(p, 'utf8'))
 let parserDb: PGlite
 beforeAll(async () => { parserDb = await database(); await parserDb.exec(followup) }, 60000)
@@ -339,4 +342,60 @@ it('T18 backfill requires selection, checks both switches, repeats safely and ke
   }
   expect((await queue(db)).map(q=>q.source_provider).sort()).toEqual(['instagram','tiktok'])
   expect((await db.query("select slot_keys from tiktok_video_queue where source_provider='tiktok'")).rows[0]).toEqual({slot_keys:['featured_reveal']})
+}),60000)
+
+it('T19 gated YouTube playlist and invalid embed links are rejected in TS and SQL', async () => {
+  const cases = fixtures.filter(row => row.test === 'T19')
+  expect(cases.length).toBeGreaterThan(0)
+  for (const {url, provider, id, error} of cases) {
+    expect(queueVideoLink(url), url).toEqual({provider, id, canonical: null, error})
+    expect((await parserDb.query('select queue_video_link($1) link, queue_video_link_error($1) error', [url])).rows)
+      .toEqual([{link: null, error}])
+  }
+  const valid = 'https://www.youtube.com/embed/aBcDeF12_-Z?list=PLfixture'
+  expect(queueVideoLink(valid).id).toBe('aBcDeF12_-Z')
+  expect((await parserDb.query("select queue_video_link($1)->>'id' id", [valid])).rows).toEqual([{id:'aBcDeF12_-Z'}])
+})
+
+it('T20 removing a slot keeps its shared static featured reveal queued or live', () => isolated(async db => {
+  await enable(db)
+  await save(db, [slot('showcase', tt), slot('about_2', fb)])
+  await db.query('select tiktok_queue_add_static($1,$2)', [rep, tt])
+  const item = (await queue(db)).find(row => row.source_provider === 'tiktok')!
+  await remove(db, 'showcase', tt)
+  expect((await db.query('select status, slot_keys from tiktok_video_queue where id=$1',[item.id])).rows)
+    .toEqual([{status:'pending',slot_keys:['featured_reveal']}])
+  await save(db, [slot('showcase', tt), slot('about_2', fb)])
+  const {assetId} = await complete(db, await makeTicket(db, item.id))
+  await remove(db, 'showcase', tt)
+  await db.exec('select tiktok_queue_daily_maintenance()')
+  expect((await queue(db)).find(row => row.id === item.id)).toMatchObject({status:'completed',asset_id:assetId})
+  expect((await db.query('select status from public_site_videos where id=$1',[assetId])).rows).toEqual([{status:'live'}])
+  expect((await db.query("select 1 from tiktok_video_dismissals where rep_id=$1 and source_provider='tiktok' and tiktok_video_id=$2",[rep,queueVideoLink(tt).id])).rows).toEqual([])
+  expect((await queue(db)).find(row => row.source_provider === 'facebook')?.status).toBe('pending')
+  await remove(db, 'about_2', fb)
+  expect((await queue(db)).find(row => row.source_provider === 'facebook')?.status).toBe('archived')
+}),60000)
+
+it('T21 ungated Workspace save still accepts a legacy YouTube playlist embed', () => isolated(async db => {
+  const url = 'https://www.youtube.com/embed/videoseries?list=PLfixture'
+  const admin = reader(db)
+  selected.admin = admin
+  expect((await admin.rpc('video_all_sources', {p_rep_id:other})).data).toBe(false)
+  const settings = { upsert: (row: {rep_id:string; homepage_media_slots:ReturnType<typeof slot>[]}) => ({
+    select: () => ({single: async () => {
+      await save(db, row.homepage_media_slots, row.rep_id)
+      return {data: row, error: null}
+    }}),
+  }) }
+  const profile = {select: () => ({eq: () => ({single: async () => ({data:{display_name:'Smoke'},error:null})})})}
+  const client = {from: (table:string) => {
+    if (table === 'site_settings') return settings
+    if (table === 'reps') return profile
+    throw Error('Unexpected table: ' + table)
+  }} as unknown as SupabaseClient
+  const result = await updateSiteSettingsDashboard(client, other, {homepageMediaSlots:[{...slot('showcase',url),imageUrl:'',caption:''}]})
+  expect(result.homepageMediaSlots?.find(row => row.key === 'showcase')?.videoUrl).toBe(url)
+  expect((await db.query("select e->>'videoUrl' url from site_settings s cross join jsonb_array_elements(s.homepage_media_slots) e where rep_id=$1 and e->>'key'='showcase'",[other])).rows).toEqual([{url}])
+  expect(await queue(db)).toEqual([])
 }),60000)
