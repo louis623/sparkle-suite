@@ -31,6 +31,7 @@ import * as siteRecipes from '@/app/api/nic-nac/site-recipes/route'
 import * as siteRecipeDraft from '@/app/api/nic-nac/site-recipes/draft/route'
 import * as siteRecipeImage from '@/app/api/nic-nac/site-recipes/image/route'
 import * as siteSettings from '@/app/api/nic-nac/site-settings/route'
+import * as siteSettingsRemoveVideo from '@/app/api/nic-nac/site-settings/remove-video/route'
 import * as siteSettingsMedia from '@/app/api/nic-nac/site-settings/media/route'
 import * as skinOptions from '@/app/api/nic-nac/skin-options/route'
 import * as teamParticipants from '@/app/api/nic-nac/team-onboarding/participants/route'
@@ -95,6 +96,7 @@ const STATIC_ROUTE_MODULES = new Map<string, RouteModule>([
   ['/api/nic-nac/site-recipes/draft', siteRecipeDraft as unknown as RouteModule],
   ['/api/nic-nac/site-recipes/image', siteRecipeImage as unknown as RouteModule],
   ['/api/nic-nac/site-settings', siteSettings as unknown as RouteModule],
+  ['/api/nic-nac/site-settings/remove-video', siteSettingsRemoveVideo as unknown as RouteModule],
   ['/api/nic-nac/site-settings/media', siteSettingsMedia as unknown as RouteModule],
   ['/api/nic-nac/skin-options', skinOptions as unknown as RouteModule],
   ['/api/nic-nac/team-onboarding/participants', teamParticipants as unknown as RouteModule],

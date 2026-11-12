@@ -37,12 +37,13 @@ export async function tiktokQueueRpc<T>(admin: SupabaseClient, name: string, arg
   const result = await admin.rpc(name, args)
   if (!result.error) return result.data as T
   const message = result.error.message
+  if (/invalid_video_slot/.test(message)) fail('TIKTOK_INVALID_VIDEO_SLOT', "That video spot couldn't be found. Refresh and try again.", 400)
   if (/dismissal_not_found|queue_item_not_found|ticket_not_found/.test(message)) fail('TIKTOK_NOT_FOUND', message, 404)
   if (/ticket_mismatch/.test(message)) fail('TIKTOK_TICKET_MISMATCH', 'This upload belongs to another session or file.', 403)
   if (/ticket_expired/.test(message)) fail('TIKTOK_TICKET_EXPIRED', 'This upload expired. Choose the file again.', 410)
   if (/source_missing/.test(message)) fail('TIKTOK_SOURCE_MISSING', "That link isn't on her site anymore.", 409)
   if (/queue_item_not_pending|queue_item_not_closed|source_changed|rep_inactive|rep_not_enabled/.test(message)) {
-    fail('TIKTOK_SOURCE_CHANGED', 'This link changed or was removed while you were uploading.', 409)
+    fail('TIKTOK_SOURCE_CHANGED', 'This video changed since you opened the page. Refresh and try again.', 409)
   }
   fail('TIKTOK_QUEUE_FAILED', 'The video queue could not be updated.', 500)
 }
@@ -82,7 +83,7 @@ export async function createTikTokUploadTicket(admin: SupabaseClient, input: {
   }
   const item = checked(await admin.from('tiktok_video_queue').select('*,reps(status)').eq('id', input.itemId).single()) as unknown as TikTokQueueItem
   if (item.status !== 'pending' || item.reps?.status !== 'active' || !await isHostedTikTokEnabled(admin, item.rep_id)) {
-    fail('TIKTOK_SOURCE_CHANGED', 'This link changed or was removed while you were uploading.', 409)
+    fail('TIKTOK_SOURCE_CHANGED', 'This video changed since you opened the page. Refresh and try again.', 409)
   }
   const id = randomUUID()
   const base = `${item.rep_id}/${item.tiktok_video_id}/${id}`

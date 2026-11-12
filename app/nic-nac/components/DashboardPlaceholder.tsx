@@ -1,5 +1,7 @@
 'use client'
 
+import { isTikTokCardUrl } from '@/lib/public-site/tiktok-video-id'
+
 import Link from 'next/link'
 import { normalizeSignupDiscountCode, normalizeSignupDiscountMessage } from '@/lib/public-site/signup-discount'
 import { PublicSiteVisibility } from './PublicSiteVisibility'
@@ -4641,6 +4643,29 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }
 
+  async function handleRemoveHomepageVideo(key: PublicSiteMediaSlotKey, expectedUrl: string) {
+    if (siteSettingsActionState.pending) return
+    setSiteSettingsActionState({ pending: true, error: null, helperMessage: null })
+    try {
+      const response = await fetch('/api/nic-nac/site-settings/remove-video', {
+        method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ slotKey: key, expectedUrl }),
+      })
+      const payload = await response.json() as { error?: string; settings?: SiteSettingsDashboardResult }
+      if (!response.ok || !payload.settings) throw new Error(payload.error || 'Unable to remove video.')
+      const settings = payload.settings
+      const clearedSlot = settings.homepageMediaSlots?.find(slot => slot.key === key)
+      setSiteSettingsState({ status: 'ready', settings })
+      setSiteSettingsDraft(current => current && clearedSlot
+        ? updateHomepageMediaSlot(current, key, { videoUrl: '', isVisible: false, tiktokVideoStatus: null })
+        : current)
+      setSiteSettingsActionState({ pending: false, error: null, helperMessage: 'Video removed from your site.' })
+      refreshLiveSitePreviewAfterSiteSettingsSave()
+    } catch (error) {
+      setSiteSettingsActionState({ pending: false, error: error instanceof Error ? error.message : 'Unable to remove video.', helperMessage: null })
+    }
+  }
+
   async function saveSiteSettingsDraft(draftToSave: SiteSettingsDraft) {
     const requestId = siteSettingsSaveRequestRef.current + 1
     siteSettingsSaveRequestRef.current = requestId
@@ -7344,6 +7369,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             onSocialHandleChange={handleSocialHandleChange}
             onHomepageMediaChange={handleHomepageMediaChange}
             onHomepageMediaUpload={handleHomepageMediaUpload}
+            onHomepageVideoRemove={handleRemoveHomepageVideo}
             mediaUploadKey={siteSettingsMediaUploadKey}
             mediaUploadFeedback={siteSettingsMediaUploadFeedback}
             isBrittWithBling={isBrittWithBlingWorkspace}
@@ -9688,6 +9714,7 @@ export function SiteSettingsCard({
   onSocialHandleChange,
   onHomepageMediaChange,
   onHomepageMediaUpload,
+  onHomepageVideoRemove,
   mediaUploadKey,
   mediaUploadFeedback,
   isBrittWithBling = false,
@@ -9711,6 +9738,7 @@ export function SiteSettingsCard({
     key: PublicSiteMediaSlotKey,
     file: File,
   ) => void
+  onHomepageVideoRemove?: (key: PublicSiteMediaSlotKey, expectedUrl: string) => void
   mediaUploadKey?: PublicSiteMediaSlotKey | null
   mediaUploadFeedback?: {
     key: PublicSiteMediaSlotKey
@@ -10208,6 +10236,8 @@ export function SiteSettingsCard({
                     : `About short video ${Number(slot.key.slice(-1)) - 1}`
             const allowsPhoto = slot.key === 'about_1'
             const allowsVideo = slot.key !== 'about_1'
+            const savedVideoUrl = state.settings?.homepageMediaSlots?.find(saved => saved.key === slot.key)?.videoUrl ?? ''
+            const lockedTikTok = Boolean(draft.tiktokQueueEnabled && isTikTokCardUrl(savedVideoUrl))
             const isUploading = mediaUploadKey === slot.key
             const hasVisiblePhoto =
               allowsPhoto && Boolean(slot.imageUrl) && slot.isVisible !== false
@@ -10287,17 +10317,20 @@ export function SiteSettingsCard({
                       type="text"
                       placeholder="Paste a public video link or embed code"
                       value={slot.videoUrl}
+                      readOnly={lockedTikTok}
+                      aria-describedby={lockedTikTok ? `remove-video-help-${slot.key}` : undefined}
                       onChange={(event) => {
                         const videoUrl = event.target.value
                         onHomepageMediaChange?.(slot.key, {
                           videoUrl,
                           tiktokVideoStatus: null,
-                          ...(isBrittWithBling
+                          ...(isBrittWithBling || draft.tiktokQueueEnabled
                             ? { isVisible: Boolean(videoUrl.trim()) }
                             : {}),
                         })
                       }}
                     />
+                    {lockedTikTok ? <span id={`remove-video-help-${slot.key}`}>Remove this video before adding a new link.</span> : null}
                     {draft.tiktokQueueEnabled && slot.tiktokVideoStatus ? (
                       <span role="status">{slot.tiktokVideoStatus === 'live'
                         ? 'Video is ready and now playing on your site.'
@@ -10414,7 +10447,18 @@ export function SiteSettingsCard({
                     Remove photo
                   </button>
                 ) : null}
-                {isBrittWithBling && hasVisibleVideo ? (
+                {lockedTikTok ? (
+                  <button
+                    type="button"
+                    className={styles.homepageMediaRemoveButton}
+                    disabled={actionState?.pending}
+                    onClick={() => {
+                      if (window.confirm('Remove this video from your site?')) onHomepageVideoRemove?.(slot.key, savedVideoUrl)
+                    }}
+                  >
+                    Remove video
+                  </button>
+                ) : isBrittWithBling && hasVisibleVideo ? (
                   <button
                     type="button"
                     className={styles.homepageMediaRemoveButton}

@@ -397,3 +397,14 @@ Louis approved `codex/nicnac-photo-guardrails` by name on Nov 4, 2026, as the na
 
 ## Starlight slow phone — November 7, 2026
 Louis explicitly requested codex/starlight-slow-phone-load from 9f956acc, with its own PR and Smoke-only deployment. Registered solely for sparkle-suite-smoke preview. Production branch and project remain governed by existing policy.
+
+## November 10 — TikTok Remove video, Smoke only
+
+Louis authorized new branch `codex/tiktok-remove-video` from verified production tip
+`6be08e8c0fbd1b750a16b4c5a8e95cb060d91130`, disposable clone
+`/workspace/codex-runs/suite-tiktok-remove-video-workspace`. One draft PR; Preview
+project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`, Smoke DB `pukemqiwlyqmyytxkdmo` only.
+Named tests once with --bail=1, at most three shared-Smoke page loads on
+dudesfizzfest. No merge, Live changes, gate widening, or PR #187 changes.
+GitHub default branch and Vercel production branch remain unchanged under this
+explicit Smoke-only branch authorization.

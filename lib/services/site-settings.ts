@@ -747,6 +747,10 @@ export async function updateSiteSettingsDashboard(
       .select(SITE_SETTINGS_SELECT)
       .single()
 
+    if (error?.message?.includes('tiktok_remove_before_replace')) {
+      throw new ServiceError({ code: 'TIKTOK_REMOVE_BEFORE_REPLACE', message: 'Remove the current video before adding a new link.', statusCode: 409 })
+    }
+
     if (error || !data) {
       throw toServiceError(
         'SITE_SETTINGS_UPDATE_FAILED',

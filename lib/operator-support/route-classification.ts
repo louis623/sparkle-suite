@@ -78,6 +78,13 @@ export const OPERATOR_SUPPORT_PROVIDER_ROUTE_ROOTS = [
 
 export const OPERATOR_SUPPORT_ROUTE_INVENTORY = [
   {
+    file: 'app/api/nic-nac/owner-direct/[conversationId]/attachments/[attachmentId]/route.ts',
+    path: '/api/nic-nac/owner-direct/[conversationId]/attachments/[attachmentId]',
+    methods: ['GET'],
+    classification: 'rep_only',
+    rationale: 'Private owner-direct attachments retain the existing rep authentication boundary and stay outside support access.',
+  },
+  {
     file: 'app/api/nic-nac/team-photo-polish/route.ts',
     path: '/api/nic-nac/team-photo-polish',
     methods: ['GET', 'POST'],
@@ -432,6 +439,14 @@ export const OPERATOR_SUPPORT_ROUTE_INVENTORY = [
     classification: 'support_allowed_write',
     capabilities: ['site.view', 'site.manage'],
     rationale: 'Customer-site settings are an explicitly approved support workflow.',
+  },
+  {
+    file: 'app/api/nic-nac/site-settings/remove-video/route.ts',
+    path: '/api/nic-nac/site-settings/remove-video',
+    methods: ['POST'],
+    classification: 'support_allowed_write',
+    capabilities: ['site.manage'],
+    rationale: 'Removing a TikTok slot video is part of approved customer-site settings support.',
   },
   {
     file: 'app/api/nic-nac/skin-options/route.ts',
