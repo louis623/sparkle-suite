@@ -179,7 +179,7 @@ async function limitedImage(response: Response) {
 }
 export async function fetchTikTokThumbnail(admin: SupabaseClient, itemId: string) {
   const item = checked(await admin.from('tiktok_video_queue').select('*').eq('id', itemId).single()) as TikTokQueueItem
-  if (item.source_provider !== 'tiktok' || item.status !== 'pending' || !await isHostedTikTokEnabled(admin, item.rep_id)) fail('TIKTOK_SOURCE_CHANGED', 'This item is no longer pending.', 409)
+  if ((item.source_provider ?? 'tiktok') !== 'tiktok' || item.status !== 'pending' || !await isHostedTikTokEnabled(admin, item.rep_id)) fail('TIKTOK_SOURCE_CHANGED', 'This item is no longer pending.', 409)
   checked(await admin.from('tiktok_video_queue').update({ thumbnail_attempted_at: new Date().toISOString() }).eq('id', itemId))
   try {
     const url = canonicalTikTokUrl(item.source_url)

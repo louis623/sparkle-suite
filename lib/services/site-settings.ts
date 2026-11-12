@@ -642,7 +642,13 @@ export async function updateSiteSettingsDashboard(
   if (input.homepageMediaSlots !== undefined) {
     let slots: unknown = input.homepageMediaSlots
     const acceptedSaved = new Map<string, string>()
-    if (await allVideoSourcesEnabled(createAdminClient(), repId)) {
+    let allSourcesEnabled = false
+    try {
+      allSourcesEnabled = await allVideoSourcesEnabled(createAdminClient(), repId)
+    } catch {
+      // A failed opt-in lookup uses the existing video save path.
+    }
+    if (allSourcesEnabled) {
       const saved = await supabase.from('site_settings').select('homepage_media_slots').eq('rep_id', repId).maybeSingle()
       if (saved.error) throw saved.error
       const previous = normalizePublicSiteMediaSlots(saved.data?.homepage_media_slots)

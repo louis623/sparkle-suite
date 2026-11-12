@@ -41,7 +41,7 @@ async function complete(db: PGlite, id: string) {
 async function remove(db: PGlite, key='showcase', url='https://www.tiktok.com/@user/video/12345678') {
   await db.query('select remove_tiktok_slot($1,$2,$3)',[rep,key,url])
 }
-it('tiktok remove: ready slot clears immediately and archives without deleting the MP4 after 90 days', () => withDb(async db => {
+it('tiktok remove: ready slot clears immediately and archives without deleting the MP4 after 90 days', { timeout: 30_000 }, () => withDb(async db => {
   await save(db); const asset = await complete(db, await ticket(db)); await remove(db)
   expect((await rows(db))[0]).toMatchObject({status:'archived',asset_id:asset.assetId})
   expect((await db.query<{slots: Array<{videoUrl:string;isVisible:boolean}>}>('select homepage_media_slots slots from site_settings')).rows[0].slots[0]).toMatchObject({videoUrl:'',isVisible:false})

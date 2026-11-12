@@ -264,6 +264,8 @@ describe('site settings service', () => {
   })
 
   it('returns rep profile data with safe defaults when site settings row is missing', async () => {
+    const admin = await import('@/lib/supabase/admin')
+    const { tiktokTestClient } = await import('../fixtures/tiktok-test-client')
     const siteSettingsChain = makeSelectSingle({ data: null, error: null })
     const repsChain = makeSelectSingle({
       data: {
@@ -288,7 +290,10 @@ describe('site settings service', () => {
       }),
     }
 
+    const gateOff = tiktokTestClient({}, { tiktok_hosted_video_enabled: false })
+    const spy = vi.spyOn(admin, 'createAdminClient').mockReturnValue(gateOff.client)
     const result = await getSiteSettingsDashboard(supabase as never, 'rep-1')
+      .finally(() => spy.mockRestore())
 
     expect(result).toEqual({
       displayName: 'Louis',
@@ -964,9 +969,9 @@ it('tiktok status: queued, ready, replace and reopen lines; lookup failure keeps
   const { tiktokTestClient } = await import('../fixtures/tiktok-test-client')
   const admin = await import('@/lib/supabase/admin')
   const mock = tiktokTestClient({
-    public_site_videos:[{tiktok_video_id:'12345678',status:'live'}],
-    tiktok_video_queue:[{tiktok_video_id:'12345678',status:'pending'},{tiktok_video_id:'87654321',status:'pending'}],
-  },{tiktok_hosted_video_enabled:true})
+    public_site_videos:[{source_provider:'tiktok',tiktok_video_id:'12345678',status:'live'}],
+    tiktok_video_queue:[{source_provider:'tiktok',tiktok_video_id:'12345678',status:'pending'},{source_provider:'tiktok',tiktok_video_id:'87654321',status:'pending'}],
+  },{tiktok_hosted_video_enabled:true,video_all_sources:false})
   const spy = vi.spyOn(admin,'createAdminClient').mockReturnValue(mock.client)
   try {
     const settings = {homepageMediaSlots:[{key:'showcase',videoUrl:'https://www.tiktok.com/embed/12345678',imageUrl:'',caption:''}]} as unknown as import('@/lib/services/types').SiteSettingsDashboardResult
