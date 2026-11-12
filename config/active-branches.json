@@ -3,6 +3,7 @@
   "repository": "louis623/sparkle-suite",
   "primaryLocalWorktree": "C:\\Users\\louis\\sparkle-suite-repo",
   "activeLocalWorktrees": [
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\tiktok-player-tap-to-play-20261112",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\tiktok-link-queue-20261110",
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\nic-nac-signature-home",
     "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\07\\01a1b792-4639-7422-be24-6df6f024a16b\\kaitlin-prep",
@@ -23,6 +24,7 @@
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
+    "codex/tiktok-player-tap-to-play",
     "codex/tiktok-remove-video",
     "codex/tiktok-link-queue",
     "codex/nic-nac-signature-home",
@@ -259,6 +261,10 @@
     "codex/tiktok-remove-video": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
+    },
+    "codex/tiktok-player-tap-to-play": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
@@ -282,6 +288,7 @@
     "codex/release-1106-integration": "codex/nic-nac-trade-hardening",
     "codex/starlight-slow-phone-load": "codex/nic-nac-trade-hardening",
     "codex/public-about-display-fixes": "codex/nic-nac-trade-hardening",
-    "codex/tiktok-remove-video": "codex/nic-nac-trade-hardening"
+    "codex/tiktok-remove-video": "codex/nic-nac-trade-hardening",
+    "codex/tiktok-player-tap-to-play": "codex/nic-nac-trade-hardening"
   }
 }

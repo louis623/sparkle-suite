@@ -89,6 +89,7 @@ const AMETHYST_ASSETS = new Set([
   'homepage.css',
   'Homepage.html',
   'homepage.jsx',
+  'hosted-video.js',
   'join.css',
   'Join.html',
   'join-runtime.js',

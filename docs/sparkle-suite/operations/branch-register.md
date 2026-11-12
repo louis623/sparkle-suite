@@ -408,3 +408,11 @@ Named tests once with --bail=1, at most three shared-Smoke page loads on
 dudesfizzfest. No merge, Live changes, gate widening, or PR #187 changes.
 GitHub default branch and Vercel production branch remain unchanged under this
 explicit Smoke-only branch authorization.
+
+## November 12 — public video card tap-to-play, Smoke only
+Louis authorized codex/tiktok-player-tap-to-play from verified GitHub production tip
+5e4fad0e75e56ff021000e31055206ead738b755 in a new disposable clean clone at
+C:\Users\louis\sparkle-suite-repo\.codex-worktrees\tiktok-player-tap-to-play-20261112.
+Only the shared public native video card/player/controller is in scope. Preview
+project prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ and shared Smoke alias only. No migrations,
+merge, Live deploy, gate widening, Workspace/Control Center behavior or other PR edits.

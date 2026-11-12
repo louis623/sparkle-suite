@@ -9,9 +9,9 @@
       "source": "snapshot"
     },
     "Homepage.html": {
-      "blob": "12d3234202a2e0bda415c5a6aebcc2a9cc1ae6e8",
-      "sha256": "55d59787c9191a1e06edee68f16e96e968997074a767746812c4e34b546317fa",
-      "bytes": 5868,
+      "blob": "b45971a6c05cfdc2a839590bb67e6917b86e94a5",
+      "sha256": "66fa66524af86b0fddd8e6ce4021fef8323091e40e2b9fd3e85fedd92fbbc094",
+      "bytes": 5941,
       "source": "snapshot"
     },
     "Join.html": {
@@ -231,9 +231,9 @@
       "source": "snapshot"
     },
     "homepage.jsx": {
-      "blob": "ec78158c1e49962349080beee05520d7d58144bb",
-      "sha256": "fcc34f9803f1f3294324adf6ae96d65b60594961247fc72e6eafedf19ee50a30",
-      "bytes": 188725,
+      "blob": "f66257b66767bb90a9e5c6adb6bf265a35572126",
+      "sha256": "fd7f77b7c18bf014304817d7ee10e9e8f48a07bc1e79557f051ad8cedc37bc03",
+      "bytes": 185985,
       "source": "snapshot"
     },
     "join-runtime.js": {
@@ -841,6 +841,12 @@
       "sha256": "dc575e3a095ca352bc6ecc7d426c1e0f09d1bf50066d4a3c2b7058c6fdaaeb8e",
       "bytes": 18442,
       "source": "snapshot"
+    },
+    "hosted-video.js": {
+      "blob": "8b5d0db0c252bed6c24f2082b80893026ec82eba",
+      "sha256": "f1eee3fa4cb42b0a64d8a3e4b75a5b2d63d6c7ec45152a8314ab5c6d3bedd2da",
+      "bytes": 7237,
+      "source": "shared"
     }
   },
   "approvedSignupDiscountChange": {
