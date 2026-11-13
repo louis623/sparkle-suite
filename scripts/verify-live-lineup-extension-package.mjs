@@ -215,7 +215,7 @@ export function verifyPackage({ zip, approvedInventory, reviewedSources, expecte
   if (typeof expectedVersion !== 'string' || manifest.version !== expectedVersion) {
     fail(`manifest version ${manifest.version} does not match the approved version ${expectedVersion || '(missing)'}`)
   }
-  if (JSON.stringify(normalizedStringList(manifest.permissions, 'permissions')) !== JSON.stringify(manifest.version === '2.0.6' ? ['alarms', 'scripting', 'storage'] : REQUIRED_PERMISSIONS)) {
+  if (JSON.stringify(normalizedStringList(manifest.permissions, 'permissions')) !== JSON.stringify(['2.0.6', '2.0.7'].includes(manifest.version) ? ['alarms', 'scripting', 'storage'] : REQUIRED_PERMISSIONS)) {
     fail('manifest permissions differ from the approved Sparkle Suite permissions')
   }
   const hosts = target === 'smoke' ? ['https://myoffice.bombparty.com/*', 'https://sparkle-suite-smoke.vercel.app/*'] : REQUIRED_HOST_PERMISSIONS;

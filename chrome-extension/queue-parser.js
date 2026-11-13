@@ -2,17 +2,20 @@
 (function (root) {
   "use strict";
   const ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,60}$/;
-  const HEADER_ALIASES = {partyid:'PartyID','party id':'PartyID',orderid:'OrderID','order id':'OrderID',firstname:'FirstName','first name':'FirstName',lastname:'LastName','last name':'LastName',orderdate:'OrderDate','order date':'OrderDate',isrevealed:'IsRevealed'};
+  const HEADER_ALIASES = {partyid:'PartyID','party id':'PartyID',orderid:'OrderID','order id':'OrderID',firstname:'FirstName','first name':'FirstName',lastname:'LastName','last name':'LastName',orderdate:'OrderDate','order date':'OrderDate',isrevealed:'IsRevealed',revealed:'IsRevealed'};
   function headerKey(cell) {
     const sort = cell.getAttribute('data-sort-by');
-    if (sort) return sort;
+    if (sort) {
+      const key = sort.trim().toLowerCase();
+      return Object.hasOwn(HEADER_ALIASES, key) ? HEADER_ALIASES[key] : sort;
+    }
     const label = cell.querySelector?.('.header-content span, .header-content');
-    return HEADER_ALIASES[String(label?.textContent || '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase()] || null;
+    return HEADER_ALIASES[String(label?.textContent || cell.textContent || '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase()] || null;
   }
   function identityText(value, kind) {
     const text = String(value || '').replace(/\u00a0/g,' ').trim();
     if (ID.test(text)) return text;
-    const labelled = text.match(new RegExp('^' + kind + '(?:\\s+ID)?\\s*[:#]?\\s+([A-Za-z0-9][A-Za-z0-9_-]{0,60})$', 'i'));
+    const labelled = text.match(new RegExp('^' + kind + '(?:\\s+ID)?(?:\\s*[:#]\\s*|\\s+)([A-Za-z0-9][A-Za-z0-9_-]{0,60})$', 'i'));
     return labelled ? labelled[1] : '';
   }
   function readIdentity(row, cells, attribute, column, kind) {
