@@ -86,6 +86,9 @@ export function evaluateBranchPolicy({
   }
 
   const previewRule = policy.previewBranches?.[branch];
+  if (isVercel && policy.testsOnlyBranches?.includes(branch)) {
+    errors.push(`branch "${branch}" is tests only and cannot deploy`);
+  }
   if (isVercel && previewRule &&
       (deploymentProjectId !== previewRule.projectId || deploymentEnvironment !== previewRule.environment)) {
     errors.push(`branch "${branch}" is limited to ${previewRule.projectId} / ${previewRule.environment}`);

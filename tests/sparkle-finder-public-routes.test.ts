@@ -500,6 +500,26 @@ describe('Sparkle Finder public routes', () => {
     })
   })
 
+  it('preserves the legacy response bytes and does not interpret opt-in fields on limit-only clients', async () => {
+    const recorded = [
+      { showId: 'a', showName: 'A Studio', repFirstName: 'Ava', startsAt: '2026-11-13T17:00:00Z',
+        status: 'live', customerSiteUrl: 'https://fixture.example/astudio', durationMinutes: 60, endTime: '2026-11-13T18:00:00Z' },
+      { showId: 'b', showName: 'B Studio', repFirstName: 'Bree', startsAt: '2026-11-14T14:00:00Z',
+        status: 'scheduled', customerSiteUrl: 'https://fixture.example/bstudio', durationMinutes: 60, endTime: '2026-11-14T15:00:00Z' },
+    ]
+    for (const search of ['', '?limit=12', '?limit=12&repId=invalid&liveOnly=invalid']) {
+      listSparkleFinderLiveShowsMock.mockResolvedValueOnce(recorded)
+      const result = await getFinderLiveShows(new Request('http://fixture.local/' + search))
+      expect(result.status).toBe(200)
+      expect(result.headers.get('cache-control')).toBe('no-store')
+      expect(await result.text()).toBe(JSON.stringify({ shows: recorded }))
+    }
+    const invalid = await getFinderLiveShows(new Request('http://fixture.local/?limit=0'))
+    expect(invalid.status).toBe(400)
+    expect(invalid.headers.get('cache-control')).toBe('no-store')
+    expect(await invalid.text()).toBe('{"error":"limit must be a positive whole number."}')
+  })
+
   it('returns the versioned public rep directory contract without caching', async () => {
     listSparkleFinderPublicRepsMock.mockResolvedValueOnce([
       {

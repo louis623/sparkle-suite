@@ -1,5 +1,9 @@
 # Sparkle Suite Branch Register
 
+## November 13 — Combo28, tests only
+
+Louis authorized `codex/nicnac-s0-s2s` from `0a763690` for the Finder memory containment and versioned public shows producer. The isolated Suite worktree may push this branch. Its deployment guard denies all Vercel targets.
+
 ## November 10 — TikTok Link Queue, Smoke only
 
 Louis authorized `codex/tiktok-link-queue` from verified `c19fc975` in the

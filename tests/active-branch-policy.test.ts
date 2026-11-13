@@ -15,6 +15,19 @@ describe("Sparkle Suite active branch policy", () => {
   });
   afterEach(() => vi.unstubAllEnvs());
 
+  it("permits the combo28 worktree to push and denies every Vercel target", () => {
+    const input = {
+      branch: "codex/nicnac-s0-s2s", remoteRepository: "louis623/sparkle-suite",
+      worktree: "C:\\Users\\louis\\sparkle-finder-repo\\.worktrees\\combo28-suite", platform: "win32",
+    };
+    expect(evaluateBranchPolicy(input)).toEqual([]);
+    for (const deploymentEnvironment of ["preview", "production"]) {
+      expect(evaluateBranchPolicy({ ...input, isVercel: true, deploymentEnvironment })).toContain(
+        'branch "codex/nicnac-s0-s2s" is tests only and cannot deploy',
+      );
+    }
+  });
+
   it("accepts the verified repository, production branch, and primary worktree", () => {
     expect(
       evaluateBranchPolicy({
