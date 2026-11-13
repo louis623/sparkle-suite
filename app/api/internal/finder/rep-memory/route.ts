@@ -35,6 +35,20 @@ export async function POST(request: Request) {
     return noStoreJson({ error: 'Request body must be valid JSON.' }, { status: 400 })
   }
 
+  if (process.env.NIC_NAC_REP_MEMORY_ENABLED !== 'true') {
+    // The old Finder client checks the echoed id. It conveys no evidence of a link.
+    const requestedId = body && typeof body === 'object' && 'suiteRepId' in body
+      ? body.suiteRepId
+      : undefined
+    return noStoreJson({
+      ok: true,
+      status: 'loaded',
+      suiteRepId: typeof requestedId === 'string' ? requestedId.trim().slice(0, 120) : '',
+      memorySummaries: [],
+      telemetry: { memoryCardCount: 0, blockedMemoryCardCount: 0, memoryScopes: [], truncated: false },
+    })
+  }
+
   try {
     const result = await loadSparkleFinderLinkedRepMemory(body, {
       supabase: createAdminClient(),

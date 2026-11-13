@@ -186,7 +186,25 @@ describe('Sparkle Finder linked rep memory bridge', () => {
     })
   })
 
-  it('protects the HTTP endpoint and returns no-store JSON', async () => {
+  it.each(['correct', 'foreign', 'inactive', 'missing'])('returns an empty old-client response for %s without touching storage', async (subject) => {
+    vi.stubEnv('NIC_NAC_REP_MEMORY_ENABLED', '')
+    vi.stubEnv('SPARKLE_FINDER_TO_SUITE_REP_MEMORY_TOKEN', 'synthetic-caller')
+    const response = await postSparkleFinderRepMemory(new Request('http://localhost', {
+      method: 'POST',
+      headers: { authorization: 'Bearer synthetic-caller' },
+      body: JSON.stringify({ sourceProduct: 'sparkle_finder', finderUserId: subject, suiteRepId: 'synthetic-rep' }),
+    }))
+    expect(response.status).toBe(200)
+    expect(response.headers.get('cache-control')).toBe('no-store')
+    expect(await response.json()).toEqual({
+      ok: true, status: 'loaded', suiteRepId: 'synthetic-rep', memorySummaries: [],
+      telemetry: { memoryCardCount: 0, blockedMemoryCardCount: 0, memoryScopes: [], truncated: false },
+    })
+    expect(createAdminClientMock).not.toHaveBeenCalled()
+  })
+
+  it('protects the explicitly enabled HTTP endpoint and returns no-store JSON', async () => {
+    vi.stubEnv('NIC_NAC_REP_MEMORY_ENABLED', 'true')
     vi.stubEnv('SPARKLE_FINDER_TO_SUITE_REP_MEMORY_TOKEN', 'finder-memory-token')
     createAdminClientMock.mockReturnValueOnce(
       makeDeps({
