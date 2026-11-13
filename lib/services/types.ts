@@ -1071,6 +1071,7 @@ export interface PublicLineupPresentation {
 }
 
 export interface LiveQueueSnapshot {
+  invalidHeartbeatRemainingSeconds?: number
   presentation?: PublicLineupPresentation
   revision?: number
   sourceReady?: boolean

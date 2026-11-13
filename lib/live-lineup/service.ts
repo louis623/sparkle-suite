@@ -67,6 +67,8 @@ export async function getEffectiveLiveQueueSnapshot(db: SupabaseClient, repId: s
   return {
     syncCode: '', queue, queueLength: queue.length, currentCustomer: queue[0] ?? null, onDeckCustomer: queue[1] ?? null,
     lastUpdated: configured ? lastUpdated : null, ageSeconds, staleAfterSeconds: 45, isFresh: configured && workspace.connection === 'connected',
+    ...(configured && state.parserState === 'invalid' && state.publisher?.capabilities === 'lineup-2.0.5' && workspace.connection === 'delayed'
+      ? {invalidHeartbeatRemainingSeconds: Math.max(0, (Date.parse(state.publisher.leaseExpiresAt) - now) / 1000)} : {}),
     revision: state.revision, sourceReady: configured && state.parserState === 'ready', serverTime: new Date(now).toISOString(),
     ...(configured ? {presentation: projectPublicLineup({scope: `${repId}:${state.show?.generation ?? 0}`,
       entries: workspace.entries, events: state.revealEvents ?? [], cursor: state.revealEventCursor ?? 0, now})} : {}),

@@ -64,7 +64,7 @@ export function requestedLineupPresentation(request: Request): 'grouped-v1' | 'l
 }
 
 export function buildPublicLiveLineup(snapshot: LiveQueueSnapshot | null | undefined, contract: 'grouped-v1' | 'legacy' = 'legacy') {
-  const retained = Boolean(snapshot?.lastUpdated && Number.isFinite(Date.parse(snapshot.lastUpdated))) && snapshot?.ageSeconds !== null && snapshot?.ageSeconds !== undefined && snapshot.ageSeconds >= 0 && snapshot.ageSeconds <= LIVE_LINEUP_RETAIN_SECONDS
+  const retained = Boolean(snapshot?.lastUpdated && Number.isFinite(Date.parse(snapshot.lastUpdated))) && snapshot?.ageSeconds !== null && snapshot?.ageSeconds !== undefined && snapshot.ageSeconds >= 0 && (snapshot.ageSeconds <= LIVE_LINEUP_RETAIN_SECONDS || (snapshot.invalidHeartbeatRemainingSeconds ?? 0) > 0)
   const fresh = Boolean(retained && snapshot?.isFresh && snapshot?.sourceReady !== false && snapshot.ageSeconds! < snapshot.staleAfterSeconds)
   const presentation = contract === LIVE_LINEUP_PRESENTATION ? snapshot?.presentation : undefined
   const rows: { name: string; token?: string; remainingOrders?: number }[] = retained ? presentation?.entries ?? (snapshot?.queue ?? []).map(name => ({ name })) : []
@@ -80,6 +80,7 @@ export function buildPublicLiveLineup(snapshot: LiveQueueSnapshot | null | undef
     liveQueueLastUpdated: snapshot?.lastUpdated ?? null,
     liveQueueRevision: snapshot?.revision,
     liveQueueSourceReady: snapshot?.sourceReady,
+    ...(snapshot?.invalidHeartbeatRemainingSeconds ? {liveQueueRetainForSeconds: snapshot.invalidHeartbeatRemainingSeconds} : {}),
     liveQueueServerTime: snapshot?.serverTime,
     liveQueueAgeSeconds: snapshot?.ageSeconds ?? null,
     liveQueueStaleAfterSeconds: snapshot?.staleAfterSeconds ?? 180,
