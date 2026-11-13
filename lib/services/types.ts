@@ -396,6 +396,7 @@ export interface SubmitTradeRequestResult {
 }
 
 export interface TradeRequestRevealScreenshot {
+  thumbPath?: string
   objectPath: string
   contentType: string
   sizeBytes: number
@@ -1195,6 +1196,7 @@ export interface PrelaunchIntakeInsert {
 }
 
 export interface GetTradeRequestsFilters {
+  pendingDancerOrder?: boolean
   statusFilter?: TradeRequestStatus // default: 'pending'
   limit?: number
   requestId?: string
@@ -1202,6 +1204,9 @@ export interface GetTradeRequestsFilters {
 }
 
 export interface TradeRequestWithListing {
+  pendingPosition?: number
+  dancerPhotoUrl?: string | null
+  photoExpired?: boolean
   id: string
   status: TradeRequestStatus
   customerName: string
@@ -1217,6 +1222,7 @@ export interface TradeRequestWithListing {
   screening: import('./trade-request-matcher').TradeScreening
   verificationNeeded: boolean
   listing: {
+    quantityAvailable?: number
     id: string
     repId: string
     listingSource?: ListingSource
@@ -1237,6 +1243,13 @@ export interface TradeRequestWithListing {
 }
 
 export interface TradeRequestNotificationSummary {
+  pendingPosition?: number
+  offeredFamily?: string | null
+  offeredType?: JewelryType | null
+  screeningStatus?: import('./trade-request-matcher').TradeScreening['status']
+  createdAt?: string
+  dancerPhotoUrl?: string | null
+  photoExpired?: boolean
   requestId: string
   repId: string
   customerName: string

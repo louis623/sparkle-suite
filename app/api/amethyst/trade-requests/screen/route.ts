@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+import { allowTradeRequest } from '@/lib/amethyst/trade-request-rate-limit'
+import { readSwapJson, SwapHttpError, swapIpHash, verifySwapOrigin } from '@/lib/amethyst/swap-http'
 import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import { screenTradeRequestForListing, TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH } from '@/lib/services/trade-requests'
@@ -11,18 +13,16 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {
-    if (Number(request.headers.get('content-length') ?? 0) > 4096) {
-      return NextResponse.json({ error: 'Payload too large.' }, { status: 413 })
-    }
-    const raw = await request.text()
-    if (raw.length > 4096) return NextResponse.json({ error: 'Payload too large.' }, { status: 413 })
-    const body = JSON.parse(raw) as Record<string, unknown>
+    verifySwapOrigin(request)
+    const body = await readSwapJson(request, 4096)
     const listingId = typeof body.listingId === 'string' ? body.listingId.trim() : ''
     const offeredFamily = typeof body.offeredFamily === 'string' ? body.offeredFamily.trim() : null
     const offeredType = typeof body.offeredType === 'string' ? body.offeredType.trim() : null
     if (!listingId || listingId.length > 100 || (offeredFamily?.length ?? 0) > TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH) {
       return NextResponse.json({ error: 'Invalid swap details.' }, { status: 400 })
     }
+    const throttle = allowTradeRequest(request, listingId, 'screen', swapIpHash(request))
+    if (!throttle.allowed) return NextResponse.json({error:'Try screening again shortly.'}, {status:429,headers:{'Retry-After':String(throttle.retryAfter)}})
     const admin = createAdminClient()
     const target = resolveAmethystRequestTarget(request)
     const targetRep = target.targeted
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ screening: screen.screening, alternatives }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
-    if (error instanceof SyntaxError) return NextResponse.json({ error: 'Invalid payload.' }, { status: 400 })
+    if (error instanceof SwapHttpError) return NextResponse.json({error:error.message},{status:error.status})
     if (error instanceof ServiceError) return NextResponse.json({ code: error.code, error: error.userMessage }, { status: error.statusCode })
     console.error('[amethyst/trade-requests/screen] Error:', error)
     return NextResponse.json({ error: 'Swap guidance unavailable.' }, { status: 500 })

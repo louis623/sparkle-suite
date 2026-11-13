@@ -898,3 +898,6 @@
   }
 }
 .tradeException{background:#fff0db;border:1px solid #cb7a24;border-radius:8px;padding:8px;margin-top:8px;color:#65340c}
+
+.requestPhotos { display: flex; gap: .65rem; align-items: center; flex-wrap: wrap; }
+.requestPhotos > img { width: 72px; max-width: 40%; height: 72px; object-fit: contain; }

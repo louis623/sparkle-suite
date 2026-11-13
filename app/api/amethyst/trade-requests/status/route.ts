@@ -25,7 +25,7 @@ export async function GET(request: Request) {
   const token = new URL(request.url).searchParams.get('token') ?? ''
   if (!/^[a-f0-9]{64}$/.test(token)) return NextResponse.json({ error: 'Receipt not found.' }, { status: 404, headers: PRIVATE_HEADERS })
   try {
-    const status = await getTradeRequestReceiptStatus(createAdminClient(), token)
+    const status = await getTradeRequestReceiptStatus(createAdminClient(), token, true)
     if (!status) return NextResponse.json({ error: 'Receipt not found.' }, { status: 404, headers: PRIVATE_HEADERS })
     return NextResponse.json(status, { headers: PRIVATE_HEADERS })
   } catch (error) {

@@ -8,3 +8,7 @@
 .tabs{display:flex;gap:8px}.tabs button,.actions button{border:1px solid #684586;background:#fff;color:#3b2850;border-radius:9px;padding:9px 14px;font:inherit;font-weight:700;cursor:pointer}.tabs button[aria-pressed=true],.actions button[type=submit]{background:#684586;color:#fff}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}.actions button:disabled{opacity:.55;cursor:not-allowed}.error{color:#9b2020;font-weight:700;margin:0}
 .match{color:#285534;font-weight:700;margin:0}
 @media(max-width:600px){.scrim{padding:8px}.dialog{padding:16px;max-height:calc(100vh - 16px)}.actions{flex-wrap:wrap}}
+.comparison {display:grid;grid-template-columns:1fr 1fr;gap:.75rem;align-items:center}.comparison img {max-width:100%;object-fit:contain}
+
+.facts .comparison a { display: block; width: 100%; }
+.comparison .screenshot { display: block; width: 100%; height: auto; max-height: 220px; object-fit: contain; }

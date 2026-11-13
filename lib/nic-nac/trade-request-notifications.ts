@@ -1,58 +1,19 @@
-import { randomUUID } from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
-
 import type { TradeRequestNotificationSummary } from '@/lib/services/types'
-import { getLatestConversationId } from '@/lib/nic-nac/persistence'
-import { buildTradeRequestCardPart } from '@/lib/nic-nac/trade-request-card-parts'
+import { buildTradeRequestCardPart, swapOfferLine } from './trade-request-card-parts'
 
-export function buildTradeRequestNotificationText(
-  summary: TradeRequestNotificationSummary,
-) {
-  const requestedItem = summary.listing.itemNumber
-    ? `${summary.listing.designName} (${summary.listing.itemNumber})`
-    : `${summary.listing.designName}${
-        summary.listing.listingSource === 'non_item_number'
-          ? ' (non-item number piece)'
-          : ''
-      }`
-  const collectionLine = summary.listing.collectionName
-    ? `${summary.listing.collectionName} / ${summary.listing.typePrefix}`
-    : summary.listing.typePrefix
-
+export function buildTradeRequestNotificationText(summary: TradeRequestNotificationSummary) {
   return [
-    `New swap request from ${summary.customerName} for ${requestedItem}.`,
-    `They offered: ${summary.customerDescription}`,
-    summary.revealScreenshot
-      ? 'They included a reveal screenshot in the Dance Floor request inbox.'
-      : null,
-    `Review it against the same-collection + same-type rule first: ${collectionLine}.`,
-    'Open your pending swap requests in Nic-Nac when you want to approve or deny it.',
-  ].filter(Boolean).join('\n\n')
+    `${summary.customerName} wants ${summary.listing.designName}`,
+    swapOfferLine(summary),
+    `[Review swap request](/nic-nac?tradeRequest=${encodeURIComponent(summary.requestId)})`,
+  ].join('\n\n')
 }
 
-export async function notifyRepOfTradeRequest(
-  supabase: SupabaseClient,
-  summary: TradeRequestNotificationSummary,
-) {
-  const conversationId =
-    (await getLatestConversationId(supabase, summary.repId)) ?? randomUUID()
-
-  const { error } = await supabase.from('nic_nac_conversations').upsert(
-    {
-      conversation_id: conversationId,
-      message_id: `trade-request-${summary.requestId}`,
-      rep_id: summary.repId,
-      role: 'assistant',
-      parts: [
-        {
-          type: 'text',
-          text: buildTradeRequestNotificationText(summary),
-        },
-        buildTradeRequestCardPart(summary),
-      ],
-      status: 'complete',
-    },
-    { onConflict: 'conversation_id,message_id', ignoreDuplicates: true },
-  )
+export async function notifyRepOfTradeRequest(supabase: SupabaseClient, summary: TradeRequestNotificationSummary) {
+  const {error} = await supabase.rpc('rpc_notify_swap_request', {
+    p_request_id: summary.requestId, p_rep_id: summary.repId,
+    p_parts: [{type:'text', text:buildTradeRequestNotificationText(summary)}, buildTradeRequestCardPart(summary)],
+  })
   if (error) throw error
 }

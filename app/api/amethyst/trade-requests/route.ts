@@ -1,3 +1,5 @@
+import { readSwapJson, swapIpHash, SwapHttpError, verifySwapOrigin } from '@/lib/amethyst/swap-http'
+import { readSwapPhotoPolicy } from '@/lib/amethyst/swap-photo-policy'
 import { NextResponse } from 'next/server'
 
 import { allowTradeRequest } from '@/lib/amethyst/trade-request-rate-limit'
@@ -17,6 +19,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export const runtime = 'nodejs'
 
 type TradeRequestPayload = {
+  intent: 'send' | 'recover' | 'retry' | 'abandon'
   listingId: string
   customerName: string
   customerDescription: string
@@ -27,7 +30,6 @@ type TradeRequestPayload = {
   uploadId: string | null
 }
 
-const JSON_BODY_MAX_BYTES = 16 * 1024
 
 class TradeRequestPayloadError extends Error {
   constructor(
@@ -44,23 +46,13 @@ function readString(value: unknown) {
 }
 
 async function readPayload(request: Request): Promise<TradeRequestPayload> {
-  const contentType = request.headers.get('content-type')?.toLowerCase() ?? ''
-  const isJson = contentType.split(';', 1)[0]?.trim() === 'application/json'
-  if (!isJson) {
-    throw new TradeRequestPayloadError(
-      'Refresh the Dance Floor page before sending a swap request.',
-      415,
-    )
-  }
-  const bytes = await readBoundedRequestBytes(request, JSON_BODY_MAX_BYTES)
-
-  let body: Record<string, unknown>
-  try {
-    body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as Record<string, unknown>
-  } catch {
-    throw new TradeRequestPayloadError('Invalid request payload.', 400)
-  }
+  verifySwapOrigin(request)
+  const body = await readSwapJson(request)
+  const intent = body.intent ?? 'send'
+  if (intent !== 'send' && intent !== 'recover' && intent !== 'retry' && intent !== 'abandon') throw new SwapHttpError(400, 'Invalid swap operation.')
+  if (intent !== 'send' && !body.submissionId) throw new SwapHttpError(400, 'Missing original submission.')
   return {
+    intent,
     listingId: readString(body?.listingId),
     customerName: readString(body?.customerName),
     customerDescription: readString(body?.customerDescription),
@@ -80,38 +72,6 @@ function readOfferedType(value: unknown): TradeRequestPayload['offeredType'] {
 
 function readBoolean(value: unknown): boolean {
   return value === true || value === 'true'
-}
-
-async function readBoundedRequestBytes(request: Request, maxBytes: number) {
-  const contentLength = Number(request.headers.get('content-length') ?? 0)
-  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
-    throw new TradeRequestPayloadError('Swap request is too large.', 413)
-  }
-  const reader = request.body?.getReader()
-  if (!reader) return new Uint8Array()
-  const chunks: Uint8Array[] = []
-  let totalBytes = 0
-  try {
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      totalBytes += value.byteLength
-      if (totalBytes > maxBytes) {
-        await reader.cancel()
-        throw new TradeRequestPayloadError('Swap request is too large.', 413)
-      }
-      chunks.push(value)
-    }
-  } finally {
-    reader.releaseLock()
-  }
-  const body = new Uint8Array(totalBytes)
-  let offset = 0
-  for (const chunk of chunks) {
-    body.set(chunk, offset)
-    offset += chunk.byteLength
-  }
-  return body
 }
 
 function validatePayloadBounds(payload: TradeRequestPayload) {
@@ -145,13 +105,6 @@ export async function POST(request: Request) {
   try {
     const payload = await readPayload(request)
     validatePayloadBounds(payload)
-    const throttle = allowTradeRequest(request, payload.listingId)
-    if (!throttle.allowed) {
-      return NextResponse.json(
-        { error: 'Too many swap requests for this dancer. Please try again shortly.' },
-        { status: 429, headers: { 'retry-after': String(throttle.retryAfter) } },
-      )
-    }
     const admin = createAdminClient()
     const target = resolveAmethystRequestTarget(request)
     const targetRep = target.targeted
@@ -170,7 +123,8 @@ export async function POST(request: Request) {
       )
     }
 
-    const result = await submitTradeRequest(admin, {
+    const policy = await readSwapPhotoPolicy(admin)
+    const input = {
       listingId: payload.listingId,
       customerName: payload.customerName,
       customerDescription: payload.customerDescription,
@@ -180,9 +134,40 @@ export async function POST(request: Request) {
       offeredType: payload.offeredType,
       manualReviewRequested: payload.manualReviewRequested,
       uploadId: payload.uploadId,
-    })
+    }
+    const privateHeaders = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' }
+    const wantsMutation = payload.intent === 'send' || payload.intent === 'retry'
+    let result = payload.submissionId ? await submitTradeRequest(admin, { ...input, intent: payload.intent === 'abandon' ? 'abandon' : 'recover' }) : { outcome: 'absent' as const }
+    if ('outcome' in result && result.outcome === 'absent' && wantsMutation) {
+      try {
+        if (!payload.uploadId && policy.required) {
+          throw new ServiceError({code:'PHOTO_REQUIRED',message:'PHOTO_REQUIRED',userMessage:'Refresh the Dance Floor page and add a photo',statusCode:400})
+        }
+        const requestIpHash = swapIpHash(request)
+        const throttle = allowTradeRequest(request, payload.listingId, 'send', requestIpHash)
+        if (!throttle.allowed) {
+          throw new ServiceError({code:'SEND_RATE_LIMIT',message:'SEND_RATE_LIMIT:'+throttle.retryAfter,userMessage:'Too many swap requests for this dancer. Try again shortly.',statusCode:429})
+        }
+        result = await submitTradeRequest(admin, { ...input, intent: payload.intent, requestIpHash })
+      } catch (error) {
+        if (payload.intent !== 'retry' || !(error instanceof ServiceError) ||
+            error.statusCode >= 500 || error.statusCode === 408 || error.code === 'IDEMPOTENCY_CONFLICT') throw error
+        // The passive lookup released its submission lock. The original POST
+        // may have arrived since then. Fence it before allowing edits.
+        const settled = await submitTradeRequest(admin, { ...input, intent:'abandon' })
+        if ('outcome' in settled) {
+          if (settled.outcome !== 'abandoned') throw new Error('Could not settle the original swap request')
+          return NextResponse.json({ code:error.code, error:error.userMessage, attemptClosed:true }, {
+            status:error.statusCode,
+            headers:{ ...privateHeaders, ...(error.statusCode===429?{'Retry-After':String(Number(error.message.split(':')[1]) || 60)}:{}) },
+          })
+        }
+        result = settled
+      }
+    }
+    if ('outcome' in result) return NextResponse.json(result, { headers: privateHeaders })
 
-    if (!result.mutationReplayed) {
+    { // The transactional delivery RPC also repairs a previously missed alert.
       try {
         const summary = await getTradeRequestNotificationSummary(
           admin,
@@ -204,7 +189,7 @@ export async function POST(request: Request) {
       { status: 201, headers: { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' } },
     )
   } catch (error) {
-    if (error instanceof TradeRequestPayloadError) {
+    if (error instanceof TradeRequestPayloadError || error instanceof SwapHttpError) {
       return NextResponse.json({ error: error.message }, { status: error.status })
     }
     if (error instanceof ServiceError) {
@@ -213,7 +198,7 @@ export async function POST(request: Request) {
           code: error.code,
           error: error.userMessage,
         },
-        { status: error.statusCode },
+        { status: error.statusCode, headers: error.statusCode === 429 ? { 'Retry-After': String(Number(error.message.split(':')[1]) || 60) } : {} },
       )
     }
 

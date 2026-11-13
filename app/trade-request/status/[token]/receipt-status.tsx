@@ -6,6 +6,7 @@ import styles from './receipt-status.module.css'
 type Receipt = {
   status: 'pending' | 'approved' | 'denied' | 'cancelled'
   denialExplanation: string | null
+  photoExpired?: boolean
   updatedAt: string | null
 }
 
@@ -54,6 +55,7 @@ export default function ReceiptStatus({ token }: { token: string }) {
         if (!data.status || !Object.hasOwn(STATUS_COPY, data.status)) throw new Error('Status is unavailable right now. Please try again.')
         setReceipt({
           status: data.status,
+          photoExpired: data.photoExpired === true,
           denialExplanation: typeof data.denialExplanation === 'string' ? data.denialExplanation : null,
           updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : null,
         })
@@ -78,6 +80,7 @@ export default function ReceiptStatus({ token }: { token: string }) {
           <>
             <p>{STATUS_COPY[receipt.status].body}</p>
             {receipt.status === 'denied' && receipt.denialExplanation ? <p className={styles.explanation}>{receipt.denialExplanation}</p> : null}
+            {receipt.photoExpired && <p>Your photo expired after 7 days.</p>}
             {receipt.updatedAt ? <p className={styles.updated}>Updated {new Date(receipt.updatedAt).toLocaleString()}</p> : null}
           </>
         ) : null}

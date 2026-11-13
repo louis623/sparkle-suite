@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { createHmac, randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import sharp from 'sharp'
 
@@ -33,6 +33,9 @@ type Ticket = {
   declared_size_bytes: number
   ready_size_bytes: number | null
   created_at: string
+  rendition_version: number
+  thumb_path: string | null
+  discarded_at: string | null
   ready_at: string | null
   consumed_request_id: string | null
 }
@@ -55,15 +58,9 @@ export function assertTradeUploadInput(input: {
     throw failure('TRADE_UPLOAD_UNSUPPORTED_TYPE', 'Choose a JPEG, PNG, WebP, HEIC, HEIF, or AVIF image.', 415)
   }
   if (!Number.isInteger(input.byteSize) || input.byteSize < 1 || input.byteSize > TRADE_UPLOAD_MAX_BYTES) {
-    throw failure('TRADE_UPLOAD_TOO_LARGE', 'Choose an image smaller than 25 MB.', 413)
+    throw failure('TRADE_UPLOAD_TOO_LARGE', 'Choose an image of 25 MB or less.', 413)
   }
   return { ...input, contentType }
-}
-
-export function tradeUploadIpHash(address: string): string {
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!secret) throw failure('TRADE_UPLOAD_UNAVAILABLE', 'Photo upload is temporarily unavailable.', 503)
-  return createHmac('sha256', secret).update(`trade-upload-ip:v1:${address}`).digest('hex')
 }
 
 export async function createTradeUploadTicket(admin: SupabaseClient, input: {
@@ -78,43 +75,41 @@ export async function createTradeUploadTicket(admin: SupabaseClient, input: {
   if (!/^[a-f0-9]{64}$/.test(input.ipHash)) {
     throw failure('TRADE_UPLOAD_INVALID_REQUEST', 'Refresh the swap form and try the photo again.', 400)
   }
-  const listing = await admin.from('trade_listings')
-    .select('id, rep_id, status, quantity_available')
-    .eq('id', parsed.listingId).maybeSingle()
-  if (listing.error) throw listing.error
-  if (!listing.data || listing.data.status !== 'available' ||
-      Number(listing.data.quantity_available ?? 0) < 1 ||
-      (input.expectedRepId && listing.data.rep_id !== input.expectedRepId)) {
-    throw failure('TRADE_UPLOAD_LISTING_UNAVAILABLE', 'That dancer is no longer available. Refresh the Dance Floor.', 404)
-  }
-  const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-  const recent = await admin.from('trade_request_upload_tickets')
-    .select('id', { count: 'exact', head: true })
-    .eq('request_ip_hash', input.ipHash).gte('created_at', cutoff)
-  if (recent.error) throw recent.error
-  if ((recent.count ?? 0) >= 20) {
-    throw failure('TRADE_UPLOAD_RATE_LIMITED', 'Too many photo attempts. Please try again later.', 429)
-  }
-
   const id = randomUUID()
-  const rawPath = `staging/${listing.data.rep_id}/${id}.${CONTENT_TYPES[parsed.contentType]}`
-  const inserted = await admin.from('trade_request_upload_tickets').insert({
-    id,
-    listing_id: parsed.listingId,
-    rep_id: listing.data.rep_id,
-    submission_id: parsed.submissionId,
-    request_ip_hash: input.ipHash,
-    raw_path: rawPath,
-    declared_content_type: parsed.contentType,
-    declared_size_bytes: parsed.byteSize,
+  const { data, error } = await admin.rpc('admit_swap_upload', {
+    p_id: id, p_listing_id: parsed.listingId, p_submission_id: parsed.submissionId,
+    p_expected_rep: input.expectedRepId ?? null, p_ip_hash: input.ipHash,
+    p_content_type: parsed.contentType, p_size: parsed.byteSize,
   })
-  if (inserted.error) throw inserted.error
-  const signed = await admin.storage.from(TRADE_UPLOAD_BUCKET).createSignedUploadUrl(rawPath)
-  if (signed.error || !signed.data?.signedUrl) {
-    await admin.from('trade_request_upload_tickets').delete().eq('id', id)
-    throw failure('TRADE_UPLOAD_UNAVAILABLE', 'Photo upload is temporarily unavailable. Please try again.', 503, signed.error)
+  if (error) throw uploadRpcError(error)
+  if (data?.code) {
+    const messages: Record<string, string> = {
+      TRADE_UPLOAD_SUBMISSION_LIMIT: 'Too many photos for this request. Please try again later.',
+      TRADE_UPLOAD_PENDING_LIMIT: 'Too many unfinished photo uploads on this connection. Please try again later.',
+      TRADE_UPLOAD_TOTAL_LIMIT: 'Too many photo uploads on this connection this hour. Please try again later.',
+      TRADE_UPLOAD_BYTE_LIMIT: 'The daily photo allowance for this connection has been reached. Please check again later.',
+    }
+    throw Object.assign(failure(data.code, messages[data.code] ?? 'Please try again later.', 429),
+      { retryAfter: Math.max(1, Number(data.retry_after) || 60) })
   }
-  return { uploadId: id, uploadUrl: signed.data.signedUrl }
+  const signed = await admin.storage.from(TRADE_UPLOAD_BUCKET).createSignedUploadUrl(data.raw_path)
+  if (signed.error || !signed.data?.signedUrl) {
+    throw failure('TRADE_UPLOAD_UNAVAILABLE', 'Photo upload is temporarily unavailable.', 503)
+  }
+  // Time measured after the signer returns gives a conservative expiry even if signing was delayed.
+  const until = new Date(Date.now() + TICKET_HOURS * 3600_000 + 60_000).toISOString()
+  const recorded = await admin.from('trade_request_upload_tickets').update({ signed_until: until })
+    .eq('id', id).is('discarded_at', null).select('id').maybeSingle()
+  if (recorded.error || !recorded.data) throw failure('TRADE_UPLOAD_UNAVAILABLE', 'Please try attaching the photo again.', 503)
+  return { uploadId: id, uploadUrl: signed.data.signedUrl, createdAt: data.created_at,
+    expiresAt: new Date(Date.parse(data.created_at) + TICKET_HOURS * 3600_000).toISOString() }
+}
+
+function uploadRpcError(error: { message: string }) {
+  if (error.message === 'TRADE_UPLOAD_ALREADY_USED') return failure(error.message, 'This photo was already sent.', 409)
+  if (error.message === 'TRADE_UPLOAD_NOT_FOUND') return failure(error.message, 'The upload was not found.', 404)
+  if (error.message === 'TRADE_UPLOAD_LISTING_UNAVAILABLE') return failure(error.message, 'That dancer is no longer available.', 404)
+  return failure('TRADE_UPLOAD_UNAVAILABLE', 'Photo upload is temporarily unavailable.', 503)
 }
 
 async function findTicket(admin: SupabaseClient, input: {
@@ -135,6 +130,7 @@ async function findTicket(admin: SupabaseClient, input: {
       (input.expectedRepId && ticket.rep_id !== input.expectedRepId)) {
     throw failure('TRADE_UPLOAD_NOT_FOUND', 'This photo upload is no longer available. Choose the photo again.', 404)
   }
+  if (ticket.discarded_at) throw failure('TRADE_UPLOAD_NOT_FOUND', 'That photo was removed.', 404)
   if (ticket.consumed_request_id) {
     throw failure('TRADE_UPLOAD_ALREADY_USED', 'This photo was already sent with a swap request.', 409)
   }
@@ -151,7 +147,7 @@ export async function confirmTradeUpload(admin: SupabaseClient, input: {
   expectedRepId?: string | null
 }) {
   const ticket = await findTicket(admin, input)
-  if (ticket.ready_at && ticket.ready_path && ticket.ready_size_bytes) {
+  if (ticket.ready_at && ticket.ready_path && ticket.ready_size_bytes && (ticket.rendition_version === 1 || ticket.thumb_path)) {
     return readyResult(ticket.ready_at)
   }
   const bucket = admin.storage.from(TRADE_UPLOAD_BUCKET)
@@ -197,98 +193,44 @@ export async function confirmTradeUpload(admin: SupabaseClient, input: {
   if (output.byteLength < 1 || output.byteLength > TRADE_UPLOAD_MAX_BYTES) {
     throw failure('TRADE_UPLOAD_TOO_LARGE', 'This photo could not be prepared under 25 MB. Try a smaller copy.', 413)
   }
-  const readyPath = `${ticket.rep_id}/trade-request-uploads/${ticket.id}.jpg`
-  const uploaded = await bucket.upload(readyPath, output, { contentType: 'image/jpeg', upsert: false })
-  if (uploaded.error) {
-    // A duplicated confirm can race with the first one. The immutable final
-    // path prevents overwrite; wait briefly for the winning confirm to record
-    // readiness so the second caller receives the same successful result.
-    if (/already exists|resource exists/i.test(uploaded.error.message)) {
-      for (let attempt = 0; attempt < 4; attempt += 1) {
-        const latest = await admin.from('trade_request_upload_tickets')
-          .select('ready_at').eq('id', ticket.id).maybeSingle()
-        if (latest.error) break
-        if (latest.data?.ready_at) return readyResult(latest.data.ready_at)
-        await new Promise((resolve) => setTimeout(resolve, 150))
-      }
+  const full = `${ticket.rep_id}/trade-request-uploads/${ticket.id}.jpg`
+  const thumb = `${ticket.rep_id}/trade-request-uploads/${ticket.id}.800.jpg`
+  const small = await sharp(output).resize({ width: 800, height: 800, fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 85 }).toBuffer()
+  for (const [path, buffer] of [[full, output], [thumb, small]] as const) {
+    const result = await bucket.upload(path, buffer, { contentType: 'image/jpeg', upsert: false })
+    if (result.error) {
+      // Never publish a partial or mixed pair. A duplicate writer may only observe an already committed pair.
+      const winner = await findTicket(admin, input)
+      if (winner.ready_at && winner.ready_path && (winner.rendition_version === 1 || winner.thumb_path)) return readyResult(winner.ready_at)
+      throw failure('TRADE_UPLOAD_UNAVAILABLE', 'Please attach the photo again.', 503)
     }
-    throw failure('TRADE_UPLOAD_UNAVAILABLE', 'The photo could not be saved. Please try again.', 503, uploaded.error)
   }
   const readyAt = new Date().toISOString()
-  const updated = await admin.from('trade_request_upload_tickets').update({
-    ready_path: readyPath,
-    ready_size_bytes: output.byteLength,
-    ready_at: readyAt,
-  }).eq('id', ticket.id).is('ready_at', null)
-  if (updated.error) {
-    await bucket.remove([readyPath])
-    throw updated.error
-  }
-  // The validated JPEG is the only object the rep can see. Cleanup retries a
-  // failed staging removal later without losing the confirmed attachment.
+  const updated = await admin.from('trade_request_upload_tickets').update({ ready_at: readyAt,
+    ready_path: full, ready_size_bytes: output.length, thumb_path: thumb, rendition_version: 2 })
+    .eq('id', ticket.id).is('ready_at', null).is('discarded_at', null).is('consumed_at', null)
+    .gt('created_at', new Date(Date.now()-TICKET_HOURS*3600_000).toISOString()).select('id').maybeSingle()
+  if (updated.error || !updated.data) throw failure('TRADE_UPLOAD_NOT_READY', 'Please attach the photo again.', 409)
   const removed = await bucket.remove([ticket.raw_path])
-  if (removed.error) console.error('[trade-upload] staging cleanup failed', removed.error)
+  if (removed.error) console.warn('[swap-upload] staging removal deferred')
   return readyResult(readyAt)
 }
 
 function readyResult(readyAt: string) {
-  return {
-    ready: true as const,
-    expiresAt: new Date(new Date(readyAt).getTime() + TRADE_UPLOAD_RETENTION_DAYS * 86400_000).toISOString(),
-  }
+  return { ready: true as const, expiresAt: new Date(Date.parse(readyAt) + TRADE_UPLOAD_RETENTION_DAYS * 86400_000).toISOString() }
 }
 
-export async function cleanupTradeUploadTickets(admin: SupabaseClient, now = new Date()) {
-  const stale = new Date(now.getTime() - TICKET_HOURS * 3600_000).toISOString()
-  const old = new Date(now.getTime() - TRADE_UPLOAD_RETENTION_DAYS * 86400_000).toISOString()
-  let removed = 0
-  for (let batch = 0; batch < 10; batch += 1) {
-    const result = await admin.from('trade_request_upload_tickets')
-      .select('id, raw_path, ready_path, consumed_request_id')
-      .lt('created_at', stale).is('consumed_request_id', null)
-      .order('created_at').limit(100)
-    if (result.error) throw result.error
-    const tickets = result.data ?? []
-    if (!tickets.length) break
-    const paths = tickets.flatMap((ticket) => [ticket.raw_path, ticket.ready_path].filter((path): path is string => Boolean(path)))
-    if (paths.length) {
-      const deleted = await admin.storage.from(TRADE_UPLOAD_BUCKET).remove(paths)
-      if (deleted.error) throw deleted.error
-    }
-    const deleted = await admin.from('trade_request_upload_tickets').delete()
-      .in('id', tickets.map((ticket) => ticket.id)).is('consumed_request_id', null)
-    if (deleted.error) throw deleted.error
-    removed += tickets.length
-    if (tickets.length < 100) break
+export async function discardTradeUpload(admin: SupabaseClient, input: {
+  uploadId: string; listingId: string; submissionId: string; expectedRepId?: string | null
+}) {
+  if (![input.uploadId,input.listingId,input.submissionId].every(v => UUID.test(v))) {
+    throw failure('TRADE_UPLOAD_INVALID_REQUEST', 'Refresh the swap form and try again.', 400)
   }
-  // A signed URL remains usable for up to two hours. Remove any staging file
-  // recreated after confirmation once its URL has expired, while preserving
-  // the verified JPEG and ticket for idempotent request retries.
-  const staleConsumed = await admin.from('trade_request_upload_tickets')
-    .select('id, raw_path').not('consumed_request_id', 'is', null)
-    .is('raw_cleanup_at', null).lt('created_at', stale)
-    .order('created_at').limit(1000)
-  if (staleConsumed.error) throw staleConsumed.error
-  if (staleConsumed.data?.length) {
-    const deletedRaw = await admin.storage.from(TRADE_UPLOAD_BUCKET)
-      .remove(staleConsumed.data.map((ticket) => ticket.raw_path))
-    if (deletedRaw.error) throw deletedRaw.error
-    const marked = await admin.from('trade_request_upload_tickets')
-      .update({ raw_cleanup_at: now.toISOString() })
-      .in('id', staleConsumed.data.map((ticket) => ticket.id))
-    if (marked.error) throw marked.error
-  }
-  // Keep consumed tickets for the full attachment lifetime so an idempotent
-  // request retry can still prove which image it sent.
-  const consumed = await admin.from('trade_request_upload_tickets')
-    .select('id').not('consumed_request_id', 'is', null)
-    .lt('created_at', old).order('created_at').limit(1000)
-  if (consumed.error) throw consumed.error
-  if (consumed.data?.length) {
-    const deletedTickets = await admin.from('trade_request_upload_tickets').delete()
-      .in('id', consumed.data.map((ticket) => ticket.id))
-    if (deletedTickets.error) throw deletedTickets.error
-    removed += consumed.data.length
-  }
-  return { removed }
+  const { data, error } = await admin.rpc('discard_swap_upload', { p_id: input.uploadId,
+    p_listing_id: input.listingId, p_submission_id: input.submissionId, p_expected_rep: input.expectedRepId ?? null })
+  if (error) throw uploadRpcError(error)
+  const base = `${data.rep_id}/trade-request-uploads/${data.id}`
+  const result = await admin.storage.from(TRADE_UPLOAD_BUCKET).remove([data.raw_path, base+'.jpg', base+'.800.jpg'])
+  if (result.error) throw failure('TRADE_UPLOAD_UNAVAILABLE', 'Photo removal will be retried.', 503)
+  return { discarded: true }
 }

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { TradeRequestWithListing } from '@/lib/services/types'
+import { swapOfferLine } from '@/lib/nic-nac/trade-request-card-parts'
+import { orderLabel, requestTiming, screeningLabel } from '@/lib/nic-nac/swap-request-display'
 import { TradeScreenshotLink } from './TradeScreenshotLink'
 import styles from './TradeRequestAlertCenter.module.css'
 
@@ -170,6 +172,7 @@ export function TradeRequestAlertCard({ active, activeIndex, requestCount, pendi
   onNext: () => void
   onReview: (requestId: string, action: 'approve' | 'reject') => void
 }) {
+  const timing = requestTiming(active.createdAt, active.revealScreenshot?.expiresAt)
   const exception = 'manualReviewRequested' in active && active.manualReviewRequested && 'screening' in active && active.screening?.status === 'mismatch'
   return (
     <div className={styles.wrapper} aria-label="Swap requests">
@@ -186,16 +189,16 @@ export function TradeRequestAlertCard({ active, activeIndex, requestCount, pendi
         <div className={styles.detailGrid}>
           <div className={styles.detailColumn}>
             <p><strong>{active.customerName}</strong> wants {active.listing.design.designName}{active.listing.design.itemNumber ? ` (${active.listing.design.itemNumber})` : ''}.</p>
-            <p><strong>Requested:</strong> {active.listing.design.collectionName ?? 'Collection to verify'} · {active.listing.design.typePrefix}</p>
+            <p>{swapOfferLine(active)}</p>
           </div>
           <div className={styles.detailColumn}>
-            <p><strong>Offered:</strong> {active.customerDescription}</p>
-            <p><strong>Customer-reported details:</strong> {active.offeredFamily ?? 'Collection to verify'} · {active.offeredType ?? 'Type to verify'}</p>
+            <p>{screeningLabel(active.screening?.status)}</p>
+            <p>{orderLabel(active.pendingPosition)}</p>
             {exception ? <p>{active.screening?.reason}</p> : null}
           </div>
           <div className={`${styles.detailColumn} ${styles.evidenceColumn}`}>
-            <small>Submitted {new Date(active.createdAt).toLocaleString()}</small>
-            {active.revealScreenshot ? <TradeScreenshotLink requestId={active.id} customerName={active.customerName}>View screenshot</TradeScreenshotLink> : null}
+            <small>{[timing.age, timing.expiry].filter(Boolean).join(" · ")}</small>
+            {active.revealScreenshot && !timing.expired && !active.photoExpired ? <TradeScreenshotLink requestId={active.id} customerName={active.customerName}>View screenshot</TradeScreenshotLink> : null}
             <div className={styles.actions}><button type="button" onClick={() => onReview(active.id, 'approve')}>Approve</button><button type="button" onClick={() => onReview(active.id, 'reject')}>Deny</button></div>
           </div>
         </div>

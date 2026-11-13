@@ -338,17 +338,24 @@ export async function loadConversationForClient(
     }
   }
 
-  const tradeStatuses = new Map<string, TradeRequestStatus>()
+  type Snapshot = { id: string; status: TradeRequestStatus; created_at?: string; reveal_screenshot_expires_at?: string | null }
+  const tradeStatuses = new Map<string, Snapshot>()
+  const positions = new Map<string, number>()
   if (tradeRequestIds.length > 0) {
     const uniqueTradeRequestIds = Array.from(new Set(tradeRequestIds))
     const { data, error } = await supabase
       .from('trade_requests')
-      .select('id, status')
+      .select('id, status, created_at, reveal_screenshot_expires_at')
       .in('id', uniqueTradeRequestIds)
     if (error) throw error
 
-    for (const row of (data ?? []) as Array<{ id: string; status: TradeRequestStatus }>) {
-      tradeStatuses.set(row.id, row.status)
+    const snapshots = (data ?? []) as Snapshot[]
+    for (const row of snapshots) tradeStatuses.set(row.id, row)
+    const pendingIds = snapshots.filter(row => row.status === 'pending').map(row => row.id)
+    if (pendingIds.length) {
+      const ranks = await supabase.from('swap_pending_request_positions').select('id,position').in('id', pendingIds)
+      if (ranks.error) throw ranks.error
+      for (const row of ranks.data ?? []) positions.set(row.id, Number(row.position))
     }
   }
 
@@ -361,14 +368,19 @@ export async function loadConversationForClient(
     let changed = false
     const nextParts = (m.parts ?? []).map((part) => {
       if (isTradeRequestCardPart(part)) {
-        const status = tradeStatuses.get(part.data.requestId)
-        if (!status || part.data.status === status) return part
+        const row = tradeStatuses.get(part.data.requestId)
+        if (!row) return part
+        const expiresAt = row.reveal_screenshot_expires_at ?? part.data.revealScreenshot?.expiresAt
+        const photoExpired = Boolean(part.data.photoExpired || (expiresAt && Date.parse(expiresAt) <= Date.now()))
         changed = true
         return {
           ...part,
           data: {
             ...part.data,
-            status,
+            status: row.status,
+            createdAt: row.created_at ?? part.data.createdAt,
+            pendingPosition: positions.get(row.id),
+            photoExpired,
           },
         }
       }

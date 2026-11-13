@@ -47,6 +47,7 @@ export function makeGetTradeRequestsTool(ctx: {
       try {
         rows = await getTradeRequests(ctx.supabase, ctx.repId, {
           statusFilter,
+          pendingDancerOrder: !statusFilter || statusFilter === 'pending',
           limit,
         })
       } catch (err) {
@@ -59,14 +60,18 @@ export function makeGetTradeRequestsTool(ctx: {
           requestId: r.id,
           status: r.status,
           customerName: r.customerName,
-          customerDescription: r.customerDescription,
+          customerDescription: r.customerDescription || null,
+          offeredFamily: r.offeredFamily,
+          offeredType: r.offeredType,
+          screening: r.screening,
+          pendingPosition: r.pendingPosition,
           revealScreenshot: r.revealScreenshot
             ? {
                 available: true,
                 viewUrl: `/api/nic-nac/trade-requests/${r.id}/reveal-screenshot`,
                 expiresAt: r.revealScreenshot.expiresAt,
               }
-            : { available: false },
+            : { available: false, expired: r.photoExpired === true },
           rejectionReason: r.rejectionReason,
           repNotes: r.repNotes,
           createdAt: r.createdAt,
@@ -77,9 +82,9 @@ export function makeGetTradeRequestsTool(ctx: {
             repFacingNote: r.listing.repFacingNote,
             // Prefer the rep's listing-specific photo; fall back to the
             // canonical design photo when uses_canonical_photo is true.
-            photoUrl: r.listing.usesCanonicalPhoto
+            photoUrl: r.dancerPhotoUrl ?? (r.listing.usesCanonicalPhoto
               ? r.listing.design.canonicalPhotoUrl
-              : r.listing.listingPhotoUrl,
+              : r.listing.listingPhotoUrl),
             design: {
               itemNumber: r.listing.design.itemNumber,
               designName: r.listing.design.designName,

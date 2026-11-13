@@ -3447,6 +3447,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     request: TradeRequestWithListing
     action: 'approve' | 'reject'
   } | null>(null)
+  const tradeReviewGeneration = useRef(0)
   const [tradeReviewLoading, setTradeReviewLoading] = useState(false)
   const [tradeReviewLoadError, setTradeReviewLoadError] = useState<string | null>(null)
   const [tradeInboxRequests, setTradeInboxRequests] = useState<TradeRequestWithListing[]>([])
@@ -3739,7 +3740,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       const all: TradeRequestWithListing[] = []
       const seen = new Set<string>()
       for (let offset = 0; ; offset += 50) {
-        const response = await fetch(`/api/nic-nac/trade-requests?status=pending&limit=50&offset=${offset}`, {
+        const response = await fetch(`/api/nic-nac/trade-requests?status=pending&order=dancer&limit=50&offset=${offset}`, {
           credentials: 'include', signal,
         })
         if (!response.ok) throw new Error(`trade request inbox failed: ${response.status}`)
@@ -5641,12 +5642,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   }
 
   async function openTradeReview(requestId: string, action: 'approve' | 'reject' = 'approve') {
+    const generation = ++tradeReviewGeneration.current
+    setTradeReview(null)
     setTradeReviewLoadError(null)
-    const cached = [...tradeInboxRequests, ...(tradeRequestsState.requests ?? [])].find((request) => request.id === requestId)
-    if (cached?.status === 'pending') {
-      setTradeReview({ request: cached, action })
-      return
-    }
+    // Revalidate pending status before opening a decision.
     setTradeReviewLoading(true)
     try {
       const response = await fetch(`/api/nic-nac/trade-requests?requestId=${encodeURIComponent(requestId)}`, { credentials: 'include' })
@@ -5655,11 +5654,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       if (!Array.isArray(matches) || matches.length !== 1 || matches[0].id !== requestId || matches[0].status !== 'pending') {
         throw new Error('This request is no longer pending or available to review.')
       }
+      if (generation !== tradeReviewGeneration.current) return
       setTradeReview({ request: matches[0], action })
     } catch (error) {
-      setTradeReviewLoadError(error instanceof Error ? error.message : 'Unable to load this swap request.')
+      if (generation === tradeReviewGeneration.current) setTradeReviewLoadError(error instanceof Error ? error.message : 'Unable to load this swap request.')
     } finally {
-      setTradeReviewLoading(false)
+      if (generation === tradeReviewGeneration.current) setTradeReviewLoading(false)
     }
   }
 
@@ -5669,9 +5669,16 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       const detail = (event as CustomEvent<{ requestId?: string; action?: 'approve' | 'reject' }>).detail
       if (detail?.requestId) void openTradeReview(detail.requestId, detail.action)
     }
+    const url = new URL(window.location.href)
+    const linked = url.searchParams.get('tradeRequest')
+    if (linked) {
+      url.searchParams.delete('tradeRequest')
+      window.history.replaceState(window.history.state, '', url)
+      void openTradeReview(linked)
+    }
     window.addEventListener(TRADE_REQUEST_REVIEW_EVENT, onReview)
     return () => window.removeEventListener(TRADE_REQUEST_REVIEW_EVENT, onReview)
-  }, [reviewWorkspaceMode, tradeInboxRequests, tradeRequestsState.requests])
+  }, [reviewWorkspaceMode])
 
   async function handleAdvanceFulfillment(
     requestId: string,

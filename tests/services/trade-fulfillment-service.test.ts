@@ -265,6 +265,12 @@ describe('trade fulfillment service', () => {
     })
     expect(result.items[0].gave).toContain('Rose Gold')
     expect(result.items[0].gave).toContain('Ruby')
+    const withDescription = async (placeholder:boolean) => {
+      Object.assign(row.request,{swap:null,customer_description:'See photo',description_is_placeholder:placeholder})
+      return (await getFulfillmentLogPage({ from } as never,'rep-1')).items[0].got
+    }
+    expect(await withDescription(true)).not.toContain('See photo')
+    expect(await withDescription(false)).toContain('See photo')
     row.request.reveal_screenshot_expires_at = new Date(Date.now() - 86_400_000).toISOString()
     const expired = await getFulfillmentLogPage({ from } as never, 'rep-1')
     expect(expired.items[0].hasRevealScreenshot).toBe(false)

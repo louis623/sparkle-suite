@@ -1,25 +1,37 @@
-# Trade request photo reviewer smoke
+# Dance Floor swap-request Smoke review
 
-Use the approved `codex/nic-nac-trade-hardening` branch and the live customer domain `https://www.yoursparklesuite.com`. This flow creates only synthetic reviewer catalog entries and trade requests, then deletes them in `finally`. It does not use Louis's demo account, charge a card, contact a customer, or send a provider message. The two synthetic cards identify themselves as reviewer data.
+Use a clean assembled candidate on `codex/suite-swap-request-redesign`. The review uses only Suite Smoke project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`, database `pukemqiwlyqmyytxkdmo`, and the stable origin `https://sparkle-suite-smoke.vercel.app`. Apply both new migrations to the verified Smoke database before deploying the candidate. The checked-in Smoke Vercel config must have empty crons. Use existing installed tools.
 
-## Automated request and cleanup
+## Allocate the shared window
 
-From the repo root with the normal Supabase environment in `.env.local`, set `SPARKLE_TRADE_UPLOAD_SMOKE_FILE` to a local JPEG, PNG, HEIC, HEIF, WebP, or AVIF sample no larger than 25 MiB. Set `SPARKLE_TRADE_UPLOAD_SMOKE_APP_URL=https://www.yoursparklesuite.com` and run:
+One operator owns the alias, temporary global photo policy, and synthetic reviewer during this window. Check the shared schedule and any active reviews. Record the current alias deployment and full source SHA. Verify that the owner has exclusive use before opening a customer page. An unrelated or occupied deployment is a blocker. The script enforces a persistent unique database lock and leaves it in place after an unresolved failure.
 
-```powershell
-npx tsx --conditions=react-server scripts/smoke-trade-request-upload-flow.ts
-```
+Create a private existing journal directory outside the repo. Write `exclusive-window.json` containing the UUID `runId`, human-readable `owner`, exact Smoke `origin`, `previousDeployment`, `exclusive: true` and a `returnProcedure` documenting the prior ID and guarded restoration. This record is evidence of actual exclusive allocation. A flag alone does not grant the allocation. Never put tokens or receipt links in the journal.
 
-The script resets only the designated synthetic reviewer persona, seeds two one-copy earrings, and checks a signed direct upload, private normalized attachment, idempotent submission, pending receipt, anonymous image denial, authenticated rep image access, a text-only request, and inventory reservation. Its `finally` block removes the requests, upload tickets and objects, listings, designs, and collection. A rerun reseeds clean data.
+Supply the following to the process from a Smoke-only environment. The script never reads `.env.local`.
 
-## Browser click-through
+- Supply `SPARKLE_SWAP_CANDIDATE_DEPLOYMENT` and stamp the same run UUID as `swapReviewRunId` in the Preview deployment metadata when setting its private run-scoped environment. Preflight rejects a candidate for another run before writes.
+- `SPARKLE_SWAP_REVIEW_RUN_ID`, `SPARKLE_SWAP_RUN_OWNER`, `SPARKLE_SWAP_RUN_DIR`, `SPARKLE_SWAP_PRIOR_DEPLOYMENT`, `SPARKLE_SWAP_PRIOR_SHA`, `SPARKLE_SWAP_CANDIDATE_SHA`. Use the candidate's exact clean Git HEAD. The deployment must use the identical review run ID.
+- `VERCEL_PROJECT_ID` and a scoped `VERCEL_TOKEN` for readback of this Smoke project's alias, deployment and cron state.
+- `SPARKLE_TRADE_UPLOAD_SMOKE_APP_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, both Smoke environment markers, the seven disabled provider flags and Smoke-scoped anon/service keys required by `scripts/smoke-environment/guards.mjs`. Leave the production maintenance secret absent.
+- `SPARKLE_SWAP_SMOKE_ALERT_REP_ID`, `SPARKLE_SWAP_OTHER_REP_ID` belonging to two preverified synthetic demo reps in Smoke. The owner needs paid workspace access in the existing synthetic setup. The harness signs these existing users in via a generated and verified token without mailing anyone, using separate headless browser contexts. It does not reset a shared account or use personal credentials.
+- `SPARKLE_SWAP_MAINTENANCE_SMOKE_SECRET` matching the Smoke deployment. The production scheduled credential must be absent.
+- `SPARKLE_SWAP_PLAYWRIGHT`, the absolute path to an already-installed playwright-core module, and optionally `SPARKLE_SWAP_CHROME_PATH`, the installed Chromium executable for headless isolated browser sessions. Optionally provide a synthetic `SPARKLE_SWAP_HEIC_FILE`. Otherwise the second document exercises the iPhone JPEG picker hint under emulation. Neither proves native camera conversion.
 
-Set `SPARKLE_TRADE_UPLOAD_SMOKE_REVIEW_HOLD_MS=600000` before the same command. It prints a `reviewUrl` on the **www** domain and pauses for at most ten minutes before cleanup. Open that exact URL in an isolated signed-out browser. Do not use a guessed reviewer slug or Louis's personal account.
+## Execute once
 
-1. Confirm the page shows two `Synthetic Trade Upload Earrings` cards labeled as reviewer data. Open the `P` card and choose **Request this trade**.
-2. Enter `Synthetic Reviewer Customer`, the displayed synthetic collection family, `Earrings`, and a short synthetic reveal description. Confirm the requested dancer and revealed details are shown side by side.
-3. Select the sample photo. Confirm a preview, filename and size appear, followed by **Attached and ready to send with your request**. The image is optional; choosing **Remove photo** permits a text-only request.
-4. Submit. Confirm **Request sent**, a private status link, and that the requested dancer leaves the available list. Open the status link and confirm **Your request is pending** without customer name, image, or internal notes.
-5. Let the smoke command exit successfully so its cleanup runs. If the browser interaction exceeds ten minutes, rerun the command to reseed; the old request must not be treated as a product failure after the timer expires.
+Run the existing tsx executable with `--conditions=react-server scripts/smoke-trade-request-upload-flow.ts`. There is no install, build or extra test in this command. API requests, metadata reads and storage PUTs are recorded separately from the eight HTML documents. An extra navigation or unexpected origin is blocked. The receipt is read by API, never as a ninth document.
 
-The same public page is available to ordinary visitors, but the synthetic cards exist only during the seeded window. There is no production reviewer-mode switch or token exposed to customers. Private screenshot access requires the owning rep's session; the receipt is a high-entropy bearer link and should stay private.
+1. The script verifies environment credentials and alias provenance, checks the previous commit's writer and confirm-route blobs against the original single-JPEG writer, acquires the shared lock and records initial policy state. It seeds only deterministic, run-owned IDs. The first browser document opened is load 8. The old client confirms the JPEG and the script checks the actual old ticket row.
+2. Wait for `old-ticket-ready.json`. Immediately before moving the alias, independently read it and confirm it still points to this run’s prior deployment. Deploy the actual candidate to the authorized Smoke project and move the stable Smoke alias under the authorized procedure. The script verifies project, READY state, candidate SHA and deployment ID before continuing.
+3. The same old tab submits the staged JPEG and attempts a fresh photo-free request. Five customer documents exercise fresh Send and preview, replacement and failed preview, alternate dancer, outage, and a mid-draft policy change. Two rep documents check alerts, image identity, first-come ordering, and historical fallbacks. During this one run, the harness verifies owner/other/anonymous reads and Realtime projection, synthetic database contention, run-scoped cleanup and surviving unrelated controls. Capture incomplete observations as blocked.
+4. Wait for `candidate-finished.json`, which is produced in the failure path as well. Review `teardown.json` and read the current alias first. Restore the old destination only when the current destination is this run’s verified candidate. If it is already prior, verify it; if it is a third deployment, leave it and record the conflict. No schema rollback. The script verifies the prior SHA and the board API after restore and releases the window only after successful teardown. `result.json` includes the actual load labels, observations and returned alias.
+5. Keep the durable issuance/admission ledger and private run-to-listing manifest until their signing/accounting deadlines. A final sweep remains owned by this run under `trade_swap_review_listings.run_id`; only that namespace may be revisited by a later authorized cleanup. Never delete hourly admission or overwrite a newer policy generation to force a pass. The restored app’s old issue/confirm routes remain reachable; the Smoke scheduler stays off.
+
+## Customer renderer and offline dependencies
+
+Use the verified synthetic rep’s public `/{slug}/trade` route. Include that rep’s slug in the candidate deployment’s `REP_RENDER_V2_SLUGS` override, preserving the existing list. This is a candidate-only setting. The prior app can use its old SSR or legacy writer. If its page HEAD does not identify an SSR response, set `SPARKLE_SWAP_LEGACY_RUNTIME_DIR` to an existing offline directory with the exact React, ReactDOM and Babel files named in the frozen Trade.html. The harness verifies their SHA384 digests before opening the old document and fulfills only those three script requests from memory. No external CDN connection, package install, or additional document is needed. If the verified assets are unavailable, record the preflight block.
+
+## Interrupted teardown
+
+The lock survives process death. Use the same private journal, owner, exact run ID and pinned deployment identities to inspect it. The entry point supports `--cleanup-interrupted` as a separately authorized recovery operation. It checks the existing lock against the journal, does no browser loads or submissions, and reconciles only the deterministic fixture IDs in that run. A competing policy edit or third-party alias blocks restoration. Do not spend a second script execution under a one-run budget. Report an interrupted cleanup and the owner’s recovery procedure. The retained records show who owns late-object cleanup without deleting active quota or audit evidence.

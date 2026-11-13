@@ -1,3 +1,5 @@
+import { RequestSheet } from "./swap-request-sheet.jsx";
+import { browserStorage, restoreDraft, saveDraft } from "./swap-request-state.js";
 import { initialLineup } from "./initial-lineup.jsx";
 import { HeroMotionScene, SparkleFx as SharedSparkleFx } from "./hero-motion.jsx";
 /* global React, ReactDOM */
@@ -107,7 +109,7 @@ const BOOTSTRAP_SOURCE = Array.isArray(window.AMETHYST_TRADE_BOARD_LISTINGS)
   : (RUNTIME_CONTEXT.targeted ? [] : DEMO_DANCE_FLOOR_LISTINGS);
 const BOOTSTRAP_LISTINGS = BOOTSTRAP_SOURCE.map((listing) => (
   listing && typeof listing === "object"
-    ? { ...listing, collection: displayCollectionLabel(listing.collection) }
+    ? { ...listing, matcherFamily: Object.hasOwn(listing, "matcherFamily") ? listing.matcherFamily : listing.collection, collection: displayCollectionLabel(listing.collection) }
     : listing
 ));
 const TRADE_REQUEST_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests");
@@ -117,28 +119,8 @@ const TRADE_SCREEN_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/sc
 const TRADE_BOARD_ENDPOINT = withCurrentSearch("/api/amethyst/trade-board");
 const TRADE_BOARD_REFRESH_MS = 45_000;
 const BOARD_PAGE_SIZE = 24;
-const DEFAULT_TRADE_REQUEST_ERROR = "We couldn't submit that request. Please try again.";
-const TRADE_REQUEST_SCREENSHOT_MAX_BYTES = 25 * 1024 * 1024;
-const TRADE_REQUEST_SCREENSHOT_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "image/avif"]);
-const SCREENSHOT_EXTENSION_TYPES = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", heif: "image/heif", avif: "image/avif" };
-
-function screenshotContentType(file) {
-  if (!(file instanceof File)) return null;
-  const declared = file.type.toLowerCase() === "image/jpg" ? "image/jpeg" : file.type.toLowerCase();
-  if (TRADE_REQUEST_SCREENSHOT_TYPES.has(declared)) return declared;
-  if (declared && declared !== "application/octet-stream") return null;
-  return SCREENSHOT_EXTENSION_TYPES[file.name.split(".").pop()?.toLowerCase()] || null;
-}
-
-async function readTradeRequestJson(response, fallback) {
-  const body = await response.json().catch(() => null);
-  if (!response.ok) {
-    const error = new Error(body?.error || fallback);
-    error.code = body?.code || null;
-    throw error;
-  }
-  return body;
-}
+const SWAP_URLS = { submit: TRADE_REQUEST_ENDPOINT, ticket: TRADE_UPLOAD_ENDPOINT, confirm: TRADE_UPLOAD_CONFIRM_ENDPOINT, screen: TRADE_SCREEN_ENDPOINT };
+const SWAP_SITE = [window.location.origin, RUNTIME_CONTEXT.repId || RUNTIME_CONTEXT.publicSiteSlug || window.location.pathname].join("|");
 
 function isExternalHref(href) {
   return /^https?:\/\//.test(href || "");
@@ -593,6 +575,7 @@ function normalizeBootstrapPiece(piece, index) {
   return {
     id: piece.id || `bootstrap-${index + 1}`,
     name: safeName,
+    matcherFamily: Object.hasOwn(piece, "matcherFamily") ? piece.matcherFamily : piece.collection || null,
     collection: typeof piece.collection === "string" && piece.collection.trim()
       ? piece.collection.trim()
       : "Collection pending",
@@ -774,91 +757,17 @@ function sortTradeBoardListings(listings, sortMode) {
   return sorted;
 }
 
-async function submitTradeRequestRequest(payload) {
-  const response = await fetch(TRADE_REQUEST_ENDPOINT, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      listingId: payload.listingId,
-      customerName: payload.customerName,
-      customerDescription: payload.customerDescription,
-      submissionId: payload.submissionId,
-      offeredFamily: payload.offeredFamily,
-      offeredType: payload.offeredType,
-      manualReviewRequested: payload.manualReviewRequested,
-      uploadId: payload.uploadId || null,
-    }),
-  });
-  return readTradeRequestJson(response, DEFAULT_TRADE_REQUEST_ERROR);
-}
-
-async function uploadTradeRequestScreenshot(file, contentType, listingId, submissionId, signal) {
-  const ticketResponse = await fetch(TRADE_UPLOAD_ENDPOINT, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ listingId, submissionId, contentType, byteSize: file.size }),
-    signal,
-  });
-  const ticket = await readTradeRequestJson(ticketResponse, "We couldn't prepare the image upload. Try again.");
-  if (typeof ticket?.uploadId !== "string" || typeof ticket?.uploadUrl !== "string") {
-    throw new Error("We couldn't prepare the image upload. Try again.");
-  }
-
-  let uploadResponse;
-  try {
-    const uploadBody = new FormData();
-    uploadBody.append("cacheControl", "3600");
-    uploadBody.append("", file.slice(0, file.size, contentType), file.name);
-    uploadResponse = await fetch(ticket.uploadUrl, {
-      method: "PUT",
-      headers: { "x-upsert": "false" },
-      body: uploadBody,
-      signal,
-    });
-  } catch (error) {
-    if (error?.name === "AbortError") throw error;
-    throw new Error("The image did not upload. Check your connection and try again.");
-  }
-  if (!uploadResponse.ok) {
-    throw new Error("The image did not upload. Check your connection and try again.");
-  }
-
-  const confirmResponse = await fetch(TRADE_UPLOAD_CONFIRM_ENDPOINT, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ uploadId: ticket.uploadId, listingId, submissionId }),
-    signal,
-  });
-  const confirmation = await readTradeRequestJson(confirmResponse, "We couldn't attach the image. Try again.");
-  if (confirmation?.ready !== true) throw new Error("We couldn't attach the image. Try again.");
-  return { uploadId: ticket.uploadId, expiresAt: confirmation.expiresAt || null };
-}
-
-async function screenTradeOfferRequest(payload, signal) {
-  const response = await fetch(TRADE_SCREEN_ENDPOINT, {
-    method: "POST",
-    headers: { "content-type": "application/json", accept: "application/json" },
-    body: JSON.stringify(payload),
-    cache: "no-store",
-    signal,
-  });
-  if (!response.ok) throw new Error("We couldn't check this match right now.");
-  const body = await response.json();
-  if (!["likely_match", "mismatch", "needs_verification"].includes(body?.screening?.status)) {
-    throw new Error("We couldn't check this match right now.");
-  }
-  return body;
-}
-
 async function fetchTradeBoardListings() {
-  const response = await fetch(TRADE_BOARD_ENDPOINT, {
+  const url = new URL(TRADE_BOARD_ENDPOINT, location.origin);
+  url.searchParams.set("photoPolicy", "1");
+  const response = await fetch(url, {
     headers: { accept: "application/json" },
     cache: "no-store",
   });
 
   if (!response.ok) return null;
   const body = await response.json().catch(() => null);
-  return Array.isArray(body?.listings) ? body.listings : null;
+  return Array.isArray(body?.listings) ? body : null;
 }
 
 function countActiveTradeBoardFilters(filters) {
@@ -1667,398 +1576,6 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
   );
 }
 
-function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferChange, manualReviewRequired, keepDraftOnAlternative, success, pending, error, repName }) {
-  const dialogRef = useTradeDialog(Boolean(piece || success), () => { if (!pending) onClose(); }, success ? "success" : "form");
-  const [name, setName] = useState("");
-  const [offering, setOffering] = useState("");
-  const [offeredFamily, setOfferedFamily] = useState("");
-  const [offeredType, setOfferedType] = useState("");
-  const [screenshot, setScreenshot] = useState(null);
-  const [screenshotError, setScreenshotError] = useState("");
-  const [uploadState, setUploadState] = useState("idle");
-  const [uploadId, setUploadId] = useState(null);
-  const [uploadReadyFor, setUploadReadyFor] = useState(null);
-  const [uploadAttempt, setUploadAttempt] = useState(0);
-  const [screenshotPreview, setScreenshotPreview] = useState(null);
-  const [previewFailed, setPreviewFailed] = useState(false);
-  const screenshotInput = useRef(null);
-  const [submissionId, setSubmissionId] = useState(() => crypto.randomUUID());
-  const [screeningState, setScreeningState] = useState("idle");
-  const [screening, setScreening] = useState(null);
-  const [alternatives, setAlternatives] = useState([]);
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (keepDraftOnAlternative) return;
-    setName("");
-    setOffering("");
-    setOfferedFamily("");
-    setOfferedType("");
-    setScreenshot(null);
-    setScreenshotError("");
-    setUploadId(null);
-    setUploadReadyFor(null);
-    setUploadState("idle");
-    setSubmissionId(crypto.randomUUID());
-  }, [piece?.id, success, keepDraftOnAlternative]);
-
-  useEffect(() => {
-    if (!screenshot) {
-      setScreenshotPreview(null);
-      return;
-    }
-    const preview = URL.createObjectURL(screenshot);
-    setScreenshotPreview(preview);
-    setPreviewFailed(false);
-    return () => URL.revokeObjectURL(preview);
-  }, [screenshot]);
-
-  useEffect(() => {
-    if (!screenshot || !piece?.id || success) return;
-    const contentType = screenshotContentType(screenshot);
-    if (!contentType) return;
-    const controller = new AbortController();
-    let active = true;
-    setUploadId(null);
-    setUploadReadyFor(null);
-    setUploadState("selected");
-    setScreenshotError("");
-    const start = window.setTimeout(() => {
-      setUploadState("uploading");
-      uploadTradeRequestScreenshot(screenshot, contentType, piece.id, submissionId, controller.signal)
-        .then((result) => {
-          if (!active) return;
-          setUploadId(result.uploadId);
-          setUploadReadyFor({ file: screenshot, listingId: piece.id, submissionId });
-          setUploadState("attached");
-        })
-        .catch((uploadError) => {
-          if (!active || uploadError?.name === "AbortError") return;
-          setUploadState("error");
-          setScreenshotError(uploadError?.message || "The image did not attach. Try again or send without a photo.");
-        });
-    }, 120);
-    return () => {
-      active = false;
-      window.clearTimeout(start);
-      controller.abort();
-    };
-  }, [screenshot, piece?.id, submissionId, uploadAttempt, success]);
-
-  const removeScreenshot = () => {
-    setScreenshot(null);
-    setUploadId(null);
-    setUploadReadyFor(null);
-    setUploadState("idle");
-    setScreenshotError("");
-    if (screenshotInput.current) screenshotInput.current.value = "";
-  };
-
-  useEffect(() => {
-    if (!piece?.id || success || (!offeredFamily.trim() && !offeredType)) {
-      setScreeningState("idle");
-      setScreening(null);
-      setAlternatives([]);
-      return;
-    }
-    const controller = new AbortController();
-    setScreeningState("checking");
-    setScreening(null);
-    setAlternatives([]);
-    let requestTimeout;
-    const timer = window.setTimeout(() => {
-      requestTimeout = window.setTimeout(() => {
-        controller.abort();
-        setScreeningState("error");
-      }, 6000);
-      screenTradeOfferRequest({
-        listingId: piece.id,
-        offeredFamily: offeredFamily.trim() || null,
-        offeredType: offeredType || null,
-      }, controller.signal)
-        .then((result) => {
-          window.clearTimeout(requestTimeout);
-          setScreening(result.screening);
-          setAlternatives(Array.isArray(result.alternatives) ? result.alternatives : []);
-          setScreeningState("ready");
-        })
-        .catch((requestError) => {
-          window.clearTimeout(requestTimeout);
-          if (requestError?.name !== "AbortError") setScreeningState("error");
-        });
-    }, 300);
-    return () => {
-      window.clearTimeout(timer);
-      window.clearTimeout(requestTimeout);
-      controller.abort();
-    };
-  }, [piece?.id, offeredFamily, offeredType, success]);
-
-  const trimmedName = name.trim();
-  const trimmedOffering = offering.trim();
-  const screenshotAttached = uploadState === "attached" && uploadId && uploadReadyFor?.file === screenshot && uploadReadyFor?.listingId === piece?.id && uploadReadyFor?.submissionId === submissionId;
-  const canSubmit = Boolean(trimmedName && trimmedOffering && !pending && screeningState !== "checking" && (!screenshot || screenshotAttached));
-  const isMismatch = screeningState === "ready" && screening?.status === "mismatch";
-  const needsExplicitReviewAction = isMismatch || screeningState === "error" || manualReviewRequired;
-  const receiptUrl = typeof success?.receiptUrl === "string" && success.receiptUrl.startsWith("/trade-request/status/")
-    ? new URL(success.receiptUrl, window.location.origin).href
-    : null;
-  const sendRequest = (manualReviewRequested) => {
-    if (!canSubmit) return;
-    onSubmit({
-      listingId: piece.id,
-      customerName: trimmedName,
-      customerDescription: trimmedOffering,
-      offeredFamily: offeredFamily.trim() || null,
-      offeredType: offeredType || null,
-      manualReviewRequested,
-      submissionId,
-      uploadId: screenshotAttached ? uploadId : null,
-    });
-  };
-
-  if (!piece && !success) return null;
-
-  if (success) {
-    return (
-      <div className="tp-sheet-mask" onClick={pending ? undefined : onClose}>
-        <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="trade-request-title" tabIndex={-1} className="tp-sheet success" onClick={(event) => event.stopPropagation()}>
-          <button type="button" className="tp-sheet-close" onClick={onClose} aria-label="Close" disabled={pending}>&times;</button>
-          <div className="tp-sheet-handle" />
-          <div className="tp-sheet-success-icon">&#10003;</div>
-          <h3 id="trade-request-title" className="tp-sheet-success-title">Request sent.</h3>
-          <p className="tp-sheet-success-body">
-            <strong>{repName}</strong> will review your request. This is not an approved swap yet.
-          </p>
-          {success?.warning && <p className="tp-sheet-error" role="alert">{success.warning}</p>}
-          {receiptUrl && (
-            <div className="tp-sheet-receipt">
-              <strong>Save your private status link</strong>
-              <p>Open this link later to see whether your rep has approved, denied, or cancelled the request. Your rep will explain the next step for your live-show reveal swap.</p>
-              <a href={receiptUrl} rel="noreferrer">View request status</a>
-              <button type="button" onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(receiptUrl);
-                  setCopied(true);
-                } catch {
-                  setCopied(false);
-                }
-              }}>{copied ? "Copied" : "Copy private link"}</button>
-              <input type="text" readOnly value={receiptUrl} aria-label="Private status link" onFocus={(event) => event.target.select()} />
-            </div>
-          )}
-          <p className="tp-sheet-success-legal">
-            This dancer swap is solely between you and <strong>{repName}</strong>, an Independent Bomb Party Representative. The platform does not verify condition, authenticity, or value.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="tp-sheet-mask" onClick={pending ? undefined : onClose}>
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="trade-request-title" aria-busy={Boolean(pending)} tabIndex={-1} className="tp-sheet" onClick={(event) => event.stopPropagation()}>
-        <button type="button" className="tp-sheet-close" onClick={onClose} aria-label="Close" disabled={pending}>&times;</button>
-        <div className="tp-sheet-handle" />
-        <div className="tp-sheet-eyebrow">Swap request</div>
-        <h3 id="trade-request-title" className="tp-sheet-title">{piece.name}</h3>
-        <div className="tp-sheet-piece">
-          {displayCollectionLabel(piece.collection)} · {piece.type}{piece.size ? ` · Size ${piece.size}` : ""}
-        </div>
-        <p className="tp-sheet-helper">
-          Tell <strong>{repName}</strong> what you just revealed. Your dancer should be from the same collection family and jewelry type. Birthday months and years can differ.
-        </p>
-        <form
-          className="tp-sheet-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (!needsExplicitReviewAction) sendRequest(false);
-          }}
-        >
-          <div className="tp-sheet-field">
-            <label htmlFor="tp-customer-name">Your name</label>
-            <input
-              id="tp-customer-name"
-              type="text"
-              placeholder="As shown on your reveal"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              maxLength={100}
-              required
-            />
-          </div>
-          <div className="tp-sheet-match-target">
-            <div>
-              <strong>Requested dancer</strong>
-              <span>{piece.name}</span>
-              <small>{displayCollectionLabel(piece.collection)} · {piece.type}{piece.size ? ` · Size ${piece.size}` : ""}</small>
-            </div>
-            <div>
-              <strong>Your reveal</strong>
-              <span>{offering.trim() || "Describe your reveal below"}</span>
-              <small>{offeredFamily.trim() || "Collection unsure"} · {{ RG: "Ring", NK: "Necklace", ER: "Earrings", BR: "Bracelet", ST: "Stack" }[offeredType] || "Jewelry type unsure"}</small>
-            </div>
-          </div>
-          <div className="tp-sheet-field">
-            <label htmlFor="tp-offered-family">Collection family you revealed</label>
-            <input
-              id="tp-offered-family"
-              type="text"
-              list="tp-collection-families"
-              placeholder="Birthday, OG, or another"
-              value={offeredFamily}
-              onChange={(event) => {
-                setOfferedFamily(event.target.value);
-                onOfferChange();
-              }}
-              maxLength={100}
-              disabled={pending}
-            />
-            <datalist id="tp-collection-families">
-              {[...new Set(["Birthday", "OG", "Sterling Club", displayCollectionLabel(piece.collection)].filter((family) => typeof family === "string" && family.trim()))].map((family) => <option key={family} value={family} />)}
-            </datalist>
-            <p className="tp-field-hint">Leave this blank if the collection is unsure.</p>
-          </div>
-          <div className="tp-sheet-field">
-            <label htmlFor="tp-offered-type">Jewelry type you revealed</label>
-            <select id="tp-offered-type" value={offeredType} onChange={(event) => {
-              setOfferedType(event.target.value);
-              onOfferChange();
-            }} disabled={pending}>
-              <option value="">I'm not sure</option>
-              <option value="RG">Ring</option>
-              <option value="NK">Necklace</option>
-              <option value="ER">Earrings</option>
-              <option value="BR">Bracelet</option>
-              <option value="ST">Stack</option>
-            </select>
-          </div>
-          {screeningState === "checking" && <p className="tp-sheet-screening" role="status">Checking this match…</p>}
-          {screeningState === "ready" && screening?.status === "likely_match" && (
-            <p className="tp-sheet-screening" role="status">Likely match by collection family and jewelry type. Your rep still makes the decision.</p>
-          )}
-          {screeningState === "ready" && screening?.status === "needs_verification" && (
-            <p className="tp-sheet-screening" role="status">More detail is needed. Your rep can verify the collection and jewelry type.</p>
-          )}
-          {isMismatch && (
-            <div className="tp-sheet-mismatch" role="status">
-              <strong>These dancers don't appear to match</strong>
-              <p>{screening.reason || "The collection family or jewelry type differs."} You can choose another available dancer or ask your rep to review this one anyway.</p>
-              {alternatives.length > 0 && (
-                <div className="tp-sheet-alternatives">
-                  <span>Available dancers that may fit your reveal</span>
-                  {alternatives.map((alternative) => (
-                    <button key={alternative.listingId} type="button" onClick={() => onChooseAlternative(alternative)}>
-                      {alternative.designName} · {alternative.collectionName} · {{ RG: "Ring", NK: "Necklace", ER: "Earrings", BR: "Bracelet", ST: "Stack" }[alternative.typePrefix] || "Jewelry"}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          {screeningState === "error" && <p className="tp-sheet-screening" role="status">Match guidance is temporarily unavailable. Your rep can review your request.</p>}
-          <div className="tp-sheet-field">
-            <label htmlFor="tp-customer-reveal">What did you just reveal?</label>
-            <textarea
-              id="tp-customer-reveal"
-              placeholder="Example: July Birthday 2026 necklace"
-              value={offering}
-              onChange={(event) => setOffering(event.target.value)}
-              maxLength={1000}
-              required
-            />
-          </div>
-          <div className="tp-sheet-field">
-            <label htmlFor="tp-reveal-photo">Photo or screenshot of your reveal (optional)</label>
-            <div className="tp-sheet-upload">
-              <input
-                id="tp-reveal-photo"
-                ref={screenshotInput}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/avif,.jpg,.jpeg,.png,.webp,.heic,.heif,.avif"
-                onChange={(event) => {
-                  const file = event.target.files?.[0] || null;
-                  setScreenshotError("");
-                  setScreenshot(null);
-                  if (!file) return;
-                  if (!screenshotContentType(file)) {
-                    setScreenshotError("Photo not attached. Choose a JPG, PNG, WebP, HEIC, HEIF, or AVIF image, or send without one.");
-                    event.target.value = "";
-                    return;
-                  }
-                  if (file.size > TRADE_REQUEST_SCREENSHOT_MAX_BYTES) {
-                    setScreenshotError("Photo not attached. Choose an image under 25 MB, or send without one.");
-                    event.target.value = "";
-                    return;
-                  }
-                  if (file.size === 0) {
-                    setScreenshotError("That image is empty. Choose another image or send without one.");
-                    event.target.value = "";
-                    return;
-                  }
-                  setScreenshot(file);
-                }}
-                disabled={pending}
-              />
-              <div>
-                <strong>{screenshot ? screenshot.name : "Add a photo or screenshot"}</strong>
-                <span>
-                  A photo helps your rep identify what you revealed. Crop out personal and order information before uploading. Images expire after seven days.
-                </span>
-              </div>
-            </div>
-            {screenshot && (
-              <div className="tp-sheet-upload-review">
-                {screenshotPreview && !previewFailed ? (
-                  <img src={screenshotPreview} alt="Selected reveal image preview" onError={() => setPreviewFailed(true)} />
-                ) : (
-                  <div className="tp-sheet-upload-fallback" aria-hidden="true">Image</div>
-                )}
-                <div className="tp-sheet-upload-details">
-                  <strong>{screenshot.name}</strong>
-                  <span>{(screenshot.size / (1024 * 1024)).toFixed(1)} MB</span>
-                  <span role="status" aria-live="polite">
-                    {uploadState === "selected" && "Selected. Preparing a secure upload…"}
-                    {uploadState === "uploading" && "Uploading and checking image…"}
-                    {uploadState === "attached" && !screenshotAttached && "Preparing this image for the selected dancer…"}
-                    {screenshotAttached && "Attached and ready to send with your request."}
-                    {uploadState === "error" && "Image was not attached."}
-                  </span>
-                  <div className="tp-sheet-upload-actions">
-                    {uploadState === "error" && <button type="button" onClick={() => setUploadAttempt((attempt) => attempt + 1)} disabled={pending}>Try image again</button>}
-                    <button type="button" onClick={removeScreenshot} disabled={pending}>
-                      {uploadState === "error" ? "Send without a photo" : "Remove photo"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-            {screenshotError && (
-              <div className="tp-sheet-error" role="alert">
-                {screenshotError}
-              </div>
-            )}
-          </div>
-          {error && (
-            <div className="tp-sheet-error" role="alert">
-              {error}
-            </div>
-          )}
-          {needsExplicitReviewAction ? (
-            <button type="button" className="tp-sheet-submit" disabled={!canSubmit} onClick={() => sendRequest(true)}>
-              {pending ? "Sending request..." : screenshot && !screenshotAttached ? "Attach photo to continue" : "Ask my rep to review anyway"}
-            </button>
-          ) : (
-            <button type="submit" className="tp-sheet-submit" disabled={!canSubmit}>
-              {pending ? "Sending request..." : screenshot && !screenshotAttached ? "Attach photo to continue" : "Send swap request"}
-            </button>
-          )}
-        </form>
-      </div>
-    </div>
-  );
-}
-
 function EmptyState({ businessName }) {
   return (
     <div className="tp-empty">
@@ -2256,11 +1773,11 @@ function App() {
   const [t, setTweak] = useTweaks(DEFAULTS);
   const [expanded, setExpanded] = useState(null);
   const [requesting, setRequesting] = useState(null);
-  const [keepDraftOnAlternative, setKeepDraftOnAlternative] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [requestPending, setRequestPending] = useState(false);
-  const [requestError, setRequestError] = useState("");
-  const [manualReviewRequired, setManualReviewRequired] = useState(false);
+  const [recovered, setRecovered] = useState(null);
+  const [deadlineUntil, setDeadlineUntil] = useState(null);
+  const [restoreNotice, setRestoreNotice] = useState("");
+  const boardGeneration = useRef(0);
+  const restoreOnce = useRef(false);
   const [submittedListingIds, setSubmittedListingIds] = useState([]);
   const [liveListings, setLiveListings] = useState(BOOTSTRAP_LISTINGS);
   const [filters, setFilters] = useState(getInitialTradeFilters);
@@ -2309,28 +1826,43 @@ function App() {
   useEffect(() => {
     if (t.demoSheet === "form") {
       setRequesting(availableSamplesRef.current[0] || null);
-      setSuccess(false);
-      setRequestError("");
       setExpanded(null);
     } else if (t.demoSheet === "success") {
       setRequesting({ id: 0, name: "Saved sample request" });
-      setSuccess(true);
-      setRequestError("");
       setExpanded(null);
-    } else {
-      setRequesting(null);
-      setSuccess(false);
-      setRequestError("");
-    }
+    } else setRequesting(null);
   }, [t.demoSheet]);
+
+  useEffect(() => {
+    const d = restoreDraft(browserStorage("sessionStorage"), SWAP_SITE);
+    if (d?.attempt) {
+      restoreOnce.current = true;
+      setRecovered(d);
+      setRequesting(bootstrappedListings.find(p => p.id === d.listingId) || { id: d.listingId, name: "Your dancer", collection: "" });
+    }
+  }, []);
 
   useEffect(() => applyPageTokens(t, document), [t]);
 
   useEffect(() => applyPageBody(t, document), [t]);
 
   const refreshTradeBoardListings = async () => {
-    const listings = await fetchTradeBoardListings();
-    if (listings) setLiveListings(listings);
+    const generation = ++boardGeneration.current;
+    let result;
+    try { result = await fetchTradeBoardListings(); } catch { result = null; }
+    if (generation !== boardGeneration.current) return;
+    setDeadlineUntil(result?.photoPolicy?.required === false ? result.photoPolicy.photoOptionalUntil : null);
+    if (!result) return;
+    setLiveListings(result.listings);
+    if (!restoreOnce.current) {
+      restoreOnce.current = true;
+      const d = restoreDraft(browserStorage("sessionStorage"), SWAP_SITE);
+      if (d) {
+        const p = result.listings.map(normalizeBootstrapPiece).find(p => p?.id === d.listingId);
+        if (p) { setRecovered(d); setRequesting(p); }
+        else { saveDraft(browserStorage("sessionStorage"), SWAP_SITE, null); setRestoreNotice("That dancer is no longer available."); }
+      }
+    }
   };
 
   useEffect(() => {
@@ -2376,37 +1908,6 @@ function App() {
     setSortMode("newest");
     setCollectionSearch("");
   };
-  const handleTradeRequestSubmit = async (payload) => {
-    setRequestPending(true);
-    setRequestError("");
-
-    try {
-      const result = await submitTradeRequestRequest(payload);
-      if (typeof result?.receiptUrl !== "string" || !result.receiptUrl.startsWith("/trade-request/status/")) {
-        throw new Error("Your request may have been received, but its private status link is unavailable. Please retry with this form.");
-      }
-      void refreshTradeBoardListings().catch(() => {});
-      setSubmittedListingIds((current) =>
-        current.includes(payload.listingId) ? current : [...current, payload.listingId],
-      );
-      if (typeof window.gtag === "function") window.gtag("event", "swap_request");
-      setSuccess(result);
-      setManualReviewRequired(false);
-    } catch (error) {
-      if (error?.code === "MANUAL_REVIEW_REQUIRED") setManualReviewRequired(true);
-      const isUnavailable =
-        error?.code === "REQUEST_ALREADY_EXISTS" || error?.code === "LISTING_NOT_FOUND";
-      if (isUnavailable) {
-        setSubmittedListingIds((current) =>
-          current.includes(payload.listingId) ? current : [...current, payload.listingId],
-        );
-      }
-      setRequestError(error?.message || DEFAULT_TRADE_REQUEST_ERROR);
-    } finally {
-      setRequestPending(false);
-    }
-  };
-
   return (
     <>
       <SparkleFx level={t.sparkleLevel} />
@@ -2506,51 +2007,16 @@ function App() {
         onClose={() => setExpanded(null)}
         onWantThis={(piece) => {
           setExpanded(null);
-          setKeepDraftOnAlternative(false);
-          setRequesting(piece);
-          setSuccess(false);
-          setRequestError("");
+          restoreOnce.current = true;
+          setRecovered(null); setRestoreNotice(""); setRequesting(piece);
         }}
       />
-
-      <RequestSheet
-        piece={requesting}
-        onChooseAlternative={(alternative) => {
-          const knownPiece = availableSamples.find((candidate) => String(candidate.id) === String(alternative.listingId));
-          const replacement = knownPiece || normalizeBootstrapPiece({
-            id: alternative.listingId,
-            name: alternative.designName,
-            collection: alternative.collectionName,
-            type: { RG: "Ring", NK: "Necklace", ER: "Earrings", BR: "Bracelet", ST: "Stack" }[alternative.typePrefix] || "Jewelry",
-            photoUrl: alternative.photoUrl,
-          }, 0);
-          if (!replacement) return;
-          setKeepDraftOnAlternative(true);
-          setRequesting(replacement);
-          setRequestError("");
-          setManualReviewRequired(false);
-        }}
-        onOfferChange={() => {
-          setManualReviewRequired(false);
-          setRequestError("");
-        }}
-        onClose={() => {
-          if (requestPending) return;
-          setRequesting(null);
-          setKeepDraftOnAlternative(false);
-          setSuccess(false);
-          setRequestError("");
-          setManualReviewRequired(false);
-          setTweak("demoSheet", "closed");
-        }}
-        onSubmit={handleTradeRequestSubmit}
-        keepDraftOnAlternative={keepDraftOnAlternative}
-        success={success}
-        pending={requestPending}
-        error={requestError}
-        manualReviewRequired={manualReviewRequired}
-        repName={repName}
-      />
+      {restoreNotice && <p role="status">{restoreNotice}</p>}
+      {requesting && <RequestSheet key={requesting.id} initialPiece={requesting} recovered={recovered} site={SWAP_SITE} urls={SWAP_URLS}
+        demoSuccess={t.demoSheet === "success"} repName={repName} useDialog={useTradeDialog} deadlineUntil={deadlineUntil}
+        board={bootstrappedListings} refreshBoard={refreshTradeBoardListings}
+        onSent={id => { setSubmittedListingIds(ids => ids.includes(id) ? ids : [...ids, id]); void refreshTradeBoardListings(); }}
+        onClose={() => { setRequesting(null); setRecovered(null); setTweak("demoSheet", "closed"); }} />}
 
       <TweaksPanel title="Tweaks" subtitle="Tune the dance floor" defaultWidth={380}>
         <TweakSection title="Dance Floor" subtitle="Page-specific behavior">
