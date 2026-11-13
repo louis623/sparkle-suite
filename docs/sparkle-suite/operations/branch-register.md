@@ -420,3 +420,7 @@ merge, Live deploy, gate widening, Workspace/Control Center behavior or other PR
 ## November 12 - One Video Queue
 
 Louis approved codex/one-video-queue from 9bdb4075 in the registered PR 190 checkout for sparkle-suite-smoke Preview only. Draft PR into codex/nic-nac-trade-hardening.
+
+## Preserved embeds queue correction
+
+Branch codex/video-queue-preserved-embeds starts at c5f10c6f. Louis authorized Smoke verification, Live release and all-active-rep activation. Preview scope is sparkle-suite-smoke only.

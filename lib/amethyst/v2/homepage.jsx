@@ -1074,7 +1074,7 @@ const videoSources = {
 
 function getSlotVideoPresentation(url, hostedVideo, tiktokPoster, queueManaged) {
   const original = getCustomerVideoPresentation(url);
-  if (CONTENT.tiktokHostedMode !== true) return { ...original, isPopulated: Boolean(original.provider) };
+  if (CONTENT.tiktokHostedMode !== true || queueManaged === "preserved") return { ...original, isPopulated: Boolean(original.provider) };
   const link = queueManaged && queueVideoLink(url);
   if (link && link.id) return { kind: hostedVideo?.src ? "hosted" : "tiktok-card", provider: link.provider, isPopulated: true, outboundUrl: link.canonical, ctaLabel: videoSources[link.provider][1], hostedVideo, tiktokPoster };
   if (hostedVideo?.src) return { kind: "hosted", provider: "tiktok", isPopulated: true, outboundUrl: tiktokCanonicalHref(url), hostedVideo };

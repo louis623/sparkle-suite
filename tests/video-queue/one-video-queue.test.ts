@@ -224,7 +224,7 @@ it('T11 preserved assignments survive edits, gate changes, sweep and equal-id co
   expect(await queue(db)).toHaveLength(1)
   await complete(db,await makeTicket(db,(await queue(db))[0].id))
   const page = await attachHostedTikTokVideos(reader(db),rep,{...defaultAmethystHomepageTemplateData,showcaseVideoUrl:same,aboutMediaSlots:[...defaultAmethystHomepageTemplateData.aboutMediaSlots.slice(0,2),{href:yt,caption:'',typeLabel:'Video'}]})
-  expect(page.showcaseQueueManaged).toBeFalsy()
+  expect(page.showcaseQueueManaged).toBe('preserved')
   expect(page.aboutMediaSlots[2].hostedVideo?.src).toMatch(/^https:/)
   expect(card(same,false)).toContain('<iframe')
   expect(await preserved()).toEqual(initial)

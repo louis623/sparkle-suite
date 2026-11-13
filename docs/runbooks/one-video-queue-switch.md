@@ -25,3 +25,13 @@ SELECT public.set_all_sources_enabled('56c59f36-0e37-4e8e-a664-a1b293699c11'::uu
 ```
 
 Repeat the check after either call. The hosted gate should still be on. The `all_sources_on` value should match the choice you made. Use the function for every switch change so it can preserve assignments in the same transaction.
+
+## Queue existing embeds while they keep playing
+
+After the preserved-embed follow-up migration and matching code are deployed, enroll an active, gated rep with service-role SQL.
+
+```sql
+SELECT public.enroll_preserved_video_queue('56c59f36-0e37-4e8e-a664-a1b293699c11'::uuid);
+```
+
+This preserves every existing supported video assignment and adds it to the queue. It keeps the original player until its MP4 is published. A dismissal keeps the original embed. Repeating enrollment keeps the existing cutover. Use set_all_sources_enabled with false to roll back.

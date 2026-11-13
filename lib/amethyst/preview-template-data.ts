@@ -860,10 +860,11 @@ export async function attachHostedTikTokVideos(admin: SupabaseClient, repId: str
     const urls = [homepage.showcaseVideoUrl, ...homepage.aboutMediaSlots.map(slot => slot.href), homepage.featuredReveal?.videoUrl, homepage.revealExplainer?.videoUrl]
     const ids = [...new Set(urls.map(url => qualified ? queueVideoLink(url).id : getTikTokVideoId(url ?? '')).filter((id): id is string => Boolean(id)))]
     const { videos, posters } = await loadHostedTikTokForRep(admin, repId, ids, qualified).catch(() => ({ videos: {}, posters: {} } as Awaited<ReturnType<typeof loadHostedTikTokForRep>>))
-    const media = (url: string, slot = 'featured_reveal') => {
+    const media = (url: string, slot?: string) => {
       if (qualified) {
         const link = queueVideoLink(url)
-        if (!link.id || isPreserved(preserved, slot, url)) return {}
+        if (isPreserved(preserved, slot ?? `featured_reveal:${link.id}`, url)) return { queueManaged: 'preserved' as const }
+        if (!link.id) return {}
         const key = `${link.provider}:${link.id}`
         return { queueManaged: true, hostedVideo: videos[key], tiktokPoster: posters[key] }
       }
