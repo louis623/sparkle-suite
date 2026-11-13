@@ -57,6 +57,19 @@ async function channel(c,slot,repSession=false) {
     return route.continue()
   })
   const page=await context.newPage()
+  // Keep diagnostics confined to status codes and path names. Signed URLs,
+  // receipt tokens, request bodies, console text and cookies stay out of the journal.
+  page.on('pageerror',err=>c.proof.observations.push('Browser '+slot+' '+err.name+' during page execution'))
+  page.on('requestfailed',req=>{
+    const u=new URL(req.url())
+    if(u.origin===c.origin && (req.resourceType()==='script' || u.pathname.startsWith('/api/amethyst/trade-requests')))
+      c.proof.observations.push('Failed '+slot+' '+req.method()+' '+u.pathname)
+  })
+  page.on('response',r=>{
+    const u=new URL(r.url())
+    if((u.origin===c.origin && u.pathname.startsWith('/api/amethyst/trade-requests') && !u.pathname.includes('status')) || offlineScripts.has(u.href))
+      c.proof.observations.push('HTTP '+slot+' '+r.request().method()+' '+u.pathname+' '+r.status())
+  })
   page.setDefaultTimeout(15000)
   const path=repSession?'/nic-nac':c.shopperPath
   const doc=await page.goto(c.origin+path,{waitUntil:'domcontentloaded'})
@@ -214,6 +227,7 @@ export async function runBrowserReview(c,old) {
   await button(alt,'Retry this same request').waitFor({timeout:35000})
   await alt.unroute('**/api/amethyst/trade-requests?*',dropped)
   await button(alt,c.designName('alternate')).click()
+  await button(alt,'Continue').click()
   await send(c,alt,'alternate')
   assert(tickets.some(t=>t.listingId===c.listing('primary'))&&tickets.some(t=>t.listingId===c.listing('alternate')))
   assert.notEqual(tickets[0].submissionId,tickets.at(-1).submissionId)
@@ -239,15 +253,15 @@ export async function runBrowserReview(c,old) {
   const rep=await channel(c,6,true),buyer='First '+c.runId.slice(0,8)
   await text(rep,buyer+' wants '+c.designName('primary')).waitFor()
   await text(rep,/Photo attached/i).waitFor()
-  const offer=rep.getByAltText('Offer from '+buyer).first()
+  const offer=rep.getByAltText('Protected reveal screenshot from '+buyer).first()
   await offer.waitFor()
   await until(()=>offer.evaluate(im=>im.complete&&im.naturalWidth>0))
   assert((await offer.getAttribute('src')).includes(c.receipts.primary))
-  await text(rep,/Requested \d+ min ago/i).waitFor()
+  await text(rep,/Requested (?:just now|\d+ min ago)/i).waitFor()
   await text(rep,'Needs verification').waitFor()
   const requested=rep.locator('img:visible')
   assert(await requested.evaluateAll((items,keyword)=>items.some(im=>im.alt.includes(keyword)&&im.complete&&im.naturalWidth>0),c.designName('primary')))
-  const pending=await c.api('/api/nic-nac/trade-requests?status=pending',
+  const pending=await c.api('/api/nic-nac/trade-requests?status=pending&order=dancer',
     {headers:{cookie:c.roleCookies[0].map(v=>v.name+'='+v.value).join('; ')}})
   assert(pending.ok)
   const ordered=await pending.json()
