@@ -22,6 +22,7 @@ import {
   hasActiveBoardInventoryBrowse,
 } from '@/lib/nic-nac/board-inventory-view'
 import { ControlTip } from './ControlTip'
+import { offeredDimensions, orderLabel, requestTiming, screeningLabel } from '@/lib/nic-nac/swap-request-display'
 import { TradeScreenshotLink } from './TradeScreenshotLink'
 import surfaceStyles from './WorkspaceSurface.module.css'
 import styles from './TradeBoardWorkspaceCard.module.css'
@@ -800,6 +801,8 @@ export function TradeBoardWorkspaceCard({
           {inboxLoadError ? <p className={surfaceStyles.helperNote} role="status">Could not load the full request inbox. Showing the last available requests; try again shortly.</p> : null}
           <div className={styles.tradeList}>
             {requests.map((request) => {
+              const timing = requestTiming(request.createdAt, request.revealScreenshot?.expiresAt)
+              const expired = request.photoExpired || timing.expired
               const ruleCheckTarget = request.listing.design.collectionName
                 ? `${request.listing.design.typePrefix} / ${request.listing.design.collectionName}`
                 : request.listing.design.typePrefix
@@ -816,8 +819,11 @@ export function TradeBoardWorkspaceCard({
                     <div className={styles.customerDate}>
                       Wants {requestedItemLabel}
                     </div>
-                    <div className={surfaceStyles.helperNote}>{request.customerDescription}</div>
-                    {request.revealScreenshot ? (
+                    <div className={surfaceStyles.helperNote}>Offered: {offeredDimensions(request.offeredType, request.offeredFamily) || 'Not given'}</div>
+                    {request.customerDescription && <div className={surfaceStyles.helperNote}>{request.customerDescription}</div>}
+                    <div className={surfaceStyles.helperNote}>{[screeningLabel(request.screening?.status), timing.age, orderLabel(request.pendingPosition), !expired && timing.expiry].filter(Boolean).join(" · ")}</div>
+                    <div className={styles.requestPhotos}>
+                    {request.revealScreenshot && !expired ? (
                       <TradeScreenshotLink requestId={request.id} customerName={request.customerName} className={styles.tradeScreenshotLink} imageClassName={styles.tradeScreenshotThumb}>
                         <span>
                           <span className={styles.tradeScreenshotTitle}>
@@ -828,7 +834,9 @@ export function TradeBoardWorkspaceCard({
                           </span>
                         </span>
                       </TradeScreenshotLink>
-                    ) : null}
+                    ) : <small>{expired ? 'Photo expired after 7 days. Ask the customer to resend.' : 'No screenshot attached'}</small>}
+                    {request.dancerPhotoUrl && <img src={request.dancerPhotoUrl} alt={requestedItemLabel} />}
+                    </div>
                     <div className={surfaceStyles.helperNote}>Rule check: compare against {ruleCheckTarget}</div>
                     {'manualReviewRequested' in request && request.manualReviewRequested && 'screening' in request && request.screening?.status === 'mismatch' ? (
                       <div className={styles.tradeException}><strong>Rule exception — rep review needed.</strong> {request.screening.reason}</div>

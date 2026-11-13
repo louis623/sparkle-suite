@@ -3,10 +3,8 @@ const TRADE_REQUEST_RATE_WINDOW_MS = 60_000
 const TRADE_REQUEST_RATE_MAX_BUCKETS = 10_000
 const tradeRequestRateBuckets = new Map<string, { count: number; resetAt: number }>()
 
-export function allowTradeRequest(request: Request, listingId: string) {
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  const address = (forwarded || request.headers.get('x-real-ip')?.trim() || 'unknown').slice(0, 128)
-  const key = `${address}:${listingId.trim().slice(0, 100)}`
+export function allowTradeRequest(_request: Request, listingId: string, namespace: 'send' | 'screen', addressHash: string) {
+  const key = [namespace, addressHash, listingId.trim().slice(0, 100)].join(':')
   const now = Date.now()
   const bucket = tradeRequestRateBuckets.get(key)
   if (!bucket || bucket.resetAt <= now) {

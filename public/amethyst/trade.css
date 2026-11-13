@@ -2534,3 +2534,29 @@ body.bg-emerald-garden .tp-card-expand-photo {
   height: 64px;
   opacity: 1;
 }
+
+/* Keep both actions reachable above the mobile keyboard. */
+.tp-swap-sheet { max-height: min(92vh, 92dvh); overscroll-behavior: contain; scroll-padding-block-end: 1rem; padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+.tp-swap-sheet fieldset { border: 0; margin: 0; min-width: 0; padding: 0; }
+.tp-swap-sheet > fieldset, .tp-swap-sheet > section { display: grid; gap: 12px; }
+.tp-swap-sheet fieldset fieldset { display: flex; flex-wrap: wrap; gap: 6px; }
+.tp-swap-sheet legend, .tp-swap-sheet label { font-weight: 650; margin-bottom: 4px; }
+.tp-swap-sheet input:not([type=file]) {
+  background: var(--hp-field-bg, var(--hp-bg)); color: var(--hp-field-fg, var(--fg));
+  border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+  font: inherit; font-size: max(16px, 1em); width: 100%; box-sizing: border-box;
+}
+.tp-swap-sheet button:not(.tp-sheet-close):not(.tp-sheet-submit), .tp-swap-pickers label {
+  font: inherit; font-size: .92rem; color: inherit; background: transparent;
+  border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; min-height: 44px; cursor: pointer;
+}
+.tp-swap-sheet button[aria-pressed=true] { border-color: currentColor !important; box-shadow: inset 0 0 0 1px currentColor; font-weight: 700; }
+.tp-swap-sheet button:disabled { opacity: .55; cursor: default; }
+.tp-swap-pickers, .tp-swap-photo-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tp-swap-pickers label { position: relative; display: grid; place-items: center; flex: 1; }
+.tp-swap-pickers input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.tp-swap-pickers label:focus-within { outline: 2px solid currentColor; outline-offset: 2px; }
+.tp-swap-photo-actions img { width: 56px; height: 56px; object-fit: cover; display: block; border-radius: 6px; }
+.tp-swap-preview { position: fixed; inset: 0; z-index: 2; background: #201526; color: #fff; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.tp-swap-preview img { object-fit: contain; min-height: 0; max-height: 78dvh; width: 100%; }
+.tp-swap-sheet .tp-sheet-error { margin-block: 8px; }

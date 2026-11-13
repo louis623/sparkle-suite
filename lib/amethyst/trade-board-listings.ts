@@ -14,6 +14,7 @@ export interface AmethystTradeBoardListing {
   id: string
   name: string
   collection: string
+  matcherFamily?: string | null
   type: string
   material: string
   stone: string
@@ -173,6 +174,7 @@ export function mapTradeListingToAmethystTradeBoardListing(
     id: listing.id,
     name: displayName,
     collection,
+    matcherFamily: listing.manual_collection_family ?? listing.design?.collection?.name ?? null,
     type,
     material,
     stone,

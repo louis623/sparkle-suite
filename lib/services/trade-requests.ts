@@ -43,7 +43,12 @@ export const TRADE_REQUEST_DESCRIPTION_MAX_LENGTH = 1000
 export const TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH = 100
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
+function swapPhotoExpired(row: { reveal_screenshot_path?: string | null; reveal_screenshot_uploaded_at?: string | null; reveal_screenshot_expires_at?: string | null }) {
+  return Boolean(row.reveal_screenshot_uploaded_at && (!row.reveal_screenshot_path || Date.parse(row.reveal_screenshot_expires_at ?? '') <= Date.now()))
+}
+
 function mapRevealScreenshot(row: {
+  reveal_screenshot_thumb_path?: string | null
   reveal_screenshot_path?: string | null
   reveal_screenshot_content_type?: string | null
   reveal_screenshot_size_bytes?: number | null
@@ -66,6 +71,7 @@ function mapRevealScreenshot(row: {
 
   return {
     objectPath: row.reveal_screenshot_path,
+    ...(row.reveal_screenshot_thumb_path ? {thumbPath:row.reveal_screenshot_thumb_path} : {}),
     contentType: row.reveal_screenshot_content_type,
     sizeBytes: row.reveal_screenshot_size_bytes,
     uploadedAt: row.reveal_screenshot_uploaded_at,
@@ -97,18 +103,13 @@ function rpcError(err: PostgrestError | null): ServiceError | null {
   }
   if (msg.includes('UNAUTHORIZED_TRADE')) return errors.UNAUTHORIZED('trade request belongs to another rep')
   if (msg.includes('IDEMPOTENCY_CONFLICT')) {
-    return errors.INVALID_INPUT(
-      'trade request submission identity conflict',
-      'This swap request changed while it was being retried. Please refresh and submit it again.',
-    )
+    return new ServiceError({code:'IDEMPOTENCY_CONFLICT',message:msg,userMessage:'This request differs from the original attempt. Check the original request before trying again.',statusCode:409})
   }
-  if (msg.includes('TRADE_UPLOAD_')) {
-    return new ServiceError({
-      code: 'TRADE_UPLOAD_NOT_READY', message: msg,
-      userMessage: 'The photo is not attached yet. Try the upload again, or remove it and send a text-only request.',
-      statusCode: 409,
-    })
-  }
+  if (msg.includes('TRADE_ATTEMPT_ABANDONED')) return new ServiceError({code:'TRADE_ATTEMPT_ABANDONED',message:msg,userMessage:'This request was closed before it was sent.',statusCode:409})
+  const uploadCode = msg.match(/TRADE_UPLOAD_[A-Z_]+/)?.[0]
+  if (uploadCode) return new ServiceError({ code: uploadCode, message: msg, userMessage: 'The photo could not be attached. Check the upload and try again.', statusCode: 409 })
+  if (msg.includes('PHOTO_REQUIRED')) return new ServiceError({ code: 'PHOTO_REQUIRED', message: msg, userMessage: 'Refresh the Dance Floor page and add a photo', statusCode: 400 })
+  if (/PENDING_LIMIT|HOURLY_LIMIT|REQUEST_CAP|PENDING_CAP|HOURLY_CAP/.test(msg)) return new ServiceError({ code: msg.split(':')[0], message: msg, userMessage: msg.includes('PENDING') ? 'There are three pending requests on this connection. Try again after your rep reviews one.' : 'This connection reached its hourly limit. Please try again later.', statusCode: 429 })
   if (msg.includes('INVALID_TRADE_REQUEST')) {
     return errors.INVALID_INPUT(
       'invalid trade request payload',
@@ -120,22 +121,21 @@ function rpcError(err: PostgrestError | null): ServiceError | null {
   return null
 }
 
+type SwapIntent = 'send' | 'retry' | 'recover' | 'abandon'
+type SwapInput = SubmitTradeRequestInput & { requestIpHash?: string; intent?: SwapIntent }
+type Settlement = { outcome: 'absent' | 'abandoned' }
+export function submitTradeRequest(supabase: SupabaseClient, input: SwapInput & { intent: SwapIntent }): Promise<SubmitTradeRequestResult | Settlement>
+export function submitTradeRequest(supabase: SupabaseClient, input: SwapInput): Promise<SubmitTradeRequestResult>
 export async function submitTradeRequest(
   supabase: SupabaseClient,
-  input: SubmitTradeRequestInput
-): Promise<SubmitTradeRequestResult> {
+  input: SwapInput
+): Promise<SubmitTradeRequestResult | Settlement> {
   if (!input.listingId) throw errors.MISSING_ITEM_INPUT()
   if (!input.customerName?.trim()) {
     throw errors.INVALID_INPUT('customerName required', 'I need a customer name to submit that.')
   }
-  if (!input.customerDescription?.trim()) {
-    throw errors.INVALID_INPUT(
-      'customerDescription required',
-      'I need a short description from the customer to submit that.',
-    )
-  }
   const customerName = input.customerName.trim()
-  const customerDescription = input.customerDescription.trim()
+  const customerDescription = (input.customerDescription ?? '').trim()
   if (customerName.length > TRADE_REQUEST_CUSTOMER_NAME_MAX_LENGTH) {
     throw errors.INVALID_INPUT(
       'customerName too long',
@@ -181,7 +181,10 @@ export async function submitTradeRequest(
   const submissionIdentity = submissionId ?? randomUUID()
   const token = receiptToken(submissionIdentity)
   const receiptHash = createHash('sha256').update(token).digest('hex')
-  const { data, error } = await supabase.rpc('rpc_submit_trade_request_v4', {
+  const { data, error } = await supabase.rpc('rpc_submit_trade_request_v5', {
+    p_request_ip_hash: input.requestIpHash ?? null,
+    p_intent: input.intent ?? 'send',
+    p_expected_rep_id: input.expectedRepId ?? null,
     p_listing_id: input.listingId,
     p_customer_name: customerName,
     p_customer_description: customerDescription,
@@ -196,12 +199,14 @@ export async function submitTradeRequest(
   if (mapped) throw mapped
   if (error) throw error
 
+  if (data?.outcome === 'absent' || data?.outcome === 'abandoned') return { outcome: data.outcome }
   const payload = data as {
     request_id: string
     listing_id: string
     mutation_replayed?: boolean
   } | null
   if (!payload?.request_id) throw errors.LISTING_NOT_FOUND(input.listingId)
+  if (payload.listing_id !== input.listingId) throw errors.INVALID_INPUT('Mismatched receipt identity')
   const receiptUrl = `/trade-request/status/${token}`
   const { data: screeningRow, error: screeningError } = await supabase
     .from('trade_requests')
@@ -227,27 +232,29 @@ function receiptToken(submissionId: string): string {
   return createHmac('sha256', secret).update(`trade-request-receipt:v1:${submissionId}`).digest('hex')
 }
 
-export async function getTradeRequestReceiptStatus(supabase: SupabaseClient, token: string) {
+export async function getTradeRequestReceiptStatus(supabase: SupabaseClient, token: string, includePhotoExpiry = false) {
   if (!/^[a-f0-9]{64}$/.test(token)) return null
   const hash = createHash('sha256').update(token).digest('hex')
   const { data, error } = await supabase.from('trade_requests')
-    .select('status, rejection_reason, denial_explanation, updated_at')
+    .select(includePhotoExpiry ? 'status, rejection_reason, denial_explanation, updated_at, reveal_screenshot_path, reveal_screenshot_uploaded_at, reveal_screenshot_expires_at' : 'status, rejection_reason, denial_explanation, updated_at')
     .eq('receipt_token_hash', hash)
     .maybeSingle()
   if (error) throw error
   if (!data) return null
+  const receipt = data as unknown as {status: TradeRequestStatus; rejection_reason: string | null; denial_explanation: string | null; updated_at: string; reveal_screenshot_path?: string; reveal_screenshot_uploaded_at?: string; reveal_screenshot_expires_at?: string}
   const explanations: Record<string, string> = {
     collection_mismatch: 'The offered piece is from a different collection family.',
     jewelry_type_mismatch: 'The offered piece is a different jewelry type.',
     item_unavailable: 'The requested dancer is no longer available.',
-    other: data.denial_explanation ?? 'Your rep could not approve this swap.',
+    other: receipt.denial_explanation ?? 'Your rep could not approve this swap.',
   }
   return {
-    status: data.status as TradeRequestStatus,
-    denialExplanation: data.status === 'denied'
-      ? explanations[data.rejection_reason as string] ?? 'Your rep could not approve this swap.'
+    ...(includePhotoExpiry ? { photoExpired: swapPhotoExpired(receipt) } : {}),
+    status: receipt.status as TradeRequestStatus,
+    denialExplanation: receipt.status === 'denied'
+      ? explanations[receipt.rejection_reason as string] ?? 'Your rep could not approve this swap.'
       : null,
-    updatedAt: data.updated_at as string,
+    updatedAt: receipt.updated_at as string,
   }
 }
 
@@ -279,16 +286,16 @@ export async function attachTradeRequestRevealScreenshot(
 }
 
 const REQUEST_LISTING_SELECT = `
-  id, status, customer_name, customer_description,
+  id, status, customer_name, customer_description, description_is_placeholder,
   offered_family, offered_type, manual_review_requested,
   screening_status, screening_reason,
-  reveal_screenshot_path, reveal_screenshot_content_type,
+  reveal_screenshot_thumb_path, reveal_screenshot_path, reveal_screenshot_content_type,
   reveal_screenshot_size_bytes, reveal_screenshot_uploaded_at,
   reveal_screenshot_expires_at,
   rejection_reason,
   rep_notes, created_at, updated_at,
   listing:trade_listings!inner(
-    id, rep_id, listing_source, listing_photo_url, uses_canonical_photo,
+    id, rep_id, quantity_available, listing_source, listing_photo_url, uses_canonical_photo,
     manual_type_prefix, manual_collection_family, manual_collection_name,
     manual_size, manual_photo_url,
     design:jewelry_designs(
@@ -312,15 +319,17 @@ export async function getTradeRequests(
     .select(REQUEST_LISTING_SELECT)
     .eq('status', status)
     .eq('listing.rep_id', repId)
-    .order('created_at', { ascending: false })
-    .order('id', { ascending: false })
+  if (status === 'pending' && filters.pendingDancerOrder) query = query.order('listing_id', { ascending: true })
+  query = query.order('created_at', { ascending: status === 'pending' })
+    .order('id', { ascending: status === 'pending' })
   if (filters.requestId) query = query.eq('id', filters.requestId)
   if (filters.limit) query = query.range(filters.offset ?? 0, (filters.offset ?? 0) + filters.limit - 1)
 
   const { data, error } = await query
   if (error) throw error
 
-type RawListing = {
+  type RawListing = {
+    quantity_available?: number
     id: string
     rep_id: string
     listing_source?: TradeListingWithDesign['listing_source'] | null
@@ -359,6 +368,7 @@ type RawListing = {
     status: TradeRequestStatus
     customer_name: string
     customer_description: string
+    description_is_placeholder?: boolean
     offered_family: string | null
     offered_type: TradeRequestWithListing['offeredType']
     manual_review_requested: boolean
@@ -425,7 +435,9 @@ type RawListing = {
         id: row.id,
         status: row.status,
         customerName: row.customer_name,
-        customerDescription: row.customer_description,
+        customerDescription: row.description_is_placeholder ? '' : row.customer_description,
+        photoExpired: swapPhotoExpired(row),
+        dancerPhotoUrl: display.photoUrl,
         revealScreenshot: mapRevealScreenshot(row),
         rejectionReason: row.rejection_reason,
         repNotes: row.rep_notes,
@@ -442,6 +454,7 @@ type RawListing = {
         listing: {
           id: lst.id,
           repId: lst.rep_id,
+          quantityAvailable: lst.quantity_available,
           listingSource: display.listingSource,
           listingPhotoUrl: display.listingPhotoUrl,
           usesCanonicalPhoto: lst.uses_canonical_photo,
@@ -461,7 +474,17 @@ type RawListing = {
     })
     .filter((r): r is TradeRequestWithListing => r !== null)
 
+  if (status === 'pending' && filters.pendingDancerOrder && rows.length) {
+    const ranks = await getPendingPositions(supabase, rows.map(row => row.id))
+    for (const row of rows) row.pendingPosition = ranks.get(row.id)
+  }
   return rows
+}
+
+async function getPendingPositions(supabase: SupabaseClient, requestIds: string[]) {
+  const {data, error} = await supabase.from('swap_pending_request_positions').select('id,position').in('id', requestIds)
+  if (error) throw error
+  return new Map<string, number>((data ?? []).map(row => [row.id, Number(row.position)]))
 }
 
 export async function getPendingTradeRequestCount(supabase: SupabaseClient, repId: string): Promise<number> {
@@ -499,8 +522,8 @@ export async function screenTradeRequestForListing(
 }
 
 const REQUEST_NOTIFICATION_SELECT = `
-  id, customer_name, customer_description,
-  reveal_screenshot_path, reveal_screenshot_content_type,
+  id, customer_name, customer_description, description_is_placeholder, offered_family, offered_type, screening_status, created_at,
+  reveal_screenshot_thumb_path, reveal_screenshot_path, reveal_screenshot_content_type,
   reveal_screenshot_size_bytes, reveal_screenshot_uploaded_at,
   reveal_screenshot_expires_at,
   listing:trade_listings(
@@ -508,7 +531,7 @@ const REQUEST_NOTIFICATION_SELECT = `
     manual_type_prefix, manual_collection_family, manual_collection_name,
     manual_size, manual_photo_url,
     design:jewelry_designs(
-      item_number, design_name, type_prefix,
+      item_number, design_name, type_prefix, canonical_photo_url,
       collection:collections(name)
     )
   )
@@ -554,7 +577,12 @@ export async function getTradeRequestNotificationSummary(
   type RawRow = {
     id: string
     customer_name: string
+    offered_family?: string | null
+    offered_type?: TradeRequestWithListing['offeredType']
+    screening_status?: TradeRequestWithListing['screening']['status']
+    created_at?: string
     customer_description: string
+    description_is_placeholder?: boolean
     reveal_screenshot_path: string | null
     reveal_screenshot_content_type: string | null
     reveal_screenshot_size_bytes: number | null
@@ -606,9 +634,16 @@ export async function getTradeRequestNotificationSummary(
 
   return {
     requestId: row.id,
+    pendingPosition: (await getPendingPositions(supabase, [row.id])).get(row.id),
     repId: listing.rep_id,
     customerName: row.customer_name,
-    customerDescription: row.customer_description,
+    customerDescription: row.description_is_placeholder ? '' : row.customer_description,
+    offeredFamily: row.offered_family,
+    offeredType: row.offered_type,
+    screeningStatus: row.screening_status,
+    createdAt: row.created_at,
+    dancerPhotoUrl: display.photoUrl,
+    photoExpired: swapPhotoExpired(row),
     revealScreenshot: mapRevealScreenshot(row),
     listing: {
       id: listing.id,
@@ -633,7 +668,7 @@ export async function getTradeRequestRevealScreenshotForRep(
     .from('trade_requests')
     .select(`
       id,
-      reveal_screenshot_path,
+      reveal_screenshot_path, reveal_screenshot_thumb_path,
       reveal_screenshot_content_type,
       reveal_screenshot_size_bytes,
       reveal_screenshot_uploaded_at,
@@ -694,8 +729,7 @@ export async function clearExpiredTradeRequestRevealScreenshots(
       reveal_screenshot_path: null,
       reveal_screenshot_content_type: null,
       reveal_screenshot_size_bytes: null,
-      reveal_screenshot_uploaded_at: null,
-      reveal_screenshot_expires_at: null,
+      reveal_screenshot_thumb_path: null,
       updated_at: new Date().toISOString(),
     })
     .in('reveal_screenshot_path', paths)

@@ -1,0 +1,28 @@
+name: Swap photo maintenance
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: sparkle-swap-maintenance
+  cancel-in-progress: false
+jobs:
+  maintain:
+    if: github.ref == 'refs/heads/codex/nic-nac-trade-hardening' && vars.SPARKLE_SWAP_MAINTENANCE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Call the approved swap maintenance job
+        env:
+          SECRET: ${{ secrets.SPARKLE_SWAP_MAINTENANCE_CRON_SECRET }}
+        run: |
+          set -eu
+          test -n "$SECRET"
+          result=$(mktemp)
+          trap 'rm -f "$result"' EXIT
+          status=$(curl --silent --show-error --proto '=https' --max-time 40 --max-redirs 0 --output "$result" --write-out '%{http_code}' -X POST -H "Authorization: Bearer $SECRET" 'https://www.yoursparklesuite.com/api/internal/swap-maintenance')
+          test "$status" = 200
+          jq -e '.job == "swap-maintenance" and .ok == true and .failures == 0 and (.ticketCount|type) == "number" and (.screenshotCount|type) == "number"' "$result" >/dev/null
+          if jq -e '.backlog' "$result" >/dev/null; then echo 'Bounded batch complete; additional work remains.'; fi
+          if jq -e '.highStagedCapacity' "$result" >/dev/null; then echo '::error::Swap upload staging capacity is above 10 GiB; operator review required.'; exit 1; fi

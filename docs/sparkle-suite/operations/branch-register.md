@@ -1,5 +1,9 @@
 # Sparkle Suite Branch Register
 
+## November 13 — Dance Floor swap-request v9 Smoke review
+
+Louis authorized codex/suite-swap-request-redesign from 0a763690 in the suite-swap-request-redesign disposable worktree, only for Suite Smoke project prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ, Preview deployment with explicit alias assignment on that Smoke project, database pukemqiwlyqmyytxkdmo. The exclusive review window covers the stable Smoke alias, reviewer persona and global policy. Restore the prior deployment after fixture teardown. Draft commits use [skip ci]. This exception expires with draft review; remove before release. No Live deployment or merge.
+
 ## November 10 — TikTok Link Queue, Smoke only
 
 Louis authorized `codex/tiktok-link-queue` from verified `c19fc975` in the

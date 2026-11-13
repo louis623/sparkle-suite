@@ -1,3 +1,7 @@
+import { PGlite } from '@electric-sql/pglite'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { TradeRequestLiveCard } from '@/app/nic-nac/components/TradeRequestLiveCard'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -84,6 +88,39 @@ describe('Nic-Nac live trade request card UI wiring', () => {
     expect(source).toContain("onDecision('approve', request.requestId)")
     expect(source).toContain("onDecision('reject', request.requestId)")
   })
+
+  it('renders two distinct images, read-time expiry and stored screening, including older cards',()=>{
+    const card = {...tradeRequestPart.data,screeningStatus:'likely_match',dancerPhotoUrl:'/dancer.jpg',createdAt:new Date(Date.now()-120000).toISOString(),revealScreenshot:{viewUrl:'https://stale.invalid/private-signed-url',expiresAt:'2099-01-01'}}
+    const render = (request:TradeRequestCardPart['data']) => renderToStaticMarkup(createElement(TradeRequestLiveCard,{request,pendingAction:null,onDecision:()=>{}}))
+    expect(render(card)).toContain('variant=thumb')
+    expect(render(card)).toContain('/api/nic-nac/trade-requests/trade_request_123/reveal-screenshot')
+    expect(render(card)).not.toContain('stale.invalid')
+    expect(render({...card, pendingPosition:2, customerDescription:'Original description', offeredFamily:'Birthday', offeredType:'RG'})).toContain('Ring / Birthday')
+    expect(render({...card, pendingPosition:2, customerDescription:'Original description'})).toContain('Pending #2 for this dancer')
+    expect(render({...card, customerDescription:'See photo'})).toContain('See photo')
+    expect(render(card)).toContain('/dancer.jpg')
+    expect(render(card)).toContain('Likely match')
+    expect(render(card)).toContain('Requested 2 min ago')
+    expect(render({...card,revealScreenshot:{...card.revealScreenshot,expiresAt:'2000-01-01'}})).toContain('Photo expired after 7 days')
+    expect(render(tradeRequestPart.data)).toContain('No screenshot attached')
+  })
+  it('ranks a request against all pending requests for the same dancer before filtering or paging', async () => {
+    const migration = readFileSync(resolve(process.cwd(), 'supabase/migrations/20261113155611_dance_floor_swap_v5.sql'), 'utf8')
+    const view = migration.match(/create view public\.swap_pending_request_positions[\s\S]*?;/)?.[0]
+    if (!view) throw new Error('Pending order view missing')
+    const db = new PGlite()
+    try {
+      await db.exec("create table trade_requests(id int primary key, listing_id int, created_at timestamptz, status text)")
+      await db.exec(view)
+      await db.exec(`insert into trade_requests values
+        (3,9,'2026-01-02','pending'), (2,9,'2026-01-02','pending'), (1,9,'2026-01-01','approved'),
+        (4,7,'2026-01-01','pending'), (5,9,'2026-01-01','pending')`)
+      const rank = () => db.query("select position::int from swap_pending_request_positions where id = 3")
+      expect((await rank()).rows).toEqual([{position:3}])
+      await db.exec("update trade_requests set status='approved' where id = 5")
+      expect((await rank()).rows).toEqual([{position:2}])
+    } finally { await db.close() }
+  }, 60_000)
 
   it('accepts non-item-number request card data without rendering a null item label', () => {
     const manualPart: TradeRequestCardPart = {

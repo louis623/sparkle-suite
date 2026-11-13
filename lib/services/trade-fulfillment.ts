@@ -266,7 +266,7 @@ const OPEN_STATUSES: FulfillmentStatus[] = ['approved', 'shipped']
 const LOG_SELECT = `
   id, request_id, fulfillment_status, shipping_notes, created_at, status_updated_at, completed_at,
   request:trade_requests!inner(
-    id, customer_name, customer_description, offered_family, offered_type,
+    id, customer_name, customer_description, description_is_placeholder, offered_family, offered_type,
     verified_offered_family, verified_offered_type,
     reveal_screenshot_path, reveal_screenshot_expires_at,
     listing:trade_listings!inner(
@@ -344,7 +344,7 @@ export async function getFulfillmentLogPage(
           swap.revealed_ring_size ? `Size ${swap.revealed_ring_size}` : null]
       : [request.verified_offered_family ?? request.offered_family,
           request.verified_offered_type ?? request.offered_type,
-          request.customer_description]
+          request.description_is_placeholder ? null : request.customer_description]
     const expiry = request.reveal_screenshot_expires_at
     return [{
       fulfillmentId: String(row.id),
