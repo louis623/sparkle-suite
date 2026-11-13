@@ -1,7 +1,9 @@
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 
 import { FinderSneakPeekStub } from '@/app/_components/finder-sneak-peek-stub'
 import { MarketingFooter } from '@/app/_components/landing-experience'
+import { SuiteSignInShell } from '@/app/_components/suite-sign-in-shell'
 import { sparkleSuiteMarketingHubContent as hub } from '@/lib/sparkle-suite/marketing-hub-content'
 
 import landingStyles from './landing-experience.module.css'
@@ -32,6 +34,7 @@ function ProductCard({
   learnMoreLabel,
   narrative,
   product,
+  signInControl,
   signInHref,
   signInLabel,
   signUpHref,
@@ -48,7 +51,8 @@ function ProductCard({
   learnMoreLabel: string
   narrative: string
   product: string
-  signInHref: string
+  signInControl?: ReactNode
+  signInHref?: string
   signInLabel: string
   signUpHref: string
   signUpLabel: string
@@ -81,7 +85,7 @@ function ProductCard({
       </a>
       <div className={styles.authSpacer} />
       <div className={styles.accountActions}>
-        <AccountLink href={signInHref}>{signInLabel}</AccountLink>
+        {signInControl ?? <AccountLink href={signInHref ?? ''}>{signInLabel}</AccountLink>}
         <AccountLink href={signUpHref}>{signUpLabel}</AccountLink>
       </div>
     </article>
@@ -121,7 +125,7 @@ export function MarketingHub() {
               learnMoreLabel={hub.suite.learnMoreLabel}
               narrative={hub.suite.narrative}
               product={hub.suite.product}
-              signInHref={hub.suite.signInHref}
+              signInControl={<SuiteSignInShell />}
               signInLabel={hub.suite.signInLabel}
               signUpHref={hub.suite.signUpHref}
               signUpLabel={hub.suite.signUpLabel}
