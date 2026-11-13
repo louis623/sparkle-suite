@@ -32,6 +32,7 @@ const short=runId.slice(0,8)
 check(/^[a-f0-9]{40}$/.test(candidate)&&/^[a-f0-9]{40}$/.test(priorSha)&&/^dpl_[A-Za-z0-9]+$/.test(priorId),'Invalid deployment provenance')
 let admin: SupabaseClient
 let locked=false
+let shopperPath = ''
 const receipts: Record<string,string>={}
 const fixtureNames=['primary','alternate','expired','legacy','control','contender'] as const
 const designName=(key:string)=>'Review '+short+' '+key
@@ -126,9 +127,12 @@ async function preflight() {
     journal=saved;locked=true
     return
   }
-  const roles=await data(admin.from('reps').select('id,email,account_classification').in('id',[rep,other]),'verify synthetic roles')
+  const roles=await data(admin.from('reps').select('id,email,account_classification,public_site_slug').in('id',[rep,other]),'verify synthetic roles')
   check(roles?.length===2&&roles.every(r=>r.account_classification==='demo'&&/(@smoke\.example\.test$|^sparkle-reviewer\+preview@neonrabbit\.net$)/i.test(r.email)),
     'Requires existing verified demo Smoke identities')
+  const slug=roles.find(r=>r.id===rep)?.public_site_slug
+  check(typeof slug==='string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug),'Synthetic reviewer must have a usable shop slug')
+  shopperPath='/'+slug+'/trade'
   const initial=await data(admin.from('trade_request_photo_policy').select('generation,photo_optional_until').eq('singleton',true).single(),'read policy')
   check(initial,'Policy singleton missing')
   const sink=await data(admin.from('trade_photo_policy_sink').select('rep_id').eq('singleton',true).maybeSingle(),'read sink')
@@ -336,7 +340,7 @@ async function main() {
     check(Array.isArray(boardData.listings)&&boardData.listings.some((r:{id?:string;listingId?:string})=>
       r.id===listing('primary')||r.listingId===listing('primary')),'Prior board does not expose this run’s pictured fixture')
     const roles=await Promise.all([authenticate(rep),authenticate(other)])
-    const context={origin,rep,runId,listing,designName,receipts,proof,policy,receipt,release,contention,maintenance,seedFallbackAlerts,api,
+    const context={origin,rep,shopperPath,runId,listing,designName,receipts,proof,policy,receipt,release,contention,maintenance,seedFallbackAlerts,api,
       replay:async(payload:Record<string,unknown>,key:string)=>{
         const id=String(payload.submissionId)
         const before=await data(admin.from('trade_request_hourly_admission').select('admitted_at').eq('submission_id',id).single(),'read admission')

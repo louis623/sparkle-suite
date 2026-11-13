@@ -1,11 +1,31 @@
 import { createRequire } from 'node:module'
 import { access, readFile } from 'node:fs/promises'
-import { isAbsolute } from 'node:path'
+import { isAbsolute, join } from 'node:path'
+import { createHash } from 'node:crypto'
 import assert from 'node:assert/strict'
 import sharp from 'sharp'
 
 const require=createRequire(import.meta.url)
 let browser
+const offlineScripts = new Map()
+const oldScripts = [
+  ['react@18.3.1/umd/react.development.js','react.development.js','hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L'],
+  ['react-dom@18.3.1/umd/react-dom.development.js','react-dom.development.js','u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm'],
+  ['@babel/standalone@7.29.0/babel.min.js','babel.min.js','m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y'],
+]
+async function prepareOldRuntime(c) {
+  // HEAD is an API/provenance check. It does not download a document.
+  const headers=await c.api(c.shopperPath,{method:'HEAD'})
+  assert(headers.ok,'Previous reviewer page is unavailable')
+  if(headers.headers.get('x-sparkle-page-data'))return
+  const dir=process.env.SPARKLE_SWAP_LEGACY_RUNTIME_DIR
+  assert(dir&&isAbsolute(dir),'Prior reviewer uses the legacy renderer. Supply its three existing SHA384-pinned offline scripts before opening a document.')
+  for(const [url,file,expected] of oldScripts){
+    const bytes=await readFile(join(dir,file))
+    assert.equal(createHash('sha384').update(bytes).digest('base64'),expected,'Legacy script integrity mismatch: '+file)
+    offlineScripts.set('https://unpkg.com/'+url,bytes)
+  }
+}
 const uploads='/api/amethyst/trade-requests/uploads'
 const submit='/api/amethyst/trade-requests'
 const sleep=ms=>new Promise(r=>setTimeout(r,ms))
@@ -26,6 +46,9 @@ async function channel(c,slot,repSession=false) {
   await context.route('**/*',async route=>{
     const req=route.request(),url=new URL(req.url())
     if(url.protocol==='blob:'||url.protocol==='data:')return route.continue()
+    const localScript=offlineScripts.get(url.href)
+    if(localScript && req.resourceType()==='script' && req.method()==='GET')
+      return route.fulfill({status:200,headers:{'content-type':'text/javascript','access-control-allow-origin':c.origin},body:localScript})
     if(![c.origin,'https://pukemqiwlyqmyytxkdmo.supabase.co'].includes(url.origin)) return route.abort()
     if(req.resourceType()==='document'){
       if(navigated||url.origin!==c.origin)return route.abort()
@@ -35,12 +58,13 @@ async function channel(c,slot,repSession=false) {
   })
   const page=await context.newPage()
   page.setDefaultTimeout(15000)
-  const path=repSession?'/nic-nac':'/customer-site/trade?c='+c.rep
+  const path=repSession?'/nic-nac':c.shopperPath
   const doc=await page.goto(c.origin+path,{waitUntil:'domcontentloaded'})
   assert(doc?.ok() && new URL(page.url()).pathname===new URL(path,c.origin).pathname,'Wrong Smoke document')
   return page
 }
 async function sheet(c,p,key) {
+  await p.getByPlaceholder('Search by dancer, collection, size').fill(c.designName(key))
   const card=p.locator('article').filter({has:p.getByRole('heading',{name:c.designName(key),exact:true})})
   await card.getByRole('button',{name:/View dancer/}).click()
   await button(p,'Request this swap').click()
@@ -88,6 +112,7 @@ async function checkLocalColor(p,color) {
   assert(color==='red'?pixel[0]>pixel[1]+40:pixel[1]>pixel[0]+40,'Wrong or blank preview')
 }
 export async function openOldDocument(c) {
+  await prepareOldRuntime(c)
   const lib=process.env.SPARKLE_SWAP_PLAYWRIGHT
   assert(lib&&isAbsolute(lib),'Point SPARKLE_SWAP_PLAYWRIGHT to an already installed playwright-core directory')
   const {chromium}=require(lib)
