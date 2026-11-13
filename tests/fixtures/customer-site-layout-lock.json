@@ -8,7 +8,7 @@
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
-      "sha256": "9fb3cfd9b92bf045e344d815b2e5fa5e20a36165dec3cc52472b562a44e538bf"
+      "sha256": "a10607714752e47e4433e94afbfb3739c3218d51d6320440ee34e63153d8a140"
     },
     {
       "path": "public/amethyst/homepage.jsx",
@@ -93,5 +93,10 @@
     "path": "lib/amethyst/preview-template-data.ts",
     "previousSha256": "056797001768a9b4f964d7360ab37eb8a28486575623be8d215314af21404a0c",
     "sha256": "9fb3cfd9b92bf045e344d815b2e5fa5e20a36165dec3cc52472b562a44e538bf"
+  },
+  "approvedPreservedQueueChange": {
+    "approval": "Louis authorized existing embeds to stay playing while queued on Nov 12 2026 at 7:24 and 7:25 PM ET.",
+    "previousSha256": "9fb3cfd9b92bf045e344d815b2e5fa5e20a36165dec3cc52472b562a44e538bf",
+    "sha256": "a10607714752e47e4433e94afbfb3739c3218d51d6320440ee34e63153d8a140"
   }
 }
