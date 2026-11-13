@@ -10,6 +10,7 @@ Create a private existing journal directory outside the repo. Write `exclusive-w
 
 Supply the following to the process from a Smoke-only environment. The script never reads `.env.local`.
 
+- Supply `SPARKLE_SWAP_CANDIDATE_DEPLOYMENT` and stamp the same run UUID as `swapReviewRunId` in the Preview deployment metadata when setting its private run-scoped environment. Preflight rejects a candidate for another run before writes.
 - `SPARKLE_SWAP_REVIEW_RUN_ID`, `SPARKLE_SWAP_RUN_OWNER`, `SPARKLE_SWAP_RUN_DIR`, `SPARKLE_SWAP_PRIOR_DEPLOYMENT`, `SPARKLE_SWAP_PRIOR_SHA`, `SPARKLE_SWAP_CANDIDATE_SHA`. Use the candidate's exact clean Git HEAD. The deployment must use the identical review run ID.
 - `VERCEL_PROJECT_ID` and a scoped `VERCEL_TOKEN` for readback of this Smoke project's alias, deployment and cron state.
 - `SPARKLE_TRADE_UPLOAD_SMOKE_APP_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, both Smoke environment markers, the seven disabled provider flags and Smoke-scoped anon/service keys required by `scripts/smoke-environment/guards.mjs`. Leave the production maintenance secret absent.

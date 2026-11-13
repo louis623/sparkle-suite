@@ -72,7 +72,7 @@ async function waitForCandidate() {
   const until=Date.now()+20*60_000
   while(Date.now()<until) {
     const d=await alias()
-    if(d.id!==priorId) {assertDeployment('suite',d,candidate);proof.candidateId=d.id;return}
+    if(d.id!==priorId) {assertDeployment('suite',d,candidate);check(d.id===env('SPARKLE_SWAP_CANDIDATE_DEPLOYMENT') && d.meta?.swapReviewRunId===runId,'Unexpected candidate owner');proof.candidateId=d.id;return}
     await sleep(3000)
   }
   throw new Error('Candidate alias cutover timed out')
@@ -105,6 +105,14 @@ async function preflight() {
   if(!resume||d.id===priorId) {assertDeployment('suite',d,priorSha);check(d.id===priorId,'Prior alias changed before review')}
   else {assertDeployment('suite',d,candidate);proof.candidateId=d.id}
   assertCronDisabled('suite',await vercel('/v9/projects/'+project))
+  if(!resume){
+    const candidateDeployment=await vercel('/v13/deployments/'+env('SPARKLE_SWAP_CANDIDATE_DEPLOYMENT'))
+    assertDeployment('suite',candidateDeployment,candidate)
+    check(candidateDeployment.target==null && candidateDeployment.meta?.swapReviewRunId===runId,
+      'Candidate cleanup namespace must match this review before claiming fixtures')
+    const endpoint=await api('/api/amethyst/trade-board?c='+rep)
+    check(endpoint.ok && Array.isArray((await endpoint.json()).listings),'Actual Smoke board URL failed preflight')
+  }
   const git=(arg:string)=>execFileSync('git',['rev-parse','--verify',arg],{encoding:'utf8'}).trim()
   check(git('HEAD')===candidate,'Checkout differs from verified candidate')
   for(const path of ['lib/services/trade-request-uploads.ts','app/api/amethyst/trade-requests/uploads/confirm/route.ts']) {
