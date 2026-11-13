@@ -13,7 +13,7 @@ export function buildSmokeSources() {
   const expectedId=[...createHash('sha256').update(Buffer.from(identity.key,'base64')).digest().subarray(0,16)].map(b=>String.fromCharCode(97+(b>>4),97+(b&15))).join('');
   if(expectedId!==identity.id)throw Error('Smoke public key identity mismatch');
   const manifest=JSON.parse(sources.get('manifest.json'));
-  if(manifest.version!=='2.0.6')throw Error('Only authorized 2.0.6 package');
+  if(manifest.version!=='2.0.7')throw Error('Only authorized 2.0.7 package');
   manifest.name='Sparkle Suite Live Lineup — Smoke';
   manifest.description='Synthetic Smoke testing only. Never pair live Bomb Party orders.';
   manifest.key=identity.key;
@@ -35,7 +35,7 @@ export function zipSources(sources){const local=[],central=[];let offset=0;
  c.writeUInt32LE(0x02014b50);c.writeUInt16LE(20,4);c.writeUInt16LE(20,6);c.writeUInt16LE(0x800,8);c.writeUInt32LE(crc,16);c.writeUInt32LE(body.length,20);c.writeUInt32LE(body.length,24);c.writeUInt16LE(nameBytes.length,28);c.writeUInt32LE(offset,42);
  local.push(l,nameBytes,body);central.push(c,nameBytes);offset+=l.length+nameBytes.length+body.length;}
  const c=Buffer.concat(central),end=Buffer.alloc(22);end.writeUInt32LE(0x06054b50);end.writeUInt16LE(sources.size,8);end.writeUInt16LE(sources.size,10);end.writeUInt32LE(c.length,12);end.writeUInt32LE(offset,16);return Buffer.concat([...local,c,end]);}
-export function verifySmokeSources(sources){return verifyPackage({zip:zipSources(sources),approvedInventory:inventory,reviewedSources:sources,expectedVersion:'2.0.6',target:'smoke'});}
+export function verifySmokeSources(sources){return verifyPackage({zip:zipSources(sources),approvedInventory:inventory,reviewedSources:sources,expectedVersion:'2.0.7',target:'smoke'});}
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const outArg=process.argv.find(x=>x.startsWith('--out='));if(!outArg)throw Error('Provide --out=absolute-folder');
  const out=resolve(outArg.slice(6));if(existsSync(out)||existsSync(out+'.zip'))throw Error('Refuse overwriting a previous package');
@@ -45,5 +45,5 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const sources=buildSmokeSources(),evidence=verifySmokeSources(sources);mkdirSync(out,{recursive:true});
  for(const [name,body]of sources){const path=resolve(out,name);mkdirSync(dirname(path),{recursive:true});writeFileSync(path,body);}
  writeFileSync(out+'.zip',zipSources(sources));writeFileSync(out+'.evidence.json',JSON.stringify({sourceSha:sha,environment:'smoke',folder:out,...evidence},null,2)+'\n');
- console.log(JSON.stringify({sourceSha:sha,folder:out,zip:out+'.zip',sha256:evidence.sha256,version:'2.0.6',environment:'smoke'}));
+ console.log(JSON.stringify({sourceSha:sha,folder:out,zip:out+'.zip',sha256:evidence.sha256,version:'2.0.7',environment:'smoke'}));
 }

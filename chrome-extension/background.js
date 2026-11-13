@@ -80,7 +80,7 @@ async function post(token, body, guard = null) {
   finally { guard?.controllers.delete(controller); clearTimeout(timer); controller.abort(); if (reader) void reader.cancel().catch(()=>{}); }
 }
 function cleanDescriptor(value) {
-  if (chrome.runtime.getManifest().version === '2.0.6' && value?.orderScope !== 'selected-parties') throw fail('server_update_required');
+  if (['2.0.6','2.0.7'].includes(chrome.runtime.getManifest().version) && value?.orderScope !== 'selected-parties') throw fail('server_update_required');
   if (!value || value.protocol !== 2 || !Number.isSafeInteger(value.generation) || value.generation < 0 || typeof value.serverTime !== 'string' || !Number.isFinite(Date.parse(value.serverTime))) throw fail('invalid_receipt');
   if (value.generation === 0 && value.scope === null) return {protocol:2,generation:0,scope:null,serverTime:value.serverTime};
   const s = value.scope;

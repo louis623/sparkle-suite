@@ -2,17 +2,20 @@
 (function (root) {
   "use strict";
   const ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,60}$/;
-  const HEADER_ALIASES = {partyid:'PartyID','party id':'PartyID',orderid:'OrderID','order id':'OrderID',firstname:'FirstName','first name':'FirstName',lastname:'LastName','last name':'LastName',orderdate:'OrderDate','order date':'OrderDate',isrevealed:'IsRevealed'};
+  const HEADER_ALIASES = {partyid:'PartyID','party id':'PartyID',orderid:'OrderID','order id':'OrderID',firstname:'FirstName','first name':'FirstName',lastname:'LastName','last name':'LastName',orderdate:'OrderDate','order date':'OrderDate',isrevealed:'IsRevealed',revealed:'IsRevealed'};
   function headerKey(cell) {
     const sort = cell.getAttribute('data-sort-by');
-    if (sort) return sort;
+    if (sort) {
+      const key = sort.trim().toLowerCase();
+      return Object.hasOwn(HEADER_ALIASES, key) ? HEADER_ALIASES[key] : sort;
+    }
     const label = cell.querySelector?.('.header-content span, .header-content');
-    return HEADER_ALIASES[String(label?.textContent || '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase()] || null;
+    return HEADER_ALIASES[String(label?.textContent || cell.textContent || '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase()] || null;
   }
   function identityText(value, kind) {
     const text = String(value || '').replace(/\u00a0/g,' ').trim();
     if (ID.test(text)) return text;
-    const labelled = text.match(new RegExp('^' + kind + '(?:\\s+ID)?\\s*[:#]?\\s+([A-Za-z0-9][A-Za-z0-9_-]{0,60})$', 'i'));
+    const labelled = text.match(new RegExp('^' + kind + '(?:\\s+ID)?(?:\\s*[:#]\\s*|\\s+)([A-Za-z0-9][A-Za-z0-9_-]{0,60})$', 'i'));
     return labelled ? labelled[1] : '';
   }
   function readIdentity(row, cells, attribute, column, kind) {
@@ -59,13 +62,19 @@
     const head = table.querySelector("thead"), body = table.querySelector("tbody");
     if (!head || !body) return unavailable("loading", "table_incomplete");
     const columns = Object.create(null);
-    for (const [index, cell] of Array.from(head.querySelectorAll("th")).entries()) {
-      const key = headerKey(cell);
+    const headers = Array.from(head.querySelectorAll("th"), cell => ({
+      key: headerKey(cell), explicit: Boolean(cell.getAttribute('data-sort-by')?.trim()),
+    }));
+    const hasRevealDataColumn = headers.some(header => header.explicit && header.key === 'IsRevealed');
+    for (const [index, {key, explicit}] of headers.entries()) {
+      // A decorative label can repeat the title of the checkbox column.
+      if (key === 'IsRevealed' && hasRevealDataColumn && !explicit) continue;
       if (key && Object.prototype.hasOwnProperty.call(columns, key)) return unavailable("invalid", "duplicate_columns");
       if (key) columns[key] = index;
     }
     if (!Number.isInteger(columns.FirstName) || !Number.isInteger(columns.IsRevealed)) return unavailable("invalid", "columns_changed");
     const rows = body.querySelectorAll("tr.product.product-row");
+    if (!rows.length && body.querySelectorAll("tr").length) return unavailable("partial", "table_incomplete");
     // Bound scanning separately from the selected parties' capacity.
     if (rows.length > 50000) return unavailable("invalid", "scan_capacity_exceeded");
 
