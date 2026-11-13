@@ -1,3 +1,4 @@
+import { INVALID_PARSER_REASONS, type InvalidParserReason } from './types'
 import type { AcceptedObservation, LineupCommand, LineupResult, LineupState, ParserState, PartyAbsence, RevealRestoration, SourceEntry, SourcePacket, WorkspaceLineupSnapshot } from './types'
 
 export const LINEUP_MAX_ENTRIES = 2000
@@ -17,6 +18,7 @@ export const LINEUP_SHOW_IDLE_MS = 2 * 60 * 60 * 1000
 export const LINEUP_PARTY_ABSENCE_MS = 10 * 60 * 1000
 export const LINEUP_PARTY_ABSENCE_PACKETS = 2
 const parsers: ParserState[] = ['ready', 'loading', 'partial', 'invalid']
+const validParserReason = (value: unknown): value is InvalidParserReason => INVALID_PARSER_REASONS.some(code => code === value)
 const validId = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/.test(value)
 export const isClaimId = (value: unknown): value is string => typeof value === 'string'
   && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(value)
@@ -156,6 +158,7 @@ export function lineupFreshness(state: LineupState, now: number) {
 /** Database JSON is untrusted too: reject corrupt arrangements instead of silently losing/duplicating orders. */
 export function isLineupState(input: unknown): input is LineupState {
   if (!record(input) || input.schemaVersion !== 2 || !validInteger(input.revision)
+    || (input.parserReason != null && !validParserReason(input.parserReason))
     || !parsers.includes(input.parserState as ParserState) || !Array.isArray(input.entries)
     || input.entries.length > LINEUP_MAX_ENTRIES || !validIds(input.order, LINEUP_MAX_ENTRIES)
     || !validIds(input.held, LINEUP_MAX_ENTRIES) || !validIds(input.revealedIds, LINEUP_MAX_REVEALED)
@@ -260,6 +263,7 @@ export function parseSourcePacket(input: unknown): SourcePacket | null {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return null
   const p = input as Record<string, unknown>
   if (p.generation !== undefined && !validInteger(p.generation)) return null
+  if (p.parserReason !== undefined && (p.parserState !== 'invalid' || !validParserReason(p.parserReason))) return null
   if (p.claimId !== undefined && !isClaimId(p.claimId)) return null
   if (p.observation !== undefined && (!record(p.observation) || !isClaimId(p.observation.documentId)
     || !validInteger(p.observation.serial) || !canonicalTime(p.observation.serverTime) || typeof p.observation.settled !== 'boolean')) return null
@@ -304,6 +308,7 @@ export function parseSourcePacket(input: unknown): SourcePacket | null {
       serverTime: (p.observation as Record<string,unknown>).serverTime as string,
       settled: (p.observation as Record<string,unknown>).settled as boolean,
     }}),
+    ...(validParserReason(p.parserReason) ? {parserReason: p.parserReason} : {}),
     parserState: p.parserState as ParserState, entries, revealedIds: [...revealed], ...(revealedEntries === undefined ? {} : {revealedEntries}), ...(p.generation === undefined ? {} : {generation: p.generation as number}) }
 }
 
@@ -341,7 +346,7 @@ export function claimPublisher(state: LineupState, publisherId: string, expected
     return fail('publisher_conflict')
   const epoch = (state.publisher?.epoch ?? 0) + 1
   if (!validInteger(epoch) || !validInteger(state.revision + 1)) return fail('capacity_exceeded')
-  return { ok: true, state: { ...state, revision: state.revision + 1, parserState: 'loading', lastReceivedAt: null,
+  return { ok: true, state: { ...state, revision: state.revision + 1, parserState: 'loading', parserReason: null, lastReceivedAt: null,
     sourceObservation: null, lastReadyObservation: null, retiredDocumentIds: [], revealEvents: [],
     entries: state.entries.map(plainEntry), restorations: state.restorations?.map(item => ({...item,
       entry: options.capabilities === 'lineup-2.0.5' ? rememberedRestorationEntry(item.entry) : plainEntry(item.entry)})) ?? [],
@@ -425,9 +430,9 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   const retiredDocumentIds = [...(state.retiredDocumentIds ?? []), ...(documentChanged ? [priorObservation!.documentId] : [])]
   if (retiredDocumentIds.length > 32) return fail('capacity_exceeded')
   const next: LineupState = { ...state, revision: state.revision + 1, lastReceivedAt: receivedAt,
-    parserState: packet.parserState, sourceVersion: packet.sourceVersion,
+    parserState: packet.parserState, parserReason: packet.parserReason ?? null, sourceVersion: packet.sourceVersion,
     sourceObservation: observation, retiredDocumentIds,
-    publisher: { ...lease, lastSequence: packet.sequence, leaseExpiresAt: new Date(packet.parserState === 'ready'
+    publisher: { ...lease, lastSequence: packet.sequence, leaseExpiresAt: new Date(packet.parserState === 'ready' || packet.parserState === 'invalid' && upgraded
       ? now + LINEUP_LEASE_MS : Math.min(Date.parse(lease.leaseExpiresAt), now + LINEUP_OBSERVATION_MAX_AGE_MS)).toISOString() } }
   // Old publishers cannot revive cached identities on rows absent from their next snapshot.
   if (!upgraded || documentChanged) {
@@ -625,7 +630,7 @@ export function applyLineupCommand(state: LineupState, input: unknown, now: numb
       show: {generation, partyIds: command.partyIds, excludedPartyIds: [], carryEntryIds: command.carryEntryIds, startedAt: new Date(now).toISOString()},
       entries: state.entries.filter(e => carry.has(e.id)).map(plainEntry), order: state.order.filter(id => carry.has(id)), held: state.held.filter(id => carry.has(id)), revealedIds: [], undo: null, lastReceivedAt: null,
       sourceObservation: null, lastReadyObservation: null, retiredDocumentIds: [], restorations: [], revealEvents: [], revealEventCursor: 0,
-      lastChangedAt: new Date(now).toISOString(), parserState: 'loading', sourceVersion: null,
+      lastChangedAt: new Date(now).toISOString(), parserState: 'loading', parserReason: null, sourceVersion: null,
       publisher: {...state.publisher, lastSequence: -1, leaseExpiresAt: new Date(now).toISOString()}}
     delete opened.partyAbsence
     return {ok: true, state: opened}

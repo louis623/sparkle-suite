@@ -45,12 +45,17 @@
     }
     return next;
   }
+  function retentionLimit(current) {
+    const remaining = current?.liveQueueRetainForSeconds;
+    return current?.liveQueueSourceReady === false && Number.isFinite(remaining) && remaining > 0 && remaining <= 90
+      ? Math.max(RETAIN_SECONDS, current.liveQueueAgeSeconds + remaining) : RETAIN_SECONDS;
+  }
   function unavailable(current, now = Date.now(), elapsedSeconds = 0) {
     // V2 age is server age plus elapsed monotonic time, not browser/sender wall clocks.
     const age = Number.isFinite(current?.liveQueueAgeSeconds) || isRevision(current?.liveQueueRevision)
       ? (current.liveQueueAgeSeconds == null ? Infinity : current.liveQueueAgeSeconds + Math.max(0, elapsedSeconds))
       : (now - time(current?.liveQueueLastUpdated)) / 1000;
-    const retain = Number.isFinite(age) && age >= 0 && age <= RETAIN_SECONDS;
+    const retain = Number.isFinite(age) && age >= 0 && age <= retentionLimit(current);
     return {
       ...current,
       liveQueueFlare: null,
@@ -66,7 +71,9 @@
   }
   function afterTransit(next, seconds) {
     if (!Number.isFinite(next?.liveQueueAgeSeconds)) return next;
-    const adjusted = { ...next, liveQueueAgeSeconds: next.liveQueueAgeSeconds + Math.max(0, seconds),
+    const adjusted = { ...next,
+      ...(Number.isFinite(next.liveQueueRetainForSeconds) ? {liveQueueRetainForSeconds: Math.max(0, next.liveQueueRetainForSeconds - Math.max(0, seconds))} : {}),
+      liveQueueAgeSeconds: next.liveQueueAgeSeconds + Math.max(0, seconds),
       ...(grouped(next) ? { liveQueueEvents: next.liveQueueEvents.map(e => ({ ...e, ageSeconds: e.ageSeconds + Math.max(0, seconds) })) } : {}) };
     return adjusted.liveQueueAgeSeconds >= (adjusted.liveQueueStaleAfterSeconds || 45) ? unavailable(adjusted) : adjusted;
   }
@@ -94,7 +101,7 @@
       clearTimeout(healthTimer);
       if (!Number.isFinite(current?.liveQueueAgeSeconds) || current.liveQueueState === 'offline') return;
       const elapsed = Math.max(0, (monotonicNow() - lastAcceptedAt) / 1000);
-      const limit = fresh(current) ? (current.liveQueueStaleAfterSeconds || 45) : RETAIN_SECONDS;
+      const limit = fresh(current) ? (current.liveQueueStaleAfterSeconds || 45) : retentionLimit(current);
       const delay = Math.max(1, (limit - current.liveQueueAgeSeconds - elapsed) * 1000 + 1);
       healthTimer = setTimeout(() => {
         if (stopped) return;
