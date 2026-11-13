@@ -13,7 +13,9 @@ Louis selected option 1 on October 2, 2026 and asked to implement it. An unavail
 ## Behavior contract
 | Public entries | Source state | Display |
 | --- | --- | --- |
-| None | Empty, offline, loading, or delayed | Compact calendar row, no lineup heading/status/time/button |
+| None | Fresh and empty | Compact status row: “Live lineup connected. No one is waiting.” |
+| None | Delayed | Compact status row: “Live lineup updates are delayed.” |
+| None | Offline or loading | Compact calendar row |
 | One or more | Fresh | Existing customer pills and full-lineup drawer action |
 | One or more retained | Delayed | Keep names and drawer action; discreet updating/last-update text |
 

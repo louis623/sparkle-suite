@@ -209,10 +209,15 @@
     return ref;
   }
   // Shared by every skin and customer-page variant. Calendar never gates names.
-  function renderEmpty(React, calendarHref) {
+  function renderEmpty(React, calendarHref, state) {
+    const h = React.createElement;
+    if (state === 'empty' || state === 'delayed') {
+      const message = state === 'empty' ? 'Live lineup connected. No one is waiting.' : 'Live lineup updates are delayed.';
+      return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':state, 'aria-label':'Live lineup'},
+        h('div', {className:'hp-lineup-idle-inner'}, h('span', {className:'hp-lineup-idle-prompt'}, message)));
+    }
     const href = typeof calendarHref === 'string' && (calendarHref === '#events' || calendarHref.startsWith('/')) &&
       !calendarHref.startsWith('//') && !/[\\\s]/u.test(calendarHref) ? calendarHref : null;
-    const h = React.createElement;
     const icon = h('svg', {width:18, height:18, viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.7, 'aria-hidden':true},
       h('rect', {x:3, y:5, width:18, height:16, rx:2}),
       h('path', {d:'M16 3v4M8 3v4M3 11h18'}));
