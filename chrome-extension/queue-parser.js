@@ -62,13 +62,19 @@
     const head = table.querySelector("thead"), body = table.querySelector("tbody");
     if (!head || !body) return unavailable("loading", "table_incomplete");
     const columns = Object.create(null);
-    for (const [index, cell] of Array.from(head.querySelectorAll("th")).entries()) {
-      const key = headerKey(cell);
+    const headers = Array.from(head.querySelectorAll("th"), cell => ({
+      key: headerKey(cell), explicit: Boolean(cell.getAttribute('data-sort-by')?.trim()),
+    }));
+    const hasRevealDataColumn = headers.some(header => header.explicit && header.key === 'IsRevealed');
+    for (const [index, {key, explicit}] of headers.entries()) {
+      // A decorative label can repeat the title of the checkbox column.
+      if (key === 'IsRevealed' && hasRevealDataColumn && !explicit) continue;
       if (key && Object.prototype.hasOwnProperty.call(columns, key)) return unavailable("invalid", "duplicate_columns");
       if (key) columns[key] = index;
     }
     if (!Number.isInteger(columns.FirstName) || !Number.isInteger(columns.IsRevealed)) return unavailable("invalid", "columns_changed");
     const rows = body.querySelectorAll("tr.product.product-row");
+    if (!rows.length && body.querySelectorAll("tr").length) return unavailable("partial", "table_incomplete");
     // Bound scanning separately from the selected parties' capacity.
     if (rows.length > 50000) return unavailable("invalid", "scan_capacity_exceeded");
 

@@ -52,9 +52,26 @@ test('documented Revealed label and compact labelled IDs preserve identity and c
   assert.equal(withHeaders(row,headers).entries[0].id,'P9:00017');
   assert.equal(withHeaders({...row,orderText:'Order #17'},headers).reason,'missing_order_identity');
   assert.equal(withHeaders({...row,busy:true},headers).parserState,'partial');
-  assert.equal(withHeaders(row,[...headers,['IsRevealed']]).reason,'duplicate_columns');
+  const explicit = [...headers.slice(0,5), ['IsRevealed']];
+  assert.equal(withHeaders(row, [...explicit, [null,'Revealed']]).entries[0].id, 'P9:00017');
+  assert.equal(withHeaders(row, [...explicit.slice(0,3), [null,'Revealed'], ...explicit.slice(4)]).parserState, 'ready');
+  assert.equal(withHeaders(row, [...headers, ['IsRevealed']]).reason, 'row_incomplete');
+  assert.equal(withHeaders(row, [...explicit, ['IsRevealed']]).reason, 'duplicate_columns');
+  assert.equal(withHeaders(row, [...headers, [null,'Revealed']]).reason, 'duplicate_columns');
   assert.equal(withHeaders(row,headers.map(([key,label])=>[key,label==='Revealed'?'Status':label])).reason,'columns_changed');
 });
+test('unrecognized rows cannot publish a healthy empty lineup', () => {
+  const fixture = table([]);
+  assert.equal(parseTable(fixture).parserState, 'ready');
+  const original = fixture.querySelector;
+  fixture.querySelector = selector => selector === 'tbody'
+    ? {querySelectorAll: query => query === 'tr' ? [{}] : []}
+    : original(selector);
+  const snapshot = parseTable(fixture);
+  assert.equal(snapshot.parserState, 'partial');
+  assert.equal(snapshot.reason, 'table_incomplete');
+});
+
 test('publisher posts only enumerated invalid reasons and keeps raw text off the wire',async()=>{
   let state={enabled:true,token:'TST-0001',configVersion:'v',generation:1,claimId:documentId,publisherId:rep,epoch:1,nextSequence:0};
   const packets=[];const time=new Date(1000).toISOString();
