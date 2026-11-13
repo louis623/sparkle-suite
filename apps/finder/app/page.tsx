@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { AuthenticatedHomePage } from "@/components/home/AuthenticatedHomePage";
 import { PublicLandingPage } from "@/components/home/PublicLandingPage";
+import { sparkleFinderSmokeAnonymousEntryPath } from "@/lib/sparkle-finder/auth-entry";
 import {
   parseSparkleFinderAuthMode,
   sparkleFinderAuthCookieName,
@@ -40,6 +42,11 @@ export default async function Home() {
   const cookieStore = await cookies();
   const authMode = parseSparkleFinderAuthMode(cookieStore.get(sparkleFinderAuthCookieName)?.value);
   const accountState = await getCurrentSparkleFinderAccount({ localPreviewAuthMode: authMode });
+  const smokeAnonymousEntry = sparkleFinderSmokeAnonymousEntryPath(accountState.status);
+  if (smokeAnonymousEntry) {
+    redirect(smokeAnonymousEntry);
+  }
+
   const homepageData =
     accountState.status === "authenticated" && accountState.isLocalPreview !== true
       ? await getPersistedHomepageData(accountState.customer.id)
