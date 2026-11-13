@@ -14,7 +14,7 @@ Louis selected option 1 on October 2, 2026 and asked to implement it. An unavail
 | Public entries | Source state | Display |
 | --- | --- | --- |
 | None | Fresh and empty | Compact status row: “Live lineup connected. No one is waiting.” |
-| None | Delayed | Compact status row: “Live lineup updates are delayed.” |
+| None | Delayed | Compact status row: “Working on live lineup issue. We will have it back up and running soon” |
 | None | Offline or loading | Compact calendar row |
 | One or more | Fresh | Existing customer pills and full-lineup drawer action |
 | One or more retained | Delayed | Keep names and drawer action; discreet updating/last-update text |

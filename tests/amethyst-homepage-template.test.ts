@@ -32,7 +32,7 @@ describe('Amethyst homepage template data wiring', () => {
     for (const source of publicLineupSources) {
       expect(source).not.toContain('Update delayed')
       expect(source).toContain('className="hp-trade-preview-updated"')
-      expect(source).toContain('Updating · Last update ')
+      expect(source).toContain('Working on live lineup issue. We will have it back up and running soon')
       expect(source).toContain("new Date(updatedAt).toLocaleTimeString")
       expect(source).toMatch(
         /className="hp-trade-preview-items"[\s\S]*?className="hp-trade-preview-link"[\s\S]*?<LiveLineupUpdatedAt lineup=\{lineup\} \/>/,
@@ -918,7 +918,7 @@ describe('Amethyst homepage template data wiring', () => {
     expect(noQueueYet.liveQueueSummary).toBe('Check the calendar for the next show.')
     expect(noQueueYet.liveQueueSummary).not.toMatch(/waiting|retry/i)
     expect(waitingForUpdate.liveQueueSummary).toBe(
-      'Showing the last received lineup. Positions may have changed; checking for updates.',
+      'Working on live lineup issue. We will have it back up and running soon',
     )
     expect(waitingForUpdate.liveQueueSummary).not.toContain('stale')
   })
