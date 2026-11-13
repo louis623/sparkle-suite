@@ -29,7 +29,15 @@ const names=[{name:'Sample Harper',position:1,token:'sample-one',remainingOrders
 describe('public customer lineup follows entries, independently of showtime and skin',()=>{
   for(const page of ['homepage','trade','join']) {
     const prepared=template(page)
-    for(const state of ['offline','empty','loading','delayed']) {
+    for(const [state,message] of [['empty','Live lineup connected. No one is waiting.'],['delayed','Live lineup updates are delayed.']]) {
+      it(page+': '+state+' without names displays its connection status',async()=>{
+        const html=(await prepared)(state)
+        expect(html).toContain(message)
+        expect(html).not.toContain('Check the calendar for the next show')
+        expect(html).not.toContain('href="/smokecodex#events"')
+      })
+    }
+    for(const state of ['offline','loading']) {
       it(page+': '+state+' without names has only a compact calendar action',async()=>{
         const html=(await prepared)(state)
         expect(html).toContain('data-lineup-surface="calendar"')
@@ -73,7 +81,7 @@ describe('public customer lineup follows entries, independently of showtime and 
     for(const preset of [...AMETHYST_APPEARANCE_PRESET_IDS,'future_inherited_skin']) {
       it(page+': '+preset+' inherits both display states',async()=>{
         const render=await prepared
-        expect(render('empty',[],null,true,preset)).toContain('data-lineup-surface="calendar"')
+        expect(render('empty',[],null,true,preset)).toContain('Live lineup connected. No one is waiting.')
         expect(render('live',names,null,true,preset)).toContain('Sample Harper')
       })
     }
