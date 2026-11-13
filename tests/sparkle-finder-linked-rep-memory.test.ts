@@ -131,7 +131,7 @@ describe('Sparkle Finder linked rep memory bridge', () => {
         },
       ],
       subscriptionRows: [],
-      launchBuildRows: [],
+      trialRows: [],
     })
 
     await expect(
@@ -152,7 +152,7 @@ describe('Sparkle Finder linked rep memory bridge', () => {
     expect(deps.notes.eqRep).not.toHaveBeenCalled()
   })
 
-  it('allows active ready launch-build reps before paid subscription starts', async () => {
+  it('allows an active workspace trial before paid subscription starts', async () => {
     const deps = makeDeps({
       repRow: { id: 'suite-rep-1', status: 'active' },
       noteRows: [
@@ -165,7 +165,7 @@ describe('Sparkle Finder linked rep memory bridge', () => {
         },
       ],
       subscriptionRows: [],
-      launchBuildRows: [{ rep_id: 'suite-rep-1' }],
+      trialRows: [{ rep_id: 'suite-rep-1' }],
     })
 
     await expect(
@@ -266,7 +266,7 @@ function makeDeps(options: {
   repRow: Record<string, unknown> | null
   noteRows: Array<Record<string, unknown>>
   subscriptionRows?: Array<Record<string, unknown>>
-  launchBuildRows?: Array<Record<string, unknown>>
+  trialRows?: Array<Record<string, unknown>>
 }) {
   const repMaybeSingle = vi.fn().mockResolvedValue({
     data: options.repRow,
@@ -289,13 +289,12 @@ function makeDeps(options: {
   })
   const subscriptionSelect = vi.fn(() => ({ in: subscriptionIn }))
 
-  const launchBuildNot = vi.fn().mockResolvedValue({
-    data: options.launchBuildRows ?? [],
+  const trialExpiresAfter = vi.fn().mockResolvedValue({
+    data: options.trialRows ?? [],
     error: null,
   })
-  const launchBuildStatusEq = vi.fn(() => ({ not: launchBuildNot }))
-  const launchBuildStageEq = vi.fn(() => ({ eq: launchBuildStatusEq }))
-  const launchBuildSelect = vi.fn(() => ({ eq: launchBuildStageEq }))
+  const trialStatusEq = vi.fn(() => ({ gt: trialExpiresAfter }))
+  const trialSelect = vi.fn(() => ({ eq: trialStatusEq }))
 
   const supabase = {
     from: vi.fn((table: string) => {
@@ -308,8 +307,8 @@ function makeDeps(options: {
       if (table === 'subscriptions') {
         return { select: subscriptionSelect }
       }
-      if (table === 'sparkle_suite_launch_builds') {
-        return { select: launchBuildSelect }
+      if (table === 'workspace_trials') {
+        return { select: trialSelect }
       }
       throw new Error(`Unexpected table: ${table}`)
     }),
