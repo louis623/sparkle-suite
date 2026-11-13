@@ -29,7 +29,7 @@ const names=[{name:'Sample Harper',position:1,token:'sample-one',remainingOrders
 describe('public customer lineup follows entries, independently of showtime and skin',()=>{
   for(const page of ['homepage','trade','join']) {
     const prepared=template(page)
-    for(const [state,message] of [['empty','Live lineup connected. No one is waiting.'],['delayed','Live lineup updates are delayed.']]) {
+    for(const [state,message] of [['empty','Live lineup connected. No one is waiting.'],['delayed','Working on live lineup issue. We will have it back up and running soon']]) {
       it(page+': '+state+' without names displays its connection status',async()=>{
         const html=(await prepared)(state)
         expect(html).toContain(message)
@@ -55,7 +55,7 @@ describe('public customer lineup follows entries, independently of showtime and 
         expect(html).toContain('2 orders')
         expect(html).toMatch(/<button[^>]*>View (full )?lineup<\/button>/)
         expect(html).not.toContain('data-lineup-surface="calendar"')
-        if(state==='delayed') expect(html).toContain('Updating · Last update')
+        if(state==='delayed') expect(html).toContain('Working on live lineup issue. We will have it back up and running soon')
       })
     }
     it(page+': unavailable calendar has no dead link',async()=>{

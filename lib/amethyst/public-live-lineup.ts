@@ -84,7 +84,7 @@ export function buildPublicLiveLineup(snapshot: LiveQueueSnapshot | null | undef
     liveQueueServerTime: snapshot?.serverTime,
     liveQueueAgeSeconds: snapshot?.ageSeconds ?? null,
     liveQueueStaleAfterSeconds: snapshot?.staleAfterSeconds ?? 180,
-    liveQueueSummary: state === 'delayed' ? 'Showing the last received lineup. Positions may have changed; checking for updates.'
+    liveQueueSummary: state === 'delayed' ? 'Working on live lineup issue. We will have it back up and running soon'
       : state === 'offline' ? 'Check the calendar for the next show.'
       : state === 'empty' ? 'No orders waiting. Live Lineup connected and ready.' : 'Live Lineup is updating automatically.',
     liveQueueEntries: entries,
