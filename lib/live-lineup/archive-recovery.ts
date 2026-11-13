@@ -101,7 +101,7 @@ export function buildArchiveRecoveryState(current: LineupState, archive: LineupA
     order: [...current.order], held: [...current.held, ...recovered], revealedIds: [...current.revealedIds],
     // Old Undo can mention a since-removed identity. Clearing it prevents unexpectedly unholding a recovery.
     undo: null, sourceObservation: null, lastReadyObservation: null, retiredDocumentIds: [], restorations: [], revealEvents: [], revealEventCursor: 0,
-    lastReceivedAt: null, parserState: 'loading', sourceVersion: null, lastChangedAt: new Date(now).toISOString(),
+    lastReceivedAt: null, parserState: 'loading', parserReason: null, sourceVersion: null, lastChangedAt: new Date(now).toISOString(),
     publisher: { ...current.publisher, lastSequence: -1, leaseExpiresAt: new Date(now).toISOString() } }
   if (!isLineupState(next)) throw new LineupServiceError('invalid_recovered_lineup')
   return next

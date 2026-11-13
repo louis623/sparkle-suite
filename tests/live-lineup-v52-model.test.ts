@@ -40,13 +40,30 @@ describe('v5.2 source evidence, atomic candidate and privacy eligibility',()=>{
     const replaced=publish(s,T+6,{observation:{documentId:E,serial:0,serverTime:new Date(T+6).toISOString(),settled:true}})
     expect(applySourcePacket(replaced,payload(replaced,T+7),T+7)).toMatchObject({code:'stale_observation'})
   })
-  it('nonready preserves orders and ready age, shortens ownership once, and never renews it',()=>{
+  it('loading and partial preserve the shorter lease and ready age',()=>{
     const s=ready(), first=publish(s,T+1000,{parserState:'partial',entries:[],observation:{documentId:D,serial:1,serverTime:new Date(T+1000).toISOString(),settled:false}})
     const second=publish(first,T+2000,{parserState:'loading',entries:[],observation:{documentId:D,serial:2,serverTime:new Date(T+2000).toISOString(),settled:false}})
     expect(second.publisher!.leaseExpiresAt).toBe(first.publisher!.leaseExpiresAt)
     expect(Date.parse(first.publisher!.leaseExpiresAt)).toBe(T+16000)
     expect(second.order).toEqual(s.order);expect(second.lastReadyAt).toBe(s.lastReadyAt)
     expect(second.lastReadySourceAt).toBe(s.lastReadySourceAt)
+  })
+  it('keeps an active invalid publisher through repeated heartbeats until a fresh ready snapshot',()=>{
+    const initial=ready()
+    let s=initial
+    for(const offset of [20_000,80_000,140_000]) {
+      const now=T+offset
+      s=publish(s,now,{parserState:'invalid',entries:[],observation:{documentId:D,serial:offset,serverTime:new Date(now).toISOString(),settled:false}})
+      expect(Date.parse(s.publisher!.leaseExpiresAt)).toBe(now+90_000)
+      expect(s.entries).toEqual(initial.entries)
+      expect(s.lastReadyAt).toBe(initial.lastReadyAt)
+      expect(buildWorkspaceLineupSnapshot(s,now,true)).toMatchObject({connection:'delayed',canManage:false})
+    }
+    expect(parseSourcePacket({...payload(s,T+141_000),parserState:'invalid',parserReason:'customer_name'})).toBeNull()
+    const recovered=publish(s,T+141_000,{observation:{documentId:D,serial:140001,serverTime:new Date(T+141_000).toISOString(),settled:true}})
+    expect(recovered.publisher!.epoch).toBe(initial.publisher!.epoch)
+    expect(buildWorkspaceLineupSnapshot(recovered,T+141_000,true).connection).toBe('connected')
+    expect(applySourcePacket(s,payload(s,T+230_000),T+230_000)).toMatchObject({code:'lease_expired'})
   })
   it('requires ready freshness for every arrangement command, but lets authorized recovery stay visible',()=>{
     const s=ready()
