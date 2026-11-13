@@ -125,5 +125,9 @@ function getSignInNotice(message: string | undefined, error: string | undefined)
     return "Sparkle Finder could not email a sign-in link. Check the address and try again.";
   }
 
+  if (error === "confirmation_failed") {
+    return "That sign-in link could not be completed. Request a new magic link and open it in this browser.";
+  }
+
   return null;
 }

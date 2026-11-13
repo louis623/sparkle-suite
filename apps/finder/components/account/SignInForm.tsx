@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { useFormStatus } from "react-dom";
 import { KeyRound, Loader2, Mail } from "lucide-react";
-import { requestSignInMagicLink } from "@/app/auth/sign-in/actions";
-import { getSparkleFinderOAuthRedirectTo } from "@/lib/sparkle-finder/oauth-redirect";
+import {
+  getSparkleFinderMagicLinkRedirectTo,
+  getSparkleFinderOAuthRedirectTo,
+} from "@/lib/sparkle-finder/oauth-redirect";
 import { safeSparkleFinderNextPath } from "@/lib/sparkle-finder/safe-redirect";
 import { createClient } from "@/lib/supabase/client";
 
@@ -21,6 +22,7 @@ type SignInFormProps = {
 export function SignInForm({ nextPath = "/" }: SignInFormProps) {
   const [email, setEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [magicLinkNotice, setMagicLinkNotice] = useState<string | null>(null);
   const [submitMode, setSubmitMode] = useState<"password" | "google" | "magic-link" | null>(null);
   const safeNextPath = safeSparkleFinderNextPath(nextPath);
   const signUpHref = safeNextPath === "/" ? "/auth/sign-up" : `/auth/sign-up?next=${encodeURIComponent(safeNextPath)}`;
@@ -48,6 +50,42 @@ export function SignInForm({ nextPath = "/" }: SignInFormProps) {
       }
 
       window.location.assign(`/auth/post-login?next=${encodeURIComponent(safeNextPath)}`);
+    } catch {
+      setErrorMessage("Sparkle Finder sign-in is not configured in this environment.");
+      setSubmitMode(null);
+    }
+  }
+
+  async function handleMagicLink() {
+    const trimmedEmail = email.trim();
+    setErrorMessage(null);
+    setMagicLinkNotice(null);
+
+    if (!trimmedEmail) {
+      setErrorMessage("Enter your email and we will send a sign-in link. No password needed.");
+      return;
+    }
+
+    setSubmitMode("magic-link");
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOtp({
+        email: trimmedEmail,
+        options: {
+          emailRedirectTo: getSparkleFinderMagicLinkRedirectTo(safeNextPath, window.location.origin),
+          shouldCreateUser: false,
+        },
+      });
+
+      if (error) {
+        setErrorMessage("Sparkle Finder could not email a sign-in link. Check the address and try again.");
+        setSubmitMode(null);
+        return;
+      }
+
+      setMagicLinkNotice("Check your email for the Sparkle Finder sign-in link.");
+      setSubmitMode(null);
     } catch {
       setErrorMessage("Sparkle Finder sign-in is not configured in this environment.");
       setSubmitMode(null);
@@ -124,6 +162,11 @@ export function SignInForm({ nextPath = "/" }: SignInFormProps) {
             {errorMessage}
           </p>
         ) : null}
+        {magicLinkNotice ? (
+          <p className="rounded-[var(--sparkle-radius-sm)] border border-[var(--sparkle-border)] bg-white p-3 text-sm font-semibold leading-6 text-[var(--sparkle-plum-deep)]">
+            {magicLinkNotice}
+          </p>
+        ) : null}
       </form>
 
       <div className="flex flex-wrap gap-3">
@@ -147,18 +190,20 @@ export function SignInForm({ nextPath = "/" }: SignInFormProps) {
           {submitMode === "google" ? <Loader2 aria-hidden="true" className="size-4 animate-spin" /> : null}
           {submitMode === "google" ? "Opening Google..." : "Continue with Google"}
         </button>
-        <form
-          action={requestSignInMagicLink}
-          className="contents"
-          onSubmit={() => {
-            setErrorMessage(null);
-            setSubmitMode("magic-link");
-          }}
+        <button
+          aria-busy={submitMode === "magic-link"}
+          className={`${buttonClassName} border border-[var(--sparkle-border-strong)] bg-white text-[var(--sparkle-plum-deep)]`}
+          disabled={isSubmitting}
+          onClick={handleMagicLink}
+          type="button"
         >
-          <input className="hidden" name="email" type="hidden" value={email.trim()} />
-          <input className="hidden" name="next" type="hidden" value={safeNextPath} />
-          <MagicLinkSubmitButton disabled={submitMode === "password" || submitMode === "google"} />
-        </form>
+          {submitMode === "magic-link" ? (
+            <Loader2 aria-hidden="true" className="size-4 animate-spin" />
+          ) : (
+            <Mail aria-hidden="true" className="size-4" />
+          )}
+          {submitMode === "magic-link" ? "Sending link..." : "Email me a magic link"}
+        </button>
       </div>
 
       <p className="text-sm leading-6 text-[var(--sparkle-ink-muted)]">
@@ -174,18 +219,3 @@ export function SignInForm({ nextPath = "/" }: SignInFormProps) {
   );
 }
 
-function MagicLinkSubmitButton({ disabled }: { disabled: boolean }) {
-  const { pending } = useFormStatus();
-
-  return (
-    <button
-      aria-busy={pending}
-      className={`${buttonClassName} border border-[var(--sparkle-border-strong)] bg-white text-[var(--sparkle-plum-deep)]`}
-      disabled={disabled || pending}
-      type="submit"
-    >
-      {pending ? <Loader2 aria-hidden="true" className="size-4 animate-spin" /> : <Mail aria-hidden="true" className="size-4" />}
-      {pending ? "Sending link..." : "Email me a magic link"}
-    </button>
-  );
-}

@@ -5,19 +5,23 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get("code");
   const tokenHash = requestUrl.searchParams.get("token_hash");
   const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
+  const nextPath = safeSparkleFinderNextPath(requestUrl.searchParams.get("next"));
 
-  if (!tokenHash || !type) {
+  if (!code && (!tokenHash || !type)) {
     return NextResponse.redirect(new URL("/auth/sign-in?error=confirmation_failed", requestUrl.origin));
   }
 
   try {
     const supabase = await createClient();
-    const { error } = await supabase.auth.verifyOtp({
-      token_hash: tokenHash,
-      type,
-    });
+    const { error } = tokenHash && type
+      ? await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type,
+        })
+      : await supabase.auth.exchangeCodeForSession(code ?? "");
 
     if (error) {
       return NextResponse.redirect(new URL("/auth/sign-in?error=confirmation_failed", requestUrl.origin));
@@ -25,8 +29,6 @@ export async function GET(request: Request) {
   } catch {
     return NextResponse.redirect(new URL("/auth/sign-in?error=confirmation_failed", requestUrl.origin));
   }
-
-  const nextPath = safeSparkleFinderNextPath(requestUrl.searchParams.get("next"));
 
   if (type === "recovery") {
     const resetPasswordUrl = new URL("/auth/reset-password", requestUrl.origin);
