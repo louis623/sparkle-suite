@@ -1116,13 +1116,15 @@ function LiveLineupUpdatedAt({ lineup }) {
   const updatedAt = Date.parse(lineup?.liveQueueLastUpdated);
   if (!Number.isFinite(updatedAt)) return null;
   return (
-    <time
-      className="hp-trade-preview-updated"
+    <div className="hp-trade-preview-updated">
+      {lineup?.liveQueueState === "delayed" && <span>Working on live lineup issue. We will have it back up and running soon </span>}
+      <time
       dateTime={new Date(updatedAt).toISOString()}
       title={new Date(updatedAt).toLocaleString()}
     >
-      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-    </time>
+      {lineup?.liveQueueState === "delayed" ? "Last update " : "Updated "}{new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+      </time>
+    </div>
   );
 }
 
