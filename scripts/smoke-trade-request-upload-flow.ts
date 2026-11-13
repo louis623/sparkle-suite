@@ -4,7 +4,7 @@ import { access, readFile, writeFile } from 'node:fs/promises'
 import { isAbsolute, join } from 'node:path'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { TEAM, TARGETS, assertEnvironment, assertDeployment, assertCronDisabled } from './smoke-environment/guards.mjs'
-import { runBrowserReview, openOldDocument, closeBrowser } from './smoke-environment/swap-browser-review.mjs'
+import { runBrowserReview, runRepRetry, openOldDocument, closeBrowser } from './smoke-environment/swap-browser-review.mjs'
 import { getTradeRequestNotificationSummary } from '@/lib/services/trade-requests'
 import { notifyRepOfTradeRequest } from '@/lib/nic-nac/trade-request-notifications'
 
@@ -36,11 +36,11 @@ let shopperPath = ''
 const receipts: Record<string,string>={}
 const fixtureNames=['primary','alternate','expired','legacy','control','contender'] as const
 const designName=(key:string)=>'Review '+short+' '+key
-const proof = { runId,owner,priorId,priorSha,candidate,loads:[] as number[], observations:[] as string[], requests:[] as string[], objects:[] as string[], candidateId:'', restoredId:'',cleanup:false }
+const proof = { runId,owner,priorId,priorSha,candidate,loads:[] as number[], observations:[] as string[], requests:[] as string[], objects:[] as string[], screens:[] as unknown[],cases:[] as unknown[],candidateId:'', restoredId:'',cleanup:false }
 type Journal = {currentGeneration:number; priorGeneration:number; priorUntil:string|null; priorSink:string|null; sinkSet:boolean}
 let journal:Journal
 const idFor=(label:string)=>{
-  const h=createHash('sha256').update(runId+' '+label).digest('hex')
+  const h=createHash('sha256').update(runId+' '+(process.argv.includes('--rep-retry')?'final fixture ':'')+label).digest('hex')
   return h.slice(0,8)+'-'+h.slice(8,12)+'-4'+h.slice(13,16)+'-8'+h.slice(17,20)+'-'+h.slice(20,32)
 }
 const listing=(key:string)=>idFor('listing '+key)
@@ -101,7 +101,7 @@ async function preflight() {
   check(/^[a-f0-9]{40}$/.test(candidate)&&/^[a-f0-9]{40}$/.test(priorSha),'Missing comparable SHA')
   await access(dir)
   const d=await alias()
-  const resume=process.argv.includes('--cleanup-interrupted')
+  const resume=process.argv.includes('--cleanup-interrupted')||process.argv.includes('--resume-candidate')
   if(!resume||d.id===priorId) {assertDeployment('suite',d,priorSha);check(d.id===priorId,'Prior alias changed before review')}
   else {assertDeployment('suite',d,candidate);proof.candidateId=d.id}
   assertCronDisabled('suite',await vercel('/v9/projects/'+project))
@@ -281,9 +281,26 @@ async function identityProof(clients:Awaited<ReturnType<typeof authenticate>>[],
     check(!leaked,'Unrelated role received a private request event')
   } finally { await Promise.all([own.client.removeChannel(channel),anon.removeChannel(denied[0]),otherRole.client.removeChannel(denied[1])]) }
 }
+async function opportunisticControl() {
+  const input={listingId:listing('primary'),submissionId:idFor('maintenance probe'),contentType:'image/jpeg',byteSize:512}
+  const path='/api/amethyst/trade-requests/uploads?c='+rep
+  const headers={'content-type':'application/json',origin}
+  const issued=await api(path,{method:'POST',headers,body:JSON.stringify(input)})
+  check(issued.status===201,'Probe ticket HTTP '+issued.status)
+  const ticket=await issued.json()
+  check(typeof ticket.uploadId==='string','Missing probe ticket')
+  const discard=await api(path,{method:'DELETE',headers,body:JSON.stringify({...input,uploadId:ticket.uploadId})})
+  check(discard.ok,'Probe discard HTTP '+discard.status)
+  const pathFor=(key:string)=>'staging/'+rep+'/'+idFor('stale ticket '+key)+'.jpg'
+  const owned=await admin.storage.from(bucket).download(pathFor('expired'))
+  const unrelated=await admin.storage.from(bucket).download(pathFor('control'))
+  check(owned.error && !unrelated.error,'Opportunistic sweep did not isolate the eligible raw uploads')
+}
 async function maintenance() {
   const call=await api('/api/internal/swap-maintenance',{method:'POST',headers:{authorization:'Bearer '+env('SPARKLE_SWAP_MAINTENANCE_SMOKE_SECRET'),'x-swap-review-run':runId}})
-  check(call.ok&&(await call.json()).ok===true,'Run-scoped maintenance refused')
+  const sweep=await call.json()
+  proof.observations.push('Direct maintenance HTTP '+call.status+' '+JSON.stringify(sweep).slice(0,350))
+  check(call.ok&&sweep.ok===true,'Run-scoped maintenance refused')
   const state=await data(admin.from('trade_requests').select('id,reveal_screenshot_path').in('id',[idFor('request expired'),idFor('request control')]),'read sweep controls')
   check(state?.find(r=>r.id===idFor('request expired'))?.reveal_screenshot_path===null,'Eligible owned fixture not cleaned')
   const control=state?.find(r=>r.id===idFor('request control'))?.reveal_screenshot_path
@@ -341,14 +358,23 @@ async function main() {
   try {
     await preflight()
     if(process.argv.includes('--cleanup-interrupted'))return
-    await seed()
+    if(process.argv.includes('--resume-candidate')){
+      const previous=JSON.parse(await readFile(join(dir,'progress.json'),'utf8'))
+      const marker=JSON.parse(await readFile(join(dir,'cutover-ready.json'),'utf8'))
+      check(previous.runId===runId && marker.runId===runId && marker.oldConfirmed===false && marker.loads.length===2 && previous.loads.length===2 && previous.loads.every((s:number)=>s===8),'Cannot resume old-tab state')
+      const shop=await data(admin.from('reps').select('public_site_slug').eq('id',rep).single(),'resume owned shop')
+      check(shop?.public_site_slug==='smokecodex','Wrong resumed shop')
+      shopperPath='/'+shop.public_site_slug+'/trade'
+      Object.assign(proof,previous)
+      if(!proof.cases.some(entry=>entry && typeof entry==='object' && 'slot' in entry && entry.slot===8))proof.cases.push({slot:8,status:'blocked',reason:'Prior ticket not confirmed'})
+    }else await seed()
     const oldBoard=await api('/api/amethyst/trade-board?c='+rep)
     check(oldBoard.ok,'Prior app cannot resolve the explicit synthetic reviewer')
     const boardData=await oldBoard.json()
     check(Array.isArray(boardData.listings)&&boardData.listings.some((r:{id?:string;listingId?:string})=>
       r.id===listing('primary')||r.listingId===listing('primary')),'Prior board does not expose this run’s pictured fixture')
     const roles=await Promise.all([authenticate(rep),authenticate(other)])
-    const context={origin,rep,shopperPath,runId,listing,designName,receipts,proof,policy,receipt,release,contention,maintenance,seedFallbackAlerts,api,
+    const context={checkpoint:()=>write('progress.json',proof),origin,rep,shopperPath,runId,listing,designName,receipts,proof,policy,receipt,release,contention,maintenance,opportunisticControl,seedFallbackAlerts,api,
       replay:async(payload:Record<string,unknown>,key:string)=>{
         const id=String(payload.submissionId)
         const before=await data(admin.from('trade_request_hourly_admission').select('admitted_at').eq('submission_id',id).single(),'read admission')
@@ -363,11 +389,20 @@ async function main() {
         const t=await data(admin.from('trade_request_upload_tickets').select('id,listing_id,rendition_version,ready_path,thumb_path,ready_at').eq('id',id).single(),'old ticket')
         check(t&&t.listing_id===listing('primary')&&t.rendition_version===1&&t.ready_at&&t.ready_path&&!t.thumb_path,'Old writer did not confirm single JPEG')
       }}
+    if(process.argv.includes('--rep-retry')){
+      const first=JSON.parse(await readFile(join(dir,'../result.json'),'utf8'))
+      check(first.runId===runId && first.cleanup && first.restoredId===priorId && first.loads.length===9,'Prior phase incomplete or unexpected document count')
+      proof.loads.push(...first.loads)
+    }
     const old=await openOldDocument(context)
-    await write('old-ticket-ready.json',{runId,priorId,priorSha,candidate,loads:proof.loads})
+    await write('cutover-ready.json',{runId,priorId,priorSha,candidate,oldConfirmed:!!old,loads:proof.loads})
     await waitForCandidate()
+    if(process.argv.includes('--rep-retry')){
+      await runRepRetry(context)
+      return
+    }
     await runBrowserReview(context,old)
-    await identityProof(roles,receipts.primary)
+    await identityProof(roles,receipts.primary || idFor('request legacy'))
   } finally {
     await closeBrowser()
     if(locked){
