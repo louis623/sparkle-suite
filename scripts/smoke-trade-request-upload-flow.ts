@@ -72,7 +72,16 @@ async function waitForCandidate() {
   const until=Date.now()+20*60_000
   while(Date.now()<until) {
     const d=await alias()
-    if(d.id!==priorId) {assertDeployment('suite',d,candidate);check(d.id===env('SPARKLE_SWAP_CANDIDATE_DEPLOYMENT') && d.meta?.swapReviewRunId===runId,'Unexpected candidate owner');proof.candidateId=d.id;return}
+    if(d.id!==priorId) {
+      assertDeployment('suite',d,candidate)
+      check(d.id===env('SPARKLE_SWAP_CANDIDATE_DEPLOYMENT') && d.meta?.swapReviewRunId===runId,'Unexpected candidate owner')
+      proof.candidateId=d.id
+      // Alias assignment can precede data-plane propagation. The prior board
+      // ignores photoPolicy; only the redesigned route returns this contract.
+      const served=await api('/api/amethyst/trade-board?photoPolicy=1&c='+rep,{cache:'no-store'})
+      const body=served.ok ? await served.json() : null
+      if(Array.isArray(body?.listings) && typeof body?.photoPolicy?.required==='boolean')return
+    }
     await sleep(3000)
   }
   throw new Error('Candidate alias cutover timed out')
@@ -83,8 +92,9 @@ async function waitForRestore() {
     const d=await alias()
     if(d.id===priorId) {
       assertDeployment('suite',d,priorSha)
-      const r=await api('/api/amethyst/trade-board?c='+rep)
-      check(r.ok&&Array.isArray((await r.json()).listings),'Prior app board read failed after restore')
+      const r=await api('/api/amethyst/trade-board?photoPolicy=1&c='+rep,{cache:'no-store'})
+      const body=r.ok ? await r.json() : null
+      if(!Array.isArray(body?.listings) || body.photoPolicy!==undefined){await sleep(3000);continue}
       proof.restoredId=d.id
       return
     }
