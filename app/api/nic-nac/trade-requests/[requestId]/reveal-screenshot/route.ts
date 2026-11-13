@@ -19,7 +19,7 @@ function serviceErrorResponse(error: ServiceError) {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ requestId: string }> },
 ) {
   try {
@@ -38,10 +38,13 @@ export async function GET(
       )
     }
 
+    const ttl = Math.min(300, Math.floor((Date.parse(screenshot.expiresAt) - Date.now()) / 1000))
+    if (ttl < 1) return NextResponse.json({error:'Photo expired.'},{status:410})
+    const thumbnail = new URL(request.url).searchParams.get('variant') === 'thumb'
     const signedUrl = await getTradeRequestRevealScreenshotSignedUrl(
-      screenshot.objectPath,
+      thumbnail ? screenshot.thumbPath ?? screenshot.objectPath : screenshot.objectPath, ttl,
     )
-    return NextResponse.redirect(signedUrl, 307)
+    return new Response(null,{status:307,headers:{Location:signedUrl,'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer'}})
   } catch (error) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
