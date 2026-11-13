@@ -73,7 +73,7 @@ export async function getEffectiveLiveQueueSnapshot(db: SupabaseClient, repId: s
   }
 }
 
-type CommitGuard = {kind: 'claim' | 'configure' | 'source' | 'owner'; claimId?: string; epoch?: number; generation?: number; requireFresh?: boolean; observationTime?: string}
+type CommitGuard = {kind: 'claim' | 'configure' | 'source' | 'owner'; claimId?: string; epoch?: number; generation?: number; requireFresh?: boolean; observationTime?: string; renewInvalidLease?: boolean}
 async function saveState(db: SupabaseClient, repId: string, expectedRevision: number, state: LineupState, tokenId?: string, guard?: CommitGuard) {
   // Canonicalize on every write (Workspace owner mutations, publisher claim/source, service-role via this path)
   // so lastChangedAt / lease / observation times always match JS toISOString() (3 ms digits).
@@ -325,7 +325,7 @@ export async function configureSourceParties(db: SupabaseClient, token: string |
       // Keep every party already in the show. Replacing the scope here would drop
       // orders without archiving, and a generation bump would pause 2.0.6.
       next = { ...state, revision: state.revision + 1, lastChangedAt: new Date(now).toISOString(),
-        parserState: 'loading',
+        parserState: 'loading', parserReason: null,
         show: { ...show, partyIds: parties, excludedPartyIds: exclusions },
         revealEvents: (state.revealEvents ?? []).filter(event => !exclusions.includes(event.entryId.split(':')[0])) }
     }
@@ -403,7 +403,8 @@ export async function receiveSource(db: SupabaseClient, token: string | null, in
     throw new LineupServiceError('show_changed', 409)
   }
   await saveState(db, publisher.rep_id, state.revision, result.state, publisher.durableTokenId ?? undefined,
-    {kind: 'source', claimId: packet.claimId, epoch: packet.epoch, generation: packet.generation ?? 0, observationTime: packet.observation?.serverTime})
+    {kind: 'source', claimId: packet.claimId, epoch: packet.epoch, generation: packet.generation ?? 0, observationTime: packet.observation?.serverTime,
+      ...(result.state.parserState === 'invalid' && state.publisher?.capabilities === 'lineup-2.0.5' ? {renewInvalidLease: true} : {})})
   return { ok: true, revision: result.state.revision, acceptedSequence: result.state.publisher!.lastSequence, serverTime: new Date(now).toISOString(), leaseExpiresAt: result.state.publisher!.leaseExpiresAt,
     ...lineupFreshness(result.state, now) }
 }

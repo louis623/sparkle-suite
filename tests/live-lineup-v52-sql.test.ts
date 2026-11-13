@@ -15,6 +15,7 @@ async function database(){
   await sql.exec('create role anon;create role authenticated;create role service_role bypassrls;create table reps(id uuid primary key);create table live_queue(rep_id uuid,sync_code text,queue jsonb,last_updated timestamptz);grant select on live_queue to service_role;create table live_lineup_connection_codes(rep_id uuid not null, sync_code text not null, created_at timestamptz not null default now());grant select on live_lineup_connection_codes to service_role;')
   await sql.query('insert into reps values($1)',[rep]);await sql.query('insert into live_queue values($1,$2,$3,$4)',[rep,code,'["Stale Customer"]',new Date().toISOString()]);await sql.query('insert into live_lineup_connection_codes(rep_id, sync_code) values($1,$2)',[rep,code])
   await sql.exec(readFileSync(base,'utf8'));await sql.exec(readFileSync(migration,'utf8'))
+  await sql.exec(readFileSync(new URL('../supabase/migrations/20261113180000_live_lineup_invalid_heartbeat.sql', import.meta.url), 'utf8'))
   return {sql,db:lineupSqlAdapter(sql)}
 }
 const packet=(s:LineupState,now:number,overrides:Partial<SourcePacket>={}):SourcePacket=>({publisherId:rep,claimId:s.publisher!.claimId,epoch:s.publisher!.epoch,
@@ -40,18 +41,28 @@ it('commits bootstrap, exact ownership/scope receipt, final scoped readiness and
     await claimSource(db,code,B,T+1200,1,'lineup-2.0.5')
     s=(await readLineupState(db,rep))!
     await receiveSource(db,code,packet(s,T+2000,{entries}),T+2000)
-    const publicState=await getEffectiveLiveQueueSnapshot(db,rep,T+2000)
+    s=(await readLineupState(db,rep))!
+    const heartbeat=packet(s,T+2500,{parserState:'invalid',parserReason:'columns_changed',entries:[]})
+    heartbeat.observation!.settled=false
+    const ack=await receiveSource(db,code,heartbeat,T+2500)
+    expect(ack).toMatchObject({leaseExpiresAt:new Date(T+92500).toISOString(),freshForMs:0})
+    const delayed=(await readLineupState(db,rep))!
+    expect(delayed).toMatchObject({order:s.order,entries:s.entries,lastReadyAt:s.lastReadyAt,parserReason:'columns_changed'})
+    expect((await getEffectiveLiveQueueSnapshot(db,rep,T+2500))?.queue).toEqual(['April','April'])
+    expect(await getWorkspaceLineup(db,rep,T+2500,true)).toMatchObject({connection:'delayed',canManage:false})
+    await receiveSource(db,code,packet(delayed,T+3000,{entries}),T+3000)
+    const publicState=await getEffectiveLiveQueueSnapshot(db,rep,T+3000)
     expect(publicState?.queue).toEqual(['April','April'])
     expect(publicState?.presentation?.entries[0]).toMatchObject({remainingOrders:2})
     for(const value of ['Smith','p:a','p:b',A,B,D])expect(JSON.stringify(publicState)).not.toContain(value)
-    expect(await getWorkspaceLineup(db,rep,T+2000,true)).toMatchObject({canManage:true,tenantContext:rep})
+    expect(await getWorkspaceLineup(db,rep,T+3000,true)).toMatchObject({canManage:true,tenantContext:rep})
     s=(await readLineupState(db,rep))!
-    const reveal=packet(s,T+3000,{entries:[entries[1]],revealedIds:['p:a'],revealedEntries:[{id:'p:a',orderedAt:T}]})
-    await receiveSource(db,code,reveal,T+3000)
+    const reveal=packet(s,T+3500,{entries:[entries[1]],revealedIds:['p:a'],revealedEntries:[{id:'p:a',orderedAt:T}]})
+    await receiveSource(db,code,reveal,T+3500)
     const committed=(await readLineupState(db,rep))!
     expect(committed.revealEvents).toHaveLength(1);expect(committed.revealEventCursor).toBe(1);expect(committed.restorations).toHaveLength(1)
     // Lost acknowledgement/retry does not commit a second event.
-    await expect(receiveSource(db,code,reveal,T+3600)).rejects.toMatchObject({code:'stale_sequence'})
+    await expect(receiveSource(db,code,reveal,T+4000)).rejects.toMatchObject({code:'stale_sequence'})
     expect((await readLineupState(db,rep))?.revealEventCursor).toBe(1)
     await receiveSource(db,code,packet(committed,T+4000,{entries}),T+4000)
     const restored=(await readLineupState(db,rep))!

@@ -4,6 +4,10 @@
   const CREDENTIAL = /^(?:sslp_[A-Za-z0-9_-]{43}|[A-Z0-9]{3}-[0-9]{4})$/;
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
   const ID = /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/;
+  const invalidReasons = new Set([
+    'invalid_scope', 'columns_changed', 'duplicate_columns', 'missing_order_identity', 'duplicate_order_identity',
+    'invalid_order_time', 'invalid_first_name', 'capacity_exceeded', 'scan_capacity_exceeded', 'parser_exception',
+  ]);
   const integer = n => Number.isSafeInteger(n) && n >= 0;
   const time = s => typeof s === "string" && Number.isFinite(Date.parse(s));
   function cleanSnapshot(input) {
@@ -101,7 +105,9 @@
         const sentAt = now();
         if (upgraded && (sentAt < readCompletedAt || sentAt - readCompletedAt > 5000))
           throw Object.assign(new Error('stale_observation'),{code:'stale_observation'});
-        const receipt = await post(state.token, {action: "snapshot", packet: {...snapshot, reason: undefined,
+        const {reason, ...sourcePacket} = snapshot;
+        const receipt = await post(state.token, {action: "snapshot", packet: {...sourcePacket,
+          ...(snapshot.parserState === 'invalid' && invalidReasons.has(reason) ? {parserReason: reason} : {}),
           generation: state.generation, sourceVersion, publisherId: state.publisherId, epoch: state.epoch, sequence,
           ...(upgraded ? {claimId:state.claimId} : {})}});
         if (!validAck(receipt, sequence)) throw Object.assign(new Error("invalid_receipt"), {code: "invalid_receipt"});

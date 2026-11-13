@@ -424,3 +424,7 @@ Louis approved codex/one-video-queue from 9bdb4075 in the registered PR 190 chec
 ## Preserved embeds queue correction
 
 Branch codex/video-queue-preserved-embeds starts at c5f10c6f. Louis authorized Smoke verification, Live release and all-active-rep activation. Preview scope is sparkle-suite-smoke only.
+
+## November 13, 2026 Live Lineup incident
+
+`codex/live-lineup-invalid-fix` is based on `codex/nic-nac-trade-hardening` at `0a763690`. Louis approved the incident checkout and the Sparkle Suite Smoke Preview environment.

@@ -37,7 +37,7 @@
     discover();
     let snapshot;
     try { snapshot = SparkleQueueParser.parseTable(table, message.action === 'sparkle-v2-inspect' ? null : message.selection); }
-    catch { snapshot = { parserState: "invalid", entries: [], revealedIds: [], revealedEntries: [] }; }
+    catch { snapshot = { parserState: "invalid", reason: "parser_exception", entries: [], revealedIds: [], revealedEntries: [] }; }
     // A stable empty table is connected; a transient clearing during render is not.
     if (snapshot.parserState === 'ready' && (Date.now() < lastMutationAt || Date.now() - lastMutationAt < 500))
       snapshot = {...snapshot, parserState:'loading', reason:'table_settling'};

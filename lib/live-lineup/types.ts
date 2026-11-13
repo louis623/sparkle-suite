@@ -1,5 +1,10 @@
 /** Private v2 state. Never serialize publisher identity, order IDs, or undo to a public site. */
 export type ParserState = 'ready' | 'loading' | 'partial' | 'invalid'
+export const INVALID_PARSER_REASONS = [
+  'invalid_scope', 'columns_changed', 'duplicate_columns', 'missing_order_identity', 'duplicate_order_identity',
+  'invalid_order_time', 'invalid_first_name', 'capacity_exceeded', 'scan_capacity_exceeded', 'parser_exception',
+] as const
+export type InvalidParserReason = typeof INVALID_PARSER_REASONS[number]
 export type LineupConnection = 'connecting' | 'connected' | 'delayed' | 'offline'
 export interface SourceEntry { id: string; name: string; orderedAt: number | null; lastName?: string; identityEligible?: boolean; sourceIdentityVersion?: string }
 export interface PublisherLease { id: string; claimId: string; epoch: number; leaseExpiresAt: string; lastSequence: number; capabilities?: 'lineup-2.0.5' }
@@ -42,6 +47,7 @@ export interface LineupState {
   lastReadyAt: string | null
   lastChangedAt: string | null
   parserState: ParserState
+  parserReason?: InvalidParserReason | null
   sourceVersion: string | null
   sourceObservation?: AcceptedObservation | null
   lastReadyObservation?: AcceptedObservation | null
@@ -65,6 +71,7 @@ export interface SourcePacket {
   sequence: number
   sourceVersion: string
   parserState: ParserState
+  parserReason?: InvalidParserReason | null
   entries: SourceEntry[]
   /** Explicitly observed revealed orders. Absence from a filtered table is NOT removal. */
   revealedIds: string[]

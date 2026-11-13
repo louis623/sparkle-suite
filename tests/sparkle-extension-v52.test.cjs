@@ -41,6 +41,34 @@ test('trusted attributes never override ambiguous known identity cells or malfor
   assert.equal(parseTable(table([{id:'00017',party:'P9',orderText:'',partyText:''}])).parserState,'ready');
   assert.equal(parseTable(table([{id:'00017',party:'P9'}],['FirstName','IsRevealed'])).parserState,'ready');
 });
+test('documented Revealed label and compact labelled IDs preserve identity and checkbox validation',()=>{
+  function withHeaders(row, headers) {
+    const fixture=table([row]); const original=fixture.querySelector;
+    fixture.querySelector=key=>key==='thead'?{querySelectorAll:()=>headers.map(([sort,label])=>({getAttribute:()=>sort,querySelector:()=>({textContent:label})}))}:original(key);
+    return parseTable(fixture);
+  }
+  const headers=[['OrderID'],['OrderDate'],['firstName'],['LastName'],['PartyID'],[null,'Revealed']];
+  const row={id:'00017',party:'P9',orderText:'Order #00017',partyText:'Party ID:P9'};
+  assert.equal(withHeaders(row,headers).entries[0].id,'P9:00017');
+  assert.equal(withHeaders({...row,orderText:'Order #17'},headers).reason,'missing_order_identity');
+  assert.equal(withHeaders({...row,busy:true},headers).parserState,'partial');
+  assert.equal(withHeaders(row,[...headers,['IsRevealed']]).reason,'duplicate_columns');
+  assert.equal(withHeaders(row,headers.map(([key,label])=>[key,label==='Revealed'?'Status':label])).reason,'columns_changed');
+});
+test('publisher posts only enumerated invalid reasons and keeps raw text off the wire',async()=>{
+  let state={enabled:true,token:'TST-0001',configVersion:'v',generation:1,claimId:documentId,publisherId:rep,epoch:1,nextSequence:0};
+  const packets=[];const time=new Date(1000).toISOString();
+  const client=createPublisherClient({now:()=>1000,store:{load:async()=>state,update:async(_,p)=>{state={...state,...p};return true;}},post:async(_,body)=>{
+    packets.push(body.packet);return {ok:true,revision:2,acceptedSequence:body.packet.sequence,serverTime:time,leaseExpiresAt:new Date(91000).toISOString(),freshForMs:0};
+  }});
+  for(const reason of ['missing_order_identity','customer_name']){
+    const result=await client.sync({parserState:'invalid',reason,entries:[],revealedIds:[],observation:{documentId,serial:1,serverTime:time,settled:false}},'2.0.7');
+    assert.equal(result.status,'source_not_ready');
+  }
+  assert.equal(packets[0].parserReason,'missing_order_identity');
+  assert.equal(Object.hasOwn(packets[1],'parserReason'),false);
+  assert.ok(packets.every(p=>!Object.hasOwn(p,'reason')));
+});
 test('selected parties include all order dates and exclude irrelevant rows before health checks',()=>{
   const selection={partyIds:['P9','P10'],excludedPartyIds:['P10'],carryEntryIds:[],startedAt:new Date(5000).toISOString()};
   const rows=[{id:'old',party:'P9',date:10},{id:'excluded',party:'P10',date:10,busy:true}];
