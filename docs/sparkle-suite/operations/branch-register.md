@@ -1,3 +1,9 @@
+## November 14, 2026 — Dance Floor Phase 0 bounded Smoke draft
+
+Louis explicitly approved registration of `codex/suite-swap-request-redesign-rebased` for Smoke project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` / `preview`. Disposable remote checkout: `/vercel/suite`. Rebase-only candidate from PR #193 head `eb5d892f1e599f6b491652cf5e41e0e1eef0c991` onto production `a4a7d5fbd688b615e34ec3cd179254eba3c0220b`; PR #193 remains untouched.
+
+Every candidate commit includes `[skip ci]`. One new draft PR, five named Phase 0 test files, and at most two Smoke document loads are authorized. Required checks remain required; skipped or pending is not passing. No merge, Live deployment, Live alias, GitHub default-branch or Vercel production-branch change is authorized. Live requires Louis's own typed approval.
+
 # Sparkle Suite Branch Register
 
 ## November 13 — Dance Floor swap-request v9 Smoke review

@@ -25,6 +25,7 @@
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
+    "codex/suite-swap-request-redesign-rebased",
     "codex/suite-swap-request-redesign",
     "codex/tiktok-player-tap-to-play",
     "codex/tiktok-remove-video",
@@ -82,6 +83,7 @@
     "codex/video-queue-preserved-embeds"
   ],
   "previewBranches": {
+    "codex/suite-swap-request-redesign-rebased": { "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ", "environment": "preview" },
     "codex/suite-swap-request-redesign": { "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ", "environment": "preview" },
     "codex/tiktok-link-queue": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
@@ -291,6 +293,7 @@
   "temporaryDeploymentUrls": "provenance-only",
   "lastReviewed": "2026-10-18",
   "branchBases": {
+    "codex/suite-swap-request-redesign-rebased": "codex/nic-nac-trade-hardening",
     "codex/tiktok-link-queue": "codex/nic-nac-trade-hardening",
     "codex/nic-nac-signature-home": "codex/nic-nac-trade-hardening",
     "codex/favorites-form-v2": "codex/nic-nac-trade-hardening",
