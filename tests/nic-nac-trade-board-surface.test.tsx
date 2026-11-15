@@ -1,3 +1,5 @@
+import { RemoveConfirm } from '@/app/nic-nac/components/dance-floor/RemoveConfirm'
+import { DancerEditor } from '@/app/nic-nac/components/dance-floor/DancerEditor'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -52,7 +54,7 @@ function hasNestedDeclaration(
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Your Dance Floor|Swap requests|Follow-ups to finish|Add dancers|Your dancers|Swap history)</g,
+      /<h[12][^>]*>(Dance Floor|Swap requests|Follow-ups to finish|Add dancers|My Dance Floor|Swap history)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -398,7 +400,7 @@ describe('Nic-Nac dance floor surface reset', () => {
     }
   })
 
-  it('keeps today, quick add, and browse as the first surfaced sections before queue detail', () => {
+  it('orders request work before adding, editing and history', () => {
     const html = renderToStaticMarkup(
       createElement(TradeBoardWorkspaceCard, {
         tradeBoardState: TRADE_BOARD_READY_STATE,
@@ -473,11 +475,11 @@ describe('Nic-Nac dance floor surface reset', () => {
       }),
     )
     expect(getTradeBoardSectionLabels(html)).toEqual([
-      'Your Dance Floor',
+      'Dance Floor',
       'Swap requests',
       'Follow-ups to finish',
       'Add dancers',
-      'Your dancers',
+      'My Dance Floor',
       'Swap history',
     ])
     expect(html).toContain('>Edit<')
@@ -495,6 +497,34 @@ describe('Nic-Nac dance floor surface reset', () => {
     expect(css).toContain('min-height: 44px')
     expect(css).toContain('position: sticky')
     expect(css).toContain('scroll-margin-top:')
+  })
+
+  it('confirms quantity zero without a reason and Remove with optional reasons; both disclose cancellation', () => {
+    const base={pending:2,busy:false,onCancel(){},onConfirm(){}}
+    const zero=renderToStaticMarkup(createElement(RemoveConfirm,{...base,quantityZero:true}))
+    const remove=renderToStaticMarkup(createElement(RemoveConfirm,{...base,quantityZero:false}))
+    for(const html of [zero,remove]){
+      expect(html).toContain('Take this dancer off your Floor?')
+      expect(html).toContain('cancels 2 pending swap requests')
+      expect(html).toContain('Their request page will say cancelled.')
+      expect(html).toContain('They aren&#x27;t notified.')
+      expect(html).toContain('Take off Floor')
+    }
+    expect(zero).not.toContain('Why?')
+    expect(remove).toContain('Keeping it')
+    expect(remove).toContain('Added by mistake')
+    expect(remove).not.toMatch(/Sold|value="sold"/)
+  })
+  it('hides catalog photo without an image and keeps editing private with a quantity stepper', () => {
+    const html=renderToStaticMarkup(createElement(DancerEditor,{
+      listing:TRADE_BOARD_READY_STATE.board.listings[0] as any,onDirty(){},onClose(){},async onRefresh(){},onRemoved(){},
+    }))
+    expect(html).toContain('Private. Only you can see notes.')
+    expect(html).toContain('Change photo')
+    expect(html).not.toContain('Use catalog photo')
+    expect(html).toContain('aria-label="Decrease quantity"')
+    expect(html).toContain('aria-label="Increase quantity"')
+    expect(html).toContain('Set to 0 to take this dancer off your Floor.')
   })
 
 })

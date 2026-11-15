@@ -14,7 +14,7 @@ export function DancerFloor(props: {
 }) {
   const { filters, setFilters, board, status, refresh, loadedQuery } = useEditableFloor(props.board)
   const rows = board?.listings ?? props.listings
-  const options = getBoardInventoryOptions((props.board?.listings ?? rows).map(row => ({ ...row, status: 'available' as const })))
+  const options = board?.filterOptions ?? getBoardInventoryOptions((props.board?.listings ?? rows).map(row => ({ ...row, status: 'available' as const })))
   const [editor, setEditor] = useState<string | null>(null)
   const [dirty, setDirty] = useState(false)
   const [message, setMessage] = useState('')
@@ -47,6 +47,11 @@ export function DancerFloor(props: {
     } else if (board?.hasMore) { void refresh(rows.length) }
     else { setTarget(null); setMessage("That dancer isn't on your Floor anymore.") }
   }, [target, status, board, rows, refresh, loadedQuery])
+  useEffect(() => {
+    if (editor && status === 'ready' && !rows.some(row => row.id === editor)) {
+      setEditor(null); setDirty(false); setMessage("This dancer isn't on your Floor anymore.")
+    }
+  }, [editor, status, rows])
   const active = filters.search || filters.type || filters.collection || filters.rarity || filters.material || filters.size || filters.sort !== 'newest' || filters.needsPhoto || filters.sitting || filters.statuses.join(',') !== 'available,pending_trade'
   return <section id="floor" className={styles.section}>
     <p className={styles.kicker}>Your dancers</p><h2>My Dance Floor</h2><p>The dancers your customers can request, plus any that are mid-swap or already swapped.</p>

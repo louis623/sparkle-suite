@@ -18,7 +18,7 @@ function FollowUpRow({ item, onRefresh }: { item: TradeSwapCleanupItem; onRefres
       catch { setStatus('error') }
     }}>
       {fields.length > 0 && <p>Missing: {fields.map(key => names[key].toLowerCase()).join(' and ')}</p>}
-      <div className={styles.selects}>{fields.map(key => <label key={key} className={styles.field}>{names[key]}<input required maxLength={120} disabled={status === 'saving'} value={values[key] ?? ''} onChange={e => setValues(current => ({ ...current, [key]: e.target.value })) /></label>)}</div>
+      <div className={styles.selects}>{fields.map(key => <label key={key} className={styles.field}>{names[key]}<input required maxLength={120} disabled={status === 'saving'} value={values[key] ?? ''} onChange={e => setValues(current => ({ ...current, [key]: e.target.value }))} /></label>)}</div>
       <button className={styles.primary} type="submit" disabled={status === 'saving'}>{status === 'saving' ? 'Adding…' : 'Add to Floor'}</button>
       {status === 'error' && <p role="alert">Couldn't add that dancer. Check the details and try again.</p>}
     </form>}

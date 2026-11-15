@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { GetMyBoardFilters, TradeListingWithDesign } from './types'
 import { getMyBoard } from './trade-board'
 import { getTradeListingDisplayFields } from './trade-listing-display'
-import { getBoardInventoryResults, type BoardInventoryFilters } from '@/lib/nic-nac/board-inventory-view'
+import { getBoardInventoryResults, getBoardInventoryOptions, type BoardInventoryFilters } from '@/lib/nic-nac/board-inventory-view'
 
 export function daysOnDanceFloor(listedAt: string | null, timeZone = 'America/New_York', now = new Date()) {
   if (!listedAt || !Number.isFinite(Date.parse(listedAt))) return 0
@@ -19,8 +19,12 @@ export type DanceFloorFilters = GetMyBoardFilters & {
   search?: string; needsPhoto?: boolean; sitting?: boolean; browse?: Partial<BoardInventoryFilters>
 }
 export async function getRepDanceFloorBoard(supabase: SupabaseClient, repId: string, timeZone: string | null | undefined, filters: DanceFloorFilters) {
-  const board = await getMyBoard(supabase, repId, { ...filters, limit: undefined, offset: undefined })
+  const board = await getMyBoard(supabase, repId, { ...filters, typeFilter: undefined, collectionFilter: undefined, limit: undefined, offset: undefined })
+  const filterOptions = getBoardInventoryOptions(board.listings.map(row => ({ ...row, status: 'available' as const })))
+  filterOptions.collections = [...new Set(board.listings.map(row => getTradeListingDisplayFields(row).collectionName).filter((name): name is string => Boolean(name)))].sort()
   let rows = board.listings
+  if (filters.typeFilter) rows = rows.filter(row => getTradeListingDisplayFields(row).typePrefix === filters.typeFilter)
+  if (filters.collectionFilter) rows = rows.filter(row => getTradeListingDisplayFields(row).collectionName === filters.collectionFilter)
   if (filters.needsPhoto) rows = rows.filter(row => !getTradeListingDisplayFields(row).photoUrl)
   if (filters.sitting) rows = rows.filter(row => row.status === 'available' && row.listed_at && Date.parse(row.listed_at) < Date.now() - 30 * 86400000)
   if (filters.search || filters.browse) {
@@ -51,5 +55,5 @@ export async function getRepDanceFloorBoard(supabase: SupabaseClient, repId: str
     ...row, daysOnFloor: daysOnDanceFloor(row.listed_at, timeZone ?? undefined),
     requestCount: counts.get(row.id)?.total ?? 0, pendingRequestCount: counts.get(row.id)?.pending ?? 0,
   }))
-  return { ...board, listings, total, hasMore: offset + listings.length < total }
+  return { ...board, listings, total, filterOptions, hasMore: offset + listings.length < total }
 }

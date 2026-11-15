@@ -442,9 +442,9 @@ describe('reviewer smoke UI wiring', () => {
   })
 
   it('orders the new page from attention and request work through Floor and history', () => {
-    for (const label of ['Your Dance Floor','Add dancers','Your dancers','Swap history']) expect(tradeBoardWorkspaceCardHtml).toContain(label)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Add dancers')).toBeLessThan(tradeBoardWorkspaceCardHtml.indexOf('Your dancers'))
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Your dancers')).toBeLessThan(tradeBoardWorkspaceCardHtml.indexOf('Swap history'))
+    for (const label of ['Dance Floor','Add dancers','My Dance Floor','Swap history']) expect(tradeBoardWorkspaceCardHtml).toContain(label)
+    expect(tradeBoardWorkspaceCardHtml.indexOf('Add dancers')).toBeLessThan(tradeBoardWorkspaceCardHtml.indexOf('My Dance Floor'))
+    expect(tradeBoardWorkspaceCardHtml.indexOf('My Dance Floor')).toBeLessThan(tradeBoardWorkspaceCardHtml.indexOf('Swap history'))
     expect(tradeBoardWorkspaceCardHtml).not.toContain('Fulfillment queue')
   })
 
@@ -458,7 +458,7 @@ describe('reviewer smoke UI wiring', () => {
   })
 
   it('keeps summary metrics out of board inventory', () => {
-    const browseBoardStart = tradeBoardWorkspaceCardHtml.indexOf('Your dancers')
+    const browseBoardStart = tradeBoardWorkspaceCardHtml.indexOf('My Dance Floor')
     const requestInboxStart = tradeBoardWorkspaceCardHtml.indexOf('Swap history')
     const browseBoardMarkup = tradeBoardWorkspaceCardHtml.slice(
       browseBoardStart,
@@ -473,7 +473,7 @@ describe('reviewer smoke UI wiring', () => {
   })
 
   it('shows the default Floor with search, filters and no obsolete empty copy', () => {
-    for (const label of ['Search Dance Floor','Type','Collection','Available','Pending swap','Swapped','Swap history']) expect(tradeBoardWorkspaceCardQuietHtml).toContain(label)
+    for (const label of ['type="search"','Type','Collection','Available','Pending swap','Swapped','Swap history']) expect(tradeBoardWorkspaceCardQuietHtml).toContain(label)
     expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('Request inbox')
     expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('Swap follow-up')
     expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('No pieces on your board yet. Add your first item above.')

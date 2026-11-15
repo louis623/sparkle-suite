@@ -37,7 +37,7 @@ describe('chat compatibility and approval error mapping',()=>{
   expect(error.code).toBe(code);expect(error.userMessage).not.toBe(code);expect(s.audit).not.toHaveBeenCalled()
  })
  it('U15 preserves both existing approval paths: mapped direct error and untouched swap propagation',async()=>{
-  const user=dbFixture({trade_requests:[{id:'r',listing:{rep_id:repId}}]})
+  const user=dbFixture({trade_requests:[{id:'r',status:'pending',listing:{rep_id:repId}}]})
   const raw={message:'LISTING_NOT_FOUND',code:'P0001'};user.client.rpc.mockResolvedValue({data:null,error:raw})
   await expect(approveTrade(user.client,repId,'r',undefined,verification)).rejects.toMatchObject({code:'LISTING_NOT_FOUND'})
   await expect(approveTradeWithRevealedItemCapture(user.client,repId,{requestId:'r',revealedItemNumber:'RG100',verification})).rejects.toBe(raw)

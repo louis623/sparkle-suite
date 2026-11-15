@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { writeFileSync } from 'node:fs'
 import { performance } from 'node:perf_hooks'
 import { dbFixture, dancer, repId, listingId } from '../helpers/dance-floor-fixture'
 const s=vi.hoisted(()=>({client:null as any}))
@@ -13,7 +14,7 @@ import { getMyBoard, updateListing } from '@/lib/services/trade-board'
 import { getTradeListingDisplayFields } from '@/lib/services/trade-listing-display'
 import { loadAmethystTradeBoardPreviewListings } from '@/lib/amethyst/trade-board-listings'
 function fixture(n=125){
- const rows=Array.from({length:n},(_,i)=>dancer({id:i===0?listingId:'20000000-0000-4000-8000-'+String(i+1).padStart(12,'0'),status:i%2?'pending_trade':'available',listed_at:i%5?'2026-11-14T12:00:00Z':'2026-01-01T12:00:00Z',design:{...dancer().design,design_name:'Dancer '+i},...(i===124?{listing_source:'non_item_number',manual_type_prefix:'NK',manual_collection_family:'Birthday',manual_photo_url:null}:{})}))
+ const rows=Array.from({length:n},(_,i)=>dancer({id:i===0?listingId:'20000000-0000-4000-8000-'+String(i+1).padStart(12,'0'),status:i%2?'pending_trade':'available',listed_at:i%5?'2026-11-14T12:00:00Z':'2026-01-01T12:00:00Z',design:{...dancer().design,design_name:'Dancer'+i},...(i===124?{listing_source:'non_item_number',manual_type_prefix:'NK',manual_collection_family:'Birthday',manual_photo_url:null}:{})}))
  const requests=['pending','approved','denied','cancelled'].map((status,i)=>({id:'request-'+i,listing_id:listingId,status,listing:{rep_id:repId}}))
  const f=dbFixture({trade_listings:[...rows,dancer({id:'foreign',rep_id:'other'})],trade_requests:requests,subscriptions:[{rep_id:repId,status:'active'}],reps:[{id:repId,public_site_slug:'fixture',custom_domain:null}]})
  f.client.rpc.mockImplementation(async()=>({data:rows.map(row=>({listing_id:row.id,net_quantity:1})),error:null}));s.client=f.client;return {...f,rows}
@@ -22,10 +23,11 @@ beforeEach(()=>{vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL','https://fixture.invalid')
 describe('rep-only Floor read',()=>{
  it('multi-status, own rep, filters before paging and widened whole-board attention',async()=>{
   const f=fixture()
-  const response=await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?status=available,pending_trade&search=Dancer%201&limit=2&offset=1'))
+  const response=await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?status=available,pending_trade&search=Dancer1&limit=2&offset=1'))
   expect(response.status).toBe(200);const body=await response.json()
   expect(body.total).toBe(35);expect(body.listings).toHaveLength(2);expect(body.hasMore).toBe(true)
   expect(body.listings.every((row:any)=>row.rep_id===repId&&row.design.design_name.includes('1'))).toBe(true)
+  expect(body.filterOptions.jewelryTypes).toContain('NK')
   expect(body.attention).toEqual({photosToFix:1,needsPhoto:1,sitting:13})
   expect(f.calls.filter(c=>c.table==='trade_requests'&&c.select.includes('listing:'))).toHaveLength(1)
   expect((await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?status=unknown'))).status).toBe(400)
@@ -63,6 +65,6 @@ describe('rep-only Floor read',()=>{
   const response=await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?status=available,pending_trade&limit=24'))
   const text=await response.text(),elapsedMs=performance.now()-start,body=JSON.parse(text)
   expect(response.status).toBe(200);expect(body.total).toBe(125);expect(body.listings).toHaveLength(24)
-  console.info('U8_FIXTURE',JSON.stringify({dancers:125,elapsedMs:Number(elapsedMs.toFixed(3)),payloadBytes:Buffer.byteLength(text),queryCount:f.calls.length,target:'in-memory service fixture, not hosted latency'}))
+  writeFileSync('/tmp/dance-floor-phase2-u8.json',JSON.stringify({dancers:125,elapsedMs:Number(elapsedMs.toFixed(3)),payloadBytes:Buffer.byteLength(text),queryCount:f.calls.length,target:'in-memory service fixture, not hosted latency'}))
  })
 })

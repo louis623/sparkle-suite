@@ -128,7 +128,7 @@ import { getHelpResources } from '@/lib/services/help-resources'
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Your Dance Floor|Swap requests|Follow-ups to finish|Add dancers|Your dancers|Swap history)</g,
+      /<h[12][^>]*>(Dance Floor|Swap requests|Follow-ups to finish|Add dancers|My Dance Floor|Swap history)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -2835,7 +2835,7 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(html).toContain('Your Dance Floor')
+    expect(html).toContain('My Dance Floor')
     expect(html).toContain('src="https://cdn.example.com/sapphire-halo.jpg"')
     expect(html).toContain('alt="Sapphire Halo"')
     expect(html).toContain('Sapphire Halo')
@@ -2868,8 +2868,8 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(getTradeBoardSectionLabels(html)).toEqual(['Your Dance Floor','Add dancers','Your dancers','Swap history'])
-    for (const label of ['Type','Collection','Search Dance Floor','Sort','More filters','Available','Pending swap','Swapped','Needs a photo','Sitting 30+ days']) expect(html).toContain(label)
+    expect(getTradeBoardSectionLabels(html)).toEqual(['Dance Floor','Add dancers','My Dance Floor','Swap history'])
+    for (const label of ['Type','Collection','type="search"','Sort','More filters','Available','Pending swap','Swapped','Needs a photo','Sitting 30+ days']) expect(html).toContain(label)
     expect(html).toContain('Know the item number? Add a dancer in one step.')
     expect(html).toContain('Sapphire Halo')
     expect(html).toContain('Rose Quartz Stack')
@@ -2935,7 +2935,7 @@ describe('DashboardPlaceholder', () => {
     )
     expect(emptyHtml).toContain('Your Dance Floor is empty. Add a dancer to show it here.')
     expect(emptyHtml).toContain('All types')
-    expect(emptyHtml).toContain('Search Dance Floor')
+    expect(emptyHtml).toContain('type="search"')
     expect(emptyHtml).not.toContain('All rarity')
   })
 
