@@ -11733,9 +11733,10 @@ export function TeamManagementCard({
 }) {
   const [signInHref, setSignInHref] = useState('/login?redirect=%2Fnic-nac')
   useEffect(() => {
-    setSignInHref(buildTeamSignInHref(
+    const href = buildTeamSignInHref(
       `${window.location.pathname}${window.location.search}${window.location.hash}`,
-    ))
+    )
+    queueMicrotask(() => setSignInHref(href))
   }, [])
   const participants = state.participants ?? []
   const publicTeamRoster = state.publicTeamRoster ?? []

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dbFixture, dancer, repId, listingId } from '../helpers/dance-floor-fixture'
-const s=vi.hoisted(()=>({user:null as any,admin:null as any,created:vi.fn(),pipeline:vi.fn(),target:vi.fn()}))
+const s=vi.hoisted(()=>({user:null as ReturnType<typeof dbFixture>['client'],admin:null as ReturnType<typeof dbFixture>['client'],created:vi.fn(),pipeline:vi.fn(),target:vi.fn()}))
 vi.mock('@/lib/nic-nac/auth',()=>({getPaidNicNacContext:async()=>({repId:'10000000-0000-4000-8000-000000000001',rep:{},supabase:s.user}),AuthError:class extends Error{}}))
 vi.mock('@/lib/supabase/admin',()=>({createAdminClient:()=>{s.created();return s.admin}}))
 vi.mock('@/lib/services/listing-photo-processing',()=>({processRepCustomListingPhotoUrl:s.pipeline}))
@@ -9,7 +9,7 @@ import { POST } from '@/app/api/nic-nac/trade-board/uploads/route'
 import { PATCH } from '@/app/api/nic-nac/trade-board/route'
 import { processDanceFloorPhoto } from '@/lib/services/dance-floor-photos'
 const path=repId+'/dance-floor/'+listingId+'/jewelry/50000000-0000-4000-8000-000000000001'
-const request=(body:any)=>new Request('https://fixture.invalid/api/nic-nac/trade-board/uploads',{method:'POST',body:JSON.stringify(body)})
+const request=(body:unknown)=>new Request('https://fixture.invalid/api/nic-nac/trade-board/uploads',{method:'POST',body:JSON.stringify(body)})
 beforeEach(()=>{
  vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL','https://fixture.invalid')
  vi.clearAllMocks();s.user=dbFixture({trade_listings:[dancer({listing_source:'non_item_number',manual_photo_url:'/old.jpg'})]}).client

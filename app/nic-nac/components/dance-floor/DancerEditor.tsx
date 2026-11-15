@@ -64,8 +64,8 @@ export function DancerEditor({ draft, setDraft, onDirty, onClose, onRefresh, onR
       <button type="button" aria-label="Increase quantity" disabled={busy || gone || quantity >= Math.max(99, savedQuantity)} onClick={() => setQuantity(q => q + 1)}>+</button>
     </span></label>
     <p className={styles.muted}>Set to 0 to take this dancer off your Floor.</p>
-    {savedQuantity > 99 && <p>You can reduce this quantity, but you can't raise it above its current amount.</p>}
-    {gone && <p role="alert">That dancer isn't on your Floor anymore.</p>}
+    {savedQuantity > 99 && <p>{"You can reduce this quantity, but you can't raise it above its current amount."}</p>}
+    {gone && <p role="alert">{"That dancer isn't on your Floor anymore."}</p>}
     {error && <p role="alert">{error}</p>}
     {blockers.length > 0 && <ul>{blockers.map(item => <li key={item.requestId}>{item.customerName} · {item.status ?? 'Open'} · <a href="#history">Swap history</a></li>)}</ul>}
     <div className={styles.chips}>

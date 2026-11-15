@@ -517,7 +517,7 @@ describe('Nic-Nac dance floor surface reset', () => {
   })
   it('hides catalog photo without an image and keeps editing private with a quantity stepper', () => {
     const html=renderToStaticMarkup(createElement(DancerEditor,{
-      listing:TRADE_BOARD_READY_STATE.board.listings[0] as any,onDirty(){},onClose(){},async onRefresh(){},onRemoved(){},
+      draft:{listing:TRADE_BOARD_READY_STATE.board.listings[0] as import('@/lib/services/types').TradeListingWithDesign,index:0,notes:'',savedNotes:'',quantity:1,savedQuantity:1,gone:false},setDraft(){},onDirty(){},onClose(){},async onRefresh(){},onRemoved(){},
     }))
     expect(html).toContain('Private. Only you can see notes.')
     expect(html).toContain('Change photo')

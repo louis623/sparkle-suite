@@ -57,9 +57,8 @@ export function canLeaveDanceFloor() {
 }
 export function useFloorSectionGuard<T extends string>(section: T, setSection: (next: T) => void, onBlocked: () => void) {
   const current = useRef(section)
-  current.current = section
   const blocked = useRef(onBlocked)
-  blocked.current = onBlocked
+  useLayoutEffect(() => { current.current = section; blocked.current = onBlocked }, [section, onBlocked])
   return useCallback((update: T | ((value: T) => T)) => {
     const next = typeof update === 'function' ? update(current.current) : update
     if (current.current === 'trade-board' && next !== current.current && !canLeaveDanceFloor()) {
@@ -112,7 +111,10 @@ export function useEditableFloor(seed: DanceFloorBoard | undefined) {
       setBoard(next)
       setLoadedQuery(floorQuery(filters)); setStatus('ready')
     } catch { if (run === generation.current) setStatus('error') }
-  }, [query])
-  useEffect(() => { void refresh(); return () => { generation.current++ } }, [refresh, seed])
+  }, [filters, query])
+  useEffect(() => {
+    const timer = setTimeout(() => void refresh(), 0)
+    return () => { clearTimeout(timer); generation.current++ }
+  }, [refresh, seed])
   return { filters, setFilters, board, setBoard, status, refresh, loadedQuery }
 }

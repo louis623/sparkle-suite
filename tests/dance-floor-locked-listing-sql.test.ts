@@ -11,9 +11,9 @@ const rep=randomUUID(),foreign=randomUUID(),collection=randomUUID(),design=rando
 const ids={listings:[] as string[],requests:[] as string[],fulfillments:[] as string[]}
 const valid=new Set<string>()
 let db:pg.Client,a:pg.Client,b:pg.Client,bootstrap:pg.Client
-const one=async(sql:string,args:any[]=[],client=db)=>(await client.query(sql,args)).rows[0]
-const rpc=async(name:string,args:any[],client=db)=>(await one('select public.'+name+'('+args.map((_,i)=>'$'+(i+1)).join(',')+') as result',args,client)).result
-async function listing(quantity=1,status='available',extras:Record<string,any>={}){
+const one=async(sql:string,args:unknown[]=[],client=db)=>(await client.query(sql,args)).rows[0]
+const rpc=async(name:string,args:unknown[],client=db)=>(await one('select public.'+name+'('+args.map((_,i)=>'$'+(i+1)).join(',')+') as result',args,client)).result
+async function listing(quantity=1,status='available',extras:Record<string,unknown>={}){
  const id=randomUUID();ids.listings.push(id);valid.add(id)
  const row={id,rep_id:rep,design_id:design,quantity_available:quantity,status,listing_source:'catalog',rep_notes:id,...extras}
  const keys=Object.keys(row)
@@ -238,18 +238,18 @@ describe('locked listing functions on real PostgreSQL',()=>{
   const plain=await listing(),referenced=await listing()
   await set(plain,2,1);await remove(plain);await request(referenced,'denied');await remove(referenced)
   await db.query("update trade_listings set deleted_at=now()-interval '40 days' where id=any($1::uuid[])",[[plain,referenced]])
-  const client:any={from(table:string){
-   expect(table).toBe('trade_listings');let deleting=false;const filters:any[]=[]
-   const q:any={select:()=>q,order:()=>q,limit:()=>q,delete:()=>{deleting=true;return q},
-    eq:(k:string,v:any)=>{filters.push([k,'=',v]);return q},lt:(k:string,v:any)=>{filters.push([k,'<',v]);return q},gt:(k:string,v:any)=>{filters.push([k,'>',v]);return q},
-    then(resolve:any,reject:any){
+  const client={from(table:string){
+   expect(table).toBe('trade_listings');let deleting=false;const filters:Array<[string,string,unknown]>=[]
+   const q={select:()=>q,order:()=>q,limit:()=>q,delete:()=>{deleting=true;return q},
+    eq:(k:string,v:unknown)=>{filters.push([k,'=',v]);return q},lt:(k:string,v:unknown)=>{filters.push([k,'<',v]);return q},gt:(k:string,v:unknown)=>{filters.push([k,'>',v]);return q},
+    then(resolve: (result: {data: pg.QueryResultRow[] | null; error: unknown}) => unknown, reject: (error: unknown) => unknown){
      if(deleting)expect(ids.listings).toContain(filters.find(f=>f[0]==='id')?.[2])
      const query=(deleting?'delete from':'select id from')+' trade_listings where '+filters.map(([k,op],i)=>k+op+'$'+(i+1)).join(' and ')+(deleting?' returning id':' order by id limit 500')
      return db.query(query,filters.map(f=>f[2])).then(r=>({data:r.rows,error:null}),error=>({data:null,error})).then(resolve,reject)
     }}
    return q
   }}
-  expect((await purgeExpiredRemovedListings(client)).purgedCount).toBe(1)
+  expect((await purgeExpiredRemovedListings(client as unknown as Parameters<typeof purgeExpiredRemovedListings>[0])).purgedCount).toBe(1)
   expect(await one('select id from trade_listings where id=$1',[plain])).toBeUndefined()
   expect(await one('select listing_id from trade_listing_edit_revisions where listing_id=$1',[plain])).toBeUndefined()
   expect((await one('select id from trade_listings where id=$1',[referenced])).id).toBe(referenced)

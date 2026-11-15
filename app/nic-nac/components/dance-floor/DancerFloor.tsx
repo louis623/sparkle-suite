@@ -21,10 +21,10 @@ export function DancerFloor(props: {
   const dirtyRef = useRef(false)
   const fieldsDirtyRef = useRef(false)
   const setDirty = useCallback((blocked: boolean, fields: boolean) => { dirtyRef.current = blocked; fieldsDirtyRef.current = fields }, [])
-  const close = () => { setDraft(null); setDirty(false, false) }
-  const pin = (listing: TradeListingWithDesign) => {
+  const close = useCallback(() => { setDraft(null); setDirty(false, false) }, [setDirty])
+  const pin = useCallback((listing: TradeListingWithDesign) => {
     setDraft({ listing, index: Math.max(0, rows.findIndex(row => row.id === listing.id)), notes: listing.rep_notes ?? '', savedNotes: listing.rep_notes ?? '', quantity: listing.quantity_available ?? 1, savedQuantity: listing.quantity_available ?? 1, gone: false })
-  }
+  }, [rows])
   const [message, setMessage] = useState('')
   const [removed, setRemoved] = useState<string | null>(null)
   const [restoring, setRestoring] = useState(false)
@@ -33,7 +33,8 @@ export function DancerFloor(props: {
   const open = (id: string) => { if (id === editor) return; if (!guard()) return; setTarget(null); const row = rows.find(row => row.id === id); if (row) pin(row); setMessage('') }
   const change = (next: Partial<FloorFilters>) => { if (guard()) { close(); setFilters(current => ({ ...current, ...next })); if (next.search !== undefined) props.onSearch(next.search) } }
   const clear = () => { if (guard()) { close(); setFilters(defaultFloorFilters); props.onSearch('') } }
-  const refreshAll = useCallback(async () => { await props.onRefresh?.(); await refresh() }, [props.onRefresh, refresh])
+  const { onRefresh } = props
+  const refreshAll = useCallback(async () => { await onRefresh?.(); await refresh() }, [onRefresh, refresh])
   useEffect(() => {
     const photo = () => { if (!dirtyRef.current) { close(); setFilters(current => ({ ...current, needsPhoto: true })) } else setMessage('Save or cancel your changes first.') }
     const hash = () => {
@@ -44,7 +45,7 @@ export function DancerFloor(props: {
     }
     window.addEventListener('dance-floor-needs-photo', photo); window.addEventListener('hashchange', hash); hash()
     return () => { window.removeEventListener('dance-floor-needs-photo', photo); window.removeEventListener('hashchange', hash) }
-  }, [setFilters])
+  }, [close, setFilters])
   useEffect(() => {
     if (!target || status !== 'ready' || loadedQuery !== floorQuery(defaultFloorFilters)) return
     if (dirtyRef.current || editor) { setTarget(null); return }
@@ -55,7 +56,7 @@ export function DancerFloor(props: {
       requestAnimationFrame(() => document.getElementById('dancer-' + target)?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }))
     } else if (board?.hasMore) { void refresh(rows.length) }
     else { setTarget(null); setMessage("That dancer isn't on your Floor anymore.") }
-  }, [target, status, board, rows, refresh, loadedQuery])
+  }, [target, status, board, rows, refresh, loadedQuery, editor, pin])
   useEffect(() => {
     const leave = (event: Event) => { if (dirtyRef.current) { event.preventDefault(); setMessage('Save or cancel your changes first.') } }
     const unload = (event: BeforeUnloadEvent) => { if (fieldsDirtyRef.current) { event.preventDefault(); event.returnValue = '' } }

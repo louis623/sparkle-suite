@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { writeFileSync } from 'node:fs'
 import { performance } from 'node:perf_hooks'
 import { dbFixture, dancer, repId, listingId } from '../helpers/dance-floor-fixture'
-const s=vi.hoisted(()=>({client:null as any}))
+const s=vi.hoisted(()=>({client:null as ReturnType<typeof dbFixture>['client']}))
 vi.mock('@/lib/nic-nac/auth',()=>({getPaidNicNacContext:async()=>({repId:'10000000-0000-4000-8000-000000000001',rep:{time_zone:'America/Los_Angeles'},supabase:s.client}),AuthError:class extends Error{}}))
 vi.mock('@/lib/supabase/admin',()=>({createAdminClient:vi.fn(()=>s.client)}))
 vi.mock('@/lib/services/trade-board-stats',()=>({getDanceFloorDancerCounts:async()=>null}))
@@ -41,7 +41,7 @@ describe('rep-only Floor read',()=>{
   const response=await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?status=available,pending_trade&search=Dancer1&limit=2&offset=1'))
   expect(response.status).toBe(200);const body=await response.json()
   expect(body.total).toBe(35);expect(body.listings).toHaveLength(2);expect(body.hasMore).toBe(true)
-  expect(body.listings.every((row:any)=>row.rep_id===repId&&row.design.design_name.includes('1'))).toBe(true)
+  expect(body.listings.every((row:ReturnType<typeof dancer>)=>row.rep_id===repId&&row.design.design_name.includes('1'))).toBe(true)
   expect(body.filterOptions.jewelryTypes).toContain('NK')
   expect(body.attention).toEqual({photosToFix:1,needsPhoto:1,sitting:13})
   expect(f.calls.filter(c=>c.table==='trade_requests'&&c.select.includes('listing:'))).toHaveLength(1)
