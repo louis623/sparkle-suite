@@ -143,6 +143,7 @@ import type { WorkspaceSectionTab } from './WorkspaceSectionTabs'
 import { NicNacHomeWorkspaceCard } from './NicNacHomeWorkspaceCard'
 import { LiveLineupCard } from './LiveLineupCard'
 import { TradeBoardWorkspaceCard } from './TradeBoardWorkspaceCard'
+import { fetchDanceFloorBoard } from './dance-floor/useDanceFloorData'
 import { TradeRequestAlertCenter } from './TradeRequestAlertCenter'
 import { TradeRequestReviewDialog, type TradeReviewDecision } from './TradeRequestReviewDialog'
 import { TRADE_REQUEST_REVIEW_EVENT } from './trade-request-review-events'
@@ -372,6 +373,7 @@ function mergeTradeBoardResults(
   }
 
   return {
+    ...next,
     listings: [...current.listings, ...next.listings],
     summary: {
       totalPieces: current.summary.totalPieces + next.summary.totalPieces,
@@ -3449,6 +3451,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   } | null>(null)
   const tradeReviewGeneration = useRef(0)
   const [tradeReviewLoading, setTradeReviewLoading] = useState(false)
+  const [openingTradeReview, setOpeningTradeReview] = useState<{ requestId: string; action: 'approve' | 'reject' } | null>(null)
   const [tradeReviewLoadError, setTradeReviewLoadError] = useState<string | null>(null)
   const [tradeInboxRequests, setTradeInboxRequests] = useState<TradeRequestWithListing[]>([])
   const [tradeInboxLoaded, setTradeInboxLoaded] = useState(false)
@@ -3688,15 +3691,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     signal?: AbortSignal,
     options: { offset?: number; append?: boolean } = {},
   ) {
-    const response = await fetch(buildTradeBoardFetchUrl({ offset: options.offset }), {
-      credentials: 'include',
-      signal,
-    })
-    if (!response.ok) {
-      throw new Error(`dance floor request failed: ${response.status}`)
-    }
-
-    const payload = (await response.json()) as TradeBoardResponsePayload
+    const payload = await fetchDanceFloorBoard(buildTradeBoardFetchUrl({ offset: options.offset }), signal)
     setTradeBoardState((current) => {
       const board = options.append
         ? mergeTradeBoardResults(current.board, payload)
@@ -5524,10 +5519,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTradeBoardActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to add that dancer right now.',
+        error: "Couldn't add that dancer. Check the details and try again.",
         helperMessage: null,
       })
     }
@@ -5647,6 +5639,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     setTradeReviewLoadError(null)
     // Revalidate pending status before opening a decision.
     setTradeReviewLoading(true)
+    setOpeningTradeReview({ requestId, action })
     try {
       const response = await fetch(`/api/nic-nac/trade-requests?requestId=${encodeURIComponent(requestId)}`, { credentials: 'include' })
       if (!response.ok) throw new Error('Unable to load this swap request.')
@@ -5659,7 +5652,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       if (generation === tradeReviewGeneration.current) setTradeReviewLoadError(error instanceof Error ? error.message : 'Unable to load this swap request.')
     } finally {
-      if (generation === tradeReviewGeneration.current) setTradeReviewLoading(false)
+      if (generation === tradeReviewGeneration.current) {
+        setTradeReviewLoading(false)
+        setOpeningTradeReview(null)
+      }
     }
   }
 
@@ -7016,13 +7012,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (canRenderWorkspaceSections && activeSection === 'trade-board') {
       return (
         <div className={styles.workspaceSectionStack}>
-        <section className={styles.card} aria-labelledby="dance-floor-bulk-intake-title">
-          <span className={styles.liveQueueEyebrow}>Dance Floor</span>
-          <h2 id="dance-floor-bulk-intake-title">Bulk Collection Intake</h2>
-          <p>Add a whole folder of jewelry photos to your Dance Floor at once, then review each piece before it goes up.</p>
-          <span className={styles.toolsHubSoonMark}>Coming Soon</span>
-        </section>
         <TradeBoardWorkspaceCard
+          openingReview={openingTradeReview}
+          onRetry={refreshTradeWorkspace}
+          onSiteSetup={() => setActiveSection('site-settings')}
           tradeBoardState={tradeBoardState}
           tradeBoardSearchQuery={tradeBoardSearchQuery}
           onTradeBoardSearchQueryChange={setTradeBoardSearchQuery}

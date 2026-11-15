@@ -13,6 +13,7 @@ import {
   addListing,
   getCatalogListingMutationReceipt,
   getMyBoard,
+  getDanceFloorAttention,
   removeListing,
   restoreListing,
   updateListing,
@@ -140,10 +141,13 @@ export async function GET(request: Request) {
         console.error('[trade-board] dancer counts unavailable', error)
         return null
       })
-    const [board, dancerCounts] = await Promise.all([boardPromise, countsPromise])
+    const [board, dancerCounts, attention] = await Promise.all([
+      boardPromise, countsPromise, getDanceFloorAttention(supabase, repId).catch(() => null),
+    ])
 
     return NextResponse.json({
       ...board,
+      attention,
       summary: { ...board.summary, ...(dancerCounts ?? {}) },
     })
   } catch (error) {
