@@ -441,28 +441,10 @@ describe('reviewer smoke UI wiring', () => {
     expect(nicNacChatBody).toContain('consumedLaunchPromptRef.current = null')
   })
 
-  it('puts the trade request inbox after quick-add and dancer browsing in the workspace card', () => {
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Today&#x27;s swap work')).toBeGreaterThan(-1)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Quick add')).toBeGreaterThan(-1)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Browse dancers')).toBeGreaterThan(-1)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Request inbox')).toBeGreaterThan(-1)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Swap follow-up')).toBeGreaterThan(-1)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Swap fulfillment log')).toBeGreaterThan(-1)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Today&#x27;s swap work')).toBeLessThan(
-      tradeBoardWorkspaceCardHtml.indexOf('Quick add'),
-    )
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Quick add')).toBeLessThan(
-      tradeBoardWorkspaceCardHtml.indexOf('Swap fulfillment log'),
-    )
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Swap fulfillment log')).toBeLessThan(
-      tradeBoardWorkspaceCardHtml.indexOf('Browse dancers'),
-    )
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Browse dancers')).toBeLessThan(
-      tradeBoardWorkspaceCardHtml.indexOf('Request inbox'),
-    )
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Request inbox')).toBeLessThan(
-      tradeBoardWorkspaceCardHtml.indexOf('Swap follow-up'),
-    )
+  it('orders the new page from attention and request work through Floor and history', () => {
+    for (const label of ['Your Dance Floor','Add dancers','Your dancers','Swap history']) expect(tradeBoardWorkspaceCardHtml).toContain(label)
+    expect(tradeBoardWorkspaceCardHtml.indexOf('Add dancers')).toBeLessThan(tradeBoardWorkspaceCardHtml.indexOf('Your dancers'))
+    expect(tradeBoardWorkspaceCardHtml.indexOf('Your dancers')).toBeLessThan(tradeBoardWorkspaceCardHtml.indexOf('Swap history'))
     expect(tradeBoardWorkspaceCardHtml).not.toContain('Fulfillment queue')
   })
 
@@ -476,8 +458,8 @@ describe('reviewer smoke UI wiring', () => {
   })
 
   it('keeps summary metrics out of board inventory', () => {
-    const browseBoardStart = tradeBoardWorkspaceCardHtml.indexOf('Browse dancers')
-    const requestInboxStart = tradeBoardWorkspaceCardHtml.indexOf('Request inbox')
+    const browseBoardStart = tradeBoardWorkspaceCardHtml.indexOf('Your dancers')
+    const requestInboxStart = tradeBoardWorkspaceCardHtml.indexOf('Swap history')
     const browseBoardMarkup = tradeBoardWorkspaceCardHtml.slice(
       browseBoardStart,
       requestInboxStart,
@@ -490,27 +472,18 @@ describe('reviewer smoke UI wiring', () => {
     expect(browseBoardMarkup).not.toContain('pendingRequestCount')
   })
 
-  it('uses search and filters to browse board inventory without a default full grid', () => {
-    expect(tradeBoardWorkspaceCardQuietHtml).toContain(
-      'Search the Dance Floor or open filters to find a live dancer.',
-    )
-    expect(tradeBoardWorkspaceCardQuietHtml).toContain('Jewelry Type')
-    expect(tradeBoardWorkspaceCardQuietHtml).toContain('Collection')
+  it('shows the default Floor with search, filters and no obsolete empty copy', () => {
+    for (const label of ['Search Dance Floor','Type','Collection','Available','Pending swap','Swapped','Swap history']) expect(tradeBoardWorkspaceCardQuietHtml).toContain(label)
     expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('Request inbox')
     expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('Swap follow-up')
-    expect(tradeBoardWorkspaceCardQuietHtml).toContain('Swap fulfillment log')
-    expect(tradeBoardWorkspaceCardQuietHtml).not.toContain(
-      'No pieces on your board yet. Add your first item above.',
-    )
-    expect(tradeBoardWorkspaceCardQuietHtml).not.toContain(
-      'No board listings match this search yet.',
-    )
+    expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('No pieces on your board yet. Add your first item above.')
+    expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('No board listings match this search yet.')
   })
 
   it('keeps customer board previewing inside the workspace with only primary preview actions', () => {
     expect(dashboardPlaceholder).toContain('type WorkspacePreviewState')
     expect(dashboardPlaceholder).not.toContain('handleOpenLiveSitePreview')
-    expect(dashboardPlaceholder).toContain('handleOpenTradeBoardPreview')
+    expect(dashboardPlaceholder).not.toContain('handleOpenTradeBoardPreview')
     expect(dashboardPlaceholder).toContain('Back to workspace')
     expect(dashboardPlaceholder).toContain('Open full site')
     expect(dashboardPlaceholder).not.toContain('Refresh preview')
@@ -518,7 +491,7 @@ describe('reviewer smoke UI wiring', () => {
     expect(dashboardPlaceholder).not.toContain('onOpenNicNac')
     expect(dashboardPlaceholder).not.toContain('previewNicNacSidecar')
     expect(dashboardPlaceholder).toContain('title="Sparkle Suite live site preview"')
-    expect(dashboardPlaceholder).toContain('customerTradeBoardHref')
+    expect(dashboardPlaceholder).toContain('customerSparkleSiteHref')
     expect(dashboardPlaceholder).toContain('Public Site')
     expect(dashboardPlaceholder).toContain('Your site is live')
     expect(dashboardPlaceholder).not.toContain('Preview site')

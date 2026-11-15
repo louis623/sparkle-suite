@@ -8,10 +8,7 @@
 // Client requirements (caller passes the right SupabaseClient):
 //
 //   getMyBoard      — auth client. RLS scopes by rep_id.
-//   removeListing   — auth client. UPDATE on trade_listings is rep-scoped;
-//                     auto-cancel on trade_requests works because
-//                     supabase/migrations/020_nic_nac_conversations.sql added
-//                     the `requests_rep_update` policy specifically for this.
+//   removeListing   — auth client ownership gate, then a service-only locked RPC.
 //   addListing      — service client. Touches jewelry_designs.times_listed,
 //                     for which only the admin policy permits UPDATE. The
 //                     function explicitly validates `repId` so a misrouted
@@ -42,7 +39,8 @@ import {
   type UpdateListingInput,
   type UpdateListingResult,
 } from './types'
-import { TradeBoardError, errors } from './errors'
+import { TradeBoardError, errors, danceFloorError } from './errors'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   buildNonItemNumberTradeListingName,
   getTradeListingDisplayFields,
@@ -212,11 +210,12 @@ function isManagedRepListingPhotoUrl(repId: string, photoUrl: string): boolean {
 /** Rep-route-only whole-board attention; deliberately not part of getMyBoard. */
 export async function getDanceFloorAttention(supabase: SupabaseClient, repId: string) {
   let photosToFix = 0
+  let sitting = 0
   // Page explicitly so PostgREST's row cap cannot turn this into a first-page count.
   const pageSize = 500
   for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await supabase.from('trade_listings')
-      .select(LISTING_SELECT).eq('rep_id', repId).eq('status', 'available')
+      .select(LISTING_SELECT).eq('rep_id', repId).in('status', ['available', 'pending_trade'])
       .order('id', { ascending: true }).range(offset, offset + pageSize - 1)
     if (error) throw error
     const rows = (data ?? []) as unknown as Array<Omit<TradeListingWithDesign, 'design'> & {
@@ -225,10 +224,11 @@ export async function getDanceFloorAttention(supabase: SupabaseClient, repId: st
     for (const row of rows) {
       const listing = { ...row, design: Array.isArray(row.design) ? row.design[0] : row.design } as TradeListingWithDesign
       if (!getTradeListingDisplayFields(listing).photoUrl) photosToFix++
+      if (listing.status === 'available' && listing.listed_at && Date.parse(listing.listed_at) < Date.now() - 30 * 86400000) sitting++
     }
     if (rows.length < pageSize) break
   }
-  return { photosToFix }
+  return { photosToFix, needsPhoto: photosToFix, sitting }
 }
 
 export async function getMyBoard(
@@ -243,9 +243,8 @@ export async function getMyBoard(
     .select(LISTING_SELECT)
     .eq('rep_id', repId)
 
-  if (filters.statusFilter) {
-    query = query.eq('status', filters.statusFilter)
-  }
+  if (filters.statusFilters) query = query.in('status', filters.statusFilters)
+  else if (filters.statusFilter) query = query.eq('status', filters.statusFilter)
 
   const sortBy = filters.sortBy ?? 'listed_at'
   const sortOrder = filters.sortOrder ?? 'desc'
@@ -269,7 +268,7 @@ export async function getMyBoard(
       shouldIncludeListingInBoardRead(
         l,
         resolvedRecoveryOptions,
-        filters.statusFilter,
+        filters.statusFilters?.includes(l.status) ? l.status : filters.statusFilter,
       ),
     )
 
@@ -506,12 +505,7 @@ export async function removeListing(
     .eq('id', listingId!)
     .maybeSingle()
   if (fetchErr) throw fetchErr
-  if (!currentRow) {
-    throw new TradeBoardError('UNAUTHORIZED', 'Listing not found or not owned by rep')
-  }
-  if (currentRow.rep_id !== repId) {
-    throw new TradeBoardError('UNAUTHORIZED', 'Listing does not belong to rep')
-  }
+  if (!currentRow || currentRow.rep_id !== repId) throw danceFloorError('LISTING_NOT_FOUND')
 
   const previousStatus = currentRow.status as ListingStatus
   const designRel = currentRow.design as { design_name: string } | { design_name: string }[] | null
@@ -526,45 +520,21 @@ export async function removeListing(
         size: currentRow.manual_size as string | null,
       })
 
-  const nowIso = new Date().toISOString()
-  const { error: updErr } = await supabase
-    .from('trade_listings')
-    .update({
-      status: 'removed',
-      removal_reason: input.reason,
-      deleted_at: nowIso,
-      updated_at: nowIso,
-    })
-    .eq('id', listingId!)
-    .eq('rep_id', repId)
-  if (updErr) throw updErr
-
-  const { data: pendingReq, error: reqFetchErr } = await supabase
-    .from('trade_requests')
-    .select('id, customer_name')
-    .eq('listing_id', listingId!)
-    .eq('status', 'pending')
-    .maybeSingle()
-  if (reqFetchErr) throw reqFetchErr
-
-  let cancelledRequestId: string | undefined
-  let cancelledRequestCustomerName: string | undefined
-  if (pendingReq) {
-    const { error: cancelErr } = await supabase
-      .from('trade_requests')
-      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-      .eq('id', pendingReq.id)
-    if (cancelErr) throw cancelErr
-    cancelledRequestId = pendingReq.id as string
-    cancelledRequestCustomerName = pendingReq.customer_name as string
-  }
-
+  const admin = createAdminClient()
+  const { data: receipt, error } = await admin.rpc('rpc_remove_trade_listing_v1', {
+    p_rep_id: repId, p_listing_id: listingId, p_reason: input.reason,
+  })
+  if (error) throw danceFloorError(error.message)
+  const ids: string[] = receipt.cancelled_request_ids ?? []
+  const { data: cancelled, error: readError } = ids.length ? await supabase.from('trade_requests')
+    .select('id, customer_name').eq('listing_id', listingId!).in('id', ids) : { data: [], error: null }
+  if (readError) throw readError
+  const cancelledRequests = (cancelled ?? []).map(row => ({ requestId: String(row.id), customerName: String(row.customer_name) }))
   return {
-    listingId: listingId!,
-    designName,
-    previousStatus,
-    cancelledRequestId,
-    cancelledRequestCustomerName,
+    listingId: listingId!, designName, previousStatus,
+    cancelledRequestId: cancelledRequests[0]?.requestId,
+    cancelledRequestCustomerName: cancelledRequests[0]?.customerName,
+    cancelledRequests, cancelledCount: receipt.cancelled_count,
   }
 }
 
@@ -613,34 +583,13 @@ export async function restoreListing(
     .eq('id', listingId!)
     .maybeSingle()
   if (fetchErr) throw fetchErr
-  if (!currentRow) throw errors.UNAUTHORIZED('listing not found or not owned by rep')
-  if (currentRow.rep_id !== repId) {
-    throw errors.UNAUTHORIZED('listing belongs to another rep')
-  }
-
-  const status = currentRow.status as ListingStatus
-  if (status !== 'removed') throw errors.INVALID_STATUS_TRANSITION(status, 'restore')
+  if (!currentRow || currentRow.rep_id !== repId) throw danceFloorError('LISTING_NOT_FOUND')
 
   const deletedAt = currentRow.deleted_at as string | null
-  if (!isRemovedListingInsideRecoveryWindow(deletedAt, resolvedRecoveryOptions)) {
-    throw errors.LISTING_RECOVERY_EXPIRED(
-      resolvedRecoveryOptions.recoveryWindowDays,
-    )
-  }
-
-  const nowIso = resolvedRecoveryOptions.now.toISOString()
-  const { error: updErr } = await supabase
-    .from('trade_listings')
-    .update({
-      status: 'available',
-      removal_reason: null,
-      deleted_at: null,
-      updated_at: nowIso,
-    })
-    .eq('id', listingId!)
-    .eq('rep_id', repId)
-  if (updErr) throw updErr
-
+  const { data: restored, error } = await createAdminClient().rpc('rpc_restore_trade_listing_v1', {
+    p_rep_id: repId, p_listing_id: listingId, p_recovery_days: resolvedRecoveryOptions.recoveryWindowDays,
+  })
+  if (error) throw danceFloorError(error.message)
   const designRel = currentRow.design as
     | { design_name: string }
     | { design_name: string }[]
@@ -659,7 +608,7 @@ export async function restoreListing(
   return {
     listingId: listingId!,
     designName,
-    status: 'available',
+    status: restored.status as ListingStatus,
     deletedAt: deletedAt!,
     recoveryWindowDays: resolvedRecoveryOptions.recoveryWindowDays,
   }
@@ -675,18 +624,25 @@ export async function purgeExpiredRemovedListings(
     resolvedRecoveryOptions.recoveryWindowDays,
   )
 
-  const { data, error } = await supabase
-    .from('trade_listings')
-    .delete()
-    .eq('status', 'removed')
-    .lt('deleted_at', cutoffIso)
-    .select('id')
-  if (error) throw error
-
-  return {
-    purgedCount: (data ?? []).length,
-    cutoffIso,
+  // Separate deletes let restrictive history FKs skip only their own row. Recheck
+  // removed/cutoff at deletion so a concurrent Put back is never purged.
+  let purgedCount = 0
+  let cursor = ''
+  for (;;) {
+    let query = supabase.from('trade_listings').select('id').eq('status', 'removed').lt('deleted_at', cutoffIso).order('id').limit(500)
+    if (cursor) query = query.gt('id', cursor)
+    const { data, error } = await query
+    if (error) throw error
+    for (const row of data ?? []) {
+      const result = await supabase.from('trade_listings').delete().eq('id', row.id)
+        .eq('status', 'removed').lt('deleted_at', cutoffIso).select('id')
+      if (result.error && result.error.code !== '23503') throw result.error
+      purgedCount += result.data?.length ?? 0
+    }
+    if (!data?.length || data.length < 500) break
+    cursor = data[data.length - 1].id
   }
+  return { purgedCount, cutoffIso }
 }
 
 // ============================================================================
@@ -730,9 +686,9 @@ export async function addNonItemNumberListing(
     size,
   })
   const nowIso = new Date().toISOString()
-  const { data: inserted, error: insErr } = await supabase
-    .from('trade_listings')
-    .insert({
+  const { data: inserted, error: insErr } = await supabase.rpc('rpc_add_manual_trade_listing_v1', {
+    p_rep_id: repId,
+    p_row: {
       rep_id: repId,
       design_id: null,
       listing_source: 'non_item_number',
@@ -752,10 +708,9 @@ export async function addNonItemNumberListing(
       rarity_classification: input.rarityClassification ?? 'standard',
       rarity_confirmed_at: nowIso,
       rarity_confirmation_source: 'nic_nac_explicit_answer',
-    })
-    .select('id, status')
-    .single()
-  if (insErr) throw insErr
+    },
+  })
+  if (insErr) throw danceFloorError(insErr.message)
 
   return {
     listingId: inserted.id as string,
@@ -995,15 +950,14 @@ export async function updateListing(
 
   const { data: current, error: fetchErr } = await supabase
     .from('trade_listings')
-    .select('id, rep_id, status')
+    .select('id, rep_id, status, listing_source')
     .eq('id', listingId)
     .maybeSingle()
   if (fetchErr) throw fetchErr
-  if (!current) throw errors.LISTING_NOT_FOUND(listingId)
-  if (current.rep_id !== repId) throw errors.UNAUTHORIZED('listing belongs to another rep')
+  if (!current || current.rep_id !== repId) throw danceFloorError('LISTING_NOT_FOUND')
   const status = current.status as ListingStatus
   if (status !== 'available' && status !== 'pending_trade') {
-    throw errors.INVALID_STATUS_TRANSITION(status, 'edit')
+    throw danceFloorError('LISTING_NOT_ACTIVE')
   }
   if (
     patch.listingPhotoUrl &&
@@ -1025,6 +979,7 @@ export async function updateListing(
     update.listing_photo_url = null
     update.uses_canonical_photo = true
   } else if (patch.listingPhotoUrl !== undefined) {
+    if (current.listing_source === 'non_item_number') update.manual_photo_url = patch.listingPhotoUrl
     update.listing_photo_url = patch.listingPhotoUrl
     update.uses_canonical_photo = patch.listingPhotoUrl === null
   }
@@ -1037,4 +992,54 @@ export async function updateListing(
   if (updErr) throw updErr
 
   return { listingId, status }
+}
+
+/** Explicit ownership gate, before constructing any admin client. */
+export async function requireOwnedDanceFloorListing(supabase: SupabaseClient, repId: string, listingId: string) {
+  if (!listingId || !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(listingId)) throw danceFloorError('LISTING_NOT_FOUND')
+  const { data, error } = await supabase.from('trade_listings').select('id, rep_id, status, quantity_available, listing_source')
+    .eq('id', listingId).eq('rep_id', repId).maybeSingle()
+  if (error) throw error
+  if (!data || data.rep_id !== repId) throw danceFloorError('LISTING_NOT_FOUND')
+  return data
+}
+export async function setListingQuantity(supabase: SupabaseClient, repId: string, listingId: string, quantity: number, expectedQuantity: number) {
+  await requireOwnedDanceFloorListing(supabase, repId, listingId)
+  const { data, error } = await createAdminClient().rpc('rpc_set_trade_listing_quantity_v1', {
+    p_rep_id: repId, p_listing_id: listingId, p_quantity: quantity, p_expected_quantity: expectedQuantity,
+  })
+  if (error) throw danceFloorError(error.message)
+  return data
+}
+export async function adjustListingQuantity(supabase: SupabaseClient, repId: string, listingId: string, delta: number, floor = 1) {
+  await requireOwnedDanceFloorListing(supabase, repId, listingId)
+  const { data, error } = await createAdminClient().rpc('rpc_adjust_trade_listing_quantity_v1', {
+    p_rep_id: repId, p_listing_id: listingId, p_delta: delta, p_floor: floor, p_record_edit: true,
+  })
+  if (error) throw danceFloorError(error.message)
+  return data
+}
+/** Used only after an owned swap has been resolved, including terminal retries. */
+export async function findCatalogListingMutationByKey(supabase: SupabaseClient, repId: string, idempotencyKey: string) {
+  const { data, error } = await supabase.from('trade_listing_add_mutations').select('listing_id')
+    .eq('rep_id', repId).eq('idempotency_key', idempotencyKey).maybeSingle()
+  if (error) throw error
+  return data?.listing_id as string | undefined
+}
+export async function getBlockingDanceFloorSwaps(supabase: SupabaseClient, repId: string, listingId: string) {
+  await requireOwnedDanceFloorListing(supabase, repId, listingId)
+  const rows: Array<{ requestId: string; customerName: string; status: string | null }> = []
+  for (let offset = 0; ; offset += 500) {
+    const { data, error } = await supabase.from('trade_fulfillment')
+      .select('id, request_id, fulfillment_status, request:trade_requests!inner(customer_name, listing_id, listing:trade_listings!inner(rep_id))')
+      .eq('request.listing.rep_id', repId).eq('request.listing_id', listingId)
+      .or('fulfillment_status.is.null,fulfillment_status.neq.completed').order('id').range(offset, offset + 499)
+    if (error) throw error
+    for (const row of data ?? []) {
+      const request = Array.isArray(row.request) ? row.request[0] : row.request
+      rows.push({ requestId: String(row.request_id), customerName: String(request?.customer_name ?? ''), status: row.fulfillment_status })
+    }
+    if (!data || data.length < 500) break
+  }
+  return rows
 }

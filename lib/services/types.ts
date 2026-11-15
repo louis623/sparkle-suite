@@ -36,6 +36,9 @@ export interface TradeListingDesign {
 }
 
 export interface TradeListingWithDesign {
+  daysOnFloor?: number
+  requestCount?: number
+  pendingRequestCount?: number
   id: string
   rep_id: string
   /** Physical copies represented by this single visible Dance Floor dancer. */
@@ -75,6 +78,8 @@ export interface BoardResult {
 }
 
 export interface RemoveListingResult {
+  cancelledRequests?: Array<{ requestId: string; customerName: string }>
+  cancelledCount?: number
   listingId: string
   designName: string
   previousStatus: ListingStatus
@@ -90,7 +95,7 @@ export interface RestoreListingInput {
 export interface RestoreListingResult {
   listingId: string
   designName: string
-  status: 'available'
+  status: ListingStatus
   deletedAt: string
   recoveryWindowDays: 7 | 30
 }
@@ -101,6 +106,7 @@ export interface PurgeRemovedListingsResult {
 }
 
 export interface GetMyBoardFilters {
+  statusFilters?: ListingStatus[]
   statusFilter?: ListingStatus
   collectionFilter?: string
   typeFilter?: JewelryType
@@ -1347,6 +1353,7 @@ export interface ApproveTradeSwapResult {
 }
 
 export interface TradeSwapCleanupItem {
+  missingFields?: Array<'ringSize' | 'collectionName' | 'material'>
   swapId: string
   requestId: string
   customerName: string

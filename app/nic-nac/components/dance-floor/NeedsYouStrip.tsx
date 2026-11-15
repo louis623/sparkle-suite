@@ -29,6 +29,7 @@ export function NeedsYouStrip({ requests, followUps, photos, status, onRetry }: 
         const target = document.getElementById(tile.href.slice(1))
         if (!target) return
         event.preventDefault()
+        if (tile.href === '#floor') window.dispatchEvent(new Event('dance-floor-needs-photo'))
         target.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
       }}>{content}</a> : <div key={tile.href} className={styles.tile} aria-disabled="true">{content}</div>
     })}</div>

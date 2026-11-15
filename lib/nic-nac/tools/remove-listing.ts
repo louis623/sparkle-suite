@@ -41,7 +41,7 @@ function explainTradeBoardError(err: unknown): never {
           ? "That listing isn't on your board, so I can't change it."
           : err.code === 'AMBIGUOUS_LISTING'
             ? 'I found more than one active physical piece for that item. Pick the exact listing before I remove anything.'
-          : err.message
+          : ['OPEN_SWAP', 'LISTING_NOT_ACTIVE'].includes(err.code) ? err.userMessage : err.message
     throw new NicNacToolError({ code: err.code, userMessage: msg, cause: err })
   }
   throw err
@@ -116,7 +116,7 @@ export function makeRemoveListingTool(ctx: {
             removalReason: reason,
             repId: ctx.repId,
           },
-          details: { runId: ctx.runId, conversationId: ctx.conversationId },
+          details: { runId: ctx.runId, conversationId: ctx.conversationId, cancelledCount: result.cancelledCount ?? 0, cancelledRequests: result.cancelledRequests ?? [] },
         })
       } catch (auditErr) {
         console.error('[nic-nac] trade_action_audit write failed', {
@@ -157,6 +157,7 @@ export function makeRemoveListingTool(ctx: {
                 status: 'removed',
                 removalReason: reason,
               },
+              cancelledTradeRequests: (result.cancelledRequests ?? []).map(request => ({ id: request.requestId, status: 'cancelled' })),
               cancelledTradeRequest: result.cancelledRequestId
                 ? {
                     id: result.cancelledRequestId,
@@ -193,6 +194,8 @@ export function makeRemoveListingTool(ctx: {
         listingId: result.listingId,
         designName: result.designName,
         previousStatus: result.previousStatus,
+        cancelledRequests: result.cancelledRequests ?? [],
+        cancelledCount: result.cancelledCount ?? 0,
         cancelledRequest: result.cancelledRequestId
           ? {
               requestId: result.cancelledRequestId,

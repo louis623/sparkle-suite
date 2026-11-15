@@ -1,4 +1,11 @@
 import { NextResponse } from 'next/server'
+import { getRepDanceFloorBoard } from '@/lib/services/dance-floor-board'
+import { canServePublicCustomerSiteForRep } from '@/lib/services/workspace-access'
+import { danceFloorPublication } from '@/app/nic-nac/components/dance-floor/publication'
+import { processDanceFloorPhoto } from '@/lib/services/dance-floor-photos'
+import { danceFloorRouteError } from '@/lib/nic-nac/dance-floor-route-error'
+import { requireOwnedDanceFloorListing, getBlockingDanceFloorSwaps } from '@/lib/services/trade-board'
+import type { ListingStatus } from '@/lib/services/types'
 import { createHash } from 'node:crypto'
 import {
   getPaidNicNacContext,
@@ -38,17 +45,10 @@ function readOffset(url: URL) {
   return parsed >= 0 ? parsed : null
 }
 
-function readStatus(value: string | null) {
+function readStatus(value: string | null): ListingStatus[] | undefined | null {
   if (!value) return undefined
-  if (
-    value === 'available' ||
-    value === 'pending_trade' ||
-    value === 'traded' ||
-    value === 'removed'
-  ) {
-    return value
-  }
-  return null
+  const values = value.split(',')
+  return values.every(status => ['available', 'pending_trade', 'traded', 'removed'].includes(status)) ? [...new Set(values)] as ListingStatus[] : null
 }
 
 function readType(value: string | null) {
@@ -108,27 +108,31 @@ export async function GET(request: Request) {
     const sortOrder = readSortOrder(url.searchParams.get('sortOrder'))
 
     if (limit === null) {
-      return NextResponse.json({ error: 'limit must be a whole number.' }, { status: 400 })
+      return NextResponse.json({ code: 'INVALID_INPUT', error: 'limit must be a whole number.' }, { status: 400 })
     }
     if (offset === null) {
-      return NextResponse.json({ error: 'offset must be a whole number.' }, { status: 400 })
+      return NextResponse.json({ code: 'INVALID_INPUT', error: 'offset must be a whole number.' }, { status: 400 })
     }
     if (statusFilter === null) {
-      return NextResponse.json({ error: 'status is invalid.' }, { status: 400 })
+      return NextResponse.json({ code: 'INVALID_INPUT', error: 'status is invalid.' }, { status: 400 })
     }
     if (typeFilter === null) {
-      return NextResponse.json({ error: 'type is invalid.' }, { status: 400 })
+      return NextResponse.json({ code: 'INVALID_INPUT', error: 'type is invalid.' }, { status: 400 })
     }
     if (sortBy === null) {
-      return NextResponse.json({ error: 'sortBy is invalid.' }, { status: 400 })
+      return NextResponse.json({ code: 'INVALID_INPUT', error: 'sortBy is invalid.' }, { status: 400 })
     }
     if (sortOrder === null) {
-      return NextResponse.json({ error: 'sortOrder must be asc or desc.' }, { status: 400 })
+      return NextResponse.json({ code: 'INVALID_INPUT', error: 'sortOrder must be asc or desc.' }, { status: 400 })
     }
 
     const { repId, rep, supabase } = await getPaidNicNacContext()
-    const boardPromise = getMyBoard(supabase, repId, {
-      statusFilter,
+    const boardPromise = getRepDanceFloorBoard(supabase, repId, rep.time_zone, {
+      statusFilters: statusFilter,
+      search: url.searchParams.get('search') ?? '',
+      needsPhoto: url.searchParams.get('needsPhoto') === 'true',
+      sitting: url.searchParams.get('sitting') === 'true',
+      browse: { rarity: url.searchParams.get('rarity') ?? '', material: url.searchParams.get('material') ?? '', size: url.searchParams.get('size') ?? '', sortMode: (['newest','collection','type','rarity','name'].includes(url.searchParams.get('sort') ?? '') ? url.searchParams.get('sort') : undefined) as 'newest' | 'collection' | 'type' | 'rarity' | 'name' },
       typeFilter,
       collectionFilter: url.searchParams.get('collection') ?? undefined,
       sortBy,
@@ -136,26 +140,31 @@ export async function GET(request: Request) {
       limit: limit ?? undefined,
       offset: offset ?? undefined,
     })
+    const publicationPromise = canServePublicCustomerSiteForRep({ supabase, repId }).then(async published => {
+      const { data, error } = await supabase.from('reps').select('public_site_slug, custom_domain').eq('id', repId).maybeSingle()
+      if (error) throw error
+      return danceFloorPublication({ published, publicSiteSlug: data?.public_site_slug, customDomain: data?.custom_domain, origin: url.origin })
+    }).catch(() => ({ status: 'unknown' as const }))
     const countsPromise = getDanceFloorDancerCounts(supabase, repId, rep.time_zone)
       .catch((error: unknown) => {
         console.error('[trade-board] dancer counts unavailable', error)
         return null
       })
-    const [board, dancerCounts, attention] = await Promise.all([
-      boardPromise, countsPromise, getDanceFloorAttention(supabase, repId).catch(() => null),
+    const [board, dancerCounts, attention, publication] = await Promise.all([
+      boardPromise, countsPromise, getDanceFloorAttention(supabase, repId).catch(() => null), publicationPromise,
     ])
 
     return NextResponse.json({
       ...board,
-      attention,
+      attention, publication,
       summary: { ...board.summary, ...(dancerCounts ?? {}) },
     })
   } catch (error) {
     if (error instanceof AuthError) {
-      return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+      return NextResponse.json({ code: 'UNAUTHENTICATED', error: 'unauthenticated' }, { status: 401 })
     }
     if (error instanceof ServiceError) return serviceErrorResponse(error)
-    throw error
+    return danceFloorRouteError(error)
   }
 }
 
@@ -171,7 +180,7 @@ export async function POST(request: Request) {
       typeof body?.mutationKey === 'string' ? body.mutationKey.trim() : ''
     if (!mutationKey) {
       return NextResponse.json(
-        { error: 'mutationKey is required.' },
+        { code: 'INVALID_INPUT', error: 'mutationKey is required.' },
         { status: 400 },
       )
     }
@@ -245,13 +254,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, result })
   } catch (error) {
     if (error instanceof SyntaxError) {
-      return NextResponse.json({ error: 'Invalid request payload.' }, { status: 400 })
+      return NextResponse.json({ code: 'INVALID_INPUT', error: 'Invalid request payload.' }, { status: 400 })
     }
     if (error instanceof AuthError) {
-      return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+      return NextResponse.json({ code: 'UNAUTHENTICATED', error: 'unauthenticated' }, { status: 401 })
     }
     if (error instanceof ServiceError) return serviceErrorResponse(error)
-    throw error
+    return danceFloorRouteError(error)
   }
 }
 
@@ -270,9 +279,13 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ ok: true, result })
     }
 
+    await requireOwnedDanceFloorListing(supabase, repId, listingId)
+    const listingPhotoPath = typeof body?.listingPhotoPath === 'string' ? body.listingPhotoPath : undefined
     const listingPhotoUrl =
       typeof body?.listingPhotoUrl === 'string' ? body.listingPhotoUrl : undefined
-    const processedListingPhotoUrl = listingPhotoUrl
+    const processedListingPhotoUrl = listingPhotoPath !== undefined
+      ? await processDanceFloorPhoto(supabase, repId, listingId, listingPhotoPath)
+      : listingPhotoUrl
       ? (
           await processRepCustomListingPhotoUrl({
             repId,
@@ -297,45 +310,37 @@ export async function PATCH(request: Request) {
     })
 
     return NextResponse.json({ ok: true, result })
+
   } catch (error) {
     if (error instanceof SyntaxError) {
-      return NextResponse.json({ error: 'Invalid request payload.' }, { status: 400 })
+      return NextResponse.json({ code: 'INVALID_INPUT', error: 'Invalid request payload.' }, { status: 400 })
     }
     if (error instanceof AuthError) {
-      return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+      return NextResponse.json({ code: 'UNAUTHENTICATED', error: 'unauthenticated' }, { status: 401 })
     }
     if (error instanceof ServiceError) return serviceErrorResponse(error)
-    throw error
+    return danceFloorRouteError(error)
   }
 }
 
 export async function DELETE(request: Request) {
   try {
+    const { repId, supabase } = await getPaidNicNacContext()
     const body = await request.json()
     const reason = readRemovalReason(body?.reason)
-    if (reason === null) {
-      return NextResponse.json(
-        { error: 'reason must be sold, keeping, mistake, or other.' },
-        { status: 400 },
-      )
+    if (reason === null) return NextResponse.json({ code: 'INVALID_REASON', error: 'Choose a valid removal reason.' }, { status: 400 })
+    const listingId = typeof body?.listingId === 'string' ? body.listingId.trim() : undefined
+    try {
+      const result = await removeListing(supabase, repId, {
+        listingId, itemNumber: typeof body?.itemNumber === 'string' ? body.itemNumber.trim() : undefined, reason,
+      })
+      return NextResponse.json({ ok: true, result })
+    } catch (error) {
+      if (error instanceof ServiceError && error.code === 'OPEN_SWAP' && listingId) {
+        const blockers = await getBlockingDanceFloorSwaps(supabase, repId, listingId)
+        return NextResponse.json({ code: error.code, error: error.userMessage, blockers }, { status: 409 })
+      }
+      throw error
     }
-
-    const { repId, supabase } = await getPaidNicNacContext()
-    const result = await removeListing(supabase, repId, {
-      listingId: typeof body?.listingId === 'string' ? body.listingId.trim() : undefined,
-      itemNumber: typeof body?.itemNumber === 'string' ? body.itemNumber.trim() : undefined,
-      reason,
-    })
-
-    return NextResponse.json({ ok: true, result })
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      return NextResponse.json({ error: 'Invalid request payload.' }, { status: 400 })
-    }
-    if (error instanceof AuthError) {
-      return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
-    }
-    if (error instanceof ServiceError) return serviceErrorResponse(error)
-    throw error
-  }
+  } catch (error) { return danceFloorRouteError(error) }
 }

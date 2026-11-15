@@ -104,3 +104,22 @@
   .historyRow { grid-template-columns: minmax(0,1.1fr) minmax(0,1.5fr) auto; align-items: center; }
   .shareDialog { margin: auto; max-width: 480px; border-radius: 22px; }
 }
+
+.editor { grid-column: 1 / -1; width: 100%; display: flex; flex-direction: column; gap: 10px; border-top: 1px dashed var(--nic-nac-border); padding-top: 12px; }
+.field textarea { width: 100%; min-height: 90px; resize: vertical; border: 1px solid var(--nic-nac-border-strong); border-radius: 12px; padding: 10px 12px; background: var(--nic-nac-surface-input); color: var(--nic-nac-text-primary); font: inherit; }
+.muted, .facts { font-size: 12px; color: var(--nic-nac-text-secondary); }
+.facts { font-weight: 600; }
+.stepper { display: flex; width: fit-content; border: 1px solid var(--nic-nac-border); border-radius: 12px; overflow: hidden; }
+.stepper button, .stepper input { min-width: 44px; min-height: 44px; width: 44px; padding: 4px; border: 0; border-radius: 0; text-align: center; color: var(--nic-nac-text-primary); background: var(--nic-nac-surface-dashboard-placeholder); }
+.stepper input { width: 58px; background: var(--nic-nac-surface-input); -moz-appearance: textfield; }
+.stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.filterChip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--nic-nac-border); border-radius: 999px; padding: 8px 10px; min-height: 44px; font-size: 12px; font-weight: 700; }
+.filterChip:has(input:checked) { background: var(--nic-nac-accent-soft); }
+.filterChip input { accent-color: var(--nic-nac-accent); }
+.editButton { grid-column: 1 / -1; justify-self: start; min-height: 40px; }
+.needsPhoto { border-color: var(--nic-nac-accent); }
+.dancer { scroll-margin-top: calc(var(--dance-floor-sticky-top) + var(--dance-floor-strip-height) + 8px); }
+@media (min-width: 900px) {
+  .dancerOpen { grid-column: span 2; display: grid; grid-template-columns: 200px minmax(0,1fr); align-content: start; }
+  .dancerOpen > .photo, .dancerOpen > .noPhoto { width: 200px; }
+}

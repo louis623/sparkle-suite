@@ -128,7 +128,7 @@ import { getHelpResources } from '@/lib/services/help-resources'
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Dance Floor Management|Today(?:&#x27;|')s swap work|Quick add|Swap fulfillment log|Browse dancers|Request inbox|Swap follow-up)</g,
+      />(Your Dance Floor|Swap requests|Follow-ups to finish|Add dancers|Your dancers|Swap history)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -2835,19 +2835,16 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(html).toContain('Dance Floor Management')
-    expect(html).not.toContain('Customer view')
+    expect(html).toContain('Your Dance Floor')
     expect(html).toContain('src="https://cdn.example.com/sapphire-halo.jpg"')
-    expect(html).toContain('View Sapphire Halo')
-    expect(html).toContain('type="button"')
-    expect(html).toContain('aria-label="Dance Floor dancers"')
     expect(html).toContain('alt="Sapphire Halo"')
     expect(html).toContain('Sapphire Halo')
-    expect(html).toContain('Sterling · Sapphire')
-    expect(html).toContain('Showing 1 of 1 dancers')
-    expect(html).toContain('Remove')
+    expect(html).toContain('Qty 1')
+    expect(html).toContain('No requests yet')
+    expect(html).toContain('>Edit<')
+    expect(html).not.toContain('>Remove<')
     expect(html).toContain('Clear filters')
-    expect(html).not.toContain('Rose Quartz Stack')
+    expect(html).not.toContain('Customer view')
   })
 
   it('shows the available customer-style grid by default with the same browse controls', () => {
@@ -2871,40 +2868,17 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(getTradeBoardSectionLabels(html)).toEqual([
-      'Dance Floor Management',
-      "Today's swap work",
-      'Quick add',
-      'Swap fulfillment log',
-      'Browse dancers',
-    ])
-    expect(html).toContain('Jewelry type')
-    expect(html).toContain('Collection')
-    expect(html).toContain(
-      'Everything is caught up. New requests, swap follow-up, and fulfillment work will land here.',
-    )
+    expect(getTradeBoardSectionLabels(html)).toEqual(['Your Dance Floor','Add dancers','Your dancers','Swap history'])
+    for (const label of ['Type','Collection','Search Dance Floor','Sort','More filters','Available','Pending swap','Swapped','Needs a photo','Sitting 30+ days']) expect(html).toContain(label)
     expect(html).toContain('Know the item number? Add a dancer in one step.')
-    expect(html).toContain(
-      'Browse the same dancers your customers see.',
-    )
-    expect(html).toContain('More filters')
-    expect(html).toContain('Search Dance Floor')
-    expect(html).toContain('Sort dancers')
-    expect(html).toContain('All types')
-    expect(html).not.toContain('All rarity')
-    expect(html).not.toContain('Rare first')
-    expect(html).toContain('id="rep-collection-filters"')
     expect(html).toContain('Sapphire Halo')
     expect(html).toContain('Rose Quartz Stack')
-    expect(html).not.toContain('Default landing section')
     expect(html).not.toContain('Request inbox')
-    expect(html).not.toContain('Swap follow-up')
     expect(html).not.toContain('Fulfillment queue')
-    expect(html).toContain('Loading dancers')
-    expect(html).not.toContain('Loading board pieces...')
+    expect(html).toContain('Coming soon in this rebuild.')
   })
 
-  it('shows rarity filters only when dancers have a rarity tag and hides browse filters on an empty Dance Floor', () => {
+  it('keeps rarity choices and empty Floor filters available', () => {
     const rareListing = {
       ...TRADE_BOARD_READY_STATE.board.listings[0],
       rarity_classification: 'diamond' as const,
@@ -2932,9 +2906,9 @@ describe('DashboardPlaceholder', () => {
         onAdvanceFulfillment: () => {},
       }),
     )
-    expect(rareHtml).toContain('All rarity')
+    expect(rareHtml).toContain('Rarity')
     expect(rareHtml).toContain('Rare first')
-    expect(rareHtml).toContain('Diamond')
+    expect(rareHtml).toContain('diamond')
 
     const emptyHtml = renderToStaticMarkup(
       createElement(TradeBoardWorkspaceCard, {
@@ -2960,8 +2934,8 @@ describe('DashboardPlaceholder', () => {
       }),
     )
     expect(emptyHtml).toContain('Your Dance Floor is empty. Add a dancer to show it here.')
-    expect(emptyHtml).not.toContain('All types')
-    expect(emptyHtml).not.toContain('Search Dance Floor')
+    expect(emptyHtml).toContain('All types')
+    expect(emptyHtml).toContain('Search Dance Floor')
     expect(emptyHtml).not.toContain('All rarity')
   })
 
@@ -2992,6 +2966,7 @@ describe('DashboardPlaceholder', () => {
               revealedItemNumber: 'ER00001',
               revealedRingSize: null,
               replacementStatus: 'needs_catalog_details',
+              missingFields: ['collectionName', 'material'],
               createdAt: '2026-06-11T20:00:00.000Z',
             },
           ],
@@ -3009,15 +2984,13 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(html).toContain('Swap follow-up')
-    expect(html).toContain('1 to finish')
-    expect(html).toContain(
-      'Approved swaps stay here until the missing ring size or catalog details are finished.',
-    )
-    expect(html).toContain('Revealed item number: ER00001')
-    expect(html).toContain(
-      'Finish catalog details after the show to put this reveal back on the Dance Floor.',
-    )
+    expect(html).toContain('Follow-ups to finish')
+    expect(html).toContain('Jamie · revealed ER00001')
+    expect(html).toContain('Finish the catalog details')
+    expect(html).toContain('Collection')
+    expect(html).toContain('Material')
+    expect(html).toContain('Add to Floor')
+    expect(html).not.toContain('finish these here soon')
   })
 
   it('routes trade-board decisions through shared review before the decision API', () => {

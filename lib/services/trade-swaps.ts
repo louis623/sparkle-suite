@@ -1,8 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createHash } from 'node:crypto'
 
-import { addListing } from '@/lib/services/trade-board'
+import { addListing, findCatalogListingMutationByKey } from '@/lib/services/trade-board'
 import { normalizeTradeFamily, normalizeTradeType, screenTradeOffer } from '@/lib/services/trade-request-matcher'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { ServiceError, errors } from '@/lib/services/errors'
 import { resolveItemNumber } from '@/lib/services/jewelry-database'
 import type {
@@ -22,6 +23,9 @@ type CleanupRow = {
   outgoing_listing_id: string
   revealed_item_number: string
   revealed_ring_size: string | null
+  revealed_material?: string | null
+  revealed_design_id?: string | null
+  design?: { material: string | null; collection: { name: string } | null } | null
   replacement_status: TradeSwapReplacementStatus
   created_at: string
   request:
@@ -418,7 +422,8 @@ export async function getTradeSwapCleanupQueue(
     .select(
       `
         id, request_id, outgoing_listing_id, revealed_item_number,
-        revealed_ring_size, replacement_status, created_at,
+        revealed_ring_size, revealed_material, revealed_design_id, replacement_status, created_at,
+        design:jewelry_designs!revealed_design_id(material, collection:collections(name)),
         request:trade_requests!inner(
           customer_name,
           listing:trade_listings!inner(rep_id)
@@ -446,6 +451,7 @@ export async function getTradeSwapCleanupQueue(
       revealedRingSize: row.revealed_ring_size,
       replacementStatus: row.replacement_status,
       createdAt: row.created_at,
+      missingFields: missingFollowUpFields(row),
     })
   }
 
@@ -535,4 +541,54 @@ export async function resolveTradeSwapReplacementListing(
     replacementStatus: 'added_to_board',
     fulfillmentId: (fulfillmentRow as { id?: string } | null)?.id ?? null,
   }
+}
+
+type FollowUpFields = 'ringSize' | 'collectionName' | 'material'
+function missingFollowUpFields(row: { revealed_item_number: string; revealed_ring_size: string | null; revealed_material?: string | null; design?: unknown }): FollowUpFields[] {
+  const design = getSingleRelation(row.design as { material?: string | null; collection?: { name?: string } | Array<{ name?: string }> | null } | null)
+  const collection = getSingleRelation(design?.collection ?? null)
+  const missing: FollowUpFields[] = []
+  if (row.revealed_item_number.startsWith('RG') && !row.revealed_ring_size?.trim()) missing.push('ringSize')
+  if (!collection?.name?.trim()) missing.push('collectionName')
+  if (!row.revealed_material?.trim() && !design?.material?.trim()) missing.push('material')
+  return missing
+}
+export async function finishTradeSwapFollowUp(supabase: SupabaseClient, repId: string, swapId: string, fields: Record<string, unknown>) {
+  const notFound = () => new ServiceError({ code: 'FOLLOW_UP_NOT_FOUND', message: 'Follow-up not found.', statusCode: 404 })
+  if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(swapId)) throw notFound()
+  // This gate intentionally includes already-added rows: partial terminal success is resumable.
+  const { data: owned, error } = await supabase.from('trade_swaps')
+    .select('id, request_id, revealed_item_number, revealed_ring_size, revealed_material, revealed_design_id, replacement_listing_id, replacement_status, design:jewelry_designs!revealed_design_id(material, collection:collections(name)), request:trade_requests!inner(customer_name, listing:trade_listings!inner(rep_id))')
+    .eq('id', swapId).eq('request.listing.rep_id', repId).maybeSingle()
+  if (error) throw error
+  const row = owned as unknown as (CleanupRow & { replacement_listing_id?: string | null }) | null
+  const request = getSingleRelation(row?.request ?? null)
+  if (!row || getSingleRelation(request?.listing ?? null)?.rep_id !== repId) throw notFound()
+  const admin = createAdminClient()
+  const key = 'trade-swap-replacement:' + row.request_id
+  const prior = await findCatalogListingMutationByKey(admin, repId, key)
+  if (prior || row.replacement_listing_id) {
+    return resolveTradeSwapReplacementListing(admin, repId, { swapId, replacementListingId: prior ?? row.replacement_listing_id! })
+  }
+  const missing = missingFollowUpFields(row)
+  const supplied: Partial<Record<FollowUpFields, string>> = {}
+  for (const field of missing) {
+    const value = fields[field]
+    if (typeof value !== 'string' || !value.trim() || value.length > 120) {
+      throw errors.INVALID_INPUT('Missing follow-up details', "Couldn't add that dancer. Check the details and try again.")
+    }
+    supplied[field] = value.trim()
+  }
+  const design = getSingleRelation(row.design ?? null)
+  const material = row.revealed_material?.trim() || design?.material?.trim() || supplied.material
+  const ringSize = row.revealed_ring_size?.trim() || supplied.ringSize
+  // Request text/customer identity is never included in the listing or add signature.
+  const inputSignature = createHash('sha256').update(JSON.stringify({
+    requestId: row.request_id, itemNumber: row.revealed_item_number, material, ringSize, collectionName: supplied.collectionName,
+  })).digest('hex')
+  const added = await addListing(admin, repId, {
+    itemNumber: row.revealed_item_number, material, ringSize, collectionName: supplied.collectionName,
+    idempotencyKey: key, inputSignature,
+  })
+  return resolveTradeSwapReplacementListing(admin, repId, { swapId, replacementListingId: added.listingId })
 }

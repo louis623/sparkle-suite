@@ -25,6 +25,7 @@
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
+    "codex/suite-dance-floor-phase2-editable-floor",
     "codex/suite-dance-floor-phase1-page-frame",
     "codex/suite-swap-request-redesign-rebased",
     "codex/suite-swap-request-redesign",
@@ -84,6 +85,7 @@
     "codex/video-queue-preserved-embeds"
   ],
   "previewBranches": {
+    "codex/suite-dance-floor-phase2-editable-floor": { "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ", "environment": "preview" },
     "codex/suite-dance-floor-phase1-page-frame": { "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ", "environment": "preview" },
     "codex/suite-swap-request-redesign-rebased": { "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ", "environment": "preview" },
     "codex/suite-swap-request-redesign": { "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ", "environment": "preview" },
@@ -295,6 +297,7 @@
   "temporaryDeploymentUrls": "provenance-only",
   "lastReviewed": "2026-10-18",
   "branchBases": {
+    "codex/suite-dance-floor-phase2-editable-floor": "codex/suite-dance-floor-phase1-page-frame",
     "codex/suite-dance-floor-phase1-page-frame": "codex/suite-swap-request-redesign-rebased",
     "codex/suite-swap-request-redesign-rebased": "codex/nic-nac-trade-hardening",
     "codex/tiktok-link-queue": "codex/nic-nac-trade-hardening",

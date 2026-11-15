@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -9,6 +10,7 @@ describe('Needs you first', () => {
     const html = render()
     expect(html).toContain('href="#requests"'); expect(html).toContain('href="#floor"')
     expect(html).not.toContain('href="#follow-ups"'); expect(html).toContain('aria-disabled="true"')
+    expect(readFileSync('app/nic-nac/components/dance-floor/NeedsYouStrip.tsx','utf8')).toContain("new Event('dance-floor-needs-photo')")
     expect(html).toContain('2 waiting'); expect(html).toContain('1 need a photo')
   })
   it('replaces all-zero with caught-up and uses exact loading/error copy', () => {
@@ -22,7 +24,7 @@ describe('Needs you first', () => {
   })
   it('renders the real service count for missing dancer 25 rather than the displayed page', async () => {
     const rows = Array.from({ length: 25 }, (_, i) => ({ id: String(i), listing_source: 'non_item_number', manual_photo_url: i === 24 ? null : '/photo.jpg' }))
-    const q: any = { select: () => q, eq: () => q, order: () => q, range: () => Promise.resolve({ data: rows, error: null }) }
+    const q: any = { select: () => q, eq: () => q, in: () => q, order: () => q, range: () => Promise.resolve({ data: rows, error: null }) }
     const attention = await getDanceFloorAttention({ from: () => q } as never, 'rep')
     expect(attention.photosToFix).toBe(1)
     const html = render({ photos: attention.photosToFix })
