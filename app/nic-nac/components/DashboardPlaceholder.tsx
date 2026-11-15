@@ -142,6 +142,7 @@ import { WorkspaceShell } from './WorkspaceShell'
 import type { WorkspaceSectionTab } from './WorkspaceSectionTabs'
 import { NicNacHomeWorkspaceCard } from './NicNacHomeWorkspaceCard'
 import { LiveLineupCard } from './LiveLineupCard'
+import { useFloorSectionGuard } from './dance-floor/useDanceFloorData'
 import { TradeBoardWorkspaceCard } from './TradeBoardWorkspaceCard'
 import { fetchDanceFloorBoard } from './dance-floor/useDanceFloorData'
 import { TradeRequestAlertCenter } from './TradeRequestAlertCenter'
@@ -3147,13 +3148,19 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (typeof window === 'undefined') return { customerId: null, teamMemberId: null }
     return getWorkspaceDeepLinkTargets(window.location.search)
   })
-  const [activeSection, setActiveSection] =
+  const [activeSection, setActiveSectionState] =
     useState<WorkspaceSectionKey>(() =>
       initialSectionOverride ??
       (typeof window === 'undefined'
         ? 'home'
         : getInitialWorkspaceSection(window.location.search)),
     )
+  const setActiveSection = useFloorSectionGuard(activeSection, setActiveSectionState, () => {
+    workspaceHistoryNavRef.current = 'idle'
+    const url = new URL(window.location.href)
+    url.search = syncWorkspaceSectionSearch(url.search, activeSection)
+    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash)
+  })
   const previousWorkspaceSectionRef = useRef(activeSection)
   const workspaceSectionUrlReadyRef = useRef(false)
   const workspaceHistoryNavRef = useRef<'idle' | 'pop'>('idle')

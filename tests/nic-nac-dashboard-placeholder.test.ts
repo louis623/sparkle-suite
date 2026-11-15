@@ -3833,7 +3833,7 @@ describe('DashboardPlaceholder', () => {
 
     expect(source).toContain('styles.homepagePortraitMediaCard')
     expect(source).toContain('styles.homepageVideoMediaCard')
-    expect(source).toContain('<div className={styles.homepageMediaGrid}>\n          <aside className={styles.homepageMediaHelp}')
+    expect(source).toMatch(/<div className=\{styles\.homepageMediaGrid\}>\s*\{!draft\.allSourcesEnabled && <aside className=\{styles\.homepageMediaHelp\}/)
     expect(source).not.toContain('<details className={styles.homepageMediaHelp}>')
     expect(css).toContain('grid-template-rows: repeat(5, auto)')
     expect(css).toMatch(/\.homepagePortraitMediaCard\s*\{[\s\S]*?grid-row:\s*1\s*\/\s*span 5;/)

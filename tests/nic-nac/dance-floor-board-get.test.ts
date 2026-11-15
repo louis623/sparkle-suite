@@ -4,10 +4,11 @@ import { performance } from 'node:perf_hooks'
 import { dbFixture, dancer, repId, listingId } from '../helpers/dance-floor-fixture'
 const s=vi.hoisted(()=>({client:null as any}))
 vi.mock('@/lib/nic-nac/auth',()=>({getPaidNicNacContext:async()=>({repId:'10000000-0000-4000-8000-000000000001',rep:{time_zone:'America/Los_Angeles'},supabase:s.client}),AuthError:class extends Error{}}))
-vi.mock('@/lib/supabase/admin',()=>({createAdminClient:()=>s.client}))
+vi.mock('@/lib/supabase/admin',()=>({createAdminClient:vi.fn(()=>s.client)}))
 vi.mock('@/lib/services/trade-board-stats',()=>({getDanceFloorDancerCounts:async()=>null}))
 vi.mock('@/lib/services/listing-photo-processing',()=>({processRepCustomListingPhotoUrl:vi.fn()}))
 vi.mock('@/lib/amethyst/preview-rep',()=>({resolveAmethystPreviewRep:async()=>({id:'10000000-0000-4000-8000-000000000001'})}))
+import { createAdminClient } from '@/lib/supabase/admin'
 import { GET } from '@/app/api/nic-nac/trade-board/route'
 import { daysOnDanceFloor, getRepDanceFloorBoard } from '@/lib/services/dance-floor-board'
 import { getMyBoard, updateListing } from '@/lib/services/trade-board'
@@ -21,6 +22,20 @@ function fixture(n=125){
 }
 beforeEach(()=>{vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL','https://fixture.invalid');vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY','fixture-only')})
 describe('rep-only Floor read',()=>{
+ it('targeted lookup is authenticated rep-scoped and gives identical missing/foreign 404s without admin',async()=>{
+  const f=fixture(1),foreignId='20000000-0000-4000-8000-999999999999'
+  f.tables.trade_listings.push(dancer({id:foreignId,rep_id:'other'}))
+  vi.mocked(createAdminClient).mockClear()
+  const own=await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?listingId='+listingId))
+  expect(own.status).toBe(200);expect((await own.json()).listing.id).toBe(listingId)
+  const foreign=await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?listingId='+foreignId))
+  const missing=await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?listingId=20000000-0000-4000-8000-888888888888'))
+  expect(foreign.status).toBe(404);expect(missing.status).toBe(404)
+  expect(await foreign.json()).toEqual(await missing.json())
+  expect(createAdminClient).not.toHaveBeenCalled()
+  expect(f.calls.every(call=>call.table==='trade_listings'&&call.filters.some(([op,key,value]:string[])=>op==='eq'&&key==='rep_id'&&value===repId))).toBe(true)
+ })
+
  it('multi-status, own rep, filters before paging and widened whole-board attention',async()=>{
   const f=fixture()
   const response=await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?status=available,pending_trade&search=Dancer1&limit=2&offset=1'))

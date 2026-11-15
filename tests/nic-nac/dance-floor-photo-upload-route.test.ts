@@ -32,7 +32,7 @@ describe('bound photo upload',()=>{
  it.each(['PHOTO_REP_LIMIT','PHOTO_DANCER_LIMIT'])('refuses %s before target or pipeline',async code=>{
   s.admin.rpc.mockResolvedValue({data:null,error:{message:code}})
   const response=await POST(request({listingId}));expect(response.status).toBe(429)
-  const body=await response.json();expect(body.error).toContain(code==='PHOTO_REP_LIMIT'?'20':'5')
+  const body=await response.json();expect(body.error).toContain(code==='PHOTO_REP_LIMIT'?'50':'5')
   await expect(processDanceFloorPhoto(s.user,repId,listingId,path)).rejects.toMatchObject({code})
   expect(s.target).not.toHaveBeenCalled();expect(s.pipeline).not.toHaveBeenCalled()
  })

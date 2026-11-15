@@ -4,8 +4,8 @@ import type { TradeListingWithDesign } from '@/lib/services/types'
 import { getTradeListingDisplayFields, TRADE_LISTING_TYPE_LABELS } from '@/lib/services/trade-listing-display'
 import { getBoardInventoryOptions } from '@/lib/nic-nac/board-inventory-view'
 import { SectionState } from './SectionState'
-import { DancerEditor } from './DancerEditor'
-import { defaultFloorFilters, floorQuery, mutateFloor, useEditableFloor, type FloorFilters } from './useDanceFloorData'
+import { DancerEditor, type DancerDraft } from './DancerEditor'
+import { defaultFloorFilters, floorQuery, lookupFloorListing, mutateFloor, useEditableFloor, type FloorFilters } from './useDanceFloorData'
 import type { DanceFloorBoard } from './types'
 import styles from './dance-floor.module.css'
 export function DancerFloor(props: {
@@ -15,43 +15,71 @@ export function DancerFloor(props: {
   const { filters, setFilters, board, status, refresh, loadedQuery } = useEditableFloor(props.board)
   const rows = board?.listings ?? props.listings
   const options = board?.filterOptions ?? getBoardInventoryOptions((props.board?.listings ?? rows).map(row => ({ ...row, status: 'available' as const })))
-  const [editor, setEditor] = useState<string | null>(null)
-  const [dirty, setDirty] = useState(false)
+  // Draft state belongs to the Floor, never to its replaceable query rows.
+  const [draft, setDraft] = useState<DancerDraft | null>(null)
+  const editor = draft?.listing.id ?? null
+  const dirtyRef = useRef(false)
+  const fieldsDirtyRef = useRef(false)
+  const setDirty = useCallback((blocked: boolean, fields: boolean) => { dirtyRef.current = blocked; fieldsDirtyRef.current = fields }, [])
+  const close = () => { setDraft(null); setDirty(false, false) }
+  const pin = (listing: TradeListingWithDesign) => {
+    setDraft({ listing, index: Math.max(0, rows.findIndex(row => row.id === listing.id)), notes: listing.rep_notes ?? '', savedNotes: listing.rep_notes ?? '', quantity: listing.quantity_available ?? 1, savedQuantity: listing.quantity_available ?? 1, gone: false })
+  }
   const [message, setMessage] = useState('')
   const [removed, setRemoved] = useState<string | null>(null)
   const [restoring, setRestoring] = useState(false)
   const [target, setTarget] = useState<string | null>(null)
-  const dirtyRef = useRef(dirty); dirtyRef.current = dirty
   const guard = () => { if (dirtyRef.current) { setMessage('Save or cancel your changes first.'); return false } return true }
-  const open = (id: string) => { if (id !== editor && !guard()) return; setEditor(id); setMessage('') }
-  const change = (next: Partial<FloorFilters>) => { if (guard()) { setEditor(null); setFilters(current => ({ ...current, ...next })); if (next.search !== undefined) props.onSearch(next.search) } }
-  const clear = () => { if (guard()) { setEditor(null); setFilters(defaultFloorFilters); props.onSearch('') } }
+  const open = (id: string) => { if (id === editor) return; if (!guard()) return; setTarget(null); const row = rows.find(row => row.id === id); if (row) pin(row); setMessage('') }
+  const change = (next: Partial<FloorFilters>) => { if (guard()) { close(); setFilters(current => ({ ...current, ...next })); if (next.search !== undefined) props.onSearch(next.search) } }
+  const clear = () => { if (guard()) { close(); setFilters(defaultFloorFilters); props.onSearch('') } }
   const refreshAll = useCallback(async () => { await props.onRefresh?.(); await refresh() }, [props.onRefresh, refresh])
   useEffect(() => {
-    const photo = () => { if (!dirtyRef.current) { setEditor(null); setFilters(current => ({ ...current, needsPhoto: true })) } else setMessage('Save or cancel your changes first.') }
+    const photo = () => { if (!dirtyRef.current) { close(); setFilters(current => ({ ...current, needsPhoto: true })) } else setMessage('Save or cancel your changes first.') }
     const hash = () => {
       if (!window.location.hash.startsWith('#dancer=')) return
       if (dirtyRef.current) { setMessage('Save or cancel your changes first.'); return }
       let id = ''; try { id = decodeURIComponent(window.location.hash.slice(8)) } catch { /* invalid link */ }
-      setEditor(null); setFilters(defaultFloorFilters); setTarget(id); setMessage('')
+      close(); setFilters(defaultFloorFilters); setTarget(id); setMessage('')
     }
     window.addEventListener('dance-floor-needs-photo', photo); window.addEventListener('hashchange', hash); hash()
     return () => { window.removeEventListener('dance-floor-needs-photo', photo); window.removeEventListener('hashchange', hash) }
   }, [setFilters])
   useEffect(() => {
     if (!target || status !== 'ready' || loadedQuery !== floorQuery(defaultFloorFilters)) return
+    if (dirtyRef.current || editor) { setTarget(null); return }
     const row = rows.find(item => item.id === target)
     if (row && row.status !== 'traded' && row.status !== 'removed') {
-      setEditor(target); setTarget(null)
+      if (dirtyRef.current || editor) { setTarget(null); return }
+      pin(row); setTarget(null)
       requestAnimationFrame(() => document.getElementById('dancer-' + target)?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }))
     } else if (board?.hasMore) { void refresh(rows.length) }
     else { setTarget(null); setMessage("That dancer isn't on your Floor anymore.") }
   }, [target, status, board, rows, refresh, loadedQuery])
   useEffect(() => {
-    if (editor && status === 'ready' && !rows.some(row => row.id === editor)) {
-      setEditor(null); setDirty(false); setMessage("This dancer isn't on your Floor anymore.")
-    }
-  }, [editor, status, rows])
+    const leave = (event: Event) => { if (dirtyRef.current) { event.preventDefault(); setMessage('Save or cancel your changes first.') } }
+    const unload = (event: BeforeUnloadEvent) => { if (fieldsDirtyRef.current) { event.preventDefault(); event.returnValue = '' } }
+    window.addEventListener('dance-floor-before-leave', leave)
+    window.addEventListener('beforeunload', unload)
+    return () => { window.removeEventListener('dance-floor-before-leave', leave); window.removeEventListener('beforeunload', unload) }
+  }, [])
+  useEffect(() => {
+    if (!editor || status !== 'ready') return
+    const controller = new AbortController()
+    void lookupFloorListing(editor, controller.signal).then(listing => {
+      if (controller.signal.aborted) return
+      if (!listing || listing.status === 'removed' || listing.status === 'traded') {
+        setDraft(current => current?.listing.id === editor ? { ...current, gone: true, listing: listing?.status === 'traded' ? { ...current.listing, status: 'traded' } : current.listing } : current)
+      }
+    }).catch(() => { /* A failed read never means gone. Keep the draft. */ })
+    return () => controller.abort()
+  }, [editor, board, status])
+  const displayRows = [...rows]
+  if (draft) {
+    const current = displayRows.findIndex(row => row.id === editor)
+    const latest = current >= 0 ? displayRows.splice(current, 1)[0] : draft.listing
+    displayRows.splice(Math.min(draft.index, displayRows.length), 0, latest)
+  }
   const active = filters.search || filters.type || filters.collection || filters.rarity || filters.material || filters.size || filters.sort !== 'newest' || filters.needsPhoto || filters.sitting || filters.statuses.join(',') !== 'available,pending_trade'
   return <section id="floor" className={styles.section}>
     <p className={styles.kicker}>Your dancers</p><h2>My Dance Floor</h2><p>The dancers your customers can request, plus any that are mid-swap or already swapped.</p>
@@ -76,7 +104,7 @@ export function DancerFloor(props: {
     }}>Put back on the Floor</button></div>}
     <SectionState status={status} loading="Loading your dancers…" error="Couldn't load your dancers." onRetry={() => void refresh()} />
     {status === 'ready' && !rows.length && <p className={styles.empty}>{active ? 'No dancers match these filters. Clear filters or try another search.' : 'Your Dance Floor is empty. Add a dancer to show it here.'}</p>}
-    <div className={styles.floorGrid}>{rows.map(listing => {
+    <div className={styles.floorGrid}>{displayRows.map(listing => {
       const display = getTradeListingDisplayFields(listing)
       return <article id={'dancer-' + listing.id} className={styles.dancer + (editor === listing.id ? ' ' + styles.dancerOpen : '') + (!display.photoUrl ? ' ' + styles.needsPhoto : '')} key={listing.id} data-dancer-row={listing.id}>
         {display.photoUrl ? <img className={styles.photo} src={display.photoUrl} alt={display.designName} loading="lazy" /> : <div className={styles.noPhoto}><span aria-hidden="true">▧</span>No photo yet</div>}
@@ -87,7 +115,7 @@ export function DancerFloor(props: {
           <p className={styles.facts}>{listing.daysOnFloor ?? 0}d on the Floor · {listing.requestCount ? listing.requestCount + (listing.requestCount === 1 ? ' request' : ' requests') : 'No requests yet'} · Qty {listing.quantity_available ?? 1}</p>
         </div>
         {listing.status !== 'traded' && listing.status !== 'removed' && editor !== listing.id && <button type="button" className={styles.secondary + ' ' + styles.editButton} onClick={() => open(listing.id)}>Edit</button>}
-        {editor === listing.id && <DancerEditor listing={listing} onDirty={setDirty} onClose={() => { setDirty(false); setEditor(null); setMessage('') }} onRefresh={refreshAll} onRemoved={id => { setDirty(false); setEditor(null); setRemoved(id) }} />}
+        {draft && editor === listing.id && <DancerEditor draft={draft} setDraft={setDraft} onDirty={setDirty} onClose={() => { close(); setMessage('') }} onRefresh={refreshAll} onRemoved={id => { close(); setRemoved(id) }} />}
       </article>
     })}</div>
     {board?.hasMore && <button type="button" className={styles.secondary} disabled={status === 'loading'} onClick={() => void refresh(rows.length)}>{status === 'loading' ? 'Loading your dancers…' : 'Load more'}</button>}

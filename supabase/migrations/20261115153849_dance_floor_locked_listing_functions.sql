@@ -321,7 +321,7 @@ begin
  if not found then raise exception 'LISTING_NOT_FOUND'; end if;
  if l.status is null or l.status not in ('available','pending_trade') then raise exception 'LISTING_NOT_ACTIVE'; end if;
  if p_storage_path is null then
-   if (select count(*) from public.trade_listing_photo_attempts where rep_id=p_rep_id and created_at>now()-interval '1 hour')>=20 then raise exception 'PHOTO_REP_LIMIT'; end if;
+   if (select count(*) from public.trade_listing_photo_attempts where rep_id=p_rep_id and created_at>now()-interval '1 hour')>=50 then raise exception 'PHOTO_REP_LIMIT'; end if;
    if (select count(*) from public.trade_listing_photo_attempts where rep_id=p_rep_id and listing_id=l.id and created_at>now()-interval '1 day')>=5 then raise exception 'PHOTO_DANCER_LIMIT'; end if;
    path:=p_rep_id::text||'/dance-floor/'||l.id::text||'/jewelry/'||gen_random_uuid()::text;
    insert into public.trade_listing_photo_attempts(rep_id,listing_id,storage_path) values(p_rep_id,l.id,path) returning * into attempt;
@@ -357,11 +357,5 @@ grant execute on function public.rpc_update_trade_fulfillment_v1(uuid,uuid,publi
 
 revoke all on function public.rpc_claim_trade_listing_photo_v1(uuid,uuid,text) from public, anon, authenticated;
 grant execute on function public.rpc_claim_trade_listing_photo_v1(uuid,uuid,text) to service_role;
-
-revoke all on function public.rpc_approve_trade_v2(uuid,uuid,text,public.jewelry_type,boolean,boolean,text) from public, anon, authenticated;
-grant execute on function public.rpc_approve_trade_v2(uuid,uuid,text,public.jewelry_type,boolean,boolean,text) to service_role;
-
-revoke all on function public.rpc_reject_trade_v2(uuid,uuid,public.rejection_reason,text,text) from public, anon, authenticated;
-grant execute on function public.rpc_reject_trade_v2(uuid,uuid,public.rejection_reason,text,text) to service_role;
 
 notify pgrst, 'reload schema';

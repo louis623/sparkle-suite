@@ -127,6 +127,10 @@ export async function GET(request: Request) {
     }
 
     const { repId, rep, supabase } = await getPaidNicNacContext()
+    if (url.searchParams.has('listingId')) {
+      const listing = await requireOwnedDanceFloorListing(supabase, repId, url.searchParams.get('listingId') ?? '')
+      return NextResponse.json({ listing }, { headers: { 'Cache-Control': 'no-store' } })
+    }
     const boardPromise = getRepDanceFloorBoard(supabase, repId, rep.time_zone, {
       statusFilters: statusFilter,
       search: url.searchParams.get('search') ?? '',

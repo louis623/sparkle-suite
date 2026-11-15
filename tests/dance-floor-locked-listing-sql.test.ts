@@ -73,7 +73,22 @@ beforeAll(async()=>{
  await db.query(`create unique index idx_trade_listings_active_catalog_group_unique on trade_listings
  (trade_listing_catalog_group_digest(rep_id,design_id,ring_size,listing_photo_url,uses_canonical_photo,rep_notes,trade_preferences),rarity_classification)
  where listing_source='catalog' and status in('available','pending_trade');`)
+ // Seed real historical definitions and service-only ACLs before CREATE OR REPLACE.
+ await db.query(extract('supabase/migrations/20260923220000_trade_request_enum_coalesce_fix.sql','rpc_approve_trade_v2'))
+ await db.query(extract('supabase/migrations/20260923190000_trade_request_verification_receipts.sql','rpc_reject_trade_v2'))
+ const signatures=['rpc_approve_trade_v2(uuid,uuid,text,jewelry_type,boolean,boolean,text)','rpc_reject_trade_v2(uuid,uuid,rejection_reason,text,text)']
+ for(const signature of signatures){
+  await db.query('revoke all on function public.'+signature+' from public, anon, authenticated')
+  await db.query('grant execute on function public.'+signature+' to service_role')
+ }
+ const acls=await db.query("select oid::regprocedure::text as signature,proacl::text as acl,prosecdef from pg_proc where oid=any($1::regprocedure[]) order by oid", [signatures])
  await db.query(readFileSync(migration,'utf8'))
+ expect((await db.query("select oid::regprocedure::text as signature,proacl::text as acl,prosecdef from pg_proc where oid=any($1::regprocedure[]) order by oid", [signatures])).rows).toEqual(acls.rows)
+ for(const signature of signatures){
+  for(const role of ['anon','authenticated','service_role']){
+   expect((await one("select has_function_privilege($1,$2,'EXECUTE') as allowed",[role,signature])).allowed).toBe(role==='service_role')
+  }
+ }
  await db.query('insert into reps(id) values($1)',[rep])
  await db.query('insert into collections(id,name) values($1,$2)',[collection,'Birthday'])
  await db.query("insert into jewelry_designs(id,collection_id,type_prefix) values($1,$2,'RG')",[design,collection])
@@ -241,14 +256,14 @@ describe('locked listing functions on real PostgreSQL',()=>{
   await expect(restore(referenced)).rejects.toMatchObject({message:'RECOVERY_EXPIRED'})
  })
  it('atomic photo limits reserve before work and bind one-time role paths',async()=>{
-  const photoIds=await Promise.all(Array.from({length:5},()=>listing()))
+  const photoIds=await Promise.all(Array.from({length:11},()=>listing()))
   let first=''
-  for(let i=0;i<20;i++){
+  for(let i=0;i<50;i++){
    const target=await rpc('rpc_claim_trade_listing_photo_v1',[rep,photoIds[Math.floor(i/5)],null]);if(i===0)first=target.storage_path
    expect(target.storage_path).toContain(rep+'/dance-floor/'+photoIds[Math.floor(i/5)]+'/jewelry/')
    if(i===4)await expect(rpc('rpc_claim_trade_listing_photo_v1',[rep,photoIds[0],null])).rejects.toMatchObject({message:'PHOTO_DANCER_LIMIT'})
   }
-  await expect(rpc('rpc_claim_trade_listing_photo_v1',[rep,photoIds[4],null])).rejects.toMatchObject({message:'PHOTO_REP_LIMIT'})
+  await expect(rpc('rpc_claim_trade_listing_photo_v1',[rep,photoIds[10],null])).rejects.toMatchObject({message:'PHOTO_REP_LIMIT'})
   await expect(rpc('rpc_claim_trade_listing_photo_v1',[rep,photoIds[1],first])).rejects.toMatchObject({message:'PHOTO_TARGET_INVALID'})
   expect((await rpc('rpc_claim_trade_listing_photo_v1',[rep,photoIds[0],first])).role).toBe('jewelry')
   await expect(rpc('rpc_claim_trade_listing_photo_v1',[rep,photoIds[0],first])).rejects.toMatchObject({message:'PHOTO_TARGET_INVALID'})
