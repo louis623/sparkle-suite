@@ -403,7 +403,7 @@ export function RequestSheet({ danceFloorPath, initialPiece, recovered, site, ur
           <button className="tp-sheet-submit" type="button" disabled={transport || Date.now() < sendAfter} onClick={() => void transmit("retry", attempt)}>Retry this same request</button>
           {alternatePieces.map(p => <button type="button" disabled={transport} key={p.id} onClick={() => switchPiece(p)}>{p.name}</button>)}</>
         : <><fieldset disabled={disabled}>
-          {step === 1 ? <><div className="tp-swap-pickers"><label>Upload a photo{optional ? " (optional)" : " (required)"}<input aria-label="Upload a photo" type="file" accept={accept} onChange={setSelected}/></label></div></>
+          {step === 1 ? <><p>A photo or screenshot of the piece you revealed is required.</p><div className="tp-swap-pickers"><label>Upload a photo{optional ? " (optional)" : " (required)"}<input aria-label="Upload a photo" type="file" accept={accept} onChange={setSelected}/></label></div></>
           : <><div className="tp-swap-photo-actions"><button ref={changeRef} type="button" onClick={changePhoto}>Change photo</button>
             {preview && <button ref={thumbRef} aria-label="Preview your photo" type="button" onClick={() => {pushHistory(); setExpanded(true);}}>
               <img src={preview} alt="Your selected reveal" onError={() => {if (urlOwner.current === preview) setPreview(null);}}/></button>}</div>
