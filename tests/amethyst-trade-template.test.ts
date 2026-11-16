@@ -754,11 +754,16 @@ describe('Amethyst trade page template wiring', () => {
     const sheet = readFileSync(resolve(process.cwd(), 'lib/amethyst/v2/swap-request-sheet.jsx'), 'utf8')
     const upload = readFileSync(resolve(process.cwd(), 'lib/amethyst/v2/swap-request-photo.js'), 'utf8')
     expect(entry).toContain('import { RequestSheet } from "./swap-request-sheet.jsx"')
-    for (const copy of ['Swap request','Upload a photo','Your details','Your name','Not you? Clear','What type did you reveal?',
+    for (const copy of ['Swap request','Upload a photo','A photo or screenshot of the piece you revealed is required.','Your name','Not you? Clear','What type did you reveal?',
       'Which collection did you reveal?','Ask my rep to review anyway','View request status','Preview your photo',
       'Change photo','Request another dancer with this photo']) expect(sheet).toContain(copy)
-    for (const removed of ['What did you just reveal?', 'Photo or screenshot of your reveal (optional)', 'Send without a photo',
-      'clickwrapAcknowledged', 'acceptedTerms']) expect(sheet).not.toContain(removed)
+    const compiled = readFileSync(resolve(process.cwd(), 'public/amethyst/compiled/trade.js'), 'utf8')
+    for (const copy of ['Swap request', 'Upload a photo', 'A photo or screenshot of the piece you revealed is required.']) expect(compiled).toContain(copy)
+    for (const removed of ['Your details', 'What did you just reveal?', 'Photo or screenshot of your reveal (optional)', 'Send without a photo',
+      'clickwrapAcknowledged', 'acceptedTerms']) {
+      expect(sheet).not.toContain(removed)
+      expect(compiled).not.toContain(removed)
+    }
     expect(upload).toContain('new FormData()')
     expect(upload).toContain('xhr.upload.onprogress')
     expect(entry).toContain('url.searchParams.set("photoPolicy", "1")')

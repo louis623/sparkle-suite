@@ -997,7 +997,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
     expect(createDesignMock).not.toHaveBeenCalled()
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
-  it('uses the only image in the current user message as the listing photo for existing designs', async () => {
+  it('does not set a rep photo on an existing catalog design from a current-message image', async () => {
     addListingMock.mockResolvedValueOnce({
       listingId: 'listing-1',
       designId: 'design-1',
@@ -1030,18 +1030,11 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       clickwrapAccepted: true,
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'data:image/jpeg;base64,SkVXRUw=',
-      filenameStem: 'ER76003-listing-photo',
-      mutationAssetKey: expect.any(String),
-    }, { confirmedJewelryFront: true })
-    expect(addListingMock.mock.calls[0][2]).toMatchObject({
-      listingPhotoUrl: undefined,
-    })
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+    expect(addListingMock.mock.calls[0][2]).not.toHaveProperty('listingPhotoUrl')
   })
 
-  it('requires a preview instead of guessing among unbound conversation photos', async () => {
+  it('does not set a rep photo on an existing catalog design from unbound conversation photos', async () => {
     const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: activeWorkflow() })
     await expect(tool.execute({ mode: 'single', itemNumber: 'ER76003', listingPhotoIndex: 1 })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
     expect(addListingMock).not.toHaveBeenCalled()
@@ -1086,19 +1079,14 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       listingPhotoIndex: 1,
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'data:image/jpeg;base64,SkVXRUw=',
-      filenameStem: 'ER13743-listing-photo',
-      mutationAssetKey: expect.any(String),
-    }, { confirmedJewelryFront: true })
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock.mock.calls[0][2]).toMatchObject({
       itemNumber: 'ER13743',
-      listingPhotoUrl: undefined,
     })
+    expect(addListingMock.mock.calls[0][2]).not.toHaveProperty('listingPhotoUrl')
   })
 
-  it('uses the most recent prior chat photo after the rep confirms it in a text-only turn', async () => {
+  it('does not set a rep photo on an existing catalog design after a text-only photo confirmation', async () => {
     addListingMock.mockResolvedValueOnce({
       listingId: 'listing-1',
       designId: 'design-1',
@@ -1147,20 +1135,15 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       collectionYear: 2026,
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'data:image/jpeg;base64,Qk9YRURfSkVXRUxSWQ==',
-      filenameStem: 'ER13229-listing-photo',
-      mutationAssetKey: expect.any(String),
-    }, { confirmedJewelryFront: true })
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock.mock.calls[0][2]).toMatchObject({
       itemNumber: 'ER13229',
       collectionName: 'July Birthday',
-      listingPhotoUrl: undefined,
     })
+    expect(addListingMock.mock.calls[0][2]).not.toHaveProperty('listingPhotoUrl')
   })
 
-  it('treats listingPhotoIndex as a recent-conversation photo number when the latest turn is text-only', async () => {
+  it('does not set a rep photo on an existing catalog design from a prior-conversation photo index', async () => {
     addListingMock.mockResolvedValueOnce({
       listingId: 'listing-1',
       designId: 'design-1',
@@ -1204,12 +1187,8 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       listingPhotoIndex: 1,
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'data:image/jpeg;base64,Qk9YRURfSkVXRUxSWQ==',
-      filenameStem: 'ER13229-listing-photo',
-      mutationAssetKey: expect.any(String),
-    }, { confirmedJewelryFront: true })
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+    expect(addListingMock.mock.calls[0][2]).not.toHaveProperty('listingPhotoUrl')
   })
 })
 

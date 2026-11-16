@@ -2862,12 +2862,12 @@ describe('DashboardPlaceholder', () => {
 
     expect(getTradeBoardSectionLabels(html)).toEqual(['Dance Floor','My Dance Floor','Swap history'])
     for (const label of ['Type','Collection','type="search"','Sort','More filters','Available','Pending swap','Swapped','Sitting 30+ days']) expect(html).toContain(label)
-    expect(html).toContain('Know the item number? Add a dancer in one step.')
+    expect(html).not.toContain('Know the item number? Add a dancer in one step.')
     expect(html).toContain('Sapphire Halo')
     expect(html).toContain('Rose Quartz Stack')
     expect(html).not.toContain('Request inbox')
     expect(html).not.toContain('Fulfillment queue')
-    expect(html).toContain('Coming soon in this rebuild.')
+    expect(html).not.toContain('Coming soon in this rebuild.')
   })
 
   it('keeps rarity choices and empty Floor filters available', () => {

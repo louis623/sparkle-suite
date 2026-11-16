@@ -106,7 +106,7 @@ describe('mounted Floor draft ownership and transitions', () => {
     expect(row(30)).not.toBeNull(); expect(window.scrollBy).toHaveBeenLastCalledWith(0, 0)
   })
   it('has no photo controls while retaining a dirty editor', async () => {
-    await render(); await dirty()
+    await render(); await dirty(0)
     expect(host.textContent).not.toMatch(/Change photo|Use catalog photo|Needs a photo/)
     expect(host.querySelector('input[type="file"]')).toBeNull()
   })

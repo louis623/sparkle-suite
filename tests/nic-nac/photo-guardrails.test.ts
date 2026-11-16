@@ -294,3 +294,18 @@ describe('catalog photo provenance survives reload',()=>{
   expect(chunks.some(c=>c.type==='data-main-photo-preview')).toBe(false)
  })
 })
+
+it('preserves the stored source hash through real mapping and confirmed-photo selection', async () => {
+  const { mapTradeBoardIntakePhotoRow } = await vi.importActual<typeof import('@/lib/nic-nac/workflows/trade-board-intake-store')>('@/lib/nic-nac/workflows/trade-board-intake-store')
+  const workflow = state()
+  workflow.photos = [mapTradeBoardIntakePhotoRow({
+    id: 'photo-A', attachment_index: 1, declared_role: 'jewelry_front',
+    visual_role: 'jewelry', role_confirmed: true, quality: 'usable',
+    image_url: url, content_sha256: hash, quality_issues: [], notes: [],
+  })]
+  workflow.metadata.confirmedPhotoId = 'photo-A'
+  workflow.metadata.confirmedItemNumber = 'RG12345'
+  const confirmed = requireConfirmedMainPhoto(workflow, 'RG12345')
+  expect(confirmed.contentSha256).toBe(hash)
+  expect(confirmed.id).toBe('photo-A')
+})

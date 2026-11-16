@@ -56,8 +56,10 @@ function makeFulfillmentSupabase(row: Record<string, unknown>) {
   })
 
   admin.rpc.mockImplementation(async(_name,input)=>{
-    const changed=input.p_next_status!==row.fulfillment_status
-    const patch=changed?{fulfillment_status:input.p_next_status,completed_at:input.p_next_status==='completed'?new Date().toISOString():null}:input.p_write_notes?{shipping_notes:input.p_shipping_notes}:null
+    const statusChanged=input.p_next_status!==row.fulfillment_status
+    const notesChanged=Boolean(input.p_write_notes)&&(row.shipping_notes??'')!==(input.p_shipping_notes??'')
+    const changed=statusChanged||notesChanged
+    const patch=changed?{...(statusChanged?{fulfillment_status:input.p_next_status,completed_at:input.p_next_status==='completed'?new Date().toISOString():null}:{}),...(notesChanged?{shipping_notes:input.p_shipping_notes}:{})}:null
     if(patch)update(patch)
     return {data:{...row,...patch,previous_status:row.fulfillment_status,changed},error:null}
   })
