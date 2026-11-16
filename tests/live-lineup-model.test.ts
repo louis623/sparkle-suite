@@ -382,3 +382,92 @@ describe('2.0.9 diagnostic contract', () => {
     expect(Object.keys(LIVE_LINEUP_RELEASE).sort()).toEqual(['protocol','publishedAt','rolloutEnabled','version'])
   })
 })
+
+
+describe('2.0.10 diagnostics', () => {
+  const shape={format:'plain',length:'1-10',characters:['digits']}
+  const identity={problem:'conflict',attribute:shape,cell:shape,link:shape,
+    comparisons:{attributeCell:'mismatch',attributeLink:'match',cellLink:'mismatch'}}
+  const failure={version:1,stage:'identity',rowIndex:2,cellCount:9,order:identity,party:{...identity,problem:'none',
+    comparisons:{attributeCell:'match',attributeLink:'match',cellLink:'match'}}}
+  const structure={version:1,columns:['OrderID','PartyID'],bodyCount:1,rowCount:'1-10',unmatchedRows:'0',
+    hasOrderIdAttribute:true,hasPartyIdAttribute:true,hasOrderTimeAttribute:true}
+  const raw={sourceVersion:'2.0.10',readerVersion:'2.0.10',updateState:'unknown',parserState:'invalid',parserReason:'missing_order_identity',structure,failure}
+  const report=(changes:Record<string,unknown>={}) => parsePublisherDiagnostics({...raw,...changes})!
+  const badPacket=(sequence:number,diagnostics=report()) => packet({sourceVersion:'2.0.10',sequence,
+    parserState:'invalid',parserReason:'missing_order_identity',entries:[],revealedIds:[],diagnostics})
+
+  it('accepts bounded classifications and rejects arbitrary nested text, keys and ready failures', () => {
+    expect(report()).not.toBeNull()
+    const secret='PRIVATE CUSTOMER ORDER 12345'
+    for(const changed of [
+      {...failure,raw:secret},{...failure,stage:secret},{...failure,rowIndex:50001},{...failure,cellCount:33},
+      {...failure,order:{...identity,problem:secret}},
+      {...failure,order:{...identity,attribute:{...shape,text:secret}}},
+      {...failure,order:{...identity,attribute:{...shape,characters:[secret]}}},
+      {...failure,order:{...identity,attribute:{...shape,characters:['digits','digits']}}},
+      {...failure,order:{...identity,comparisons:{...identity.comparisons,attributeCell:secret}}},
+      {...failure,order:{...identity,comparisons:{...identity.comparisons,value:secret}}},
+    ]) expect(report({failure:changed})).toBeNull()
+    expect(report({parserState:'ready',parserReason:undefined})).toBeNull()
+    expect(report({failure:{version:1,stage:'table',rowIndex:null,cellCount:null}})).not.toBeNull()
+    expect(parseSourcePacket(badPacket(1))).not.toBeNull()
+  })
+
+  it('coalesces polling and position noise, preserves failures through recovery, and keeps projections private', () => {
+    const original=populated()
+    const first=state(applySourcePacket(original,badPacket(1),T+10))
+    const latest=report({updateState:'checking',failure:{...failure,rowIndex:7},structure:{...structure,rowCount:'11-100'}})
+    const next=state(applySourcePacket(first,badPacket(2,latest),T+20))
+    expect(next.diagnosticHistory).toHaveLength(1)
+    expect(next.diagnosticHistory![0]).toEqual({firstSeenAt:new Date(T+10).toISOString(),lastSeenAt:new Date(T+20).toISOString(),count:2,report:latest})
+    expect(next.entries).toEqual(original.entries)
+    expect(next.order).toEqual(original.order)
+    expect(next.lastReadyAt).toBe(original.lastReadyAt)
+    const plain=state(applySourcePacket(first,{...badPacket(2),diagnostics:undefined},T+20))
+    expect(next.publisher).toEqual(plain.publisher)
+    const ready=report({parserState:'ready',parserReason:undefined,failure:undefined})
+    const recovered=state(applySourcePacket(next,packet({sourceVersion:'2.0.10',sequence:3,diagnostics:ready}),T+30))
+    expect(recovered.diagnosticHistory).toEqual(next.diagnosticHistory)
+    expect(isLineupState(recovered)).toBe(true)
+    expect(buildWorkspaceLineupSnapshot(recovered,T+31,true)).not.toHaveProperty('diagnosticHistory')
+    expect(buildWorkspaceLineupSnapshot(recovered,T+31,true)).not.toHaveProperty('diagnostics')
+    const opened=state(applyLineupCommand(recovered,{type:'start-show',partyIds:['P1'],carryEntryIds:[],confirmed:true,expectedRevision:recovered.revision},T+40))
+    expect(opened.diagnosticHistory).toEqual(recovered.diagnosticHistory)
+  })
+
+  it('bounds distinct reports and counters and expires old evidence on the next accepted receipt', () => {
+    let current=populated()
+    for(let n=1;n<=13;n++) current=state(applySourcePacket(current,badPacket(n,report({failure:{...failure,cellCount:n}})),T+10+n))
+    expect(current.diagnosticHistory).toHaveLength(12)
+    expect(current.diagnosticHistory![0].report.failure!.cellCount).toBe(2)
+    const capped=structuredClone(current)
+    capped.diagnosticHistory!.at(-1)!.count=1_000_000
+    const repeated=state(applySourcePacket(capped,badPacket(14,report({failure:{...failure,cellCount:13}})),T+30))
+    expect(repeated.diagnosticHistory!.at(-1)!.count).toBe(1_000_000)
+    const later=T+15*86_400_000
+    const claimed=state(claimPublisher(repeated,'device-a',repeated.revision,later,{claimId:CLAIM_B}))
+    expect(claimed.diagnosticHistory).toEqual(repeated.diagnosticHistory)
+    const expired=state(applySourcePacket(claimed,packet({epoch:2,sequence:0}),later+1))
+    expect(expired.diagnosticHistory).toEqual([])
+    expect(expired.entries).toEqual(current.entries)
+    expect(isLineupState(expired)).toBe(true)
+  })
+
+  it('does not let rejected packets or claims mutate history and rejects corrupt persisted reports', () => {
+    const first=state(applySourcePacket(populated(),badPacket(1),T+10))
+    const before=structuredClone(first)
+    expect(applySourcePacket(first,{...badPacket(2),publisherId:'other'},T+20)).toEqual({ok:false,code:'publisher_conflict'})
+    expect(applySourcePacket(first,badPacket(1),T+20)).toEqual({ok:false,code:'stale_sequence'})
+    expect(applySourcePacket(first,{...badPacket(2),diagnostics:{...raw,failure:{...failure,customer:'secret'}}},T+20)).toEqual({ok:false,code:'invalid_payload'})
+    expect(claimPublisher(first,'device-b',first.revision,T+20,{claimId:CLAIM_B,diagnostics:report()})).toEqual({ok:false,code:'publisher_conflict'})
+    expect(first).toEqual(before)
+    const replay=state(claimPublisher(first,'device-a',first.revision,T+20,{claimId:CLAIM_A,diagnostics:report()}))
+    expect(replay).toBe(first)
+    const corrupt=structuredClone(first) as unknown as Record<string,unknown>
+    corrupt.diagnosticHistory=[{...first.diagnosticHistory![0],rawText:'secret'}]
+    expect(isLineupState(corrupt)).toBe(false)
+    corrupt.diagnosticHistory=Array.from({length:13},()=>first.diagnosticHistory![0])
+    expect(isLineupState(corrupt)).toBe(false)
+  })
+})

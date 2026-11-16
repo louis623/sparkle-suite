@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   // Captured package identity, never the updated worker manifest of an older reader.
-  const READER_VERSION = "2.0.9";
+  const READER_VERSION = "2.0.10";
   const prior=globalThis.__sparkleLineupReader;
   if(prior?.version===READER_VERSION && !prior.stopped)return;
   if(prior && typeof prior.stop==='function')prior.stop();

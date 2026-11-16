@@ -1,0 +1,19 @@
+{
+  "version": "2.0.10",
+  "base": "3f3702e842e0660837b41e9347d71990f17c206e",
+  "focusedChecks": {
+    "parser_transport_package": 5,
+    "server_contract_history": 4,
+    "monitor_email": 2
+  },
+  "result": "11 passed; unrelated tests skipped",
+  "retries": [
+    "Transport fixture corrected to settled:true for a ready observation; failed check only rerun",
+    "Current-receipt freshness guard added; affected monitor case only rerun",
+    "Package verifier explicit approved versions extended to2.0.10 without changing permissions; package verification passed"
+  ],
+  "independentReview": "No blocking defect; real Bomb Party markup and actual Store upgrade not observed",
+  "sha256": "ed00fadc3f960c1ffb961824cd5d707a475db132d90ca77df7db32d19aab31bf",
+  "storeSubmitted": false,
+  "serverFirstRequired": true
+}

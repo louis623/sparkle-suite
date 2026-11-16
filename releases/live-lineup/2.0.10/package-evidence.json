@@ -1,0 +1,47 @@
+{
+  "archive": "/workspaces/ss-208-reporting/releases/live-lineup/2.0.10/sparkle-suite-live-lineup-2.0.10-cws.zip",
+  "inventoryFile": "/workspaces/ss-208-reporting/releases/live-lineup/2.0.10/approved-inventory.txt",
+  "sourceDir": "/workspaces/ss-208-reporting/chrome-extension",
+  "sha256": "ed00fadc3f960c1ffb961824cd5d707a475db132d90ca77df7db32d19aab31bf",
+  "bytes": 28606,
+  "manifestVersion": "2.0.10",
+  "inventory": [
+    "background.js",
+    "content.js",
+    "icons/icon128.png",
+    "icons/icon16.png",
+    "icons/icon48.png",
+    "manifest.json",
+    "popup.css",
+    "popup.html",
+    "popup.js",
+    "publisher-client.js",
+    "queue-filter.js",
+    "queue-parser.js",
+    "update-client.js"
+  ],
+  "manifestReferences": [
+    "background.js",
+    "content.js",
+    "icons/icon128.png",
+    "icons/icon16.png",
+    "icons/icon48.png",
+    "popup.html",
+    "queue-parser.js"
+  ],
+  "sourceSha256": {
+    "background.js": "4e415ac4ea2279f8893f31e721d6d2d05e904127e36500804cadee5a5c706a07",
+    "content.js": "0d5c07ba3704192944838a5c3c42ab6a135341d9f5907be39658a71028f843a2",
+    "icons/icon128.png": "488ac0f9e5923677946bf0b33493339fd267d854c1764fcfae962c90b74cf495",
+    "icons/icon16.png": "840e3dd93686dfa915050361fdad0dde044396db03f34032f4e8ad1fd8dc1439",
+    "icons/icon48.png": "11931d6a6bde588bd267ae650551e624e2bf5b61e24adf2087651a9bb5675e31",
+    "manifest.json": "084a662202fddbae438459682e578a3a01acedccafc449a2f4fc78f06f8b1623",
+    "popup.css": "fe15aa8dc2e40697021d9d7309edef17a77ddbd97c2fe80d8328bf98a09fe926",
+    "popup.html": "3243d851420fc6d7e5e3f775d31366dae9d207708005c226e6ca2fd763b1af83",
+    "popup.js": "95f7963bf35c0970c46865fb3937c156f80a4da62c16d62c5e5303df82cae3d2",
+    "publisher-client.js": "2061eb310c1ca60e58d5ff82e5b22fd7a0f77f73c6cb20464f7578e8adfe7a3c",
+    "queue-filter.js": "0fbf223fe33df871efc8447b82a5a5a64b8f270ed2837537cf5f4c3058e0b828",
+    "queue-parser.js": "c6c3a4d86b6c26ac9e0ca2f7db0d81a6a6e089b0a8572eb6f99d5027a9c59f65",
+    "update-client.js": "ea1c57aab38c4f9152128c80223ce2ee072b67d84d6a210a534091262909bef7"
+  }
+}

@@ -22,6 +22,36 @@ export interface ParserStructure {
   hasPartyIdAttribute: boolean
   hasOrderTimeAttribute: boolean
 }
+export const FAILURE_STAGES = ['identity','row','date','name','reveal','columns','scope','capacity','table'] as const
+export const VALUE_FORMATS = ['missing','plain','labelled','unsupported'] as const
+export const VALUE_LENGTHS = ['0','1-10','11-100','101-1000','1001+'] as const
+export const VALUE_CHARACTERS = ['ascii_letters','digits','whitespace','separator','non_ascii','other','control'] as const
+export interface ValueShape {
+  format: typeof VALUE_FORMATS[number]
+  length: typeof VALUE_LENGTHS[number]
+  characters: (typeof VALUE_CHARACTERS[number])[]
+}
+export interface IdentityEvidence {
+  problem: 'none' | 'missing' | 'unsupported_format' | 'conflict'
+  attribute: ValueShape
+  cell: ValueShape
+  link: ValueShape
+  comparisons: {attributeCell: 'match' | 'mismatch' | 'unavailable'; attributeLink: 'match' | 'mismatch' | 'unavailable'; cellLink: 'match' | 'mismatch' | 'unavailable'}
+}
+export interface ParserFailure {
+  version: 1
+  stage: typeof FAILURE_STAGES[number]
+  rowIndex: number | null
+  cellCount: number | null
+  order?: IdentityEvidence
+  party?: IdentityEvidence
+}
+export interface DiagnosticHistoryEntry {
+  firstSeenAt: string
+  lastSeenAt: string
+  count: number
+  report: PublisherDiagnostics
+}
 /** Private, allowlisted observations only; never authority to renew or declare readiness. */
 export interface PublisherDiagnostics {
   /** Existing sourceVersion terminology means the worker package version. */
@@ -29,6 +59,7 @@ export interface PublisherDiagnostics {
   readerVersion: string | null
   updateState: UpdateState
   structure?: ParserStructure
+  failure?: ParserFailure
   parserState: ParserState
   parserReason?: ParserReason
 }
@@ -77,6 +108,8 @@ export interface LineupState {
   parserReason?: ParserReason | null
   sourceVersion: string | null
   diagnostics?: (PublisherDiagnostics & {receivedAt: string}) | null
+  /** Private failure evidence: max 12 signatures, expires after 14 days without a matching accepted receipt. */
+  diagnosticHistory?: DiagnosticHistoryEntry[]
   sourceObservation?: AcceptedObservation | null
   lastReadyObservation?: AcceptedObservation | null
   lastReadySourceAt?: string | null

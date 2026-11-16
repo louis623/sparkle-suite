@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createHmac } from 'node:crypto'
 import { readFileSync, readdirSync } from 'node:fs'
-import { createLineupState, claimPublisher, applySourcePacket } from '@/lib/live-lineup/model'
+import { createLineupState, claimPublisher, applySourcePacket, parsePublisherDiagnostics } from '@/lib/live-lineup/model'
 import { advanceMonitor, applyExpectedShow, groupChangedStructures, structureSignature, adoptionDue, classifyAdoption, incidentStillSendable, monitorFacts, type MonitorFacts, type MonitorState } from '@/lib/live-lineup/monitor'
-import { deliverMonitorJob, incidentPayload, monitorConfiguration, type MonitorDelivery } from '@/lib/live-lineup/monitor-delivery'
+import { currentParserFailure, deliverMonitorJob, incidentPayload, monitorConfiguration, type MonitorDelivery } from '@/lib/live-lineup/monitor-delivery'
 import { verifyPublicFeed } from '@/lib/live-lineup/monitor-public'
 
 const at = Date.parse('2026-11-16T18:00:00.000Z'), stamp = (offset: number) => new Date(at + offset).toISOString()
@@ -186,5 +186,50 @@ describe('Live Lineup monitor', () => {
     expect(sql).not.toMatch(/security definer/i)
     expect(sql.match(/enable row level security/g)).toHaveLength(3)
     expect(sql.match(/from public,anon,authenticated/g)).toHaveLength(4)
+  })
+})
+
+
+describe('2.0.10 diagnostics in owner alerts', () => {
+  const shape = {format:'plain',length:'1-10',characters:['digits']}
+  const failure = {version:1,stage:'identity',rowIndex:5,cellCount:9,
+    order:{problem:'conflict',attribute:shape,cell:shape,link:shape,
+      comparisons:{attributeCell:'mismatch',attributeLink:'mismatch',cellLink:'match'}}}
+  it('captures bounded useful evidence without raw values and keeps the queued event stable', () => {
+    const input = structuredClone(failure)
+    const payload = incidentPayload('incident',facts(0,{reason:'missing_order_identity'}),stamp(0),stamp(180_000),input)
+    expect(payload.text).toContain('Failure detail: identity; row 5; cells 9.')
+    expect(payload.text).toContain('Order number: conflict')
+    expect(payload.text).toContain('attribute/cell mismatch')
+    expect(payload.event.failure).toEqual(failure)
+    input.order.cell.characters.push('non_ascii')
+    expect(payload.event.failure).toEqual(failure) // Capture at incident creation, never mutate retry bodies.
+    for (const bad of [
+      {...failure,customer:'PRIVATE CUSTOMER'},
+      {...failure,order:{...failure.order,cell:{...shape,text:'PRIVATE ORDER 123'}}},
+      {...failure,order:{...failure.order,cell:{...shape,characters:['PRIVATE CUSTOMER']}}},
+    ]) {
+      const rejected = incidentPayload('incident',facts(0),stamp(0),stamp(180_000),bad)
+      expect(rejected.event).not.toHaveProperty('failure')
+      expect(JSON.stringify(rejected)).not.toMatch(/PRIVATE CUSTOMER|PRIVATE ORDER/)
+    }
+    expect(incidentPayload('recovery',facts(0),stamp(0),stamp(180_000),failure).event).not.toHaveProperty('failure')
+  })
+  it('uses only failure detail bound to the current accepted matching reader receipt', () => {
+    const report = parsePublisherDiagnostics({sourceVersion:'2.0.10',readerVersion:'2.0.10',updateState:'unknown',
+      parserState:'invalid',parserReason:'missing_order_identity',failure})!
+    expect(report).not.toBeNull()
+    const source = {...createLineupState(),sourceVersion:'2.0.10',parserState:'invalid' as const,
+      parserReason:'missing_order_identity' as const,lastReceivedAt:stamp(0),diagnostics:{...report,receivedAt:stamp(0)}}
+    expect(currentParserFailure(source,at)).toEqual(failure)
+    expect(currentParserFailure(null,at)).toBeNull()
+    expect(currentParserFailure({...source,parserState:'ready'},at)).toBeNull()
+    for (const changed of [
+      {receivedAt:stamp(-1000)}, {sourceVersion:'2.0.9'}, {readerVersion:'2.0.9'},
+      {parserState:'partial' as const}, {parserReason:'invalid_order_time' as const},
+    ]) expect(currentParserFailure({...source,diagnostics:{...source.diagnostics,...changed}},at)).toBeNull()
+    expect(currentParserFailure({...source,lastReceivedAt:null},at)).toBeNull()
+    expect(currentParserFailure(source,at+90_000)).toBeNull()
+    expect(currentParserFailure(source,at-1)).toBeNull()
   })
 })
