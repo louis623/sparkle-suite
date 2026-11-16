@@ -60,7 +60,7 @@ export async function POST(request: Request) {
             designName: design?.design_name ?? row.manual_collection_name ?? 'Available dancer',
             collectionName: family ?? 'Collection to verify',
             typePrefix: type ?? '',
-            photoUrl: getTradeListingEffectivePhotoUrl({ ...row, design } as Parameters<typeof getTradeListingEffectivePhotoUrl>[0]),
+            photoUrl: getTradeListingEffectivePhotoUrl({ ...row, design }),
           })
           if (alternatives.length >= 4) break
         }

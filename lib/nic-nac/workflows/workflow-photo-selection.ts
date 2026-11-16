@@ -15,6 +15,8 @@ export interface WorkflowJewelryPhoto {
   visualRole: string
   quality: string
   imageUrl?: string
+  /** SHA-256 of the source bytes, mapped from the intake photo row. */
+  contentSha256?: string
   notes?: string[]
   qualityIssues?: string[]
 }

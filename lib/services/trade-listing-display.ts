@@ -59,7 +59,9 @@ export function buildNonItemNumberTradeListingName(input: {
     : `${collection} ${typeLabel}`
 }
 
-export function getTradeListingEffectivePhotoUrl(listing: Pick<TradeListingWithDesign, 'listing_source' | 'design' | 'manual_photo_url' | 'listing_photo_url'>): string | null {
+export function getTradeListingEffectivePhotoUrl(listing: Pick<TradeListingWithDesign, 'listing_source' | 'manual_photo_url' | 'listing_photo_url'> & {
+  design?: { canonical_photo_url?: string | null } | null
+}): string | null {
   if (listing.listing_source === 'non_item_number') return cleanText(listing.manual_photo_url) ?? cleanText(listing.listing_photo_url)
   return cleanText(listing.design?.canonical_photo_url) ?? cleanText(listing.listing_photo_url)
 }
