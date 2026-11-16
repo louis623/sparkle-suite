@@ -62,7 +62,7 @@
       ...(grouped(current) ? { liveQueueEvents: [], ...(!retain ? { liveQueueOrderCount: 0, liveQueueGroupCount: 0, liveQueueCurrent: null, liveQueueOnDeck: null } : {}) } : {}),
       liveQueueState: retain ? 'delayed' : 'offline',
       liveQueueEntries: retain ? (current?.liveQueueEntries || []).map((entry) => ({ ...entry, label: 'Position at last update', highlight: false })) : [],
-      liveQueueSummary: retain ? 'Showing the latest lineup while we check for updates.' : 'Check the calendar for the next show.',
+      liveQueueSummary: retain ? 'Working on live lineup issue. We will have it back up and running soon' : 'Check the calendar for the next show.',
     };
   }
   function fresh(current) {
@@ -212,7 +212,7 @@
   function renderEmpty(React, calendarHref, state) {
     const h = React.createElement;
     if (state === 'empty' || state === 'delayed') {
-      const message = state === 'empty' ? 'Live lineup connected. No one is waiting.' : 'Live lineup updates are delayed.';
+      const message = state === 'empty' ? 'Live lineup connected. No one is waiting.' : 'Working on live lineup issue. We will have it back up and running soon';
       return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':state, 'aria-label':'Live lineup'},
         h('div', {className:'hp-lineup-idle-inner'}, h('span', {className:'hp-lineup-idle-prompt'}, message)));
     }
