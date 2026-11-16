@@ -80,7 +80,7 @@ async function post(token, body, guard = null) {
   finally { guard?.controllers.delete(controller); clearTimeout(timer); controller.abort(); if (reader) void reader.cancel().catch(()=>{}); }
 }
 function cleanDescriptor(value) {
-  if (['2.0.6','2.0.7'].includes(chrome.runtime.getManifest().version) && value?.orderScope !== 'selected-parties') throw fail('server_update_required');
+  if (['2.0.6','2.0.7','2.0.8'].includes(chrome.runtime.getManifest().version) && value?.orderScope !== 'selected-parties') throw fail('server_update_required');
   if (!value || value.protocol !== 2 || !Number.isSafeInteger(value.generation) || value.generation < 0 || typeof value.serverTime !== 'string' || !Number.isFinite(Date.parse(value.serverTime))) throw fail('invalid_receipt');
   if (value.generation === 0 && value.scope === null) return {protocol:2,generation:0,scope:null,serverTime:value.serverTime};
   const s = value.scope;
@@ -133,7 +133,11 @@ async function sourceRead(tabId, descriptor, inspectOnly = false) {
     || !inspectOnly && descriptor.generation > 0 && response.generation !== descriptor.generation
     || !UUID.test(response.source?.documentId || '') || !Number.isSafeInteger(response.source?.serial) || response.source.serial < 0
     || typeof response.source.settled !== 'boolean') throw fail('source_unavailable');
-  return {...response.snapshot,observation:{...response.source,serverTime:descriptor.serverTime}};
+  const readerVersion = typeof response.readerVersion === 'string' && /^\d{1,5}(?:\.\d{1,5}){0,3}$/.test(response.readerVersion) ? response.readerVersion : null;
+  const matched = readerVersion === chrome.runtime.getManifest().version;
+  // An old/unknown reader cannot certify the new worker's snapshot. Do not refresh the page.
+  const snapshot = matched ? response.snapshot : {parserState:'partial',reason:null,entries:[],revealedIds:[],revealedEntries:[]};
+  return {...snapshot,readerVersion,observation:{...response.source,settled:matched && response.source.settled,serverTime:descriptor.serverTime}};
 }
 async function adopt(state, descriptor, source, parties, configured = false) {
   const changed = state.generation !== descriptor.generation;
@@ -177,7 +181,7 @@ async function prepare() {
   state = await adopt(state,descriptor,{tabId:tab.id},parties);
   // A scoped read can be healthy even if unrelated ancient history is malformed.
   const hint = descriptor.generation === 0 ? full : await sourceRead(tab.id,descriptor);
-  return {state,descriptor,parties,tabId:tab.id,readyHint:hint.parserState === 'ready' || full.parserState === 'ready'};
+  return {state,descriptor,parties,tabId:tab.id,diagnosticSnapshot:hint,readyHint:hint.parserState === 'ready' || full.parserState === 'ready'};
 }
 async function freshSnapshot(prepared) {
   const state = await store.load(), descriptor = await describe(state);
@@ -193,13 +197,13 @@ async function status() {
     connected:Boolean(state?.enabled && Number.isSafeInteger(state.generation) && source && state.parserState === 'ready' && !state.scopePending && !state.lastError
       && localReadyAck === state.lastAckAt && monotonicNow() < localReadyDeadline
       && Number.isFinite(state.lastAckAt) && now >= state.lastAckAt && now < (state.readyDeadline || 0)),
-    lastAckAt:state?.lastAckAt ?? null,lastReadyAckAt:state?.lastReadyAckAt ?? null,lastError:state?.lastError ?? null,parserState:state?.parserState ?? 'loading',parserReason:state?.parserReason ?? null,needsConnection:Boolean(state?.authFailed)};
+    diagnostics:state?.diagnostics ?? null,lastAckAt:state?.lastAckAt ?? null,lastReadyAckAt:state?.lastReadyAckAt ?? null,lastError:state?.lastError ?? null,parserState:state?.parserState ?? 'loading',parserReason:state?.parserReason ?? null,needsConnection:Boolean(state?.authFailed)};
 }
 async function pull() {
   const guard = {tabId:null,invalidated:false,controllers:new Set()}; activePull = guard;
   try {
     let prepared = await prepare(); if (!prepared) return {status:'waiting'};
-    let result = await publisher.sync(()=>freshSnapshot(prepared),chrome.runtime.getManifest().version,{readyHint:prepared.readyHint});
+    let result = await publisher.sync(()=>freshSnapshot(prepared),chrome.runtime.getManifest().version,{readyHint:prepared.readyHint,diagnosticSnapshot:prepared.diagnosticSnapshot});
     if (!['confirmed','source_not_ready'].includes(result?.status)) return result;
     let state = await store.load();
     if (needsConfigure(state,prepared.descriptor,prepared.parties)) {
@@ -209,7 +213,7 @@ async function pull() {
       // An existing-scope observation is never evidence for the newly configured scope.
       await new Promise(resolve => setTimeout(resolve,550));
       if (guard.invalidated) throw fail('configuration_changed');
-      result = await publisher.sync(()=>freshSnapshot(prepared),chrome.runtime.getManifest().version,{readyHint:prepared.readyHint});
+      result = await publisher.sync(()=>freshSnapshot(prepared),chrome.runtime.getManifest().version,{readyHint:prepared.readyHint,diagnosticSnapshot:prepared.diagnosticSnapshot});
     }
     state = await store.load();
     if (result?.status === 'confirmed') await store.update(state.configVersion,{scopePending:false});

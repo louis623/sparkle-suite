@@ -1,5 +1,7 @@
 (function () {
   "use strict";
+  // Captured package identity, never the updated worker manifest of an older reader.
+  const READER_VERSION = "2.0.8";
   if (globalThis.__sparkleLineupReaderActive) return;
   globalThis.__sparkleLineupReaderActive = true;
   let table = null, body = null, observer = null, pending = null, stopped = false;
@@ -42,7 +44,7 @@
     if (snapshot.parserState === 'ready' && (Date.now() < lastMutationAt || Date.now() - lastMutationAt < 500))
       snapshot = {...snapshot, parserState:'loading', reason:'table_settling'};
     if (!Number.isSafeInteger(++serial)) { documentId = crypto.randomUUID(); serial = 1; }
-    respond({ protocol: 2, ...(message.action === 'sparkle-v2-read' ? { generation: message.generation } : {}),
+    respond({ protocol: 2, readerVersion: READER_VERSION, ...(message.action === 'sparkle-v2-read' ? { generation: message.generation } : {}),
       source: { documentId, serial, settled: snapshot.parserState === 'ready' }, snapshot });
     return false;
   }

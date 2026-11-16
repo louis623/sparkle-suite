@@ -424,3 +424,7 @@ Louis approved codex/one-video-queue from 9bdb4075 in the registered PR 190 chec
 ## Preserved embeds queue correction
 
 Branch codex/video-queue-preserved-embeds starts at c5f10c6f. Louis authorized Smoke verification, Live release and all-active-rep activation. Preview scope is sparkle-suite-smoke only.
+
+## November 16, 2026 — Live Lineup 2.0.8 reporting
+
+Louis authorized codex/live-lineup-208-reporting from PR198 aa74f2db, integrating production a4a7d5fb, in isolated Codespace /workspaces/ss-208-reporting. Preview only in Sparkle Suite Smoke (prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ). Shared Smoke alias unchanged; no Live/Store release, merge, default-branch or production-branch change.

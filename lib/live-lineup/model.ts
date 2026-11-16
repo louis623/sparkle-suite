@@ -1,4 +1,4 @@
-import { INVALID_PARSER_REASONS, type InvalidParserReason } from './types'
+import { INVALID_PARSER_REASONS, LOADING_PARSER_REASONS, PARTIAL_PARSER_REASONS, type ParserReason, type PublisherDiagnostics } from './types'
 import type { AcceptedObservation, LineupCommand, LineupResult, LineupState, ParserState, PartyAbsence, RevealRestoration, SourceEntry, SourcePacket, WorkspaceLineupSnapshot } from './types'
 
 export const LINEUP_MAX_ENTRIES = 2000
@@ -18,7 +18,8 @@ export const LINEUP_SHOW_IDLE_MS = 2 * 60 * 60 * 1000
 export const LINEUP_PARTY_ABSENCE_MS = 10 * 60 * 1000
 export const LINEUP_PARTY_ABSENCE_PACKETS = 2
 const parsers: ParserState[] = ['ready', 'loading', 'partial', 'invalid']
-const validParserReason = (value: unknown): value is InvalidParserReason => INVALID_PARSER_REASONS.some(code => code === value)
+const validParserReason = (value: unknown, state: unknown): value is ParserReason =>
+  (state === 'invalid' ? INVALID_PARSER_REASONS : state === 'loading' ? LOADING_PARSER_REASONS : state === 'partial' ? PARTIAL_PARSER_REASONS : []).some(code => code === value)
 const validId = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/.test(value)
 export const isClaimId = (value: unknown): value is string => typeof value === 'string'
   && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(value)
@@ -32,6 +33,17 @@ export function createLineupState(): LineupState {
 }
 
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value)
+
+/** Exact metadata keys prevent raw DOM/customer text from becoming diagnostics. */
+export function parsePublisherDiagnostics(input: unknown): PublisherDiagnostics | null {
+  if (!record(input) || Object.keys(input).some(key => !['sourceVersion','readerVersion','updateState','parserState','parserReason'].includes(key))
+    || typeof input.sourceVersion !== 'string' || !/^\d{1,5}(?:\.\d{1,5}){0,3}$/.test(input.sourceVersion)
+    || !(input.readerVersion === null || typeof input.readerVersion === 'string' && /^\d{1,5}(?:\.\d{1,5}){0,3}$/.test(input.readerVersion))
+    || input.updateState !== 'unknown' || !parsers.includes(input.parserState as ParserState)
+    || input.parserReason !== undefined && !validParserReason(input.parserReason,input.parserState)) return null
+  return {sourceVersion:input.sourceVersion,readerVersion:input.readerVersion as string | null,updateState:'unknown',
+    parserState:input.parserState as ParserState,...(input.parserReason === undefined ? {} : {parserReason:input.parserReason as ParserReason})}
+}
 
 /** JS Date.toISOString() shape: exactly 3 millisecond digits, UTC Z. Postgres µs (6 digits) fails this. */
 export function canonicalizeTime(value: unknown): string | null {
@@ -158,12 +170,17 @@ export function lineupFreshness(state: LineupState, now: number) {
 /** Database JSON is untrusted too: reject corrupt arrangements instead of silently losing/duplicating orders. */
 export function isLineupState(input: unknown): input is LineupState {
   if (!record(input) || input.schemaVersion !== 2 || !validInteger(input.revision)
-    || (input.parserReason != null && !validParserReason(input.parserReason))
+    || (input.parserReason != null && !validParserReason(input.parserReason,input.parserState))
     || !parsers.includes(input.parserState as ParserState) || !Array.isArray(input.entries)
     || input.entries.length > LINEUP_MAX_ENTRIES || !validIds(input.order, LINEUP_MAX_ENTRIES)
     || !validIds(input.held, LINEUP_MAX_ENTRIES) || !validIds(input.revealedIds, LINEUP_MAX_REVEALED)
     || !nullableTime(input.lastReceivedAt) || !nullableTime(input.lastReadyAt) || !nullableTime(input.lastChangedAt)
     || !(input.sourceVersion === null || typeof input.sourceVersion === 'string' && /^[A-Za-z0-9._+-]{1,64}$/.test(input.sourceVersion))) return false
+  if (input.diagnostics != null) {
+    if (!record(input.diagnostics)) return false
+    const {receivedAt, ...report} = input.diagnostics
+    if (!canonicalTime(receivedAt) || !parsePublisherDiagnostics(report)) return false
+  }
   if (input.show !== null && (!record(input.show) || !validInteger(input.show.generation) || input.show.generation < 1
     || !validParties(input.show.partyIds) || !input.show.partyIds.length || !validParties(input.show.excludedPartyIds)
     || !validIds(input.show.carryEntryIds, LINEUP_MAX_ENTRIES)
@@ -263,7 +280,10 @@ export function parseSourcePacket(input: unknown): SourcePacket | null {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return null
   const p = input as Record<string, unknown>
   if (p.generation !== undefined && !validInteger(p.generation)) return null
-  if (p.parserReason !== undefined && (p.parserState !== 'invalid' || !validParserReason(p.parserReason))) return null
+  if (p.parserReason !== undefined && !validParserReason(p.parserReason,p.parserState)) return null
+  const diagnostics = p.diagnostics === undefined ? undefined : parsePublisherDiagnostics(p.diagnostics)
+  if (diagnostics === null || diagnostics && (diagnostics.sourceVersion !== p.sourceVersion || diagnostics.parserState !== p.parserState
+    || diagnostics.parserReason !== p.parserReason || p.parserState === 'ready' && diagnostics.readerVersion !== p.sourceVersion)) return null
   if (p.claimId !== undefined && !isClaimId(p.claimId)) return null
   if (p.observation !== undefined && (!record(p.observation) || !isClaimId(p.observation.documentId)
     || !validInteger(p.observation.serial) || !canonicalTime(p.observation.serverTime) || typeof p.observation.settled !== 'boolean')) return null
@@ -308,7 +328,8 @@ export function parseSourcePacket(input: unknown): SourcePacket | null {
       serverTime: (p.observation as Record<string,unknown>).serverTime as string,
       settled: (p.observation as Record<string,unknown>).settled as boolean,
     }}),
-    ...(validParserReason(p.parserReason) ? {parserReason: p.parserReason} : {}),
+    ...(validParserReason(p.parserReason,p.parserState) ? {parserReason: p.parserReason} : {}),
+    ...(diagnostics ? {diagnostics} : {}),
     parserState: p.parserState as ParserState, entries, revealedIds: [...revealed], ...(revealedEntries === undefined ? {} : {revealedEntries}), ...(p.generation === undefined ? {} : {generation: p.generation as number}) }
 }
 
@@ -331,7 +352,8 @@ export function parseLineupCommand(input: unknown): LineupCommand | null {
 
 /** Only call after authenticated owner/device authorization. Epoch is server-issued, never a client takeover request. */
 export function claimPublisher(state: LineupState, publisherId: string, expectedRevision: number, now: number,
-  options: { claimId: string; takeover?: boolean; generation?: number; capabilities?: 'lineup-2.0.5' }): LineupResult {
+  options: { claimId: string; takeover?: boolean; generation?: number; capabilities?: 'lineup-2.0.5'; diagnostics?: PublisherDiagnostics }): LineupResult {
+  if (options?.diagnostics !== undefined && !parsePublisherDiagnostics(options.diagnostics)) return fail('invalid_payload')
   if (!validTime(now) || now + LINEUP_LEASE_MS > 8_640_000_000_000_000) return fail('invalid_time')
   if (clockRegressed(state, now)) return fail('invalid_time')
   if (!validId(publisherId) || !isClaimId(options?.claimId)) return fail('invalid_payload')
@@ -350,7 +372,7 @@ export function claimPublisher(state: LineupState, publisherId: string, expected
     sourceObservation: null, lastReadyObservation: null, retiredDocumentIds: [], revealEvents: [],
     entries: state.entries.map(plainEntry), restorations: state.restorations?.map(item => ({...item,
       entry: options.capabilities === 'lineup-2.0.5' ? rememberedRestorationEntry(item.entry) : plainEntry(item.entry)})) ?? [],
-    sourceVersion: null, publisher: { id: publisherId, claimId: options.claimId, epoch, lastSequence: -1, leaseExpiresAt: new Date(now + LINEUP_LEASE_MS).toISOString(),
+    sourceVersion: null, diagnostics: options.diagnostics ? {...options.diagnostics,receivedAt:new Date(now).toISOString()} : null, publisher: { id: publisherId, claimId: options.claimId, epoch, lastSequence: -1, leaseExpiresAt: new Date(now + LINEUP_LEASE_MS).toISOString(),
       ...(options.capabilities ? {capabilities: options.capabilities} : {}) } } }
 }
 
@@ -432,6 +454,7 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   const next: LineupState = { ...state, revision: state.revision + 1, lastReceivedAt: receivedAt,
     parserState: packet.parserState, parserReason: packet.parserReason ?? null, sourceVersion: packet.sourceVersion,
     sourceObservation: observation, retiredDocumentIds,
+    diagnostics: packet.diagnostics ? {...packet.diagnostics,receivedAt} : null,
     publisher: { ...lease, lastSequence: packet.sequence, leaseExpiresAt: new Date(packet.parserState === 'ready' || packet.parserState === 'invalid' && upgraded
       ? now + LINEUP_LEASE_MS : Math.min(Date.parse(lease.leaseExpiresAt), now + LINEUP_OBSERVATION_MAX_AGE_MS)).toISOString() } }
   // Old publishers cannot revive cached identities on rows absent from their next snapshot.

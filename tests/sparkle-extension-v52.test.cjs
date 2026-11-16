@@ -113,13 +113,13 @@ test('publisher obtains lease before invoking genuine read; persists sequence be
   const result=await client.sync(async()=>{events.push('read');return{...parseTable(table([{id:'a',party:'P9'}])),observation:{documentId,serial:1,serverTime:new Date(clock).toISOString(),settled:true}};},'2.0.5',{readyHint:true});
   assert.equal(result.status,'confirmed');assert.deepEqual(events,['claim','read','snapshot']);assert.equal(state.readyDeadline,clock);
 });
-function worker({noOp=false,nonready=false,multiple=false,legacyBridge=false,empty=false,version='2.0.6',oldServer=false,showChangeOnSnapshot=false}={}) {
+function worker({noOp=false,nonready=false,multiple=false,legacyBridge=false,empty=false,version='2.0.6',readerVersion=version,oldServer=false,showChangeOnSnapshot=false}={}) {
   const local={},session={},listeners={},requests=[];let clock=Date.now(),observations=0,epoch=0,seq=-1,snapshots=0;
   let descriptor={protocol:2,...(oldServer?{}:{orderScope:'selected-parties'}),generation:0,scope:null,serverTime:new Date(clock).toISOString()};
   const area=record=>({setAccessLevel:async()=>{},get:async k=>Array.isArray(k)?Object.fromEntries(k.map(x=>[x,record[x]])):{[k]:structuredClone(record[k])},set:async v=>Object.assign(record,structuredClone(v)),remove:async k=>{delete record[k];}});
   const event=k=>({addListener:f=>{listeners[k]=f;}});
   const full={reason:nonready?'reveal_state_missing':null,parserState:nonready?'partial':'ready',entries:nonready||empty?[]:[{id:'P9:a',name:'April',lastName:'Smith',orderedAt:clock}],revealedIds:[],revealedEntries:[]};
-  const chrome={runtime:{id:'fixture',getURL:p=>'chrome-extension://fixture/'+p,getManifest:()=>({version}),onMessage:event('message')},storage:{local:area(local),session:area(session),sync:area({sync_code:'TST-0001',enabled:true,excluded_party_ids:[]})},alarms:{create:async()=>{},onAlarm:event('alarm')},tabs:{query:async()=>[{id:1,url:'https://myoffice.bombparty.com/live-party-orders'},...(multiple?[{id:2,url:'https://myoffice.bombparty.com/live-party-orders'}]:[])],sendMessage:async(_id,m)=>({protocol:2,generation:m.generation,snapshot:full,...(legacyBridge?{}:{source:{documentId,serial:++observations,settled:!nonready}})}),onRemoved:event('removed'),onUpdated:event('updated'),onActivated:event('activated')}};
+  const chrome={runtime:{id:'fixture',getURL:p=>'chrome-extension://fixture/'+p,getManifest:()=>({version}),onMessage:event('message')},storage:{local:area(local),session:area(session),sync:area({sync_code:'TST-0001',enabled:true,excluded_party_ids:[]})},alarms:{create:async()=>{},onAlarm:event('alarm')},tabs:{query:async()=>[{id:1,url:'https://myoffice.bombparty.com/live-party-orders'},...(multiple?[{id:2,url:'https://myoffice.bombparty.com/live-party-orders'}]:[])],sendMessage:async(_id,m)=>({protocol:2,readerVersion,generation:m.generation,snapshot:full,...(legacyBridge?{}:{source:{documentId,serial:++observations,settled:!nonready}})}),onRemoved:event('removed'),onUpdated:event('updated'),onActivated:event('activated')}};
   class Clock extends Date {static now(){return clock;}}
   const endpoint='https://www.yoursparklesuite.com/api/live-lineup/publish';
   const context=vm.createContext({chrome,importScripts:()=>{},SparklePublisherClient:{createPublisherClient:args=>createPublisherClient({...args,now:()=>clock})},URL,TextEncoder,TextDecoder,AbortController,crypto:webcrypto,Date:Clock,performance:{now:()=>clock},setTimeout:(f,n)=>setTimeout(f,n===550?1:1000),clearTimeout,
@@ -223,4 +223,49 @@ test('only the exact extension popup may request status, including when opened i
  assert.equal(response.connected,true);
  for(const sender of [{id:'other',url:'chrome-extension://fixture/popup.html'},{id:'fixture',url:'https://myoffice.bombparty.com/live-party-orders',tab:{id:1}},{id:'fixture',url:'chrome-extension://fixture/other.html'}])
   assert.equal(w.listeners.message({action:'sparkle-v2-status'},sender,()=>{throw Error('Untrusted page received private status')}),false);
+});
+
+test('2.0.8 reporting: worker/reader mismatch never certifies ready and recovers on a matching fresh read',async()=>{
+  const w=worker({version:'2.0.8',readerVersion:'2.0.7'});await w.settle();
+  const packets=w.requests.filter(x=>x.action==='snapshot').map(x=>x.packet);
+  assert.ok(packets.length);assert.ok(packets.every(p=>p.parserState==='partial' && p.observation.settled===false));
+  assert.equal(packets[0].diagnostics.sourceVersion,'2.0.8');assert.equal(packets[0].diagnostics.readerVersion,'2.0.7');
+  assert.equal((await w.run('status()')).connected,false);
+  w.run("chrome.tabs.sendMessage=async(_id,m)=>({protocol:2,readerVersion:'2.0.8',generation:m.generation,source:{documentId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',serial:100,settled:true},snapshot:{parserState:'ready',entries:[],revealedIds:[],revealedEntries:[]}})");
+  w.advance(121000);assert.equal((await w.run('exclusive(pull)')).status,'confirmed');
+  assert.equal((await w.run('status()')).connected,true);
+  const content=fs.readFileSync('chrome-extension/content.js','utf8');
+  const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
+  assert.equal(content.match(/const READER_VERSION = "([^"]+)"/)[1],manifest.version);
+  for(const forbidden of [/reload|location\.href|location\.replace/,/document\.createElement|appendChild|innerHTML|insertAdjacentHTML/,/alert\(|confirm\(|prompt\(/,/fetch\(|chrome\.storage/])assert.equal(forbidden.test(content),false);
+});
+test('2.0.8 reporting: bounded diagnostics use existing packets and cannot earn stale health',async()=>{
+  const w=worker({version:'2.0.8',nonready:true});await w.settle();
+  const claim=w.requests.find(x=>x.action==='claim'),snapshot=w.requests.find(x=>x.action==='snapshot');
+  assert.ok(claim && snapshot);
+  for(const d of [claim.diagnostics,snapshot.packet.diagnostics]) {
+    assert.deepEqual(Object.keys(d).sort(),['parserReason','parserState','readerVersion','sourceVersion','updateState']);
+    assert.equal(d.parserReason,'reveal_state_missing');assert.equal(d.updateState,'unknown');
+    assert.equal(d.readerVersion,'2.0.8');assert.equal(d.sourceVersion,'2.0.8');
+    assert.equal(JSON.stringify(d).includes('TST-0001'),false);
+  }
+  assert.equal(snapshot.packet.parserReason,'reveal_state_missing');
+  await w.run("(async()=>store.update((await store.load()).configVersion,{lastReadyAckAt:Date.now(),lastAckAt:Date.now(),readyDeadline:Date.now()+45000}))()");
+  assert.equal((await w.run('status()')).connected,false);
+  const healthy=worker({version:'2.0.8'});await healthy.settle();
+  assert.equal((await healthy.run('status()')).connected,true);
+  healthy.run('localReadyAck=null;localReadyDeadline=0');
+  assert.equal((await healthy.run('status()')).connected,false);
+  const workerText=fs.readFileSync('chrome-extension/background.js','utf8');
+  assert.equal(/runtime\.(reload|requestUpdateCheck|onUpdateAvailable)/.test(workerText),false);
+  let state={token:'TST-0001',enabled:true,configVersion:'x',generation:0,claimId:documentId,needsClaim:true,nextSequence:0};
+  const outgoing=[];const stamp=new Date().toISOString();
+  const client=createPublisherClient({store:{load:async()=>state,update:async(_v,p)=>{state={...state,...p};return true}},post:async(_token,b)=>{
+    outgoing.push(b);return b.action==='claim'?{generation:0,publisherId:rep,epoch:1,revision:1,acceptedSequence:-1,serverTime:stamp,leaseExpiresAt:new Date(Date.parse(stamp)+90000).toISOString(),claimId:documentId,capabilities:'lineup-2.0.5'}:
+      {ok:true,revision:2,acceptedSequence:0,serverTime:stamp,leaseExpiresAt:new Date(Date.parse(stamp)+15000).toISOString(),freshForMs:0};
+  }});
+  const bad={parserState:'partial',reason:'Customer name and order 123',readerVersion:'2.0.8',entries:[],revealedIds:[],customer:'private',observation:{documentId,serial:1,serverTime:stamp,settled:false}};
+  await client.sync(bad,'2.0.8',{diagnosticSnapshot:bad});
+  assert.equal(JSON.stringify(outgoing).includes('Customer name'),false);assert.equal(JSON.stringify(outgoing).includes('private'),false);
+  assert.equal(state.readyDeadline,0);
 });

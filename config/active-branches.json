@@ -77,7 +77,8 @@
     "codex/starlight-slow-phone-load",
     "codex/public-about-display-fixes",
     "codex/one-video-queue",
-    "codex/video-queue-preserved-embeds"
+    "codex/video-queue-preserved-embeds",
+    "codex/live-lineup-208-reporting"
   ],
   "previewBranches": {
     "codex/tiktok-link-queue": {
@@ -275,6 +276,10 @@
     "codex/video-queue-preserved-embeds": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
+    },
+    "codex/live-lineup-208-reporting": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
@@ -301,6 +306,7 @@
     "codex/tiktok-remove-video": "codex/nic-nac-trade-hardening",
     "codex/tiktok-player-tap-to-play": "codex/nic-nac-trade-hardening",
     "codex/one-video-queue": "codex/nic-nac-trade-hardening",
-    "codex/video-queue-preserved-embeds": "codex/nic-nac-trade-hardening"
+    "codex/video-queue-preserved-embeds": "codex/nic-nac-trade-hardening",
+    "codex/live-lineup-208-reporting": "codex/nic-nac-trade-hardening"
   }
 }
