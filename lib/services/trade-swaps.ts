@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createHash } from 'node:crypto'
 
@@ -126,10 +127,21 @@ export async function approveTradeFromReview(
   supabase: SupabaseClient, repId: string,
   input: Omit<ApproveTradeSwapInput, 'revealedItemNumber' | 'verification'> & { revealedItemNumber?: string },
 ): Promise<ApproveTradeReviewResult> {
+  validateRepNotes(input.repNotes)
   const number = normalizeItemNumber(input.revealedItemNumber ?? '')
   const normalized = { ...input, revealedItemNumber: number }
   const status = await assertRequestOwnedByRep(supabase, repId, input.requestId, true)
-  if (status !== 'pending') return { kind: 'captured', ...await resumeTradeSwap(supabase, repId, normalized, status) }
+  if (status !== 'pending') {
+    if (status !== 'approved') throw errors.REQUEST_NOT_PENDING()
+    const recorded = await loadApprovedTradeSwapForResume(supabase, repId, input.requestId)
+    if (recorded.existingSwap) {
+      if (recorded.existingSwap.result.replacementStatus === 'added_to_board') return { kind: 'captured', ...recorded.existingSwap.result }
+      return { kind: 'captured', ...await resumeTradeSwap(supabase, repId, normalized, status) }
+    }
+    return recorded.revealedItemNumber
+      ? { kind: 'noted_only', ...recorded.approved, revealedItemNumber: recorded.revealedItemNumber }
+      : { kind: 'approved', ...recorded.approved }
+  }
   if (!number) return { kind: 'approved', ...await approveTrade(supabase, repId, input.requestId, input.repNotes) }
   const facts = await getRequestedTradeFacts(supabase, repId, input.requestId)
   const resolved = await resolveItemNumber(supabase, number, { material: input.revealedMaterial })
@@ -153,6 +165,7 @@ export async function approveTradeWithRevealedItemCapture(
   if (!repId) throw errors.UNAUTHORIZED('repId required')
   if (!input.requestId) throw errors.MISSING_ITEM_INPUT()
 
+  validateRepNotes(input.repNotes)
   const revealedItemNumber = normalizeItemNumber(input.revealedItemNumber)
   if (!revealedItemNumber) {
     throw errors.INVALID_INPUT(
@@ -265,7 +278,7 @@ export async function approveTradeWithRevealedItemCapture(
           designId: resolvedDesign.design.id,
           material: revealedMaterial,
           ringSize: revealedRingSize,
-          repNotes: `Added from approved dancer swap for ${approved.customerName}.`,
+          repNotes: 'Added from an approved dancer swap.',
           idempotencyKey: `trade-swap-replacement:${approved.requestId}`,
           inputSignature: replacementInputSignature,
         })
@@ -310,6 +323,7 @@ async function loadApprovedTradeSwapForResume(
   requestId: string,
 ): Promise<{
   approved: ApproveTradeResult
+  revealedItemNumber?: string
   existingSwap: {
     inputSignature: string | null
     revealedItemNumber: string
@@ -322,7 +336,7 @@ async function loadApprovedTradeSwapForResume(
   const { data: requestRow, error: requestError } = await supabase
     .from('trade_requests')
     .select(
-      'id, status, customer_name, listing_id, listing:trade_listings!inner(rep_id), fulfillment:trade_fulfillment(id)',
+      'id, status, customer_name, listing_id, rep_notes, listing:trade_listings!inner(rep_id), fulfillment:trade_fulfillment(id)',
     )
     .eq('id', requestId)
     .maybeSingle()
@@ -333,6 +347,7 @@ async function loadApprovedTradeSwapForResume(
         id: string
         status: string
         customer_name: string
+        rep_notes?: string | null
         listing_id: string
         listing: { rep_id: string } | Array<{ rep_id: string }> | null
         fulfillment: { id: string } | Array<{ id: string }> | null
@@ -366,7 +381,7 @@ async function loadApprovedTradeSwapForResume(
     .eq('request_id', requestId)
     .maybeSingle()
   if (swapError) throw swapError
-  if (!swapRow) return { approved, existingSwap: null }
+  if (!swapRow) return { approved, existingSwap: null, revealedItemNumber: request.rep_notes?.match(/(?:^|\n)Revealed item: ([^\r\n]{1,40})$/)?.[1] }
 
   return {
     approved,

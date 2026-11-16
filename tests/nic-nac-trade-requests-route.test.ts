@@ -229,3 +229,18 @@ describe('trade requests route', () => {
     })
   })
 })
+
+
+it('repNotes over 1000 is rejected for approval and denial before any mutation', async () => {
+  approveTradeFromReviewMock.mockClear(); rejectTradeMock.mockClear()
+  for (const action of ['approve', 'reject']) {
+    for (const repNotes of ['a'.repeat(1001), '😀'.repeat(1001)]) {
+      const response = await POST(new Request('http://localhost/api/nic-nac/trade-requests', {
+        method: 'POST', body: JSON.stringify({ action, requestId: 'request-1', repNotes }),
+      }))
+      expect(response.status).toBe(400)
+      expect(await response.json()).toMatchObject({ code: 'INVALID_INPUT' })
+    }
+  }
+  expect(approveTradeFromReviewMock).not.toHaveBeenCalled(); expect(rejectTradeMock).not.toHaveBeenCalled()
+})

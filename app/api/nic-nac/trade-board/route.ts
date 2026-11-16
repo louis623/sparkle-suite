@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 import { NextResponse } from 'next/server'
 import { getRepDanceFloorBoard } from '@/lib/services/dance-floor-board'
 import { canServePublicCustomerSiteForRep } from '@/lib/services/workspace-access'
@@ -183,7 +184,7 @@ export async function PATCH(request: Request) {
       throw new ServiceError({ code: 'LISTING_NOT_ACTIVE', message: 'Listing is not active', userMessage: "That dancer isn't on your Floor anymore.", statusCode: 409 })
     }
     const patch = {
-      repNotes: typeof body?.repNotes === 'string' ? body.repNotes : undefined,
+      repNotes: validateRepNotes(typeof body?.repNotes === 'string' ? body.repNotes : undefined),
       tradePreferences:
         typeof body?.tradePreferences === 'string' ? body.tradePreferences : undefined,
       ringSize:

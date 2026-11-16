@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 // Dance Floor service — stable facade for the existing 4 callers
 // (lib/nic-nac/tools/list-my-trade-board.ts, lib/nic-nac/tools/remove-listing.ts,
 // scripts/verify-trade-board.ts, scripts/red-team.ts). Public surface
@@ -653,6 +654,7 @@ export async function addNonItemNumberListing(
   repId: string,
   input: AddNonItemNumberListingInput,
 ): Promise<AddNonItemNumberListingResult> {
+  validateRepNotes(input.repNotes)
   if (!repId) throw errors.UNAUTHORIZED('repId required')
 
   const collectionFamily = requireListingText(
@@ -723,6 +725,7 @@ export async function addListing(
   repId: string,
   input: AddListingInput
 ): Promise<AddListingResult> {
+  validateRepNotes(input.repNotes)
   if (!repId) throw errors.UNAUTHORIZED('repId required')
   if (!input.itemNumber) throw errors.MISSING_ITEM_INPUT()
 
@@ -922,6 +925,7 @@ export async function updateListing(
   listingId: string,
   patch: UpdateListingInput
 ): Promise<UpdateListingResult> {
+  validateRepNotes(patch.repNotes)
   if (!repId) throw errors.UNAUTHORIZED('repId required')
   if (!listingId) throw errors.MISSING_ITEM_INPUT()
 

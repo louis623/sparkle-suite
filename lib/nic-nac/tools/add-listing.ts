@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 import { recordCatalogPhotoProvenance } from '@/lib/nic-nac/workflows/catalog-photo-provenance'
 import { catalogAddIdentity, rememberCatalogAddResolution } from '@/lib/nic-nac/workflows/catalog-add-resolution'
 // Tool: add_listing — write. Adds one or more pieces to the rep's dance floor.
@@ -2161,6 +2162,8 @@ export function makeAddListingTool(ctx: {
       "Batch mode sorts results into ready adds plus pending needCollection and needFullInfo buckets.",
     inputSchema,
     execute: async (input) => {
+      validateRepNotes(input.repNotes)
+      for (const item of input.items ?? []) validateRepNotes(item.repNotes)
       const admin = createAdminClient()
       const workflow = ctx.activeTradeBoardWorkflow
       const catalogResolutions = new Map<string, Awaited<ReturnType<typeof resolveItemNumber>>>()

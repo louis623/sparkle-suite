@@ -151,7 +151,7 @@ function makeResumeApproveSupabase(options: {
   })
   const rpc = vi.fn().mockResolvedValue({ data: null, error: { message: 'REQUEST_NOT_PENDING' } })
 
-  return { client: { from, rpc } as never, spies: { insert, rpc } }
+  return { client: { from, rpc } as never, spies: { insert, rpc, requestMaybeSingle } }
 }
 
 function makeResolveReplacementSupabase(options: {
@@ -398,7 +398,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
       itemNumber: 'NK12345',
       material: undefined,
       ringSize: undefined,
-      repNotes: 'Added from approved dancer swap for Jamie.',
+      repNotes: 'Added from an approved dancer swap.',
       idempotencyKey: 'trade-swap-replacement:request-1',
       inputSignature: expect.any(String),
     }))
@@ -520,7 +520,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
       itemNumber: 'RG99999',
       material: undefined,
       ringSize: '8',
-      repNotes: 'Added from approved dancer swap for Jamie.',
+      repNotes: 'Added from an approved dancer swap.',
       idempotencyKey: 'trade-swap-replacement:request-1',
       inputSignature: expect.any(String),
     }))
@@ -583,7 +583,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
       itemNumber: 'NK12032',
       material: 'hematite plating',
       ringSize: undefined,
-      repNotes: 'Added from approved dancer swap for Jamie.',
+      repNotes: 'Added from an approved dancer swap.',
       idempotencyKey: 'trade-swap-replacement:request-1',
       inputSignature: expect.any(String),
     }))
@@ -782,4 +782,34 @@ describe('review Option B atomic boundary',()=>{
   expect(await approveTradeFromReview(client,'rep-1',{requestId:'request-1',revealedItemNumber:'NK12345'})).toMatchObject({kind:'captured',replacementStatus:'needs_catalog_details'})
   expect(approveTradeMock).not.toHaveBeenCalled()
  })
+})
+
+
+describe('build review approval fixes', () => {
+  it('approval-capture note contains no customer name', async () => {
+    const { client } = makeApproveSupabase({ id: 'design-1', item_number: 'NK12345', design_name: 'Pendant', material: null,
+      main_stone: null, bp_msrp: 10, canonical_photo_url: null, type_prefix: 'NK', collection_id: 'collection-1', search_tags: [], collection: { name: 'Lustre' } })
+    addListingMock.mockResolvedValueOnce({ listingId: 'replacement-1' })
+    await approveTradeWithRevealedItemCapture(client, 'rep-1', { requestId: 'request-1', revealedItemNumber: 'NK12345' })
+    const notes = addListingMock.mock.calls[0][2].repNotes
+    expect(notes).toBe('Added from an approved dancer swap.')
+    expect(notes).not.toContain('Jamie')
+  })
+  it('second approve of an already approved request succeeds with the recorded kind', async () => {
+    const pending = makeApproveSupabase()
+    expect(await approveTradeFromReview(pending.client, 'rep-1', { requestId: 'request-1' })).toMatchObject({ kind: 'approved' })
+    const retry = makeResumeApproveSupabase({ swap: null })
+    expect(await approveTradeFromReview(retry.client, 'rep-1', { requestId: 'request-1', revealedItemNumber: 'CHANGED' })).toMatchObject({ kind: 'approved', requestId: 'request-1' })
+    expect(approveTradeMock).toHaveBeenCalledTimes(1)
+    expect(retry.spies.rpc).not.toHaveBeenCalled(); expect(addListingMock).not.toHaveBeenCalled()
+    retry.spies.requestMaybeSingle.mockResolvedValue({ data: { id: 'request-1', status: 'approved', customer_name: 'Jamie', listing_id: 'outgoing-listing-1',
+      rep_notes: 'private\nRevealed item: NK12345', listing: { rep_id: 'rep-1' }, fulfillment: { id: 'fulfillment-1' } }, error: null })
+    expect(await approveTradeFromReview(retry.client, 'rep-1', { requestId: 'request-1' })).toMatchObject({ kind: 'noted_only', revealedItemNumber: 'NK12345' })
+  })
+  it.each(['denied', 'cancelled', 'expired'])('does not replay %s requests as successful approvals', async status => {
+    const retry = makeResumeApproveSupabase({ swap: null })
+    retry.spies.requestMaybeSingle.mockResolvedValue({ data: { id: 'request-1', status, listing: { rep_id: 'rep-1' } }, error: null })
+    await expect(approveTradeFromReview(retry.client, 'rep-1', { requestId: 'request-1' })).rejects.toMatchObject({ code: 'REQUEST_NOT_PENDING' })
+    expect(retry.spies.rpc).not.toHaveBeenCalled()
+  })
 })

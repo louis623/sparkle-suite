@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 // Tool: approve_trade — HITL. Needs user approval before executing.
 // Approving a trade is irreversible: the listing flips to status='traded',
 // a fulfillment row is created, and design.times_traded is incremented.
@@ -66,7 +67,7 @@ export function makeApproveTradeTool(ctx: {
 
       let result: Awaited<ReturnType<typeof approveTrade>>
       try {
-        result = await approveTrade(admin, ctx.repId, requestId, repNotes)
+        result = await approveTrade(admin, ctx.repId, requestId, validateRepNotes(repNotes))
       } catch (err) {
         explainServiceError(err)
       }

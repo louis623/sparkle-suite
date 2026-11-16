@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 import { describe, expect, it, vi } from 'vitest'
 import { normalizeTradeFamily, screenTradeOffer } from '@/lib/services/trade-request-matcher'
 import { getTradeRequestReceiptStatus, approveTrade, rejectTrade, getRequestedTradeFacts } from '@/lib/services/trade-requests'
@@ -32,7 +33,7 @@ describe('server decision boundary',()=>{
  })
  it.each([{manual_collection_family:''},{manual_collection_family:'not sure'},{manual_type_prefix:''},{design:null}])('refuses absent or empty raw facts without display defaults: %j',async override=>{
   const {client,rpc}=requestClient(override)
-  await expect(approveTrade(client,'rep-1','request-1')).rejects.toMatchObject({code:'REQUESTED_ITEM_UNVERIFIED'})
+  await expect(approveTrade(client,'rep-1','request-1')).rejects.toMatchObject({code:'REQUESTED_ITEM_UNVERIFIED',statusCode:409})
   expect(rpc).not.toHaveBeenCalled()
  })
  it('uses manual nullish-coalesce values before catalog and supports array relations',async()=>{
@@ -54,7 +55,7 @@ describe('server decision boundary',()=>{
  it('cleans controls, preserves plain text, and refuses overlong messages before writing',async()=>{
   const {client,rpc}=requestClient();await rejectTrade(client,'rep-1','request-1','other',undefined,'  <b>No</b>\nthanks\u0000  ')
   expect(rpc).toHaveBeenCalledWith('rpc_reject_trade_v2',expect.objectContaining({p_customer_explanation:'<b>No</b> thanks'}))
-  rpc.mockClear();await expect(rejectTrade(client,'rep-1','request-1','other',undefined,'a'.repeat(241))).rejects.toMatchObject({code:'INVALID_INPUT'});expect(rpc).not.toHaveBeenCalled()
+  rpc.mockClear();await expect(rejectTrade(client,'rep-1','request-1','other',undefined,'😀'.repeat(241))).rejects.toMatchObject({code:'INVALID_INPUT'});expect(rpc).not.toHaveBeenCalled()
  })
 })
 
@@ -76,4 +77,10 @@ describe('private status lookup', () => {
     expect(JSON.stringify(result)).not.toContain('Private')
     expect(select).toHaveBeenCalledWith('status, rejection_reason, denial_explanation, updated_at')
   })
+})
+
+
+it('accepts exactly 1000 Unicode code points and rejects the next before writing', () => {
+  expect(validateRepNotes('😀'.repeat(1000))).toBe('😀'.repeat(1000))
+  expect(() => validateRepNotes('😀'.repeat(1001))).toThrow(expect.objectContaining({ code: 'INVALID_INPUT' }))
 })

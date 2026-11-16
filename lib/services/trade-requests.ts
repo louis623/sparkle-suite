@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 // Trade Requests service — submit/get/approve/reject + history.
 //
 // Client requirements:
@@ -800,6 +801,7 @@ export async function approveTrade(
   const { data, error } = await supabase.rpc('rpc_approve_trade_v2', {
     p_request_id: requestId,
     p_rep_id: repId,
+    // Verification intentionally derives family/type from the requested dancer.
     p_verified_family: facts.family,
     p_verified_type: facts.type,
     p_verification_confirmed: true,
@@ -842,6 +844,7 @@ export async function rejectTrade(
   if (!['collection_mismatch', 'jewelry_type_mismatch', 'item_unavailable', 'other'].includes(reason)) {
     throw errors.INVALID_INPUT('invalid denial reason', 'Choose a valid reason.')
   }
+  validateRepNotes(repNotes)
   const message = (customerExplanation ?? '').replace(/[\r\n\t]+/g, ' ').replace(/[\x00-\x1f\x7f]/g, '').trim()
   if ([...message].length > 240) throw errors.INVALID_INPUT('customer message too long', 'Message to customer must be 240 characters or fewer.')
   const explanation = message || 'Your rep could not approve this swap.'

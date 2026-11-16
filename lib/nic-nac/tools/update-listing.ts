@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 // Tool: update_listing — write, NO HITL. Patches editable fields on a single
 // listing the rep already owns. Reversible (the rep can re-patch), so no
 // approval dialog. Authorization gate: repId from session closure; the
@@ -141,7 +142,7 @@ export function makeUpdateListingTool(ctx: {
       } = {}
       const patchedFields: string[] = []
       if (repNotes !== undefined) {
-        patch.repNotes = repNotes
+        patch.repNotes = validateRepNotes(repNotes)
         patchedFields.push('repNotes')
       }
       if (tradePreferences !== undefined) {

@@ -2,10 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { errors } from '@/lib/services/errors'
 
 const approveTradeFromReviewMock = vi.fn()
+const rejectTradeMock = vi.fn()
 const getTradeSwapCleanupQueueMock = vi.fn()
 const writeTradeActionAuditMock = vi.fn()
 const logIncidentMock = vi.fn()
 const completeTradeWorkflowSessionMock = vi.fn()
+
+vi.mock('@/lib/services/trade-requests', () => ({ rejectTrade: (...args: unknown[]) => rejectTradeMock(...args) }))
 
 vi.mock('@/lib/services/trade-swaps', () => ({
   approveTradeFromReview: (...args: unknown[]) =>
@@ -32,6 +35,7 @@ vi.mock('@/lib/nic-nac/workflows/trade-workflow-store', () => ({
     completeTradeWorkflowSessionMock(...args),
 }))
 
+import { makeRejectTradeTool } from '@/lib/nic-nac/tools/reject-trade'
 import { makeApproveTradeSwapTool } from '@/lib/nic-nac/tools/approve-trade-swap'
 import { makeGetTradeSwapCleanupTool } from '@/lib/nic-nac/tools/get-trade-swap-cleanup'
 
@@ -79,6 +83,7 @@ function makeCleanupTool(): ToolDef {
 }
 
 beforeEach(() => {
+  rejectTradeMock.mockReset()
   approveTradeFromReviewMock.mockReset()
   getTradeSwapCleanupQueueMock.mockReset()
   writeTradeActionAuditMock.mockReset()
@@ -304,4 +309,16 @@ it('noted-only completes with request proof and no invented swap or listing fiel
  expect(result).not.toHaveProperty('swapId');expect(result).not.toHaveProperty('replacementListingId');expect(result).not.toHaveProperty('replacementStatus')
  expect(JSON.stringify(completeTradeWorkflowSessionMock.mock.calls)).not.toContain('"trade_swap"')
  expect(JSON.stringify(completeTradeWorkflowSessionMock.mock.calls)).toContain('req-1')
+})
+
+
+it('reject with customerMessage forces reason other and audits the effective reason', async () => {
+  rejectTradeMock.mockResolvedValue({ requestId: 'request-1', listingId: 'listing-1', listingRestored: true })
+  const reject = makeRejectTradeTool({ repId: 'rep-1', supabase: {} as never, conversationId: 'conv-1', runId: 'run-1' }) as unknown as ToolDef
+  await reject.execute({ requestId: 'request-1', reason: 'item_unavailable', customerMessage: 'Please check with me next show.', repNotes: 'private' })
+  expect(rejectTradeMock).toHaveBeenCalledWith({ admin: true }, 'rep-1', 'request-1', 'other', 'private', 'Please check with me next show.')
+  expect(writeTradeActionAuditMock).toHaveBeenCalledWith(expect.objectContaining({ afterState: expect.objectContaining({ rejectionReason: 'other' }) }))
+  rejectTradeMock.mockClear()
+  await expect(reject.execute({ requestId: 'request-1', reason: 'other', repNotes: '😀'.repeat(1001) })).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+  expect(rejectTradeMock).not.toHaveBeenCalled()
 })

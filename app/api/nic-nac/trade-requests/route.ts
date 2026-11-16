@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 import { NextResponse } from 'next/server'
 import {
   getPaidNicNacContext,
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const action = typeof body?.action === 'string' ? body.action.trim() : ''
     const requestId = typeof body?.requestId === 'string' ? body.requestId.trim() : ''
-    const repNotes = typeof body?.repNotes === 'string' ? body.repNotes : undefined
+    const repNotes = validateRepNotes(typeof body?.repNotes === 'string' ? body.repNotes : undefined)
 
     const { repId } = await getPaidNicNacContext()
     const supabase = createAdminClient()

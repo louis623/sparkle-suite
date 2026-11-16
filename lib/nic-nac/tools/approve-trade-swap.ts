@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 // Tool: approve_trade_swap - HITL. Approves a live-show trade request while
 // capturing the item number just revealed for the customer.
 
@@ -83,7 +84,7 @@ export function makeApproveTradeSwapTool(ctx: {
           revealedItemNumber,
           revealedMaterial,
           revealedRingSize,
-          repNotes,
+          repNotes: validateRepNotes(repNotes),
         })
       } catch (err) {
         explainServiceError(err)

@@ -18,12 +18,13 @@ describe('quantity route',()=>{
  })
  it.each(['QUANTITY_CHANGED','BELOW_PENDING','QUANTITY_OUT_OF_RANGE'])('returns a plain conflict for %s',async code=>{
   s.admin.rpc.mockResolvedValue({data:null,error:{message:code}})
-  const response=await post({listingId,quantity:100,expectedQuantity:1});expect(response.status).toBe(409)
+  const response=await post({listingId,quantity:2,expectedQuantity:1});expect(response.status).toBe(409)
   const body=await response.json();expect(body.code).toBe(code);expect(body.error).not.toBe(code)
  })
- it('passes an above-99 decrease to the locked row check and forbids forwarding false on adjust',async()=>{
+ it('rejects above-99 decreases while preserving the trusted adjust contract',async()=>{
   s.user=dbFixture({trade_listings:[dancer({quantity_available:120})]}).client
-  expect((await post({listingId,quantity:110,expectedQuantity:120})).status).toBe(200)
+  expect((await post({listingId,quantity:110,expectedQuantity:120})).status).toBe(400)
+  expect(s.admin.rpc).not.toHaveBeenCalled()
   await adjustListingQuantity(s.user,repId,listingId,-1)
   expect(s.admin.rpc).toHaveBeenLastCalledWith('rpc_adjust_trade_listing_quantity_v1',expect.objectContaining({p_record_edit:true}))
  })
@@ -34,4 +35,11 @@ describe('quantity route',()=>{
   const missing=await post({listingId,quantity:2,expectedQuantity:1})
   expect(foreign.status).toBe(404);expect(missing.status).toBe(404);expect(await foreign.json()).toEqual(await missing.json());expect(s.created).not.toHaveBeenCalled()
  })
+})
+
+
+it.each([0, 100])('%i returns 400 INVALID_INPUT without calling the RPC', async quantity => {
+  const response = await post({ listingId, quantity, expectedQuantity: 1 })
+  expect(response.status).toBe(400); expect(await response.json()).toMatchObject({ code: 'INVALID_INPUT' })
+  expect(s.admin.rpc).not.toHaveBeenCalled(); expect(s.created).not.toHaveBeenCalled()
 })
