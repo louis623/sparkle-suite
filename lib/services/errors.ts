@@ -384,6 +384,7 @@ export const DANCE_FLOOR_MESSAGES: Record<string, string> = {
   DUPLICATE_ACTIVE_LISTING: 'You already have this dancer on your Floor.',
   RECOVERY_EXPIRED: "That dancer is outside the Put-back window. Add it again to put it on your Floor.",
   LISTING_OFF_FLOOR: 'Put this dancer back on your Floor before reopening this swap.',
+  CATALOG_PHOTO_NOT_ALLOWED: 'Catalog dancers use the Nic-Nac catalog photo.',
   PHOTO_REP_LIMIT: 'You can upload 50 photos per hour. Try again later.',
   PHOTO_DANCER_LIMIT: "You can change this dancer's photo 5 times per day. Try again later.",
   PHOTO_TARGET_INVALID: "That photo upload has expired or already been used. Choose the photo again.",

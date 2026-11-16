@@ -50,13 +50,13 @@ function fixture() {
 }
 beforeEach(() => { vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://fixture.invalid'); vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'fixture-only') })
 describe('rep-only whole-board attention', () => {
-  it('route computes one missing photo beyond page 24 and ignores board filters', async () => {
+  it('route keeps whole-board sitting attention without a photo counter', async () => {
     const f = fixture(); state.client = f.client
     const response = await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?limit=24&status=available&type=NK&collection=Other'))
     expect(response.status).toBe(200)
     const result = await response.json()
     expect(result.listings).toEqual([])
-    expect(result.attention).toEqual({ photosToFix: 1, needsPhoto: 1, sitting: 0 })
+    expect(result.attention).toEqual({ sitting: 0 })
     const aggregate = f.calls.find(call => call.range)
     expect(aggregate?.equal).toEqual([['rep_id', 'rep']])
     expect(getTradeListingDisplayFields(rows[24]).photoUrl).toBeNull()

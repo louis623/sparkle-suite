@@ -1,3 +1,4 @@
+import { existingCatalogAddResolution, refreshCatalogAddResolution } from './catalog-add-resolution'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createHash } from 'crypto'
 import { generateText, Output, type UIMessage, type UIMessageChunk } from 'ai'
@@ -454,6 +455,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
     hasAttachment: (latestUser.parts ?? []).some((part) => (part as { type: string }).type === 'file'),
     previousAssistantId: previousAssistant?.id, previewPhotoId: previewPart?.data?.photoId,
   })
+  await refreshCatalogAddResolution(supabase, updated)
   const readiness = computeTradeBoardIntakeReadiness(updated)
   const normalized: TradeBoardIntakeSessionState = {
     ...updated,
@@ -782,6 +784,8 @@ export async function prepareTradeBoardMainPhotoPreview(
   assistantMessageId: string,
 ) {
   if (!state || state.status !== 'active' || !workflowPieceKey(state)) return null
+  await refreshCatalogAddResolution(supabase, state)
+  if (existingCatalogAddResolution(state)) return null
   // Confirm the photo independently of still-missing listing details. The save
   // controller continues to enforce those details before any mutation.
   if (mainPhotoProblem(state)) return null
@@ -813,6 +817,7 @@ export async function writeTradeBoardMainPhotoPreview(
   writer: { write: (chunk: UIMessageChunk) => void },
 ): Promise<boolean> {
   const preview = await prepareTradeBoardMainPhotoPreview(supabase, state, assistantMessageId)
+  if (existingCatalogAddResolution(state)) return false
   const newest = state && getNewestMainPhotoCandidate(state)
   const problem = state && mainPhotoProblem(state)
   // Rejected uploads get app-owned retake guidance, never an earlier image or model-only preview claim.

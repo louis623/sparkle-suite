@@ -120,11 +120,7 @@ describe('workspace control hover tips', () => {
     expect(home).toContain('tip="save-site-settings"')
     expect(home).not.toContain('tip="collection-intake"')
 
-    const add = source('app/nic-nac/components/dance-floor/AddDancers.tsx')
-    expect(add).toMatch(/<button[^>]*disabled aria-describedby="dance-floor-photos-soon">Add photos<\/button>/)
-    expect(add).toContain('<p id="dance-floor-photos-soon">Coming soon in this rebuild.</p>')
-    expect(add).not.toContain('ControlTip')
-    expect(add).not.toContain('data-control-tip')
+    expect(source('app/nic-nac/components/TradeBoardWorkspaceCard.tsx')).not.toContain('AddDancers')
     expect(home).not.toContain('id="dance-floor-bulk-intake-title"')
 
     const preview = home.indexOf('Preview customer site')

@@ -155,6 +155,8 @@ export interface AddListingResult {
 
 export interface BatchListingItem {
   itemNumber: string
+  /** Server-selected exact catalog variant. */
+  designId?: string
   material?: string
   mainStone?: string
   ringSize?: string
@@ -1278,6 +1280,11 @@ export interface ApproveTradeResult {
   customerName: string
   quantityAvailable: number
 }
+
+export type ApproveTradeReviewResult =
+  | ({ kind: 'captured' } & ApproveTradeSwapResult)
+  | ({ kind: 'noted_only'; revealedItemNumber: string } & ApproveTradeResult)
+  | ({ kind: 'approved' } & ApproveTradeResult)
 
 export interface TradeApprovalVerification {
   verifiedOfferedFamily: string

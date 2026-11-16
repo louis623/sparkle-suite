@@ -117,9 +117,11 @@
 .filterChip:has(input:checked) { background: var(--nic-nac-accent-soft); }
 .filterChip input { accent-color: var(--nic-nac-accent); }
 .editButton { grid-column: 1 / -1; justify-self: start; min-height: 40px; }
-.needsPhoto { border-color: var(--nic-nac-accent); }
+
 .dancer { scroll-margin-top: calc(var(--dance-floor-sticky-top) + var(--dance-floor-strip-height) + 8px); }
 @media (min-width: 900px) {
   .dancerOpen { grid-column: span 2; display: grid; grid-template-columns: 200px minmax(0,1fr); align-content: start; }
   .dancerOpen > .photo, .dancerOpen > .noPhoto { width: 200px; }
 }
+
+.removeWarning{min-height:44px;border-radius:999px;border:1px solid #f0b9b4;background:#fdeceb;color:#8a2b25;padding:10px 18px;font:inherit;font-weight:700;cursor:pointer}.removeWarning:disabled{opacity:.55;cursor:not-allowed}

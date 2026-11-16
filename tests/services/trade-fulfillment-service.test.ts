@@ -225,7 +225,7 @@ describe('trade fulfillment service', () => {
       request: {
         id: 'request-1', customer_name: 'Jamie', customer_description: 'Blue ring',
         offered_family: 'Birthday', offered_type: 'RG',
-        verified_offered_family: 'Birthday', verified_offered_type: 'RG',
+        verified_offered_family: 'OG', verified_offered_type: 'NK',
         reveal_screenshot_path: 'private/request-1.jpg',
         reveal_screenshot_expires_at: new Date(Date.now() + 86_400_000).toISOString(),
         listing: {

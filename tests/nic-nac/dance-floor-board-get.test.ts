@@ -43,7 +43,7 @@ describe('rep-only Floor read',()=>{
   expect(body.total).toBe(35);expect(body.listings).toHaveLength(2);expect(body.hasMore).toBe(true)
   expect(body.listings.every((row:ReturnType<typeof dancer>)=>row.rep_id===repId&&row.design.design_name.includes('1'))).toBe(true)
   expect(body.filterOptions.jewelryTypes).toContain('NK')
-  expect(body.attention).toEqual({photosToFix:1,needsPhoto:1,sitting:13})
+  expect(body.attention).toEqual({sitting:13})
   expect(f.calls.filter(c=>c.table==='trade_requests'&&c.select.includes('listing:'))).toHaveLength(1)
   expect((await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?status=unknown'))).status).toBe(400)
  })

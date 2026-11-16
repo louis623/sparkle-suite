@@ -99,11 +99,11 @@ describe('report_jewelry_catalog_issue', () => {
     )
   })
 
-  it('can send an approved canonical photo replacement for a bad catalog photo', async () => {
+  it('reports bad photos without forwarding a replacement URL', async () => {
     reportJewelryCatalogIssueMock.mockResolvedValueOnce({
       designId: 'design-er34579',
       itemNumber: 'ER34579',
-      changedFields: ['canonicalPhotoUrl'],
+      changedFields: [],
       issueLogged: true,
       corrected: true,
     })
@@ -130,10 +130,7 @@ describe('report_jewelry_catalog_issue', () => {
         repId: 'rep-1',
         conversationId: 'conversation-1',
         issueType: 'bad_photo',
-        correction: {
-          canonicalPhotoUrl:
-            'https://example.com/storage/v1/object/public/jewelry-photos/approved/design-er34579/front.png',
-        },
+        correction: {},
       }),
     )
   })
@@ -197,9 +194,15 @@ describe('report_jewelry_catalog_issue', () => {
     const tool = makeTool()
 
     expect(tool.needsApproval).toBe(true)
-    expect(tool.description).toContain('approved jewelry-front')
-    expect(tool.description).toContain('label/details')
-    expect(tool.description).toContain('canonical catalog photo')
+    expect(tool.description).toContain('never replaces a catalog photo')
+    expect(tool.description).toContain('Bad photos can be reported')
+    expect(tool.description).toContain('shared jewelry catalog')
     expect(tool.description).toContain('Requires explicit user approval')
   })
+})
+
+it.each(['bad_photo','wrong_collection','wrong_design_name','wrong_material','wrong_stone','duplicate','other'])('strips canonicalPhotoUrl from handler bypass for %s',async issueType=>{
+ reportJewelryCatalogIssueMock.mockResolvedValueOnce({designId:'d',itemNumber:'ER12345',changedFields:[],issueLogged:true,corrected:false})
+ await makeTool().execute({itemNumber:'ER12345',issueType,reason:'Report only',correction:{canonicalPhotoUrl:'https://untrusted.invalid/photo',material:'Gold'}})
+ expect(reportJewelryCatalogIssueMock.mock.calls[0][1].correction).not.toHaveProperty('canonicalPhotoUrl')
 })

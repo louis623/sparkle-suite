@@ -7,7 +7,7 @@ const getTradeRequestsMock = vi.fn()
 const getPendingTradeRequestCountMock = vi.fn()
 const approveTradeMock = vi.fn()
 const rejectTradeMock = vi.fn()
-const approveTradeWithRevealedItemCaptureMock = vi.fn()
+const approveTradeFromReviewMock = vi.fn()
 
 vi.mock('@/lib/nic-nac/auth', () => ({
   AuthError: class AuthError extends Error {},
@@ -34,8 +34,8 @@ vi.mock('@/lib/services/trade-requests', () => ({
 }))
 
 vi.mock('@/lib/services/trade-swaps', () => ({
-  approveTradeWithRevealedItemCapture: (...args: unknown[]) =>
-    approveTradeWithRevealedItemCaptureMock(...args),
+  approveTradeFromReview: (...args: unknown[]) =>
+    approveTradeFromReviewMock(...args),
 }))
 
 import { GET, POST } from '@/app/api/nic-nac/trade-requests/route'
@@ -50,7 +50,7 @@ describe('trade requests route', () => {
     getPendingTradeRequestCountMock.mockReset()
     approveTradeMock.mockReset()
     rejectTradeMock.mockReset()
-    approveTradeWithRevealedItemCaptureMock.mockReset()
+    approveTradeFromReviewMock.mockReset()
   })
 
   it('approves a live-show swap when the revealed item number is supplied', async () => {
@@ -59,7 +59,7 @@ describe('trade requests route', () => {
       rep: { id: 'rep-1' },
       supabase: { marker: 'supabase' },
     })
-    approveTradeWithRevealedItemCaptureMock.mockResolvedValueOnce({
+    approveTradeFromReviewMock.mockResolvedValueOnce({
       requestId: 'request-1',
       fulfillmentId: 'fulfillment-1',
       outgoingListingId: 'listing-1',
@@ -89,15 +89,13 @@ describe('trade requests route', () => {
     )
 
     expect(approveTradeMock).not.toHaveBeenCalled()
-    expect(approveTradeWithRevealedItemCaptureMock).toHaveBeenCalledWith(
+    expect(approveTradeFromReviewMock).toHaveBeenCalledWith(
       { marker: 'admin' },
       'rep-1',
       {
         requestId: 'request-1',
-        revealedItemNumber: 'rg12345',
-        revealedRingSize: '8',
+        revealedItemNumber: ' rg12345 ',
         repNotes: 'Approved from dashboard',
-        verification: { verifiedOfferedFamily: 'Birthday', verifiedOfferedType: 'RG', verificationConfirmed: true, finalConfirmation: true },
       },
     )
     expect(response.status).toBe(200)
@@ -137,8 +135,8 @@ describe('trade requests route', () => {
       rep: { id: 'rep-1' },
       supabase: { marker: 'supabase' },
     })
-    approveTradeMock.mockResolvedValueOnce({
-      requestId: 'request-1',
+    approveTradeFromReviewMock.mockResolvedValueOnce({
+      kind: 'approved', requestId: 'request-1',
       fulfillmentId: 'fulfillment-1',
       listingId: 'listing-1',
       customerName: 'Jamie',
@@ -160,14 +158,11 @@ describe('trade requests route', () => {
       }),
     )
 
-    expect(approveTradeMock).toHaveBeenCalledWith(
-      { marker: 'admin' },
-      'rep-1',
-      'request-1',
-      'Approved from dashboard',
-      { verifiedOfferedFamily: 'OG', verifiedOfferedType: 'ER', verificationConfirmed: true, finalConfirmation: true },
+    expect(approveTradeFromReviewMock).toHaveBeenCalledWith(
+      { marker: 'admin' }, 'rep-1',
+      { requestId: 'request-1', repNotes: 'Approved from dashboard', revealedItemNumber: undefined },
     )
-    expect(approveTradeWithRevealedItemCaptureMock).not.toHaveBeenCalled()
+    expect(approveTradeMock).not.toHaveBeenCalled()
     expect(response.status).toBe(200)
   })
 
@@ -200,7 +195,7 @@ describe('trade requests route', () => {
       { marker: 'admin' },
       'rep-1',
       'request-2',
-      'item_unavailable',
+      'other',
       'Not the right fit',
       undefined,
     )

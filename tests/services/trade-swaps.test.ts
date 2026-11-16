@@ -11,7 +11,8 @@ const verification = {
 const approveTradeMock = vi.fn()
 const addListingMock = vi.fn()
 
-vi.mock('@/lib/services/trade-requests', () => ({
+vi.mock('@/lib/services/trade-requests', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@/lib/services/trade-requests')>(),
   approveTrade: (...args: unknown[]) => approveTradeMock(...args),
 }))
 
@@ -21,6 +22,7 @@ vi.mock('@/lib/services/trade-board', () => ({
 
 import {
   approveTradeWithRevealedItemCapture as approveTradeWithRevealedItemCaptureService,
+  approveTradeFromReview,
   getTradeSwapCleanupQueue,
   resolveTradeSwapReplacementListing,
 } from '@/lib/services/trade-swaps'
@@ -58,7 +60,11 @@ function makeApproveSupabase(
     request_id: 'request-1', fulfillment_id: 'fulfillment-1', listing_id: 'outgoing-listing-1',
     customer_name: 'Jamie', quantity_available: 0, swap_id: 'swap-1',
   }, error: null })
+  const requestRow={id:'request-1',status:'pending',listing:{rep_id:'rep-1',manual_collection_family:null,manual_type_prefix:null,design:{type_prefix:designRows[0]?.type_prefix ?? 'NK',collection:designRows[0]?.collection ?? {name:'Lustre'}}}}
+  const requestMaybeSingle=vi.fn().mockResolvedValue({data:requestRow,error:null})
+  const requestEq=vi.fn(()=>({maybeSingle:requestMaybeSingle}))
   const from = vi.fn((table: string) => {
+    if (table === 'trade_requests') return {select:()=>({eq:requestEq})}
     if (table === 'jewelry_designs') return { select: designSelect }
     if (table === 'trade_swaps') return { insert, update }
     throw new Error(`unexpected table ${table}`)
@@ -66,7 +72,7 @@ function makeApproveSupabase(
 
   return {
     client: { from, rpc } as never,
-    spies: { from, designEq, designLimit, insert, insertSingle, update, rpc },
+    spies: { from, designEq, designLimit, insert, insertSingle, update, rpc, requestMaybeSingle },
   }
 }
 
@@ -230,7 +236,7 @@ function makeResolveReplacementSupabase(options: {
 }
 
 beforeEach(() => {
-  approveTradeMock.mockReset()
+  approveTradeMock.mockReset().mockResolvedValue({requestId:'request-1',fulfillmentId:'ful-1',listingId:'outgoing-listing-1',customerName:'Jamie',quantityAvailable:0})
   addListingMock.mockReset()
 })
 
@@ -285,7 +291,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
         revealedMaterial: 'Rose Quartz Cubic Zirconia',
         repNotes: 'Rose quartz pair',
       }),
-    ).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+    ).rejects.toMatchObject({ code: 'REQUEST_NOT_PENDING' })
     expect(addListingMock).not.toHaveBeenCalled()
   })
 
@@ -461,7 +467,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
     expect(spies.insert).not.toHaveBeenCalled()
   })
 
-  it('blocks contradictory verified facts for a known catalog item before approval', async () => {
+  it('ignores contradictory legacy client facts and uses owned requested facts', async () => {
     const { client, spies } = makeApproveSupabase({
       id: 'design-1', item_number: 'RG99999', design_name: 'Moon Ring',
       material: null, main_stone: null, bp_msrp: 138, canonical_photo_url: null,
@@ -471,8 +477,8 @@ describe('approveTradeWithRevealedItemCapture', () => {
     await expect(approveTradeWithRevealedItemCaptureService(client, 'rep-1', {
       requestId: 'request-1', revealedItemNumber: 'RG99999',
       verification: { ...verification, verifiedOfferedFamily: 'OG', verifiedOfferedType: 'RG' },
-    })).rejects.toMatchObject({ code: 'CATALOG_ITEM_MISMATCH' })
-    expect(spies.rpc).not.toHaveBeenCalled()
+    })).resolves.toMatchObject({replacementStatus:'needs_ring_size'})
+    expect(spies.rpc).toHaveBeenCalledWith('rpc_approve_trade_with_swap_v2',expect.objectContaining({p_verified_family:'Lustre',p_verified_type:'RG'}))
   })
 
   it('auto-adds a matched ring when ring size is supplied', async () => {
@@ -613,7 +619,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
     await expect(approveTradeWithRevealedItemCapture(client, 'rep-1', {
       requestId: 'request-1',
       revealedItemNumber: 'NK12345',
-    })).rejects.toMatchObject({ code: 'VERIFICATION_REQUIRED' })
+    })).rejects.toMatchObject({ code: 'REQUESTED_ITEM_UNVERIFIED' })
 
     expect(spies.rpc).not.toHaveBeenCalled()
     expect(spies.update).not.toHaveBeenCalled()
@@ -717,4 +723,62 @@ describe('resolveTradeSwapReplacementListing', () => {
       fulfillmentId: 'fulfillment-1',
     })
   })
+})
+
+describe('review Option B atomic boundary',()=>{
+ const design={id:'design-1',item_number:'NK12345',design_name:'Pendant',material:null,main_stone:null,bp_msrp:10,canonical_photo_url:'/approved',type_prefix:'NK',collection_id:'collection-1',search_tags:[],collection:{name:'Lustre'}}
+ it.each([null,{...design,collection:{name:'OG'}},{...design,type_prefix:'ER'},{...design,collection:null}])('unknown or mismatched reveal only records the number: %j',async item=>{
+  const {client,spies}=makeApproveSupabase(item)
+  spies.requestMaybeSingle.mockResolvedValue({data:{id:'request-1',status:'pending',listing:{rep_id:'rep-1',manual_collection_family:null,manual_type_prefix:null,design:{type_prefix:'NK',collection:{name:'Lustre'}}}},error:null})
+  const result=await approveTradeFromReview(client,'rep-1',{requestId:'request-1',revealedItemNumber:' nk12345 ',repNotes:'private'})
+  expect(result).toMatchObject({kind:'noted_only',revealedItemNumber:'NK12345'})
+  expect(result).not.toHaveProperty('swapId');expect(result).not.toHaveProperty('replacementStatus')
+  expect(approveTradeMock).toHaveBeenCalledExactlyOnceWith(client,'rep-1','request-1','private\nRevealed item: NK12345')
+  expect(spies.rpc).not.toHaveBeenCalled();expect(spies.insert).not.toHaveBeenCalled();expect(spies.update).not.toHaveBeenCalled();expect(addListingMock).not.toHaveBeenCalled()
+ })
+ it('blank uses plain approval without catalog lookup; number is cleaned and capped',async()=>{
+  const {client,spies}=makeApproveSupabase()
+  expect(await approveTradeFromReview(client,'rep-1',{requestId:'request-1',revealedItemNumber:' \n '})).toMatchObject({kind:'approved'})
+  expect(spies.designLimit).not.toHaveBeenCalled()
+  const result=await approveTradeFromReview(client,'rep-1',{requestId:'request-1',revealedItemNumber:'\u0000'+ 'z'.repeat(45)})
+  expect(result).toMatchObject({kind:'noted_only',revealedItemNumber:'Z'.repeat(40)})
+ })
+ it('matching capture resolves once, pins design, and keeps ring cleanup',async()=>{
+  const {client,spies}=makeApproveSupabase({...design,type_prefix:'RG',item_number:'RG12345'})
+  expect(await approveTradeFromReview(client,'rep-1',{requestId:'request-1',revealedItemNumber:'RG12345'})).toMatchObject({kind:'captured',replacementStatus:'needs_ring_size'})
+  expect(spies.designLimit).toHaveBeenCalledTimes(1);expect(spies.rpc).toHaveBeenCalledWith('rpc_approve_trade_with_swap_v2',expect.objectContaining({p_revealed_design_id:'design-1'}))
+  expect(approveTradeMock).not.toHaveBeenCalled()
+ })
+ it('an explicit PostgreSQL 4xx rollback allows exactly one plain fallback',async()=>{
+  const {client,spies}=makeApproveSupabase(design)
+  spies.rpc.mockResolvedValueOnce({data:null,error:{code:'P0001',message:'TRADE_FAMILY_MISMATCH'},status:400})
+  expect(await approveTradeFromReview(client,'rep-1',{requestId:'request-1',revealedItemNumber:'NK12345'})).toMatchObject({kind:'noted_only'})
+  expect(spies.rpc).toHaveBeenCalledTimes(1);expect(approveTradeMock).toHaveBeenCalledTimes(1);expect(addListingMock).not.toHaveBeenCalled()
+ })
+ it.each([
+  {error:{code:'P0001',message:'reject'},status:500},
+  {error:{code:'P0001',message:'reject'},status:0},
+  {error:{code:'P0001',message:'reject'}},
+  {error:{code:'PGRST100',message:'gateway'},status:400},
+  {error:{message:'reject'},status:400},
+  {error:null,data:{}},
+  {error:{code:'P0001',message:'UNAUTHORIZED_TRADE'},status:403},
+ ])('ambiguous or authorization capture failure never falls back: %j',async response=>{
+  const {client,spies}=makeApproveSupabase(design);spies.rpc.mockResolvedValueOnce(response)
+  await expect(approveTradeFromReview(client,'rep-1',{requestId:'request-1',revealedItemNumber:'NK12345'})).rejects.toBeDefined()
+  expect(approveTradeMock).not.toHaveBeenCalled();expect(addListingMock).not.toHaveBeenCalled()
+ })
+ it('transport throw and plain fallback failure are final',async()=>{
+  const {client,spies}=makeApproveSupabase(design);spies.rpc.mockRejectedValueOnce(new Error('lost response'))
+  await expect(approveTradeFromReview(client,'rep-1',{requestId:'request-1',revealedItemNumber:'NK12345'})).rejects.toThrow('lost response')
+  expect(approveTradeMock).not.toHaveBeenCalled()
+  spies.designLimit.mockResolvedValue({data:[],error:null});approveTradeMock.mockRejectedValueOnce(errors.REQUEST_NOT_PENDING())
+  await expect(approveTradeFromReview(client,'rep-1',{requestId:'request-1',revealedItemNumber:'UNKNOWN'})).rejects.toMatchObject({code:'REQUEST_NOT_PENDING'})
+  expect(approveTradeMock).toHaveBeenCalledTimes(1)
+ })
+ it('post-commit replacement failure remains captured cleanup and never approves again',async()=>{
+  const {client}=makeApproveSupabase(design);addListingMock.mockRejectedValueOnce(new Error('write unavailable'))
+  expect(await approveTradeFromReview(client,'rep-1',{requestId:'request-1',revealedItemNumber:'NK12345'})).toMatchObject({kind:'captured',replacementStatus:'needs_catalog_details'})
+  expect(approveTradeMock).not.toHaveBeenCalled()
+ })
 })

@@ -18,7 +18,7 @@ import { z } from 'zod'
 import { tool } from 'ai'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { processRepCustomListingPhotoUrl } from '@/lib/services/listing-photo-processing'
-import { updateListing } from '@/lib/services/trade-board'
+import { updateListing, requireOwnedDanceFloorListing } from '@/lib/services/trade-board'
 import { ServiceError } from '@/lib/services/errors'
 import { writeTradeActionAudit } from '@/lib/nic-nac/audit'
 import { logIncident } from '@/lib/nic-nac/guardian-telemetry'
@@ -77,7 +77,7 @@ export function makeUpdateListingTool(ctx: {
   return tool({
     description:
       "Patch editable fields on one of the authenticated rep's existing listings. " +
-      'Editable surface: repNotes, tradePreferences, listingPhotoUrl, useCanonicalPhoto. ' +
+      'Editable surface: repNotes and tradePreferences. Manual dancers may change photo; catalog dancers only support reset to canonical. ' +
       'Design name, material, and other catalog/design metadata are NOT editable — that data is shared across reps. ' +
       'Identify the listing by listingId (use list_my_trade_board first if you need to look it up). ' +
       'Patch-style: only the fields you pass are changed. ' +
@@ -117,6 +117,16 @@ export function makeUpdateListingTool(ctx: {
             "Tell me one or the other — use the canonical photo, or set a custom one. Not both.",
         })
       }
+
+      try {
+        const owned = await requireOwnedDanceFloorListing(ctx.supabase, ctx.repId, listingId)
+        if (!['available', 'pending_trade'].includes(owned.status)) {
+          throw new ServiceError({ code: 'LISTING_NOT_ACTIVE', message: 'Listing is not active', userMessage: "That dancer isn't on your Floor anymore.", statusCode: 409 })
+        }
+        if (listingPhotoUrl != null && owned.listing_source !== 'non_item_number') {
+          throw new ServiceError({ code: 'CATALOG_PHOTO_NOT_ALLOWED', message: 'Catalog photo cannot be changed', userMessage: 'Catalog dancers use the Nic-Nac catalog photo.', statusCode: 400 })
+        }
+      } catch (error) { explainServiceError(error) }
 
       // Build the patch + the audit field list in lockstep so the audit row
       // mirrors what the service actually applied. When useCanonicalPhoto is

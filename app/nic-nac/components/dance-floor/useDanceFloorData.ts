@@ -22,7 +22,7 @@ export function useDanceFloorData(refresh?: () => Promise<unknown>) {
   return { retry, retrying, retryFailed }
 }
 
-export const defaultFloorFilters = { statuses: ['available', 'pending_trade'], search: '', type: '', collection: '', sort: 'newest', rarity: '', material: '', size: '', needsPhoto: false, sitting: false }
+export const defaultFloorFilters = { statuses: ['available', 'pending_trade'], search: '', type: '', collection: '', sort: 'newest', rarity: '', material: '', size: '', sitting: false }
 export type FloorFilters = typeof defaultFloorFilters
 export function floorQuery(filters: FloorFilters, offset = 0) {
   const query = new URLSearchParams({ status: filters.statuses.join(','), limit: '24', offset: String(offset) })
@@ -44,12 +44,6 @@ export async function mutateFloor(url: string, method: string, body: unknown) {
   const payload = await response.json()
   if (!response.ok) throw new FloorMutationError(payload)
   return payload
-}
-export async function changeFloorPhoto(listingId: string, file: File) {
-  const target = await mutateFloor('/api/nic-nac/trade-board/uploads', 'POST', { listingId })
-  const upload = await fetch(target.signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type || 'application/octet-stream', 'x-upsert': 'false' }, body: file })
-  if (!upload.ok) throw new Error("Couldn't update that dancer. Try again.")
-  return mutateFloor('/api/nic-nac/trade-board', 'PATCH', { listingId, listingPhotoPath: target.path })
 }
 // A cancelable event lets the shell ask the mounted Floor before unmounting it.
 export function canLeaveDanceFloor() {

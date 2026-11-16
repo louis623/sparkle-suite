@@ -16,7 +16,7 @@ export function daysOnDanceFloor(listedAt: string | null, timeZone = 'America/Ne
   return Math.max(0, Math.round((day(now) - day(new Date(listedAt))) / 86400000))
 }
 export type DanceFloorFilters = GetMyBoardFilters & {
-  search?: string; needsPhoto?: boolean; sitting?: boolean; browse?: Partial<BoardInventoryFilters>
+  search?: string; sitting?: boolean; browse?: Partial<BoardInventoryFilters>
 }
 export async function getRepDanceFloorBoard(supabase: SupabaseClient, repId: string, timeZone: string | null | undefined, filters: DanceFloorFilters) {
   const board = await getMyBoard(supabase, repId, { ...filters, typeFilter: undefined, collectionFilter: undefined, limit: undefined, offset: undefined })
@@ -25,7 +25,6 @@ export async function getRepDanceFloorBoard(supabase: SupabaseClient, repId: str
   let rows = board.listings
   if (filters.typeFilter) rows = rows.filter(row => getTradeListingDisplayFields(row).typePrefix === filters.typeFilter)
   if (filters.collectionFilter) rows = rows.filter(row => getTradeListingDisplayFields(row).collectionName === filters.collectionFilter)
-  if (filters.needsPhoto) rows = rows.filter(row => !getTradeListingDisplayFields(row).photoUrl)
   if (filters.sitting) rows = rows.filter(row => row.status === 'available' && row.listed_at && Date.parse(row.listed_at) < Date.now() - 30 * 86400000)
   if (filters.search || filters.browse) {
     const originals = new Map(rows.map(row => [row.id, row]))

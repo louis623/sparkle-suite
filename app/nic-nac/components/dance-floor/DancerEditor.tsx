@@ -1,7 +1,7 @@
 'use client'
-import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react'
 import type { TradeListingWithDesign } from '@/lib/services/types'
-import { changeFloorPhoto, FloorMutationError, mutateFloor } from './useDanceFloorData'
+import { FloorMutationError, mutateFloor } from './useDanceFloorData'
 import { RemoveConfirm } from './RemoveConfirm'
 import styles from './dance-floor.module.css'
 export type DancerDraft = {
@@ -20,7 +20,6 @@ export function DancerEditor({ draft, setDraft, onDirty, onClose, onRefresh, onR
   const [error, setError] = useState('')
   const [blockers, setBlockers] = useState<FloorMutationError['blockers']>([])
   const [confirm, setConfirm] = useState<'zero' | 'remove' | null>(null)
-  const file = useRef<HTMLInputElement>(null)
   const dirty = notes !== savedNotes || quantity !== savedQuantity
   useEffect(() => { onDirty(dirty || busy || confirm !== null, dirty) }, [dirty, busy, confirm, onDirty])
   async function attempt(action: () => Promise<unknown>) {
@@ -53,11 +52,6 @@ export function DancerEditor({ draft, setDraft, onDirty, onClose, onRefresh, onR
   return <div className={styles.editor + ' ph-no-capture'}>
     <label className={styles.field}>Notes<textarea value={notes} placeholder="Size, preference, or a reminder for you" onChange={e => setNotes(e.target.value)} disabled={busy || gone} /></label>
     <p className={styles.muted}>Private. Only you can see notes.</p>
-    <div className={styles.chips}>
-      <input ref={file} type="file" accept="image/*" className={styles.srOnly} disabled={busy || gone} onChange={e => { if (gone || busy) return; const selected = e.target.files?.[0]; e.target.value = ''; if (selected) void attempt(() => changeFloorPhoto(listing.id, selected)) }} />
-      <button type="button" className={styles.secondary} disabled={busy || gone} onClick={() => file.current?.click()}>Change photo</button>
-      {listing.design?.canonical_photo_url && <button type="button" className={styles.secondary} disabled={busy || gone} onClick={() => void attempt(() => mutateFloor('/api/nic-nac/trade-board', 'PATCH', { listingId: listing.id, useCanonicalPhoto: true }))}>Use catalog photo</button>}
-    </div>
     <label className={styles.field}>Quantity<span className={styles.stepper}>
       <button type="button" aria-label="Decrease quantity" disabled={busy || gone || quantity <= 0} onClick={() => setQuantity(q => q - 1)}>−</button>
       <input type="number" aria-label="Quantity" min={0} max={Math.max(99, savedQuantity)} value={quantity} disabled={busy || gone} onChange={e => setQuantity(Math.max(0, Math.min(Math.max(99, savedQuantity), Math.floor(Number(e.target.value)))))} />
@@ -70,7 +64,7 @@ export function DancerEditor({ draft, setDraft, onDirty, onClose, onRefresh, onR
     {blockers.length > 0 && <ul>{blockers.map(item => <li key={item.requestId}>{item.customerName} · {item.status ?? 'Open'} · <a href="#history">Swap history</a></li>)}</ul>}
     <div className={styles.chips}>
       <button type="button" className={styles.primary} disabled={busy || gone || !dirty} onClick={() => void save()}>{busy ? 'Saving…' : 'Save'}</button>
-      <button type="button" className={styles.linkButton} disabled={busy || gone} onClick={() => setConfirm('remove')}>Remove</button>
+      <button type="button" className={styles.removeWarning} disabled={busy || gone} onClick={() => setConfirm('remove')}>Remove</button>
       <button type="button" className={styles.secondary} disabled={busy} onClick={onClose}>Cancel</button>
     </div>
     {confirm && !gone && <RemoveConfirm quantityZero={confirm === 'zero'} pending={listing.pendingRequestCount ?? 0} busy={busy} onCancel={() => { if (confirm === 'zero') setQuantity(savedQuantity); setConfirm(null) }} onConfirm={reason => void attempt(async () => {

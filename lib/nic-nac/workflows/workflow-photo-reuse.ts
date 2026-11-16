@@ -1,3 +1,4 @@
+import { readCatalogPhotoProvenance } from './catalog-photo-provenance'
 import { createHash } from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
@@ -40,10 +41,16 @@ export async function assertMainPhotoNotReused(
     if (!otherItem || otherItem.toUpperCase() === itemNumber.toUpperCase() || !session.created_listing_ids?.length) continue
     if (session.metadata.confirmedPhotoId && session.metadata.confirmedPhotoId !== source.id) continue
     const { data: listings, error: listingError } = await supabase.from('trade_listings')
-      .select('id,listing_photo_url,manual_photo_url').in('id', session.created_listing_ids)
+      .select('id,design_id,listing_photo_url,manual_photo_url').in('id', session.created_listing_ids)
     if (listingError) throw listingError
-    if ((listings ?? []).some((listing) => !session.metadata.savedMainPhotoUrl ||
-        listing.listing_photo_url === session.metadata.savedMainPhotoUrl || listing.manual_photo_url === session.metadata.savedMainPhotoUrl)) {
+    if ((listings ?? []).some((listing) => {
+      const entry = listing.design_id ? readCatalogPhotoProvenance(session.metadata, listing.design_id) : null
+      const savedUrl = session.metadata.savedMainPhotoUrl
+      const urlMatch = Boolean(savedUrl && (listing.listing_photo_url === savedUrl || listing.manual_photo_url === savedUrl))
+      const sourceMatch = entry?.disposition === 'catalog_source_saved' &&
+        (entry.sourceSha256 ? entry.sourceSha256.toLowerCase() === hash : entry.sourcePhotoId === source.id)
+      return urlMatch || sourceMatch || (!savedUrl && !entry)
+    })) {
       throw new NicNacToolError({ code: 'MAIN_PHOTO_REUSED', userMessage: `This photo is already on ${otherItem}. I won't use it as the main photo for ${itemNumber}. Please send a new jewelry photo.` })
     }
   }

@@ -1,4 +1,5 @@
 import { offeredDimensions, orderLabel, requestTiming, screeningLabel } from '@/lib/nic-nac/swap-request-display'
+import { FloorPhoto } from './dance-floor/FloorPhoto'
 import { TradeScreenshotLink } from './TradeScreenshotLink'
 import type { TradeRequestCardPart } from '@/lib/nic-nac/trade-request-card-parts'
 import styles from './TradeRequestLiveCard.module.css'
@@ -39,7 +40,7 @@ export function TradeRequestLiveCard({
 
       <div className={styles.comparison}>
         {request.revealScreenshot && !expired ? <TradeScreenshotLink requestId={request.requestId} customerName={request.customerName}>View full photo</TradeScreenshotLink> : <span>{expired ? 'Photo expired after 7 days. Ask the customer to resend.' : 'No screenshot attached'}</span>}
-        {request.dancerPhotoUrl && <img src={request.dancerPhotoUrl} alt={requestedItem}/>}
+        <FloorPhoto photoUrl={request.dancerPhotoUrl} alt={requestedItem} />
       </div>
       {timing.age && <small>{timing.age}</small>}
       {position && <small>{position}</small>}

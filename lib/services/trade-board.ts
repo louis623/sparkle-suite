@@ -209,7 +209,6 @@ function isManagedRepListingPhotoUrl(repId: string, photoUrl: string): boolean {
 
 /** Rep-route-only whole-board attention; deliberately not part of getMyBoard. */
 export async function getDanceFloorAttention(supabase: SupabaseClient, repId: string) {
-  let photosToFix = 0
   let sitting = 0
   // Page explicitly so PostgREST's row cap cannot turn this into a first-page count.
   const pageSize = 500
@@ -223,12 +222,11 @@ export async function getDanceFloorAttention(supabase: SupabaseClient, repId: st
     }>
     for (const row of rows) {
       const listing = { ...row, design: Array.isArray(row.design) ? row.design[0] : row.design } as TradeListingWithDesign
-      if (!getTradeListingDisplayFields(listing).photoUrl) photosToFix++
       if (listing.status === 'available' && listing.listed_at && Date.parse(listing.listed_at) < Date.now() - 30 * 86400000) sitting++
     }
     if (rows.length < pageSize) break
   }
-  return { photosToFix, needsPhoto: photosToFix, sitting }
+  return { sitting }
 }
 
 export async function getMyBoard(
@@ -374,8 +372,8 @@ async function addOrIncrementCatalogListing(
       p_rep_notes: normalizeOptionalListingText(args.repNotes) ?? null,
       p_trade_preferences: normalizeOptionalListingText(args.tradePreferences) ?? null,
       p_ring_size: normalizeOptionalListingText(args.ringSize) ?? null,
-      p_listing_photo_url: args.listingPhotoUrl ?? null,
-      p_uses_canonical_photo: args.usesCanonicalPhoto,
+      p_listing_photo_url: null,
+      p_uses_canonical_photo: true,
       p_idempotency_key: args.idempotencyKey,
       p_input_signature: args.inputSignature,
       p_rarity_classification: args.rarityClassification,
@@ -753,17 +751,7 @@ export async function addListing(
       collectionYear: input.collectionYear,
     })
   }
-  if (
-    input.listingPhotoUrl &&
-    !isManagedRepListingPhotoUrl(repId, input.listingPhotoUrl)
-  ) {
-    throw errors.INVALID_INPUT(
-      'listingPhotoUrl must be a processed Sparkle Suite listing photo',
-      'I need to process that listing photo through the image pipeline before I can save it.',
-    )
-  }
-
-  const usesCanonicalPhoto = !input.listingPhotoUrl
+  const usesCanonicalPhoto = true
   const listing = await addOrIncrementCatalogListing(supabase, {
     repId,
     designId: resolved.design.id,
@@ -832,24 +820,13 @@ export async function addListingBatch(
   if (normalizedItems.length === 0) {
     return { added: [], pending: { needCollection: [], needFullInfo: [] } }
   }
-  const invalidCustomPhotoItem = normalizedItems.find(
-    (item) =>
-      item.listingPhotoUrl &&
-      !isManagedRepListingPhotoUrl(repId, item.listingPhotoUrl),
-  )
-  if (invalidCustomPhotoItem) {
-    throw errors.INVALID_INPUT(
-      `batch listingPhotoUrl for ${invalidCustomPhotoItem.itemNumber} must be a processed Sparkle Suite listing photo`,
-      'I need to process that listing photo through the image pipeline before I can save it.',
-    )
-  }
-
   const ready: Array<{ item: BatchListingItem; designId: string; designName: string }> = []
   const needCollection: Array<{ itemNumber: string; designId: string; designName: string }> = []
   const needFullInfo: Array<{ itemNumber: string }> = []
 
   for (const item of normalizedItems) {
     const resolved = await resolveItemNumber(supabase, item.itemNumber, {
+      ...(item.designId ? { designId: item.designId } : {}),
       ...(item.material !== undefined ? { material: item.material } : {}),
       ...(item.mainStone !== undefined ? { mainStone: item.mainStone } : {}),
     })
@@ -883,7 +860,7 @@ export async function addListingBatch(
   const addedByListingId = new Map<string, AddListingResult>()
   const listingCountsByDesign = new Map<string, number>()
   for (const r of ready) {
-    const usesCanonicalPhoto = !r.item.listingPhotoUrl
+    const usesCanonicalPhoto = true
     const listing = await addOrIncrementCatalogListing(supabase, {
       repId,
       designId: r.designId,
@@ -958,6 +935,9 @@ export async function updateListing(
   const status = current.status as ListingStatus
   if (status !== 'available' && status !== 'pending_trade') {
     throw danceFloorError('LISTING_NOT_ACTIVE')
+  }
+  if (patch.listingPhotoUrl !== undefined && patch.listingPhotoUrl !== null && current.listing_source !== 'non_item_number') {
+    throw danceFloorError('CATALOG_PHOTO_NOT_ALLOWED')
   }
   if (
     patch.listingPhotoUrl &&

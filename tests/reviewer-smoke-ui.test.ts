@@ -442,8 +442,8 @@ describe('reviewer smoke UI wiring', () => {
   })
 
   it('orders the new page from attention and request work through Floor and history', () => {
-    for (const label of ['Dance Floor','Add dancers','My Dance Floor','Swap history']) expect(tradeBoardWorkspaceCardHtml).toContain(label)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Add dancers')).toBeLessThan(tradeBoardWorkspaceCardHtml.indexOf('My Dance Floor'))
+    for (const label of ['Dance Floor','My Dance Floor','Swap history']) expect(tradeBoardWorkspaceCardHtml).toContain(label)
+    expect(tradeBoardWorkspaceCardHtml).not.toContain('Add dancers')
     expect(tradeBoardWorkspaceCardHtml.indexOf('My Dance Floor')).toBeLessThan(tradeBoardWorkspaceCardHtml.indexOf('Swap history'))
     expect(tradeBoardWorkspaceCardHtml).not.toContain('Fulfillment queue')
   })

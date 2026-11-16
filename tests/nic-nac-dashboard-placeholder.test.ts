@@ -273,14 +273,6 @@ describe('Dance Floor add retry keys', () => {
     expect(source).toContain('No new copy was added. Tap Add again')
     expect(source).toContain('body: JSON.stringify({\n          designId,')
 
-    const quickAddSource = source.slice(
-      source.indexOf('async function handleQuickAddListing()'),
-      source.indexOf('async function handleRemoveTradeListing'),
-    )
-    expect(quickAddSource.indexOf('await refreshTradeWorkspace()')).toBeLessThan(
-      quickAddSource.indexOf('clearTradeAddMutationKey(logicalMutation)'),
-    )
-
     const libraryAddSource = source.slice(
       source.indexOf('async function handleAddFromLibrary'),
       source.indexOf('async function patchMessageDelivery'),
@@ -2868,8 +2860,8 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(getTradeBoardSectionLabels(html)).toEqual(['Dance Floor','Add dancers','My Dance Floor','Swap history'])
-    for (const label of ['Type','Collection','type="search"','Sort','More filters','Available','Pending swap','Swapped','Needs a photo','Sitting 30+ days']) expect(html).toContain(label)
+    expect(getTradeBoardSectionLabels(html)).toEqual(['Dance Floor','My Dance Floor','Swap history'])
+    for (const label of ['Type','Collection','type="search"','Sort','More filters','Available','Pending swap','Swapped','Sitting 30+ days']) expect(html).toContain(label)
     expect(html).toContain('Know the item number? Add a dancer in one step.')
     expect(html).toContain('Sapphire Halo')
     expect(html).toContain('Rose Quartz Stack')

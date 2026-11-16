@@ -309,8 +309,8 @@ export async function getFulfillmentLogPage(
     const gotParts = swap
       ? [swap.revealed_item_number, swap.revealed_material,
           swap.revealed_ring_size ? `Size ${swap.revealed_ring_size}` : null]
-      : [request.verified_offered_family ?? request.offered_family,
-          request.verified_offered_type ?? request.offered_type,
+      : [request.offered_family ?? request.verified_offered_family,
+          request.offered_type ?? request.verified_offered_type,
           request.description_is_placeholder ? null : request.customer_description]
     const expiry = request.reveal_screenshot_expires_at
     return [{

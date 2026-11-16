@@ -3536,7 +3536,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     resources: reviewWorkspaceMode ? [] : undefined,
   })
   const [tradeBoardSearchQuery, setTradeBoardSearchQuery] = useState('')
-  const [quickAddItemNumber, setQuickAddItemNumber] = useState('')
   const [librarySearchQuery, setLibrarySearchQuery] = useState('')
   const [libraryFilters, setLibraryFilters] = useState<JewelryLibraryFilters>(
     EMPTY_JEWELRY_LIBRARY_FILTERS,
@@ -5475,63 +5474,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }
 
-  async function handleQuickAddListing() {
-    if (!quickAddItemNumber.trim()) {
-      setTradeBoardActionState({
-        pendingKey: null,
-        error: 'Enter an item number first.',
-        helperMessage: null,
-      })
-      return
-    }
-
-    const logicalMutation = `quick-add:${quickAddItemNumber.trim().toUpperCase()}`
-    const mutationKey = getOrCreateTradeAddMutationKey(logicalMutation)
-
-    setTradeBoardActionState({
-      pendingKey: 'quick-add',
-      error: null,
-      helperMessage: null,
-    })
-
-    try {
-      const response = await fetch('/api/nic-nac/trade-board', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          itemNumber: quickAddItemNumber,
-          mutationKey,
-        }),
-      })
-
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: string; result?: { mutationReplayed?: boolean } }
-        | null
-
-      if (!response.ok) {
-        throw new Error(payload?.error || 'Unable to add that dancer right now.')
-      }
-
-      setQuickAddItemNumber('')
-      await refreshTradeWorkspace()
-      clearTradeAddMutationKey(logicalMutation)
-      setTradeBoardActionState({
-        pendingKey: null,
-        error: null,
-        helperMessage: payload?.result?.mutationReplayed
-          ? 'Your earlier add already completed. No new copy was added. Tap Add again if you have another identical dancer.'
-          : 'Dancer added to your Dance Floor.',
-      })
-    } catch (error) {
-      setTradeBoardActionState({
-        pendingKey: null,
-        error: "Couldn't add that dancer. Check the details and try again.",
-        helperMessage: null,
-      })
-    }
-  }
-
   async function handleRemoveTradeListing(listingId: string) {
     setTradeBoardActionState({
       pendingKey: `remove:${listingId}`,
@@ -5595,6 +5537,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         | {
             error?: string
             result?: {
+              kind?: 'captured' | 'noted_only' | 'approved'
+              revealedItemNumber?: string
               replacementStatus?: string
             }
           }
@@ -5610,8 +5554,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         setTradeRequestsState((current) => ({ ...current, status: 'error' }))
       }
       const replacementStatus = payload?.result?.replacementStatus
-      const approveMessage =
-        replacementStatus === 'added_to_board'
+      const approveMessage = payload?.result?.kind === 'noted_only'
+        ? `Swap approved. Item ${payload.result.revealedItemNumber} was saved in your private notes and not added to your Floor. Add it with Nic-Nac.`
+        : replacementStatus === 'added_to_board'
           ? 'Swap approved. Added the revealed dancer back to your Dance Floor.'
           : replacementStatus === 'needs_ring_size'
             ? 'Swap approved. I saved the item number to this swap; add the ring size after the show to add the dancer to the Dance Floor.'
@@ -7026,8 +6971,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           tradeBoardState={tradeBoardState}
           tradeBoardSearchQuery={tradeBoardSearchQuery}
           onTradeBoardSearchQueryChange={setTradeBoardSearchQuery}
-          quickAddItemNumber={quickAddItemNumber}
-          onQuickAddItemNumberChange={setQuickAddItemNumber}
           actionState={tradeBoardActionState}
           tradeRequestsState={{ ...tradeRequestsState, requests: tradeInboxLoaded ? tradeInboxRequests : tradeRequestsState.requests }}
           inboxLoadError={tradeInboxLoadError}
@@ -7042,7 +6985,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             )
           }}
           tradeSwapCleanupState={tradeSwapCleanupState}
-          onQuickAddListing={handleQuickAddListing}
           onRemoveListing={handleRemoveTradeListing}
           onReviewRequest={(requestId, action) => void openTradeReview(requestId, action)}
           onAdvanceFulfillment={handleAdvanceFulfillment}

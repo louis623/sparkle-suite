@@ -1,3 +1,4 @@
+// M12 SQL reservations remain for deferred Phase 4; the Floor photo route is removed.
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'

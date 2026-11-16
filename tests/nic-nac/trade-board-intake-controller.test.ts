@@ -487,3 +487,16 @@ describe('Dance Floor intake controller', () => {
     })
   })
 })
+
+import {rememberCatalogAddResolution,existingCatalogAddResolution} from '@/lib/nic-nac/workflows/catalog-add-resolution'
+it('server-resolved existing design skips only photo readiness, with exact identity and no persisted bypass',()=>{
+ const state=baseState({known:{itemNumber:'ER12345',material:'Gold',mainStone:'Ruby',rarityClassification:'standard'},photos:[]})
+ const found={found:true,hasCollection:true,design:{id:'gold-ruby',itemNumber:'ER12345',collectionName:'OG',typePrefix:'ER'}} as any
+ rememberCatalogAddResolution(state,state.known,found)
+ expect(computeTradeBoardIntakeReadiness(state).ready).toBe(true)
+ expect(existingCatalogAddResolution(JSON.parse(JSON.stringify(state)))).toBeNull()
+ state.known.material='Silver';expect(existingCatalogAddResolution(state)).toBeNull()
+ expect(computeTradeBoardIntakeReadiness(state).ready).toBe(false)
+ state.catalogMode='non_item_number';rememberCatalogAddResolution(state,state.known,found)
+ expect(existingCatalogAddResolution(state)).toBeNull()
+})

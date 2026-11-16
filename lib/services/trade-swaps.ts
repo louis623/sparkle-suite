@@ -1,12 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createHash } from 'node:crypto'
 
+import { approveTrade, assertRequestOwnedByRep, getRequestedTradeFacts, requestedTradeFactsError } from '@/lib/services/trade-requests'
 import { addListing, findCatalogListingMutationByKey } from '@/lib/services/trade-board'
 import { normalizeTradeFamily, normalizeTradeType, screenTradeOffer } from '@/lib/services/trade-request-matcher'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ServiceError, errors } from '@/lib/services/errors'
 import { resolveItemNumber } from '@/lib/services/jewelry-database'
 import type {
+  ApproveTradeReviewResult,
   ApproveTradeSwapInput,
   ApproveTradeSwapResult,
   ApproveTradeResult,
@@ -55,7 +57,7 @@ type CleanupRow = {
 }
 
 function normalizeItemNumber(value: string) {
-  return value.trim().toUpperCase()
+  return value.replace(/[\x00-\x1f\x7f]/g, '').trim().toUpperCase().slice(0, 40)
 }
 
 function normalizeOptionalText(value: string | undefined) {
@@ -91,18 +93,65 @@ function isRingType(typePrefix: JewelryType) {
   return typePrefix === 'RG'
 }
 
+
+/** Only this atomic capture boundary may establish that no approval committed. */
+export class RevealCaptureNotCommitted extends Error {
+  constructor(cause: unknown) { super('Reveal capture did not commit', { cause }); this.name = 'RevealCaptureNotCommitted' }
+}
+function isDefiniteCaptureRejection(error: { code?: string; message?: string }, status?: number) {
+  return typeof status === 'number' && status >= 400 && status < 500 &&
+    typeof error.code === 'string' && /^[0-9A-Z]{5}$/.test(error.code) && !error.code.startsWith('PGRST') &&
+    typeof error.message === 'string' &&
+    !['REQUEST_NOT_PENDING','REQUEST_NOT_FOUND','UNAUTHORIZED_TRADE','LISTING_NOT_FOUND'].some(code => error.message!.includes(code))
+}
+async function resumeTradeSwap(supabase: SupabaseClient, repId: string, input: ApproveTradeSwapInput, status: string) {
+  if (status !== 'approved') throw errors.REQUEST_NOT_PENDING()
+  const resumed = await loadApprovedTradeSwapForResume(supabase, repId, input.requestId)
+  if (!resumed.existingSwap) throw errors.REQUEST_NOT_PENDING()
+  try {
+    assertMatchingTradeSwapRetry(resumed.existingSwap, {
+      inputSignature: getTradeSwapInputSignature(input),
+      revealedItemNumber: normalizeItemNumber(input.revealedItemNumber),
+      revealedMaterial: normalizeOptionalText(input.revealedMaterial) ?? null,
+      revealedRingSize: normalizeOptionalText(input.revealedRingSize) ?? null,
+      repNotes: normalizeOptionalText(input.repNotes) ?? null,
+    })
+  } catch (error) {
+    if (error instanceof ServiceError && error.code === 'INVALID_INPUT') throw errors.REQUEST_NOT_PENDING()
+    throw error
+  }
+  return resumed.existingSwap.result
+}
+export async function approveTradeFromReview(
+  supabase: SupabaseClient, repId: string,
+  input: Omit<ApproveTradeSwapInput, 'revealedItemNumber' | 'verification'> & { revealedItemNumber?: string },
+): Promise<ApproveTradeReviewResult> {
+  const number = normalizeItemNumber(input.revealedItemNumber ?? '')
+  const normalized = { ...input, revealedItemNumber: number }
+  const status = await assertRequestOwnedByRep(supabase, repId, input.requestId, true)
+  if (status !== 'pending') return { kind: 'captured', ...await resumeTradeSwap(supabase, repId, normalized, status) }
+  if (!number) return { kind: 'approved', ...await approveTrade(supabase, repId, input.requestId, input.repNotes) }
+  const facts = await getRequestedTradeFacts(supabase, repId, input.requestId)
+  const resolved = await resolveItemNumber(supabase, number, { material: input.revealedMaterial })
+  if (resolved.found && screenTradeOffer(facts.family, facts.type, resolved.design.collectionName, resolved.design.typePrefix).status === 'likely_match') {
+    try {
+      return { kind: 'captured', ...await approveTradeWithRevealedItemCapture(supabase, repId, normalized, { resolvedDesign: resolved }) }
+    } catch (error) { if (!(error instanceof RevealCaptureNotCommitted)) throw error }
+  }
+  // Plain approval re-checks owned pending state and raw requested facts. Its error is final.
+  const notes = [input.repNotes?.trim(), `Revealed item: ${number}`].filter(Boolean).join('\n')
+  return { kind: 'noted_only', revealedItemNumber: number,
+    ...await approveTrade(supabase, repId, input.requestId, notes) }
+}
+
 export async function approveTradeWithRevealedItemCapture(
   supabase: SupabaseClient,
   repId: string,
   input: ApproveTradeSwapInput,
+  options: { resolvedDesign?: Awaited<ReturnType<typeof resolveItemNumber>> } = {},
 ): Promise<ApproveTradeSwapResult> {
   if (!repId) throw errors.UNAUTHORIZED('repId required')
   if (!input.requestId) throw errors.MISSING_ITEM_INPUT()
-  if (!input.verification?.verificationConfirmed || !input.verification.finalConfirmation ||
-      !normalizeTradeFamily(input.verification.verifiedOfferedFamily) ||
-      !normalizeTradeType(input.verification.verifiedOfferedType)) {
-    throw errors.INVALID_INPUT('rep verification required', 'Confirm the offered collection and jewelry type before approving.')
-  }
 
   const revealedItemNumber = normalizeItemNumber(input.revealedItemNumber)
   if (!revealedItemNumber) {
@@ -123,40 +172,24 @@ export async function approveTradeWithRevealedItemCapture(
     repNotes: normalizedRepNotes,
   })
 
-  // Resolve the optional catalog item before the irreversible approval. A
-  // lookup failure must never be returned after the request was approved.
-  const resolvedDesign = await resolveItemNumber(supabase, revealedItemNumber, {
-    material: revealedMaterial,
-  })
-  if (!resolvedDesign.found) {
-    throw errors.INVALID_INPUT(
-      'revealed item number is unresolved or ambiguous',
-      'Confirm the revealed item number and its material before approving.',
-    )
-  }
-  const catalogMatch = screenTradeOffer(
-    input.verification.verifiedOfferedFamily,
-    input.verification.verifiedOfferedType,
-    resolvedDesign.design.collectionName,
-    resolvedDesign.design.typePrefix,
-  )
-  if (catalogMatch.status !== 'likely_match') {
-    throw new ServiceError({
-      code: catalogMatch.status === 'needs_verification' ? 'VERIFICATION_REQUIRED' : 'CATALOG_ITEM_MISMATCH',
-      message: catalogMatch.reason ?? 'catalog item requires verification',
-      userMessage: 'The revealed catalog item does not match the verified collection and jewelry type.',
-      statusCode: 409,
-    })
+  const requestStatus = await assertRequestOwnedByRep(supabase, repId, input.requestId, true)
+  if (requestStatus !== 'pending') return resumeTradeSwap(supabase, repId, input, requestStatus)
+  const facts = await getRequestedTradeFacts(supabase, repId, input.requestId)
+  const resolvedDesign = options.resolvedDesign ?? await resolveItemNumber(supabase, revealedItemNumber, { material: revealedMaterial })
+  if (!resolvedDesign.found) throw new RevealCaptureNotCommitted(new Error('REVEAL_UNRESOLVED'))
+  if (!options.resolvedDesign && screenTradeOffer(facts.family, facts.type,
+      resolvedDesign.design.collectionName, resolvedDesign.design.typePrefix).status !== 'likely_match') {
+    throw new RevealCaptureNotCommitted(new Error('REVEAL_NOT_COMPARABLE'))
   }
 
   let approved: ApproveTradeResult
   let swapId: string
   try {
-    const { data, error } = await supabase.rpc('rpc_approve_trade_with_swap_v2', {
+    const { data, error, status } = await supabase.rpc('rpc_approve_trade_with_swap_v2', {
       p_request_id: input.requestId,
       p_rep_id: repId,
-      p_verified_family: input.verification.verifiedOfferedFamily,
-      p_verified_type: input.verification.verifiedOfferedType,
+      p_verified_family: facts.family,
+      p_verified_type: facts.type,
       p_verification_confirmed: true,
       p_final_confirmation: true,
       p_revealed_item_number: revealedItemNumber,
@@ -167,11 +200,12 @@ export async function approveTradeWithRevealedItemCapture(
       p_rep_notes: normalizedRepNotes ?? null,
     })
     if (error) {
+      if (isDefiniteCaptureRejection(error, status)) throw new RevealCaptureNotCommitted(error)
       if (error.message?.includes('REQUEST_NOT_PENDING')) throw errors.REQUEST_NOT_PENDING()
       if (error.message?.includes('TRADE_FAMILY_MISMATCH')) throw new ServiceError({ code: 'TRADE_FAMILY_MISMATCH', message: error.message, userMessage: 'The offered collection does not match this dancer.', statusCode: 409 })
       if (error.message?.includes('TRADE_TYPE_MISMATCH')) throw new ServiceError({ code: 'TRADE_TYPE_MISMATCH', message: error.message, userMessage: 'The offered jewelry type does not match this dancer.', statusCode: 409 })
       if (error.message?.includes('UNAUTHORIZED_TRADE')) throw errors.UNAUTHORIZED('trade request belongs to another rep')
-      if (error.message?.includes('VERIFICATION_REQUIRED')) throw errors.INVALID_INPUT('rep verification required', 'Confirm the offered collection and jewelry type before approving.')
+      if (error.message?.includes('VERIFICATION_REQUIRED')) throw requestedTradeFactsError()
       throw error
     }
     if (!data?.swap_id || !data?.fulfillment_id) throw new Error('atomic trade swap approval returned incomplete data')
@@ -228,6 +262,7 @@ export async function approveTradeWithRevealedItemCapture(
           .digest('hex')
         const replacement = await addListing(supabase, repId, {
           itemNumber: revealedItemNumber,
+          designId: resolvedDesign.design.id,
           material: revealedMaterial,
           ringSize: revealedRingSize,
           repNotes: `Added from approved dancer swap for ${approved.customerName}.`,

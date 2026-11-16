@@ -1,6 +1,7 @@
 import type { TradeRequestWithListing } from '@/lib/services/types'
 import { offeredDimensions, orderLabel, requestTiming, requestCardAge, screeningLabel } from '@/lib/nic-nac/swap-request-display'
 import { TradeScreenshotLink } from '../TradeScreenshotLink'
+import { FloorPhoto } from './FloorPhoto'
 import { SectionState } from './SectionState'
 import type { OpeningReview } from './types'
 import styles from './dance-floor.module.css'
@@ -19,8 +20,7 @@ export function RequestCard({ request, openingReview, onReviewRequest, now = Dat
           <span className={styles.srOnly}>View reveal screenshot</span>
         </TradeScreenshotLink> : <div className={styles.noPhoto}>{expired ? 'Photo expired after 7 days. Ask the customer to resend.' : 'No screenshot attached'}</div>}
         <figcaption>Their reveal photo</figcaption></figure>
-      <figure>{request.dancerPhotoUrl ? <img className={styles.photo} src={request.dancerPhotoUrl} alt={request.listing.design.designName} /> :
-        <div className={styles.noPhoto}>No photo yet</div>}<figcaption>Your dancer</figcaption></figure>
+      <figure><FloorPhoto photoUrl={request.dancerPhotoUrl} alt={request.listing.design.designName} /><figcaption>Your dancer</figcaption></figure>
     </div>
     <h3>{request.customerName} wants {request.listing.design.designName}</h3>
     <div className={styles.chips}>

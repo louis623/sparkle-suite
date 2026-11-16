@@ -6,9 +6,10 @@ import { createHash } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
 
-const { processPhoto, updateSession, inspectModel, analyzeImage, persistPhoto, reloadSession, priorInspections } = vi.hoisted(() => ({
-  processPhoto: vi.fn(), updateSession: vi.fn(), inspectModel: vi.fn(), analyzeImage: vi.fn(), persistPhoto: vi.fn(), reloadSession: vi.fn(), priorInspections: vi.fn(),
+const { resolveCatalog, processPhoto, updateSession, inspectModel, analyzeImage, persistPhoto, reloadSession, priorInspections } = vi.hoisted(() => ({
+  resolveCatalog: vi.fn(), processPhoto: vi.fn(), updateSession: vi.fn(), inspectModel: vi.fn(), analyzeImage: vi.fn(), persistPhoto: vi.fn(), reloadSession: vi.fn(), priorInspections: vi.fn(),
 }))
+vi.mock('@/lib/services/jewelry-database',async(importOriginal)=>({...await importOriginal<typeof import('@/lib/services/jewelry-database')>(),resolveItemNumber:resolveCatalog}))
 vi.mock('ai', async (importOriginal) => ({ ...await importOriginal<typeof import('ai')>(), generateText: inspectModel }))
 vi.mock('@/lib/services/server-image-quality', () => ({ analyzeServerImageQuality: analyzeImage }))
 vi.mock('@/lib/services/listing-photo-processing', () => ({ processRepListingPhotoUrl: processPhoto }))
@@ -49,7 +50,7 @@ function duplicateDb(itemNumber?: string, savedOnly = false): SupabaseClient {
   const listings = { select: () => ({ in: async () => ({ data: [{ id: 'listing-prior', listing_photo_url: 'saved-main' }], error: null }) }) }
   return { from: (table: string) => table === 'trade_listings' ? listings : table === 'trade_board_intake_sessions' ? saved : chain } as unknown as SupabaseClient
 }
-beforeEach(() => { vi.clearAllMocks(); vi.stubGlobal('React', React); updateSession.mockResolvedValue(undefined); priorInspections.mockResolvedValue([]); processPhoto.mockResolvedValue({ photoUrl: 'saved-exact-photo-A' }) })
+beforeEach(() => { vi.clearAllMocks(); resolveCatalog.mockResolvedValue({found:false}); vi.stubGlobal('React', React); updateSession.mockResolvedValue(undefined); priorInspections.mockResolvedValue([]); processPhoto.mockResolvedValue({ photoUrl: 'saved-exact-photo-A' }) })
 
 async function inspectUpload(jewelryVisible: boolean, labelOnly: boolean, text: string) {
   const s = state(); s.photos = []; s.metadata = {}
@@ -246,4 +247,48 @@ describe('main photo guards', () => {
     expect(await preview(next)).toBeNull()
     expect(() => requireConfirmedMainPhoto(next, 'RG12345', { selectedPhotoId: 'same-bytes-new-upload' })).toThrow(/cut off/)
   })
+})
+
+import {readCatalogPhotoProvenance,recordCatalogPhotoProvenance} from '@/lib/nic-nac/workflows/catalog-photo-provenance'
+
+describe('catalog photo provenance survives reload',()=>{
+ const saved={disposition:'catalog_source_saved' as const,sourcePhotoId:'prior-photo',sourceSha256:hash,itemNumber:'ER88888',recordedAt:'2026-11-15T12:00:00Z'}
+ function provenanceDb(entry:unknown,options:{savedUrl?:string;listingUrl?:string;manualUrl?:string;listingDesign?:string;legacy?:boolean}={}):SupabaseClient{
+  const metadata={confirmedPhotoId:'prior-photo',mainPhotoSha256:hash,...(options.savedUrl?{savedMainPhotoUrl:options.savedUrl}:{}),...(options.legacy?{}:{catalogPhotoProvenance:{'design-A':entry}})}
+  const session={id:'prior-intake',item_number:'ER88888',catalog_mode:'item_number',metadata:JSON.parse(JSON.stringify(metadata)),created_listing_ids:['listing-prior']}
+  const chain=(data:unknown)=>{const c:any={data,error:null};for(const key of ['select','eq','in'])c[key]=()=>c;return c}
+  return {from:(table:string)=>table==='trade_listings'?chain([{id:'listing-prior',design_id:options.listingDesign??'design-A',listing_photo_url:options.listingUrl??null,manual_photo_url:options.manualUrl??null}]):table==='trade_board_intake_sessions'?chain([session]):chain([{id:'prior-photo',session}])} as unknown as SupabaseClient
+ }
+ it('original source hash blocks another item even with null listing overrides and later canonical promotion',async()=>{
+  await expect(assertMainPhotoNotReused(provenanceDb(saved),state().photos[0],'RG12345')).rejects.toMatchObject({code:'MAIN_PHOTO_REUSED'})
+ })
+ it('ignored existing-catalog photo permits another item; source URL remains authoritative',async()=>{
+  const ignored={...saved,disposition:'catalog_photo_ignored'}
+  await expect(assertMainPhotoNotReused(provenanceDb(ignored),state().photos[0],'RG12345')).resolves.toBe(hash)
+  await expect(assertMainPhotoNotReused(provenanceDb(ignored,{savedUrl:'/manual',manualUrl:'/manual'}),state().photos[0],'RG12345')).rejects.toMatchObject({code:'MAIN_PHOTO_REUSED'})
+ })
+ it('same SKU variant remains allowed and different design does not inherit provenance',async()=>{
+  await expect(assertMainPhotoNotReused(provenanceDb(saved),state().photos[0],'ER88888')).resolves.toBe(hash)
+  await expect(assertMainPhotoNotReused(provenanceDb({...saved,disposition:'catalog_photo_ignored'},{listingDesign:'other-design'}),state().photos[0],'RG12345')).rejects.toMatchObject({code:'MAIN_PHOTO_REUSED'})
+ })
+ it.each([undefined,{},'bad',{...saved,sourceSha256:'bad'}])('malformed or absent entries keep legacy fallback: %j',async entry=>{
+  await expect(assertMainPhotoNotReused(provenanceDb(entry),state().photos[0],'RG12345')).rejects.toMatchObject({code:'MAIN_PHOTO_REUSED'})
+ })
+ it('writer preserves saved entries against same-design ignored completion and keys variants separately',()=>{
+  const metadata:Record<string,unknown>={}
+  recordCatalogPhotoProvenance(metadata,'design-A',saved)
+  recordCatalogPhotoProvenance(metadata,'design-A',{...saved,disposition:'catalog_photo_ignored'})
+  recordCatalogPhotoProvenance(metadata,'design-B',{...saved,disposition:'catalog_photo_ignored'})
+  const reloaded=JSON.parse(JSON.stringify(metadata))
+  expect(readCatalogPhotoProvenance(reloaded,'design-A')).toEqual(saved)
+  expect(readCatalogPhotoProvenance(reloaded,'design-B')?.disposition).toBe('catalog_photo_ignored')
+ })
+ it('fresh existing-catalog preview skips duplicate checks and processing; identity change clears that bypass',async()=>{
+  const s=state();resolveCatalog.mockResolvedValueOnce({found:true,design:{id:'design-A',itemNumber:'RG12345',collectionName:'OG',typePrefix:'RG'}})
+  const chunks:UIMessageChunk[]=[]
+  expect(await writeTradeBoardMainPhotoPreview(duplicateDb('ER88888'),s,'preview',{write:c=>chunks.push(c)})).toBe(false)
+  expect(chunks).toEqual([]);expect(processPhoto).not.toHaveBeenCalled()
+  s.known.itemNumber='RG99999';resolveCatalog.mockResolvedValue({found:false})
+  expect(await writeTradeBoardMainPhotoPreview(duplicateDb('ER88888'),s,'preview-2',{write:c=>chunks.push(c)})).toBe(true)
+ })
 })

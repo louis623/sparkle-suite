@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { TradeListingWithDesign } from '@/lib/services/types'
 import { getTradeListingDisplayFields, TRADE_LISTING_TYPE_LABELS } from '@/lib/services/trade-listing-display'
 import { getBoardInventoryOptions } from '@/lib/nic-nac/board-inventory-view'
+import { FloorPhoto } from './FloorPhoto'
 import { SectionState } from './SectionState'
 import { DancerEditor, type DancerDraft } from './DancerEditor'
 import { defaultFloorFilters, floorQuery, lookupFloorListing, mutateFloor, useEditableFloor, type FloorFilters } from './useDanceFloorData'
@@ -36,15 +37,14 @@ export function DancerFloor(props: {
   const { onRefresh } = props
   const refreshAll = useCallback(async () => { await onRefresh?.(); await refresh() }, [onRefresh, refresh])
   useEffect(() => {
-    const photo = () => { if (!dirtyRef.current) { close(); setFilters(current => ({ ...current, needsPhoto: true })) } else setMessage('Save or cancel your changes first.') }
     const hash = () => {
       if (!window.location.hash.startsWith('#dancer=')) return
       if (dirtyRef.current) { setMessage('Save or cancel your changes first.'); return }
       let id = ''; try { id = decodeURIComponent(window.location.hash.slice(8)) } catch { /* invalid link */ }
       close(); setFilters(defaultFloorFilters); setTarget(id); setMessage('')
     }
-    window.addEventListener('dance-floor-needs-photo', photo); window.addEventListener('hashchange', hash); hash()
-    return () => { window.removeEventListener('dance-floor-needs-photo', photo); window.removeEventListener('hashchange', hash) }
+    window.addEventListener('hashchange', hash); hash()
+    return () => { window.removeEventListener('hashchange', hash) }
   }, [close, setFilters])
   useEffect(() => {
     if (!target || status !== 'ready' || loadedQuery !== floorQuery(defaultFloorFilters)) return
@@ -81,7 +81,7 @@ export function DancerFloor(props: {
     const latest = current >= 0 ? displayRows.splice(current, 1)[0] : draft.listing
     displayRows.splice(Math.min(draft.index, displayRows.length), 0, latest)
   }
-  const active = filters.search || filters.type || filters.collection || filters.rarity || filters.material || filters.size || filters.sort !== 'newest' || filters.needsPhoto || filters.sitting || filters.statuses.join(',') !== 'available,pending_trade'
+  const active = filters.search || filters.type || filters.collection || filters.rarity || filters.material || filters.size || filters.sort !== 'newest' || filters.sitting || filters.statuses.join(',') !== 'available,pending_trade'
   return <section id="floor" className={styles.section}>
     <p className={styles.kicker}>Your dancers</p><h2>My Dance Floor</h2><p>The dancers your customers can request, plus any that are mid-swap or already swapped.</p>
     <label className={styles.field}>Search<input type="search" className="ph-no-capture" value={filters.search} placeholder="Search name, collection, or size" onChange={e => change({ search: e.target.value })} /></label>
@@ -92,7 +92,6 @@ export function DancerFloor(props: {
     </div>
     <div className={styles.chips}>{([['available','Available'],['pending_trade','Pending swap'],['traded','Swapped']] as const).map(([value,label]) => <label className={styles.filterChip} key={value}><input type="checkbox" checked={filters.statuses.includes(value)} onChange={e => change({ statuses: e.target.checked ? [...filters.statuses,value] : filters.statuses.filter(status => status !== value) })} />{label}</label>)}
       <label className={styles.filterChip}><input type="checkbox" checked={filters.sitting} onChange={e => change({ sitting: e.target.checked })} />Sitting 30+ days</label>
-      <label className={styles.filterChip}><input type="checkbox" checked={filters.needsPhoto} onChange={e => change({ needsPhoto: e.target.checked })} />Needs a photo</label>
     </div>
     <details><summary>More filters</summary><div className={styles.selects}>{(['rarity','material','size'] as const).map(key => <label className={styles.field} key={key}>{key === 'rarity' ? 'Rarity' : key === 'material' ? 'Material' : 'Size'}<select value={filters[key]} onChange={e => change({ [key]: e.target.value })}><option value="">All</option>{(key === 'rarity' ? options.rarities : key === 'material' ? options.materials : options.sizes).map(value => <option key={value}>{value}</option>)}</select></label>)}</div></details>
     <div className={styles.historyControls}><span>{board?.total ?? rows.length} {(board?.total ?? rows.length) === 1 ? 'dancer' : 'dancers'}</span><button type="button" className={styles.linkButton} onClick={clear}>Clear filters</button></div>
@@ -107,12 +106,11 @@ export function DancerFloor(props: {
     {status === 'ready' && !rows.length && <p className={styles.empty}>{active ? 'No dancers match these filters. Clear filters or try another search.' : 'Your Dance Floor is empty. Add a dancer to show it here.'}</p>}
     <div className={styles.floorGrid}>{displayRows.map(listing => {
       const display = getTradeListingDisplayFields(listing)
-      return <article id={'dancer-' + listing.id} className={styles.dancer + (editor === listing.id ? ' ' + styles.dancerOpen : '') + (!display.photoUrl ? ' ' + styles.needsPhoto : '')} key={listing.id} data-dancer-row={listing.id}>
-        {display.photoUrl ? <img className={styles.photo} src={display.photoUrl} alt={display.designName} loading="lazy" /> : <div className={styles.noPhoto}><span aria-hidden="true">▧</span>No photo yet</div>}
+      return <article id={'dancer-' + listing.id} className={styles.dancer + (editor === listing.id ? ' ' + styles.dancerOpen : '')} key={listing.id} data-dancer-row={listing.id}>
+        <FloorPhoto photoUrl={display.photoUrl} alt={display.designName} />
         <div className={styles.dancerInfo}><p className={styles.collection}>{display.collectionName}</p><h3>{display.designName}</h3><p>{display.typeLabel}{display.size ? ' · Size ' + display.size : ''}</p>
           <div className={styles.chips}><span className={listing.status === 'available' ? styles.available : listing.status === 'pending_trade' ? styles.pending : styles.swapped}>{listing.status === 'available' ? 'Available' : listing.status === 'pending_trade' ? 'Pending swap' : 'Swapped'}</span>
           {listing.status === 'available' && listing.listed_at && Date.parse(listing.listed_at) < Date.now() - 30 * 86400000 && <span className={styles.chip}>Sitting 30+ days</span>}
-          {!display.photoUrl && <span className={styles.chip}>Needs a photo</span>}</div>
           <p className={styles.facts}>{listing.daysOnFloor ?? 0}d on the Floor · {listing.requestCount ? listing.requestCount + (listing.requestCount === 1 ? ' request' : ' requests') : 'No requests yet'} · Qty {listing.quantity_available ?? 1}</p>
         </div>
         {listing.status !== 'traded' && listing.status !== 'removed' && editor !== listing.id && <button type="button" className={styles.secondary + ' ' + styles.editButton} onClick={() => open(listing.id)}>Edit</button>}

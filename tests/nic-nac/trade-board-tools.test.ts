@@ -10,11 +10,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { errors } from '@/lib/services/errors'
 
 const updateListingMock = vi.fn()
+const ownedListingMock=vi.fn()
 const processRepCustomListingPhotoUrlMock = vi.fn()
 const writeTradeActionAuditMock = vi.fn()
 const logIncidentMock = vi.fn()
 
 vi.mock('@/lib/services/trade-board', () => ({
+  requireOwnedDanceFloorListing:(...args:unknown[])=>ownedListingMock(...args),
   updateListing: (...args: unknown[]) => updateListingMock(...args),
 }))
 
@@ -57,6 +59,7 @@ function makeTool(): ToolDef {
 const VALID_LISTING_ID = '11111111-1111-4111-8111-111111111111'
 
 beforeEach(() => {
+  ownedListingMock.mockReset().mockResolvedValue({id:VALID_LISTING_ID,status:'available',listing_source:'catalog'})
   updateListingMock.mockReset()
   processRepCustomListingPhotoUrlMock.mockReset()
   writeTradeActionAuditMock.mockReset()
@@ -193,7 +196,8 @@ describe('update_listing — write + audit happy path', () => {
     })
   })
 
-  it('processes a non-null custom listing photo URL before calling updateListing', async () => {
+  it('manual dancers retain custom-photo processing after ownership check', async () => {
+    ownedListingMock.mockResolvedValueOnce({id:VALID_LISTING_ID,status:'available',listing_source:'non_item_number'})
     processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
       photoUrl: 'https://cdn.example.com/normalized.jpg',
     })
@@ -283,7 +287,8 @@ describe('update_listing — error handling', () => {
     expect(writeTradeActionAuditMock).not.toHaveBeenCalled()
   })
 
-  it('translates listing photo processing ServiceError before updateListing is called', async () => {
+  it('translates manual photo processing errors before updateListing is called', async () => {
+    ownedListingMock.mockResolvedValueOnce({id:VALID_LISTING_ID,status:'available',listing_source:'non_item_number'})
     processRepCustomListingPhotoUrlMock.mockRejectedValueOnce(
       errors.LISTING_PHOTO_PREFLIGHT_FAILED([
         'Move the camera a little closer so the jewelry takes up more of the frame.',
@@ -340,4 +345,9 @@ describe('update_listing — registry metadata', () => {
     const built = makeTool()
     expect(built.needsApproval).toBeFalsy()
   })
+})
+
+it('catalog dancers reject photo replacement before the processor and mutation',async()=>{
+ await expect(makeTool().execute({listingId:VALID_LISTING_ID,listingPhotoUrl:'https://example.invalid/rep.jpg'})).rejects.toMatchObject({code:'CATALOG_PHOTO_NOT_ALLOWED'})
+ expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled();expect(updateListingMock).not.toHaveBeenCalled()
 })

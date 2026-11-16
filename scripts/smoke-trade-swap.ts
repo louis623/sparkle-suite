@@ -5,6 +5,7 @@ config({ path: '.env.local' })
 import { createAdminClient } from '@/lib/supabase/admin'
 import {
   approveTradeWithRevealedItemCapture,
+  approveTradeFromReview,
   getTradeSwapCleanupQueue,
 } from '@/lib/services/trade-swaps'
 
@@ -191,7 +192,7 @@ async function main() {
       'ring without size does not create replacement listing yet',
     )
 
-    const resultUnknown = await approveTradeWithRevealedItemCapture(
+    const resultUnknown = await approveTradeFromReview(
       admin,
       repId,
       {
@@ -201,8 +202,8 @@ async function main() {
       },
     )
     assertSmoke(
-      resultUnknown.replacementStatus === 'needs_catalog_details',
-      'unknown revealed item is saved for catalog cleanup',
+      resultUnknown.kind === 'noted_only' && !('swapId' in resultUnknown),
+      'unknown revealed item is privately noted without creating a swap',
     )
 
     const cleanup = await getTradeSwapCleanupQueue(admin, repId)
@@ -210,8 +211,8 @@ async function main() {
       requestIds.includes(item.requestId),
     )
     assertSmoke(
-      smokeCleanup.length === 2,
-      'cleanup queue returns the two unresolved swap items',
+      smokeCleanup.length === 1,
+      'cleanup queue returns only the ring-size item',
     )
     assertSmoke(
       smokeCleanup.some(
@@ -222,12 +223,8 @@ async function main() {
       'cleanup queue includes ring-size item',
     )
     assertSmoke(
-      smokeCleanup.some(
-        (item) =>
-          item.revealedItemNumber === itemRevealedUnknown &&
-          item.replacementStatus === 'needs_catalog_details',
-      ),
-      'cleanup queue includes catalog-details item',
+      !smokeCleanup.some((item) => item.revealedItemNumber === itemRevealedUnknown),
+      'unknown number creates no cleanup task',
     )
 
     const { data: swapRows, error: swapError } = await admin
@@ -238,8 +235,8 @@ async function main() {
       .in('request_id', requestIds)
     if (swapError) throw swapError
     assertSmoke(
-      (swapRows ?? []).length === 3,
-      'database has three trade_swaps rows for smoke requests',
+      (swapRows ?? []).length === 2,
+      'database has two trade_swaps rows; the unknown number has none',
     )
 
     if (!pass) throw new Error('trade swap smoke assertions failed')

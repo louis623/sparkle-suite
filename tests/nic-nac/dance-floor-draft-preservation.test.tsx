@@ -105,18 +105,12 @@ describe('mounted Floor draft ownership and transitions', () => {
     expect(host.querySelector<HTMLInputElement>('input[type="search"]')!.value).toBe('Dancer')
     expect(row(30)).not.toBeNull(); expect(window.scrollBy).toHaveBeenLastCalledWith(0, 0)
   })
-  it('pins the same mounted editor after a real photo mutation leaves Needs a photo', async () => {
-    await render()
-    await act(async () => { window.dispatchEvent(new Event('dance-floor-needs-photo')) }); await flush()
-    await dirty(0); const original = notes()
-    const file = host.querySelector<HTMLInputElement>('input[type="file"]')!
-    Object.defineProperty(file, 'files', { configurable: true, value: [new File(['fixture'], 'photo.png', { type: 'image/png' })] })
-    await act(async () => { file.dispatchEvent(new Event('change', { bubbles: true })) }); await flush()
-    expect(writes.map(w => w.url)).toContain('/api/nic-nac/trade-board/uploads')
-    expect(notes()).toBe(original); expect(notes().value).toBe('keep these notes'); expect(quantity().value).toBe('3')
-    expect(host.querySelector<HTMLInputElement>('input[type="checkbox"]:last-child')).toBeDefined()
-    expect(row(0)).not.toBeNull()
+  it('has no photo controls while retaining a dirty editor', async () => {
+    await render(); await dirty()
+    expect(host.textContent).not.toMatch(/Change photo|Use catalog photo|Needs a photo/)
+    expect(host.querySelector('input[type="file"]')).toBeNull()
   })
+
   it('ignores stale Load more responses while the winning refresh retains its requested extent', async () => {
     await render(); await dirty(0)
     const held = deferred<Response>(); let heldOnce = false
@@ -162,7 +156,7 @@ describe('mounted Floor draft ownership and transitions', () => {
     await render(); await dirty(0); lookupStatus = status; server = server.slice(1); await refresh()
     expect(notes().value).toBe('keep these notes'); expect(quantity().value).toBe('3')
     expect(host.textContent).toContain("That dancer isn't on your Floor anymore.")
-    for (const label of ['Save', 'Change photo', 'Remove', 'Use catalog photo']) expect(button(label).disabled).toBe(true)
+    for (const label of ['Save', 'Remove']) expect(button(label).disabled).toBe(true)
     expect(quantity().disabled).toBe(true)
     await click(button('Cancel')); expect(notes()).toBeNull()
   })
@@ -180,14 +174,14 @@ describe('mounted Floor draft ownership and transitions', () => {
     await click(button('Take off Floor'))
     expect(notes()).toBeNull(); expect(button('Put back on the Floor')).toBeDefined()
   })
-  it('guards search, filters, Clear, other editor, Needs-a-photo, hash and section navigation; unload warns only while dirty', async () => {
+  it('guards search, filters, Clear, other editor, hash and section navigation; unload warns only while dirty', async () => {
     await render()
     const clean = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(clean); expect(clean.defaultPrevented).toBe(false)
     await dirty(0)
     await input(host.querySelector<HTMLInputElement>('input[type="search"]')!, 'blocked')
     await click(button('Clear filters')); await click(button('Edit', row(1)))
     const checkbox = [...host.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')][0]; await click(checkbox)
-    await act(async () => { window.dispatchEvent(new Event('dance-floor-needs-photo')); window.history.replaceState(null, '', '#dancer=' + ids(1)); window.dispatchEvent(new HashChangeEvent('hashchange')) })
+    await act(async () => { window.history.replaceState(null, '', '#dancer=' + ids(1)); window.dispatchEvent(new HashChangeEvent('hashchange')) })
     await click(button('Home section'))
     expect(host.textContent).not.toContain('Home content'); expect(host.textContent).toContain('Save or cancel your changes first.')
     expect(notes().value).toBe('keep these notes'); expect(quantity().value).toBe('3')
