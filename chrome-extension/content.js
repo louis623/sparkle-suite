@@ -43,15 +43,21 @@
     if (stopped || sender.id !== chrome.runtime.id || !message || !['sparkle-v2-read', 'sparkle-v2-inspect'].includes(message.action)) return false;
     if (message.action === 'sparkle-v2-read' && (!Number.isSafeInteger(message.generation) || message.generation < 1 || !message.selection || Array.isArray(message.selection) || typeof message.selection !== 'object')) return false;
     discover();
-    let snapshot;
-    try { snapshot = parser.parseTable(table, message.action === 'sparkle-v2-inspect' ? null : message.selection); }
-    catch { snapshot = { parserState: "invalid", reason: "parser_exception", entries: [], revealedIds: [], revealedEntries: [] }; }
+    let snapshot, discovery;
+    try {
+      // Both parses run synchronously against the same DOM turn. A cached inspect
+      // from before a network claim cannot certify discovery for this snapshot.
+      discovery = parser.parseDiscovery(table,message.excludedPartyIds ?? []);
+      snapshot = message.action === 'sparkle-v2-inspect' ? discovery : parser.parseTable(table,message.selection);
+    } catch { snapshot = discovery = { parserState: "invalid", reason: "parser_exception", entries: [], revealedIds: [], revealedEntries: [] }; }
     // A stable empty table is connected; a transient clearing during render is not.
-    if (snapshot.parserState === 'ready' && (Date.now() < lastMutationAt || Date.now() - lastMutationAt < 500))
-      snapshot = {...snapshot, parserState:'loading', reason:'table_settling'};
+    if (Date.now() < lastMutationAt || Date.now() - lastMutationAt < 500) {
+      if (snapshot.parserState === 'ready') snapshot = {...snapshot, parserState:'loading', reason:'table_settling'};
+      if (discovery.parserState === 'ready') discovery = {...discovery, parserState:'loading', reason:'table_settling'};
+    }
     if (!Number.isSafeInteger(++serial)) { documentId = crypto.randomUUID(); serial = 1; }
     respond({ protocol: 2, readerVersion: READER_VERSION, ...(message.action === 'sparkle-v2-read' ? { generation: message.generation } : {}),
-      source: { documentId, serial, settled: snapshot.parserState === 'ready' }, snapshot });
+      source: { documentId, serial, settled: snapshot.parserState === 'ready' && discovery.parserState === 'ready' }, snapshot, discovery });
     return false;
   }
   function stop() {

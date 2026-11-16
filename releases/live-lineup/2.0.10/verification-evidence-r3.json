@@ -1,0 +1,20 @@
+{
+  "version": "2.0.10",
+  "supersedesUnsubmittedSha256": [
+    "ed00fadc3f960c1ffb961824cd5d707a475db132d90ca77df7db32d19aab31bf",
+    "da4be64ab45b01b7e386be63f918ca52b44b5a7cb380425410ecac588dde4fa6"
+  ],
+  "sha256": "4fc4532d043bfd0c2fb3ab07e079d0b84f2d091c7d8ae6155ae7cd364018156a",
+  "focusedChecks": {
+    "discoveryHonesty": 5,
+    "installedUpdateState": 1
+  },
+  "result": "6 passed; original4discovery+1updater once, newall-excludedcaseonly once afterreviewcorrection",
+  "contentSafetyScans": [
+    0,
+    0,
+    0
+  ],
+  "storeSubmitted": false,
+  "serverCompatibleSha": "6829c9cd0539f7f5ee939448692740f1a9b206d5"
+}

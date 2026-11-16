@@ -24,13 +24,21 @@
   function create({storage,key,version,fetchRelease,requestCheck,reload,now=Date.now}) {
     let mutations=Promise.resolve();
     async function load(){const value=(await storage.get(key))[key];return value && typeof value==='object' && !Array.isArray(value)?value:{};}
-    function save(patch){const result=mutations.then(async()=>{const value={...await load(),...patch};await storage.set({[key]:value});return value;});mutations=result.catch(()=>{});return result;}
+    function save(patch){const result=mutations.then(async()=>{const current=await load(),value={...current,...(typeof patch==='function'?patch(current):patch)};await storage.set({[key]:value});return value;});mutations=result.catch(()=>{});return result;}
     async function getState(){const s=await load();return STATES.has(s.updateState)?s.updateState:'unknown';}
     async function noteDownload(target){if(compare(target,version)!==1)return false;await save({downloadedVersion:target,updateState:'downloaded'});return true;}
     async function check(){
       let s=await load(),time=now();
+      const installed=target=>{const order=compare(version,target);return order!==null && order>=0;};
+      // Chrome may install while idle without our reload attempt. Reconcile both records independently.
+      // Recheck inside the write queue so a newer download arriving concurrently cannot be erased.
+      if(installed(s.attemptVersion) || installed(s.downloadedVersion))s=await save(current=>{
+        const attemptedInstalled=installed(current.attemptVersion),downloadInstalled=installed(current.downloadedVersion);
+        return {...(attemptedInstalled?{attemptVersion:null,attemptAt:null}:{}),
+          ...(downloadInstalled?{downloadedVersion:null}:{}),
+          ...(downloadInstalled || attemptedInstalled && !current.downloadedVersion?{updateState:'unknown'}:{})};
+      });
       // An attempted reload which left the same version running stays blocked for its full cooldown.
-      if(s.attemptVersion && compare(version,s.attemptVersion)>=0)s=await save({attemptVersion:null,attemptAt:null,downloadedVersion:null,updateState:'unknown'});
       if(elapsed(time,s.descriptorCheckedAt,FIVE_MINUTES))return;
       s=await save({descriptorCheckedAt:time}); // persist before network; worker restarts must not hammer the origin
       let release;

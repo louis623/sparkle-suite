@@ -144,11 +144,13 @@ async function messageTabWithHeal(tabId, message) {
     return messageTab(tabId,message);
   }
 }
-async function sourceRead(tabId, descriptor, inspectOnly = false) {
+async function sourceRead(tabId, descriptor, inspectOnly = false, excludedPartyIds = []) {
   const started = Date.now();
-  let response = await messageTabWithHeal(tabId, inspectOnly || descriptor.generation === 0 ? {action:'sparkle-v2-inspect'} : {action:'sparkle-v2-read',selection:descriptor.scope,generation:descriptor.generation});
+  const message = inspectOnly || descriptor.generation === 0 ? {action:'sparkle-v2-inspect',excludedPartyIds}
+    : {action:'sparkle-v2-read',selection:descriptor.scope,generation:descriptor.generation,excludedPartyIds};
+  let response = await messageTabWithHeal(tabId,message);
   if(response?.readerVersion !== chrome.runtime.getManifest().version && await healReader(tabId))
-    response=await messageTab(tabId,inspectOnly || descriptor.generation===0 ? {action:'sparkle-v2-inspect'} : {action:'sparkle-v2-read',selection:descriptor.scope,generation:descriptor.generation});
+    response=await messageTab(tabId,message);
   if (Date.now() < started || Date.now() - started > 5000 || response?.protocol !== 2
     || !inspectOnly && descriptor.generation > 0 && response.generation !== descriptor.generation
     || !UUID.test(response.source?.documentId || '') || !Number.isSafeInteger(response.source?.serial) || response.source.serial < 0
@@ -158,7 +160,7 @@ async function sourceRead(tabId, descriptor, inspectOnly = false) {
   const matched = readerVersion === chrome.runtime.getManifest().version;
   // An old/unknown reader cannot certify the new worker's snapshot. Do not refresh the page.
   const snapshot = matched ? response.snapshot : {parserState:'partial',reason:null,entries:[],revealedIds:[],revealedEntries:[]};
-  return {...snapshot,readerVersion,updateState:await updater.getState(),observation:{...response.source,settled:matched && response.source.settled,serverTime:descriptor.serverTime}};
+  return {...snapshot,discovery:matched ? response.discovery : null,readerVersion,updateState:await updater.getState(),observation:{...response.source,settled:matched && response.source.settled,serverTime:descriptor.serverTime}};
 }
 async function adopt(state, descriptor, source, parties, configured = false) {
   const changed = state.generation !== descriptor.generation;
@@ -189,27 +191,55 @@ function needsConfigure(state, descriptor, parties) {
   const detected = parties.map(x=>x.id), desired = (state.excludedPartyIds || []).filter(x=>detected.includes(x));
   return detected.some(id=>!descriptor.scope.partyIds.includes(id)) || !sameSet(desired,descriptor.scope.excludedPartyIds.filter(id=>detected.includes(id)));
 }
+function discoveryExclusions(state, descriptor) {
+  if (descriptor.scope && state.generation !== descriptor.generation) return descriptor.scope.excludedPartyIds;
+  return state.scopePending ? state.excludedPartyIds || [] : descriptor.scope?.excludedPartyIds || state.excludedPartyIds || [];
+}
+function knownParties(source, descriptor, full, excludedPartyIds) {
+  // Preserve known/absent parties and their exclusions; discovery only adds new
+  // proven identities and updates counts. An unreadable/empty view never removes them.
+  const map = new Map();
+  for (const item of source?.generation === descriptor.generation ? source.parties || [] : [])
+    if (PARTY.test(item.id)) map.set(item.id,item);
+  for (const id of [...(descriptor.scope?.partyIds || []),...excludedPartyIds])
+    if (PARTY.test(id) && !map.has(id)) map.set(id,{id,orderCount:0,unrevealedCount:0});
+  if (full?.parserState === 'ready') for (const item of summarize(full)) map.set(item.id,item);
+  return [...map.values()].sort((a,b)=>a.id.localeCompare(b.id));
+}
 async function prepare() {
   let state = await store.load(); if (!state?.enabled) return null;
   const descriptor = await describe(state), source = await selected(), choices = await tabs();
   if (!choices.length) throw fail('source_unavailable');
-  // Reopened pages recover; multiple unselected pages remain ambiguous.
   const tab = choices.find(x=>x.id === source?.tabId) || (choices.length === 1 ? choices[0] : null);
   if (!tab) throw fail('source_ambiguous');
   activePull.tabId = tab.id;
-  const full = await sourceRead(tab.id,descriptor,true), discovered = summarize(full);
-  const parties = discovered.length ? discovered : source?.parties || (descriptor.scope?.partyIds || []).map(id=>({id,orderCount:0,unrevealedCount:0}));
+  const excluded = discoveryExclusions(state,descriptor);
+  const full = await sourceRead(tab.id,descriptor,true,excluded);
+  const parties = knownParties(source,descriptor,full,excluded);
   state = await adopt(state,descriptor,{tabId:tab.id},parties);
-  // A scoped read can be healthy even if unrelated ancient history is malformed.
-  const hint = descriptor.generation === 0 ? full : await sourceRead(tab.id,descriptor);
-  return {state,descriptor,parties,tabId:tab.id,diagnosticSnapshot:hint,readyHint:hint.parserState === 'ready' || full.parserState === 'ready'};
+  return {state,descriptor,parties,tabId:tab.id,diagnosticSnapshot:full,
+    readyHint:full.parserState === 'ready' && full.observation.settled};
 }
 async function freshSnapshot(prepared) {
   const state = await store.load(), descriptor = await describe(state);
   if (descriptor.generation !== prepared.descriptor.generation || !sameSet(descriptor.scope?.partyIds || [],prepared.descriptor.scope?.partyIds || [])
     || !sameSet(descriptor.scope?.excludedPartyIds || [],prepared.descriptor.scope?.excludedPartyIds || [])
     || descriptor.scope?.startedAt !== prepared.descriptor.scope?.startedAt) throw fail('show_changed');
-  return sourceRead(prepared.tabId,descriptor);
+  const excluded = discoveryExclusions(state,descriptor);
+  const snapshot = await sourceRead(prepared.tabId,descriptor,false,excluded), full = snapshot.discovery;
+  if (!full || full.parserState !== 'ready') {
+    // Keep exact bounded failure evidence, not a healthy scoped subset which
+    // could silently omit a newly opened party.
+    const failure = full && ['invalid','partial','loading'].includes(full.parserState) ? full
+      : {parserState:'partial',reason:'table_incomplete',entries:[],revealedIds:[],revealedEntries:[]};
+    return {...failure,readerVersion:snapshot.readerVersion,updateState:snapshot.updateState,
+      observation:{...snapshot.observation,settled:false}};
+  }
+  prepared.parties = knownParties({generation:descriptor.generation,parties:prepared.parties},descriptor,full,excluded);
+  if (descriptor.generation > 0 && snapshot.parserState === 'ready' && needsConfigure(state,descriptor,prepared.parties))
+    return {...snapshot,parserState:'partial',reason:'table_incomplete',failure:{version:1,stage:'scope',rowIndex:null,cellCount:null},
+      entries:[],revealedIds:[],revealedEntries:[],observation:{...snapshot.observation,settled:false}};
+  return snapshot;
 }
 async function status() {
   const state = await store.load(), source = await selected(), now = Date.now();

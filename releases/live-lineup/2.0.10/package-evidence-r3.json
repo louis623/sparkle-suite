@@ -1,0 +1,47 @@
+{
+  "archive": "/workspaces/ss-208-reporting/releases/live-lineup/2.0.10/sparkle-suite-live-lineup-2.0.10-cws-r3.zip",
+  "inventoryFile": "/workspaces/ss-208-reporting/releases/live-lineup/2.0.10/approved-inventory.txt",
+  "sourceDir": "/workspaces/ss-208-reporting/chrome-extension",
+  "sha256": "4fc4532d043bfd0c2fb3ab07e079d0b84f2d091c7d8ae6155ae7cd364018156a",
+  "bytes": 29593,
+  "manifestVersion": "2.0.10",
+  "inventory": [
+    "background.js",
+    "content.js",
+    "icons/icon128.png",
+    "icons/icon16.png",
+    "icons/icon48.png",
+    "manifest.json",
+    "popup.css",
+    "popup.html",
+    "popup.js",
+    "publisher-client.js",
+    "queue-filter.js",
+    "queue-parser.js",
+    "update-client.js"
+  ],
+  "manifestReferences": [
+    "background.js",
+    "content.js",
+    "icons/icon128.png",
+    "icons/icon16.png",
+    "icons/icon48.png",
+    "popup.html",
+    "queue-parser.js"
+  ],
+  "sourceSha256": {
+    "background.js": "810d4695953fd6082bd38f03eed4423325763bb3f0f9ed01020d8aed031fe87c",
+    "content.js": "a7f99bca9c189e9819bd5b45c0ab8e423ed394b446e9f626f0d55f4b7daa5cb1",
+    "icons/icon128.png": "488ac0f9e5923677946bf0b33493339fd267d854c1764fcfae962c90b74cf495",
+    "icons/icon16.png": "840e3dd93686dfa915050361fdad0dde044396db03f34032f4e8ad1fd8dc1439",
+    "icons/icon48.png": "11931d6a6bde588bd267ae650551e624e2bf5b61e24adf2087651a9bb5675e31",
+    "manifest.json": "084a662202fddbae438459682e578a3a01acedccafc449a2f4fc78f06f8b1623",
+    "popup.css": "fe15aa8dc2e40697021d9d7309edef17a77ddbd97c2fe80d8328bf98a09fe926",
+    "popup.html": "3243d851420fc6d7e5e3f775d31366dae9d207708005c226e6ca2fd763b1af83",
+    "popup.js": "95f7963bf35c0970c46865fb3937c156f80a4da62c16d62c5e5303df82cae3d2",
+    "publisher-client.js": "2061eb310c1ca60e58d5ff82e5b22fd7a0f77f73c6cb20464f7578e8adfe7a3c",
+    "queue-filter.js": "0fbf223fe33df871efc8447b82a5a5a64b8f270ed2837537cf5f4c3058e0b828",
+    "queue-parser.js": "b2e431c13f5d649151e481f38481c4641277ffe338750c58e4d475923ada57cd",
+    "update-client.js": "0b858b42705bced040e34f2c6ee63c448feb2503981557ee7bffdc4b8e449275"
+  }
+}
