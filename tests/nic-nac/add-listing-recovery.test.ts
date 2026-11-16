@@ -311,7 +311,7 @@ function makeAdminClientMock(
 
   return {
     from: vi.fn((table: string) => {
-      if (table === 'trade_board_intake_photos') {
+      if (table === 'trade_board_intake_photos' || table === 'trade_board_intake_sessions') {
         const chain: Record<string, unknown> = { data: [], error: null }; chain.select = () => chain; chain.eq = () => chain; return chain
       }
       if (table === 'trade_listings') {
@@ -1377,8 +1377,8 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         collectionName: 'Lustre',
       }),
     ).rejects.toMatchObject({
-      code: 'PHOTO_CHOICE_REQUIRED',
-      userMessage: expect.stringContaining('actual jewelry photo'),
+      code: 'MAIN_PHOTO_REQUIRED',
+      userMessage: expect.stringContaining('customer-facing jewelry photo'),
     })
     expect(uploadJewelryPhotoMock).not.toHaveBeenCalled()
     expect(uploadStagedOriginalPhotoMock).not.toHaveBeenCalled()
@@ -1692,7 +1692,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('NEW-100', 'data:image/jpeg;base64,BBBB') })
     await expect(
       tool.execute({
         mode: 'single',
@@ -1741,7 +1741,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('NEW-100', 'data:image/jpeg;base64,CCCC') })
     await expect(
       tool.execute({
         mode: 'single',
@@ -1772,7 +1772,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         designName: 'Sapphire Halo',
         collectionName: 'Lustre',
       }),
-    ).rejects.toMatchObject({ code: 'MISSING_PIECE_PHOTO' })
+    ).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
     expect(createDesignMock).not.toHaveBeenCalled()
     expect(uploadJewelryPhotoMock).not.toHaveBeenCalled()
   })
@@ -3091,7 +3091,6 @@ describe('add_listing - active workflow readiness guard', () => {
       expect.anything(),
       'rep-1',
       expect.objectContaining({
-        listingPhotoUrl: undefined,
       }),
     )
   })
@@ -3185,7 +3184,6 @@ describe('add_listing - active workflow readiness guard', () => {
       expect.anything(),
       'rep-1',
       expect.objectContaining({
-        listingPhotoUrl: undefined,
       }),
     )
   })
@@ -3258,7 +3256,6 @@ describe('add_listing - active workflow readiness guard', () => {
       expect.anything(),
       'rep-1',
       expect.objectContaining({
-        listingPhotoUrl: undefined,
       }),
     )
   })
@@ -3386,7 +3383,6 @@ describe('add_listing - active workflow readiness guard', () => {
         itemNumber: 'NK88350',
         material: 'Rhodium Plating',
         mainStone: 'Malachite Magnesite',
-        listingPhotoUrl: undefined,
       }),
     )
   })

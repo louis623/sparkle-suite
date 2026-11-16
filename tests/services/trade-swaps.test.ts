@@ -460,7 +460,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
     await expect(approveTradeWithRevealedItemCapture(client, 'rep-1', {
       requestId: 'request-1',
       revealedItemNumber: 'ER00001',
-    })).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+    })).rejects.toMatchObject({ name: 'RevealCaptureNotCommitted' })
 
     expect(addListingMock).not.toHaveBeenCalled()
     expect(approveTradeMock).not.toHaveBeenCalled()
@@ -619,7 +619,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
     await expect(approveTradeWithRevealedItemCapture(client, 'rep-1', {
       requestId: 'request-1',
       revealedItemNumber: 'NK12345',
-    })).rejects.toMatchObject({ code: 'REQUESTED_ITEM_UNVERIFIED' })
+    })).rejects.toMatchObject({ name: 'RevealCaptureNotCommitted' })
 
     expect(spies.rpc).not.toHaveBeenCalled()
     expect(spies.update).not.toHaveBeenCalled()
@@ -676,6 +676,7 @@ describe('getTradeSwapCleanupQueue', () => {
         outgoingListingId: 'outgoing-listing-1',
         revealedItemNumber: 'ER00001',
         revealedRingSize: null,
+        missingFields: ['collectionName','material'],
         replacementStatus: 'needs_catalog_details',
         createdAt: '2026-06-11T20:00:00.000Z',
       },

@@ -115,7 +115,7 @@ describe('rep trade review UI', () => {
     expect(alert).toContain("onReview(active.id, 'approve')")
     expect(alert).toContain("onReview(active.id, 'reject')")
     expect(alert).not.toContain('trade-alert-ack-v1')
-    expect(alert).toContain('Customer-reported details:')
+    expect(readFileSync(resolve(base, 'TradeRequestLiveCard.tsx'), 'utf8')).toContain('Customer says they revealed')
     expect(css).toContain('prefers-reduced-motion: reduce')
   })
 

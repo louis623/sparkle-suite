@@ -208,7 +208,7 @@ export async function approveTradeWithRevealedItemCapture(
       if (error.message?.includes('VERIFICATION_REQUIRED')) throw requestedTradeFactsError()
       throw error
     }
-    if (!data?.swap_id || !data?.fulfillment_id) throw new Error('atomic trade swap approval returned incomplete data')
+    if (!data?.swap_id || !data?.fulfillment_id || !data?.request_id || !data?.listing_id || typeof data?.customer_name !== 'string') throw new Error('atomic trade swap approval returned incomplete data')
     swapId = data.swap_id as string
     approved = {
       requestId: data.request_id as string,

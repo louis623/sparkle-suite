@@ -110,7 +110,7 @@ export function DancerFloor(props: {
         <FloorPhoto photoUrl={display.photoUrl} alt={display.designName} />
         <div className={styles.dancerInfo}><p className={styles.collection}>{display.collectionName}</p><h3>{display.designName}</h3><p>{display.typeLabel}{display.size ? ' · Size ' + display.size : ''}</p>
           <div className={styles.chips}><span className={listing.status === 'available' ? styles.available : listing.status === 'pending_trade' ? styles.pending : styles.swapped}>{listing.status === 'available' ? 'Available' : listing.status === 'pending_trade' ? 'Pending swap' : 'Swapped'}</span>
-          {listing.status === 'available' && listing.listed_at && Date.parse(listing.listed_at) < Date.now() - 30 * 86400000 && <span className={styles.chip}>Sitting 30+ days</span>}
+          {listing.status === 'available' && listing.listed_at && Date.parse(listing.listed_at) < Date.now() - 30 * 86400000 && <span className={styles.chip}>Sitting 30+ days</span>}</div>
           <p className={styles.facts}>{listing.daysOnFloor ?? 0}d on the Floor · {listing.requestCount ? listing.requestCount + (listing.requestCount === 1 ? ' request' : ' requests') : 'No requests yet'} · Qty {listing.quantity_available ?? 1}</p>
         </div>
         {listing.status !== 'traded' && listing.status !== 'removed' && editor !== listing.id && <button type="button" className={styles.secondary + ' ' + styles.editButton} onClick={() => open(listing.id)}>Edit</button>}

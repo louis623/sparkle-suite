@@ -121,7 +121,6 @@ describe('approve_trade_swap', () => {
         revealedMaterial: undefined,
         revealedRingSize: undefined,
         repNotes: 'approved live',
-        verification: { verifiedOfferedFamily: 'Birthday', verifiedOfferedType: 'NK', verificationConfirmed: true, finalConfirmation: true },
       },
     )
     expect(writeTradeActionAuditMock).toHaveBeenCalledWith(

@@ -157,6 +157,7 @@ describe('dance floor route', () => {
     expect(getMyBoardMock).not.toHaveBeenCalled()
     expect(response.status).toBe(400)
     await expect(response.json()).resolves.toEqual({
+      code: 'INVALID_INPUT',
       error: 'limit must be a whole number.',
     })
   })
@@ -285,6 +286,7 @@ describe('dance floor route', () => {
 
     expect(response.status).toBe(401)
     await expect(response.json()).resolves.toEqual({
+      code: 'UNAUTHENTICATED',
       error: 'unauthenticated',
     })
   })

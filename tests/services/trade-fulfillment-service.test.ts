@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
+const admin=vi.hoisted(()=>({rpc:vi.fn()}))
+vi.mock('@/lib/supabase/admin',()=>({createAdminClient:()=>admin}))
 import {
   getFulfillmentLogPage,
   getFulfillmentQueue,
@@ -53,6 +55,12 @@ function makeFulfillmentSupabase(row: Record<string, unknown>) {
     }
   })
 
+  admin.rpc.mockImplementation(async(_name,input)=>{
+    const changed=input.p_next_status!==row.fulfillment_status
+    const patch=changed?{fulfillment_status:input.p_next_status,completed_at:input.p_next_status==='completed'?new Date().toISOString():null}:input.p_write_notes?{shipping_notes:input.p_shipping_notes}:null
+    if(patch)update(patch)
+    return {data:{...row,...patch,previous_status:row.fulfillment_status,changed},error:null}
+  })
   return {
     supabase: { from },
     spies: {

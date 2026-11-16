@@ -1552,7 +1552,7 @@ async function runSingle(
             typeof committedDesign.collection_id === 'string'
               ? committedDesign.collection_id
               : null,
-          collectionName: collectionName.trim(),
+          collectionName: collectionName?.trim() ?? '',
           collectionYear: input.collectionYear ?? null,
           searchTags: Array.isArray(committedDesign.search_tags)
             ? committedDesign.search_tags.map(String)

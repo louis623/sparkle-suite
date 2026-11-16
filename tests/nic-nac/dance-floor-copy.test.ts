@@ -9,7 +9,7 @@ describe('Dance Floor wording and scope', () => {
     expect(source).toContain('>Remove</button>')
     expect(source).not.toContain('FloorInsights')
     expect(source).not.toContain('Add dancers')
-    expect(source).not.toContain('Add to Floor')
+    expect(source).toContain('Add to Floor') // Existing follow-up action, not the removed Add dancers box.
     expect(source).toContain('Private. Only you can see notes.')
     expect(source).toContain('ph-no-capture')
   })
