@@ -2,17 +2,20 @@
 (function (root) {
   "use strict";
   const ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,60}$/;
-  const HEADER_ALIASES = {partyid:'PartyID','party id':'PartyID',orderid:'OrderID','order id':'OrderID',firstname:'FirstName','first name':'FirstName',lastname:'LastName','last name':'LastName',orderdate:'OrderDate','order date':'OrderDate',isrevealed:'IsRevealed'};
+  const HEADER_ALIASES = {partyid:'PartyID','party id':'PartyID',orderid:'OrderID','order id':'OrderID',firstname:'FirstName','first name':'FirstName',lastname:'LastName','last name':'LastName',orderdate:'OrderDate','order date':'OrderDate',isrevealed:'IsRevealed',revealed:'IsRevealed'};
   function headerKey(cell) {
     const sort = cell.getAttribute('data-sort-by');
-    if (sort) return sort;
+    if (sort) {
+      const key = sort.trim().toLowerCase();
+      return Object.hasOwn(HEADER_ALIASES, key) ? HEADER_ALIASES[key] : sort;
+    }
     const label = cell.querySelector?.('.header-content span, .header-content');
-    return HEADER_ALIASES[String(label?.textContent || '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase()] || null;
+    return HEADER_ALIASES[String(label?.textContent || cell.textContent || '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase()] || null;
   }
   function identityText(value, kind) {
     const text = String(value || '').replace(/\u00a0/g,' ').trim();
     if (ID.test(text)) return text;
-    const labelled = text.match(new RegExp('^' + kind + '(?:\\s+ID)?\\s*[:#]?\\s+([A-Za-z0-9][A-Za-z0-9_-]{0,60})$', 'i'));
+    const labelled = text.match(new RegExp('^' + kind + '(?:\\s+ID)?(?:\\s*[:#]\\s*|\\s+)([A-Za-z0-9][A-Za-z0-9_-]{0,60})$', 'i'));
     return labelled ? labelled[1] : '';
   }
   function readIdentity(row, cells, attribute, column, kind) {
@@ -31,7 +34,40 @@
     return fromAttribute || fromCell || fromLink;
   }
   const unavailable = (parserState, reason) => ({parserState, reason, entries: [], revealedIds: [], revealedEntries: []});
-  function parseTable(table, selection = null) {
+  const CANONICAL_COLUMNS = new Set(['PartyID','OrderID','FirstName','LastName','OrderDate','IsRevealed']);
+  const bucket = count => count === 0 ? '0' : count <= 10 ? '1-10' : count <= 100 ? '11-100' : count <= 1000 ? '101-1000' : count <= 10000 ? '1001-10000' : '10001+';
+  function tableParts(table) {
+    // Native tBodies/children exclude nested tables. The query fallback also
+    // supports DOM implementations which expose only selector methods.
+    const head = table?.tHead || table?.querySelector?.('thead') || null;
+    const bodies = table?.tBodies ? Array.from(table.tBodies) : Array.from(table?.querySelectorAll?.('tbody') || [table?.querySelector?.('tbody')].filter(Boolean))
+      .filter(body => !body.parentElement || body.parentElement === table);
+    const allRows = [], rows = [];
+    let nested = false;
+    for (const body of bodies) {
+      const direct = Array.from(body.children || body.querySelectorAll('tr')).filter(row => !row.tagName || row.tagName === 'TR')
+        .filter(row => !row.parentElement || row.parentElement === body);
+      for (const row of direct) allRows.push(row);
+      const matched = body.querySelectorAll('tr.product.product-row');
+      for (const row of matched) if (!row.parentElement || row.parentElement === body) rows.push(row);
+      if (direct.some(row => row.querySelector?.('table'))) nested = true;
+    }
+    return {head,bodies,allRows,rows,nested};
+  }
+  function structureOf(parts) {
+    const {head,bodies,allRows,rows} = parts;
+    const headers = Array.from(head?.querySelectorAll('th') || []);
+    // No arbitrary labels, classes, attribute values, IDs or customer text leave
+    // this function. Even unknown headings become the same fixed enum.
+    return {version:1,columns:headers.slice(0,32).map(cell => {
+      const key = headerKey(cell); return CANONICAL_COLUMNS.has(key) ? key : 'unknown';
+    }),bodyCount:Math.min(bodies.length,32),rowCount:bucket(allRows.length),
+      unmatchedRows:bucket(Math.max(0,allRows.length-rows.length)),
+      hasOrderIdAttribute:allRows.some(row => row.getAttribute?.('data-orderid') != null),
+      hasPartyIdAttribute:allRows.some(row => row.getAttribute?.('data-partyid') != null),
+      hasOrderTimeAttribute:allRows.some(row => Array.from(row.querySelectorAll?.('td') || []).some(cell => cell.getAttribute?.('data-order-utc-ms') != null))};
+  }
+  function parseRows(table, selection, parts) {
     let parties = null, excluded = new Set();
     if (typeof selection === "string") {
       if (!ID.test(selection)) return unavailable("invalid", "invalid_scope");
@@ -56,22 +92,31 @@
     }
     if (!table || !table.isConnected) return unavailable("loading", "table_missing");
     if (table.getAttribute("aria-busy") === "true") return unavailable("loading", "table_busy");
-    const head = table.querySelector("thead"), body = table.querySelector("tbody");
-    if (!head || !body) return unavailable("loading", "table_incomplete");
+    const {head,bodies,allRows,rows,nested} = parts;
+    if (!head || !bodies.length) return unavailable("loading", "table_incomplete");
+    if (bodies.length > 32 || allRows.length > 50000) return unavailable("invalid", "scan_capacity_exceeded");
+    if (nested || head.rows && head.rows.length !== 1) return unavailable("partial", "table_incomplete");
     const columns = Object.create(null);
-    for (const [index, cell] of Array.from(head.querySelectorAll("th")).entries()) {
-      const key = headerKey(cell);
+    const headers = Array.from(head.querySelectorAll("th"), cell => ({
+      key: headerKey(cell), explicit: Boolean(cell.getAttribute('data-sort-by')?.trim()),
+    }));
+    const hasRevealDataColumn = headers.some(header => header.explicit && header.key === 'IsRevealed');
+    for (const [index, {key, explicit}] of headers.entries()) {
+      // A decorative label can repeat the title of the checkbox column.
+      if (key === 'IsRevealed' && hasRevealDataColumn && !explicit) continue;
       if (key && Object.prototype.hasOwnProperty.call(columns, key)) return unavailable("invalid", "duplicate_columns");
       if (key) columns[key] = index;
     }
     if (!Number.isInteger(columns.FirstName) || !Number.isInteger(columns.IsRevealed)) return unavailable("invalid", "columns_changed");
-    const rows = body.querySelectorAll("tr.product.product-row");
+    // A renamed row anywhere in any body must never disappear from a healthy
+    // snapshot. No partial row list is exposed; the server keeps its last good list.
+    if (rows.length !== allRows.length) return unavailable("partial", "table_incomplete");
     // Bound scanning separately from the selected parties' capacity.
     if (rows.length > 50000) return unavailable("invalid", "scan_capacity_exceeded");
 
     const entries = [], revealedIds = [], revealedEntries = [], seen = new Set();
     for (const row of rows) {
-      const cells = row.querySelectorAll("td");
+      const cells = row.children ? Array.from(row.children).filter(cell => cell.tagName === 'TD') : row.querySelectorAll("td");
       const orderId = readIdentity(row,cells,'data-orderid',columns.OrderID,'Order');
       const partyId = readIdentity(row,cells,'data-partyid',columns.PartyID,'Party');
       // Ignore only proven out-of-scope rows, never unidentified current orders.
@@ -105,6 +150,11 @@
     if (rows.length && !seen.size && (!parties || [...parties].some(id => !excluded.has(id)))) return unavailable("partial", "selected_party_not_visible");
     entries.sort((a, b) => (a.orderedAt ?? Number.MAX_SAFE_INTEGER) - (b.orderedAt ?? Number.MAX_SAFE_INTEGER) || a.id.localeCompare(b.id));
     return {parserState: "ready", reason: null, entries, revealedIds, revealedEntries};
+  }
+  function parseTable(table, selection = null) {
+    const parts = tableParts(table);
+    const structure = structureOf(parts);
+    return {...parseRows(table,selection,parts),structure};
   }
   const api = Object.freeze({parseTable});
   root.SparkleQueueParser = api;

@@ -1,0 +1,46 @@
+{
+  "file": "sparkle-suite-live-lineup-2.0.9-cws.zip",
+  "sourceCommit": "50b0ee4fa236b65fc8825db0f5c6f211a4a27a26",
+  "sha256": "73b61ee5721e01993198825fcad6c6d7e1cd0420af0f8faf15c790a715f0190e",
+  "bytes": 26997,
+  "manifestVersion": "2.0.9",
+  "inventory": [
+    "background.js",
+    "content.js",
+    "icons/icon128.png",
+    "icons/icon16.png",
+    "icons/icon48.png",
+    "manifest.json",
+    "popup.css",
+    "popup.html",
+    "popup.js",
+    "publisher-client.js",
+    "queue-filter.js",
+    "queue-parser.js",
+    "update-client.js"
+  ],
+  "manifestReferences": [
+    "background.js",
+    "content.js",
+    "icons/icon128.png",
+    "icons/icon16.png",
+    "icons/icon48.png",
+    "popup.html",
+    "queue-parser.js"
+  ],
+  "sourceSha256": {
+    "background.js": "4e415ac4ea2279f8893f31e721d6d2d05e904127e36500804cadee5a5c706a07",
+    "content.js": "3b14b15e098f4d9ca10e410f949ee747e2d56774c5e3ec23c31734da93986c3a",
+    "icons/icon128.png": "488ac0f9e5923677946bf0b33493339fd267d854c1764fcfae962c90b74cf495",
+    "icons/icon16.png": "840e3dd93686dfa915050361fdad0dde044396db03f34032f4e8ad1fd8dc1439",
+    "icons/icon48.png": "11931d6a6bde588bd267ae650551e624e2bf5b61e24adf2087651a9bb5675e31",
+    "manifest.json": "72c7a6a8e3e49e8a4328a8c52fd029ffcf19db2ae65d88197431e9f308b5b130",
+    "popup.css": "fe15aa8dc2e40697021d9d7309edef17a77ddbd97c2fe80d8328bf98a09fe926",
+    "popup.html": "3243d851420fc6d7e5e3f775d31366dae9d207708005c226e6ca2fd763b1af83",
+    "popup.js": "95f7963bf35c0970c46865fb3937c156f80a4da62c16d62c5e5303df82cae3d2",
+    "publisher-client.js": "52277e1e83fb8808673d60623f248ffb8d55fe3b673d688025ae5e431a55947f",
+    "queue-filter.js": "0fbf223fe33df871efc8447b82a5a5a64b8f270ed2837537cf5f4c3058e0b828",
+    "queue-parser.js": "eedec21b5a632a7a5d657684b49df65f23b8b1e76f319f30e765b9b9082e9fda",
+    "update-client.js": "ea1c57aab38c4f9152128c80223ce2ee072b67d84d6a210a534091262909bef7"
+  }
+}

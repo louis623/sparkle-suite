@@ -1,0 +1,84 @@
+{
+  "candidate": "2.0.9",
+  "sourceCommit": "50b0ee4fa236b65fc8825db0f5c6f211a4a27a26",
+  "focusedChecks": 20,
+  "focusedChecksPassed": 20,
+  "fullSuiteRun": false,
+  "namedFiles": [
+    "tests/sparkle-extension-v52.test.cjs",
+    "tests/sparkle-extension-worker-v2.test.cjs",
+    "tests/live-lineup-model.test.ts",
+    "tests/live-lineup-monitor.test.ts",
+    "tests/live-lineup-publish-retention.test.ts"
+  ],
+  "typescript": "Failed: unchanged card/QR modules missing @resvg/resvg-js, jsqr, qrcode; no changed-file diagnostics. No rerun. Clean Preview build pending.",
+  "retries": "Only malformed integration fixture, corrected monitor fixture/timer, and SQL harness percent escaping; all pass after correction.",
+  "postgres": {
+    "status": "PASS",
+    "check": "isolated PostgreSQL monitoring migration integration",
+    "migration": "20261116203706_live_lineup_monitor.sql",
+    "migrationSha256": "50b4ae6f8284fac87bdc6b155dcf86088b4a3561d92a171ff90f3d77332ed168",
+    "assertions": [
+      "no TCP listener",
+      "migration applies to PostgreSQL 15",
+      "RLS enabled on all three tables",
+      "anon has no table access",
+      "anon cannot execute RPCs",
+      "authenticated has no table access",
+      "authenticated cannot execute RPCs",
+      "four invoker RPCs granted only to service role",
+      "incident 1 opened",
+      "stale CAS rejected",
+      "stale CAS did not mutate state",
+      "incident 2 opened",
+      "incident 3 opened",
+      "concurrent workers claim disjoint deliveries under held locks",
+      "wrong worker cannot finish a delivery",
+      "owning worker can finish a delivery",
+      "incident 4 opened",
+      "webhook accepted independently",
+      "email retry queued independently",
+      "incident 4 recovered",
+      "recovery cancels unsent email",
+      "recovery only for accepted webhook channel",
+      "incident 5 opened",
+      "incident 5 recovered",
+      "silent transient has no recovery notice",
+      "silent transient cancels both pending channels",
+      "incident 6 opened",
+      "unsent webhook canceled",
+      "incident 6 recovered",
+      "late email acceptance recorded",
+      "late acceptance creates only email recovery",
+      "adoption first report accepted",
+      "adoption duplicate suppressed",
+      "one adoption job per release"
+    ],
+    "networkDatabaseConnections": 0
+  },
+  "realStoreTransition": "unverified",
+  "externalAlerts": "unconfigured/unverified",
+  "liveChanges": false,
+  "finalServerAmendment": {
+    "affectedChecksPassed": 2,
+    "unaffectedChecksSkipped": 4,
+    "filter": "disables external delivery|rejects cron requests",
+    "corrections": [
+      "required owner email independent of optional Watch hook",
+      "50-active-account bound, batches of ten",
+      "four concurrent deliveries, independent awaited sampling and delivery"
+    ]
+  },
+  "initialPreviewBuild": {
+    "id": "dpl_BHCdf5Baq1cLjCNkVsZEUq9w34kr",
+    "sha": "4e2c0c52e2d182bff87906d4be0def697f8eb676",
+    "productionBuild": "PASS",
+    "typescript": "PASS"
+  },
+  "smokeMigration": {
+    "project": "pukemqiwlyqmyytxkdmo",
+    "version": "20261116205449",
+    "rlsAndGrants": "PASS",
+    "repDataWritten": false
+  }
+}

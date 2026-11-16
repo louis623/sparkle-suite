@@ -4,6 +4,35 @@
   const CREDENTIAL = /^(?:sslp_[A-Za-z0-9_-]{43}|[A-Z0-9]{3}-[0-9]{4})$/;
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
   const ID = /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/;
+  const invalidReasons = new Set([
+    'invalid_scope', 'columns_changed', 'duplicate_columns', 'missing_order_identity', 'duplicate_order_identity',
+    'invalid_order_time', 'invalid_first_name', 'capacity_exceeded', 'scan_capacity_exceeded', 'parser_exception',
+  ]);
+  const loadingReasons = new Set(['table_missing','table_busy','table_incomplete','table_settling']);
+  const partialReasons = new Set(['table_incomplete','row_incomplete','reveal_state_missing','selected_party_not_visible']);
+  const reasonsFor = state => state === 'invalid' ? invalidReasons : state === 'loading' ? loadingReasons : state === 'partial' ? partialReasons : new Set();
+  const version = value => typeof value === 'string' && /^\d{1,5}(?:\.\d{1,5}){0,3}$/.test(value);
+  const updateStates = new Set(['unknown','checking','no_update','throttled','downloaded','installing','failed']);
+  function cleanStructure(input) {
+    const keys = ['version','columns','bodyCount','rowCount','unmatchedRows','hasOrderIdAttribute','hasPartyIdAttribute','hasOrderTimeAttribute'];
+    const columns = ['PartyID','OrderID','FirstName','LastName','OrderDate','IsRevealed','unknown'];
+    const buckets = ['0','1-10','11-100','101-1000','1001-10000','10001+'];
+    if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).length !== keys.length
+      || Object.keys(input).some(key => !keys.includes(key)) || input.version !== 1
+      || !Array.isArray(input.columns) || input.columns.length > 32 || input.columns.some(value => !columns.includes(value))
+      || !Number.isSafeInteger(input.bodyCount) || input.bodyCount < 0 || input.bodyCount > 32
+      || !buckets.includes(input.rowCount) || !buckets.includes(input.unmatchedRows)
+      || ['hasOrderIdAttribute','hasPartyIdAttribute','hasOrderTimeAttribute'].some(key => typeof input[key] !== 'boolean')) return null;
+    return {version:1,columns:[...input.columns],bodyCount:input.bodyCount,rowCount:input.rowCount,unmatchedRows:input.unmatchedRows,
+      hasOrderIdAttribute:input.hasOrderIdAttribute,hasPartyIdAttribute:input.hasPartyIdAttribute,hasOrderTimeAttribute:input.hasOrderTimeAttribute};
+  }
+  function diagnostics(snapshot, sourceVersion) {
+    const structure = cleanStructure(snapshot?.structure);
+    return {sourceVersion,readerVersion:version(snapshot?.readerVersion) ? snapshot.readerVersion : null,
+      updateState:updateStates.has(snapshot?.updateState) ? snapshot.updateState : 'unknown',parserState:snapshot?.parserState || 'loading',
+      ...(structure ? {structure} : {}),
+      ...(reasonsFor(snapshot?.parserState).has(snapshot?.reason) ? {parserReason:snapshot.reason} : {})};
+  }
   const integer = n => Number.isSafeInteger(n) && n >= 0;
   const time = s => typeof s === "string" && Number.isFinite(Date.parse(s));
   function cleanSnapshot(input) {
@@ -42,7 +71,8 @@
       observation = {documentId:o.documentId,serial:o.serial,serverTime:o.serverTime,settled:o.settled};
     }
     const reason = typeof input.reason === "string" && /^[a-z_]{1,64}$/.test(input.reason) ? input.reason : null;
-    return {parserState: input.parserState, reason, entries, revealedIds, ...(revealedEntries ? {revealedEntries} : {}), ...(observation ? {observation} : {})};
+    const structure = cleanStructure(input.structure);
+    return {parserState: input.parserState, reason, updateState:updateStates.has(input.updateState) ? input.updateState : 'unknown', ...(structure ? {structure} : {}), ...(Object.hasOwn(input,"readerVersion") ? {readerVersion:version(input.readerVersion) ? input.readerVersion : null} : {}), entries, revealedIds, ...(revealedEntries ? {revealedEntries} : {}), ...(observation ? {observation} : {})};
   }
   function validClaim(r, generation = 0) {
     return r && r.generation === generation && integer(generation) && typeof r.publisherId === "string" && UUID.test(r.publisherId) && integer(r.epoch) && r.epoch > 0 && integer(r.revision)
@@ -61,7 +91,7 @@
   // post must use the fixed Suite endpoint, bounded JSON, timeout, and no automatic credential redirects.
   function createPublisherClient({store, post, now = Date.now, randomId = () => crypto.randomUUID(), random = Math.random}) {
     let busy = false;
-    async function sync(input, sourceVersion, {readyHint = false} = {}) {
+    async function sync(input, sourceVersion, {readyHint = false, diagnosticSnapshot = null} = {}) {
       if (busy) return {status: "busy"};
       let snapshot = typeof input === 'function' ? null : cleanSnapshot(input);
       if (typeof input !== 'function' && !snapshot || typeof sourceVersion !== "string" || !/^[A-Za-z0-9._+-]{1,64}$/.test(sourceVersion)) return {status: "invalid_source"};
@@ -83,7 +113,7 @@
         if (!UUID.test(state.claimId || "")) await patch({claimId: randomId(), needsClaim: true, epoch: null, publisherId: null, nextSequence: 0});
         if (state.needsClaim || !state.epoch || !state.publisherId) {
           if (!readyHint && state.recoveryRetryAt > now()) return {status:'backoff'};
-          const receipt = await post(state.token, {action: "claim", claimId: state.claimId, generation: state.generation, ...(upgraded ? {capabilities:'lineup-2.0.5'} : {})});
+          const receipt = await post(state.token, {action: "claim", claimId: state.claimId, generation: state.generation, ...(diagnosticSnapshot ? {diagnostics:diagnostics(cleanSnapshot(diagnosticSnapshot),sourceVersion)} : {}), ...(upgraded ? {capabilities:'lineup-2.0.5'} : {})});
           if (!validClaim(receipt, state.generation) || upgraded && (receipt.claimId !== state.claimId || receipt.capabilities !== 'lineup-2.0.5')) throw Object.assign(new Error("invalid_receipt"), {code: "invalid_receipt"});
           await patch({publisherId: receipt.publisherId, epoch: receipt.epoch, needsClaim: false,
             nextSequence: Math.max(integer(state.nextSequence) ? state.nextSequence : 0, receipt.acceptedSequence + 1)});
@@ -91,6 +121,10 @@
         // The callable source is read AFTER a successful lease receipt. Claim/network
         // latency can never turn an earlier table read into a fresh observation.
         snapshot = typeof input === 'function' ? cleanSnapshot(await input()) : snapshot;
+        if (snapshot && Object.hasOwn(snapshot,'readerVersion') && snapshot.readerVersion !== sourceVersion) {
+          snapshot = {...snapshot,parserState:'partial',reason:null,entries:[],revealedIds:[],revealedEntries:[],
+            ...(snapshot.observation ? {observation:{...snapshot.observation,settled:false}} : {})};
+        }
         const readCompletedAt = now();
         if (!snapshot || upgraded && !snapshot.observation || state.generation > 0 && snapshot.parserState === 'ready' && snapshot.revealedIds.length && !snapshot.revealedEntries)
           throw Object.assign(new Error('invalid_source'),{code:'invalid_source'});
@@ -101,7 +135,11 @@
         const sentAt = now();
         if (upgraded && (sentAt < readCompletedAt || sentAt - readCompletedAt > 5000))
           throw Object.assign(new Error('stale_observation'),{code:'stale_observation'});
-        const receipt = await post(state.token, {action: "snapshot", packet: {...snapshot, reason: undefined,
+        const {reason, readerVersion, updateState, structure, ...sourcePacket} = snapshot;
+        const report = Object.hasOwn(snapshot,"readerVersion") ? diagnostics(snapshot,sourceVersion) : null;
+        const receipt = await post(state.token, {action: "snapshot", packet: {...sourcePacket,
+          ...(reasonsFor(snapshot.parserState).has(reason) ? {parserReason: reason} : {}),
+          ...(report ? {diagnostics:report} : {}),
           generation: state.generation, sourceVersion, publisherId: state.publisherId, epoch: state.epoch, sequence,
           ...(upgraded ? {claimId:state.claimId} : {})}});
         if (!validAck(receipt, sequence)) throw Object.assign(new Error("invalid_receipt"), {code: "invalid_receipt"});
@@ -112,7 +150,7 @@
         const nonReadyClaims = snapshot.parserState === 'ready' ? 0 : (state.nonReadyClaims || 0) + 1;
         await patch({lastAckAt: receivedAt, lastReadyAckAt: snapshot.parserState === "ready" ? receivedAt - (45000 - remaining) : state.lastReadyAckAt || null,
           readyDeadline: snapshot.parserState === 'ready' ? receivedAt + remaining : 0,
-          parserState: snapshot.parserState, parserReason: snapshot.reason, lastError: null, failureCount: 0, nextAttemptAt: 0, nonReadyClaims,
+          parserState: snapshot.parserState, parserReason: snapshot.reason, diagnostics:report, lastError: null, failureCount: 0, nextAttemptAt: 0, nonReadyClaims,
           recoveryRetryAt: nonReadyClaims >= 2 ? receivedAt + 120000 : 0});
         return {status: snapshot.parserState === "ready" ? "confirmed" : "source_not_ready", revision: receipt.revision};
       } catch (error) {

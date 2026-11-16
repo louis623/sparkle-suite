@@ -5,6 +5,33 @@ export const INVALID_PARSER_REASONS = [
   'invalid_order_time', 'invalid_first_name', 'capacity_exceeded', 'scan_capacity_exceeded', 'parser_exception',
 ] as const
 export type InvalidParserReason = typeof INVALID_PARSER_REASONS[number]
+export const LOADING_PARSER_REASONS = ['table_missing', 'table_busy', 'table_incomplete', 'table_settling'] as const
+export const PARTIAL_PARSER_REASONS = ['table_incomplete', 'row_incomplete', 'reveal_state_missing', 'selected_party_not_visible'] as const
+export type ParserReason = InvalidParserReason | typeof LOADING_PARSER_REASONS[number] | typeof PARTIAL_PARSER_REASONS[number]
+export const UPDATE_STATES = ['unknown','checking','no_update','throttled','downloaded','installing','failed'] as const
+export type UpdateState = typeof UPDATE_STATES[number]
+export const STRUCTURE_COLUMNS = ['PartyID','OrderID','FirstName','LastName','OrderDate','IsRevealed','unknown'] as const
+export const STRUCTURE_BUCKETS = ['0','1-10','11-100','101-1000','1001-10000','10001+'] as const
+export interface ParserStructure {
+  version: 1
+  columns: (typeof STRUCTURE_COLUMNS[number])[]
+  bodyCount: number
+  rowCount: typeof STRUCTURE_BUCKETS[number]
+  unmatchedRows: typeof STRUCTURE_BUCKETS[number]
+  hasOrderIdAttribute: boolean
+  hasPartyIdAttribute: boolean
+  hasOrderTimeAttribute: boolean
+}
+/** Private, allowlisted observations only; never authority to renew or declare readiness. */
+export interface PublisherDiagnostics {
+  /** Existing sourceVersion terminology means the worker package version. */
+  sourceVersion: string
+  readerVersion: string | null
+  updateState: UpdateState
+  structure?: ParserStructure
+  parserState: ParserState
+  parserReason?: ParserReason
+}
 export type LineupConnection = 'connecting' | 'connected' | 'delayed' | 'offline'
 export interface SourceEntry { id: string; name: string; orderedAt: number | null; lastName?: string; identityEligible?: boolean; sourceIdentityVersion?: string }
 export interface PublisherLease { id: string; claimId: string; epoch: number; leaseExpiresAt: string; lastSequence: number; capabilities?: 'lineup-2.0.5' }
@@ -47,8 +74,9 @@ export interface LineupState {
   lastReadyAt: string | null
   lastChangedAt: string | null
   parserState: ParserState
-  parserReason?: InvalidParserReason | null
+  parserReason?: ParserReason | null
   sourceVersion: string | null
+  diagnostics?: (PublisherDiagnostics & {receivedAt: string}) | null
   sourceObservation?: AcceptedObservation | null
   lastReadyObservation?: AcceptedObservation | null
   lastReadySourceAt?: string | null
@@ -70,8 +98,9 @@ export interface SourcePacket {
   epoch: number
   sequence: number
   sourceVersion: string
+  diagnostics?: PublisherDiagnostics
   parserState: ParserState
-  parserReason?: InvalidParserReason | null
+  parserReason?: ParserReason | null
   entries: SourceEntry[]
   /** Explicitly observed revealed orders. Absence from a filtered table is NOT removal. */
   revealedIds: string[]

@@ -4,7 +4,6 @@ copy.lease_expired = "The connection lease expired. Sparkle Suite is reconnectin
 copy.lease_required = copy.lease_expired;
 copy.server_update_required = "This site has not received the matching Live Lineup server update yet.";
 const RECONNECT_ERRORS = new Set(["lease_expired","lease_required","source_unavailable","connection_failed","show_changed","operation_failed"]);
-const ROUTINE_REASONS = new Set(["table_busy","table_settling","table_incomplete","reveal_state_missing","row_incomplete"]);
 const ATTENTION_REASONS = new Set(["columns_changed","missing_order_identity","duplicate_order_identity","invalid_order_time","invalid_first_name","capacity_exceeded","scan_capacity_exceeded","invalid_scope","selected_party_not_visible"]);
 function hadReadyAck(value){return Number.isFinite(value.lastReadyAckAt)}
 /** Popup status words only. Does not change parser, lease, publish, or read behavior. */
@@ -14,8 +13,7 @@ function extensionLineupStatus(value){
   if(value.lastError && RECONNECT_ERRORS.has(value.lastError)) return {title:"Reconnecting",detail:copy[value.lastError],tone:"warn"};
   if(value.parserReason && ATTENTION_REASONS.has(value.parserReason) && !value.connected) return {title:"Needs attention",detail:reasons[value.parserReason]||"The order table could not yet be read safely.",tone:"bad"};
   if(value.connected) return {title:"Connected + Updating",detail:"Live Lineup is keeping up with your orders.",tone:"good"};
-  if(value.scopePending && hadReadyAck(value)) return {title:"Connected + Updating",detail:"Waiting for a confirmed update of the selected parties.",tone:"good"};
-  if(value.parserReason && ROUTINE_REASONS.has(value.parserReason) && hadReadyAck(value)) return {title:"Connected + Updating",detail:reasons[value.parserReason]||"The order table could not yet be read safely.",tone:"good"};
+  if(value.scopePending && hadReadyAck(value)) return {title:"Reconnecting",detail:"Waiting for a confirmed update of the selected parties.",tone:"warn"};
   if(hadReadyAck(value)) return {title:"Reconnecting",detail:value.parserReason ? (reasons[value.parserReason]||"The order table could not yet be read safely.") : "Sparkle Suite is reconnecting.",tone:"warn"};
   return {title:"Connecting",detail:value.parserReason ? (reasons[value.parserReason]||"The order table could not yet be read safely.") : "Open your Bomb Party Party Orders page.",tone:""};
 }

@@ -5,6 +5,7 @@ const vm = require('node:vm');
 const {webcrypto} = require('node:crypto');
 const {parseTable} = require('../chrome-extension/queue-parser.js');
 const {cleanSnapshot,createPublisherClient} = require('../chrome-extension/publisher-client.js');
+const updateClient = require('../chrome-extension/update-client.js');
 const documentId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const rep='11111111-1111-4111-8111-111111111111';
 function table(rows, columns=['OrderID','OrderDate','FirstName','LastName','PartyID','IsRevealed']) {
@@ -41,6 +42,51 @@ test('trusted attributes never override ambiguous known identity cells or malfor
   assert.equal(parseTable(table([{id:'00017',party:'P9',orderText:'',partyText:''}])).parserState,'ready');
   assert.equal(parseTable(table([{id:'00017',party:'P9'}],['FirstName','IsRevealed'])).parserState,'ready');
 });
+test('documented Revealed label and compact labelled IDs preserve identity and checkbox validation',()=>{
+  function withHeaders(row, headers) {
+    const fixture=table([row]); const original=fixture.querySelector;
+    fixture.querySelector=key=>key==='thead'?{querySelectorAll:()=>headers.map(([sort,label])=>({getAttribute:()=>sort,querySelector:()=>({textContent:label})}))}:original(key);
+    return parseTable(fixture);
+  }
+  const headers=[['OrderID'],['OrderDate'],['firstName'],['LastName'],['PartyID'],[null,'Revealed']];
+  const row={id:'00017',party:'P9',orderText:'Order #00017',partyText:'Party ID:P9'};
+  assert.equal(withHeaders(row,headers).entries[0].id,'P9:00017');
+  assert.equal(withHeaders({...row,orderText:'Order #17'},headers).reason,'missing_order_identity');
+  assert.equal(withHeaders({...row,busy:true},headers).parserState,'partial');
+  const explicit = [...headers.slice(0,5), ['IsRevealed']];
+  assert.equal(withHeaders(row, [...explicit, [null,'Revealed']]).entries[0].id, 'P9:00017');
+  assert.equal(withHeaders(row, [...explicit.slice(0,3), [null,'Revealed'], ...explicit.slice(4)]).parserState, 'ready');
+  assert.equal(withHeaders(row, [...headers, ['IsRevealed']]).reason, 'row_incomplete');
+  assert.equal(withHeaders(row, [...explicit, ['IsRevealed']]).reason, 'duplicate_columns');
+  assert.equal(withHeaders(row, [...headers, [null,'Revealed']]).reason, 'duplicate_columns');
+  assert.equal(withHeaders(row,headers.map(([key,label])=>[key,label==='Revealed'?'Status':label])).reason,'columns_changed');
+});
+test('unrecognized rows cannot publish a healthy empty lineup', () => {
+  const fixture = table([]);
+  assert.equal(parseTable(fixture).parserState, 'ready');
+  const original = fixture.querySelector;
+  fixture.querySelector = selector => selector === 'tbody'
+    ? {querySelectorAll: query => query === 'tr' ? [{}] : []}
+    : original(selector);
+  const snapshot = parseTable(fixture);
+  assert.equal(snapshot.parserState, 'partial');
+  assert.equal(snapshot.reason, 'table_incomplete');
+});
+
+test('publisher posts only enumerated invalid reasons and keeps raw text off the wire',async()=>{
+  let state={enabled:true,token:'TST-0001',configVersion:'v',generation:1,claimId:documentId,publisherId:rep,epoch:1,nextSequence:0};
+  const packets=[];const time=new Date(1000).toISOString();
+  const client=createPublisherClient({now:()=>1000,store:{load:async()=>state,update:async(_,p)=>{state={...state,...p};return true;}},post:async(_,body)=>{
+    packets.push(body.packet);return {ok:true,revision:2,acceptedSequence:body.packet.sequence,serverTime:time,leaseExpiresAt:new Date(91000).toISOString(),freshForMs:0};
+  }});
+  for(const reason of ['missing_order_identity','customer_name']){
+    const result=await client.sync({parserState:'invalid',reason,entries:[],revealedIds:[],observation:{documentId,serial:1,serverTime:time,settled:false}},'2.0.7');
+    assert.equal(result.status,'source_not_ready');
+  }
+  assert.equal(packets[0].parserReason,'missing_order_identity');
+  assert.equal(Object.hasOwn(packets[1],'parserReason'),false);
+  assert.ok(packets.every(p=>!Object.hasOwn(p,'reason')));
+});
 test('selected parties include all order dates and exclude irrelevant rows before health checks',()=>{
   const selection={partyIds:['P9','P10'],excludedPartyIds:['P10'],carryEntryIds:[],startedAt:new Date(5000).toISOString()};
   const rows=[{id:'old',party:'P9',date:10},{id:'excluded',party:'P10',date:10,busy:true}];
@@ -68,17 +114,22 @@ test('publisher obtains lease before invoking genuine read; persists sequence be
   const result=await client.sync(async()=>{events.push('read');return{...parseTable(table([{id:'a',party:'P9'}])),observation:{documentId,serial:1,serverTime:new Date(clock).toISOString(),settled:true}};},'2.0.5',{readyHint:true});
   assert.equal(result.status,'confirmed');assert.deepEqual(events,['claim','read','snapshot']);assert.equal(state.readyDeadline,clock);
 });
-function worker({noOp=false,nonready=false,multiple=false,legacyBridge=false,empty=false,version='2.0.6',oldServer=false,showChangeOnSnapshot=false}={}) {
+function worker({noOp=false,nonready=false,multiple=false,legacyBridge=false,empty=false,version='2.0.6',readerVersion=version,oldServer=false,showChangeOnSnapshot=false}={}) {
   const local={},session={},listeners={},requests=[];let clock=Date.now(),observations=0,epoch=0,seq=-1,snapshots=0;
   let descriptor={protocol:2,...(oldServer?{}:{orderScope:'selected-parties'}),generation:0,scope:null,serverTime:new Date(clock).toISOString()};
   const area=record=>({setAccessLevel:async()=>{},get:async k=>Array.isArray(k)?Object.fromEntries(k.map(x=>[x,record[x]])):{[k]:structuredClone(record[k])},set:async v=>Object.assign(record,structuredClone(v)),remove:async k=>{delete record[k];}});
   const event=k=>({addListener:f=>{listeners[k]=f;}});
   const full={reason:nonready?'reveal_state_missing':null,parserState:nonready?'partial':'ready',entries:nonready||empty?[]:[{id:'P9:a',name:'April',lastName:'Smith',orderedAt:clock}],revealedIds:[],revealedEntries:[]};
-  const chrome={runtime:{id:'fixture',getURL:p=>'chrome-extension://fixture/'+p,getManifest:()=>({version}),onMessage:event('message')},storage:{local:area(local),session:area(session),sync:area({sync_code:'TST-0001',enabled:true,excluded_party_ids:[]})},alarms:{create:async()=>{},onAlarm:event('alarm')},tabs:{query:async()=>[{id:1,url:'https://myoffice.bombparty.com/live-party-orders'},...(multiple?[{id:2,url:'https://myoffice.bombparty.com/live-party-orders'}]:[])],sendMessage:async(_id,m)=>({protocol:2,generation:m.generation,snapshot:full,...(legacyBridge?{}:{source:{documentId,serial:++observations,settled:!nonready}})}),onRemoved:event('removed'),onUpdated:event('updated'),onActivated:event('activated')}};
+  const chrome={runtime:{id:'fixture',getURL:p=>'chrome-extension://fixture/'+p,getManifest:()=>({version}),onMessage:event('message')},storage:{local:area(local),session:area(session),sync:area({sync_code:'TST-0001',enabled:true,excluded_party_ids:[]})},alarms:{create:async()=>{},onAlarm:event('alarm')},tabs:{query:async()=>[{id:1,url:'https://myoffice.bombparty.com/live-party-orders'},...(multiple?[{id:2,url:'https://myoffice.bombparty.com/live-party-orders'}]:[])],sendMessage:async(_id,m)=>({protocol:2,readerVersion,generation:m.generation,snapshot:full,...(legacyBridge?{}:{source:{documentId,serial:++observations,settled:!nonready}})}),onRemoved:event('removed'),onUpdated:event('updated'),onActivated:event('activated')}};
   class Clock extends Date {static now(){return clock;}}
   const endpoint='https://www.yoursparklesuite.com/api/live-lineup/publish';
-  const context=vm.createContext({chrome,importScripts:()=>{},SparklePublisherClient:{createPublisherClient:args=>createPublisherClient({...args,now:()=>clock})},URL,TextEncoder,TextDecoder,AbortController,crypto:webcrypto,Date:Clock,performance:{now:()=>clock},setTimeout:(f,n)=>setTimeout(f,n===550?1:1000),clearTimeout,
-    fetch:async(_url,o)=>{clock+=600;const b=JSON.parse(o.body);requests.push(b);let body;const stamp=new Date(clock).toISOString(),lease=new Date(clock+90000).toISOString();
+  const context=vm.createContext({chrome,importScripts:()=>{},SparkleUpdateClient:{...updateClient,create:args=>updateClient.create({...args,now:()=>clock})},SparklePublisherClient:{createPublisherClient:args=>createPublisherClient({...args,now:()=>clock})},URL,TextEncoder,TextDecoder,AbortController,crypto:webcrypto,Date:Clock,performance:{now:()=>clock},setTimeout:(f,n)=>setTimeout(f,n===550?1:1000),clearTimeout,
+    fetch:async(_url,o)=>{
+      if(_url==='https://www.yoursparklesuite.com/api/live-lineup/release'){
+        const response=new Response(JSON.stringify({protocol:1,version:'2.0.7',publishedAt:null,rolloutEnabled:false}),{headers:{'content-type':'application/json'}});
+        Object.defineProperty(response,'url',{value:_url});return response;
+      }
+      clock+=600;const b=JSON.parse(o.body);requests.push(b);let body;const stamp=new Date(clock).toISOString(),lease=new Date(clock+90000).toISOString();
       if(b.action==='describe')body={...descriptor,serverTime:stamp};
       else if(b.action==='claim'){epoch++;seq=-1;body={claimId:b.claimId,capabilities:b.capabilities,generation:descriptor.generation,publisherId:rep,epoch,revision:requests.length,acceptedSequence:seq,serverTime:stamp,leaseExpiresAt:lease};}
       else if(b.action==='snapshot'){
@@ -159,10 +210,11 @@ test('closed selected tab recovers with the only replacement tab and a fresh obs
 });
 test('ordinary Chrome missing-receiver rejection heals by injecting only packaged reader files',async()=>{
  const w=worker();await w.settle();
- await w.run("globalThis.injections=[];const originalSend=chrome.tabs.sendMessage;chrome.tabs.sendMessage=async()=>{throw new Error('Could not establish connection. Receiving end does not exist.')};chrome.scripting={executeScript:async args=>{injections.push(args);chrome.tabs.sendMessage=originalSend;}}");
+ await w.run("globalThis.injections=[];const originalSend=chrome.tabs.sendMessage;chrome.tabs.sendMessage=async()=>{throw new Error('Could not establish connection. Receiving end does not exist.')};chrome.scripting={executeScript:async args=>{injections.push(args);if(args.func)return [{result:true}];chrome.tabs.sendMessage=originalSend;}}");
  await w.run('exclusive(pull)');assert.equal((await w.run('status()')).connected,true);
- const injections=JSON.parse(JSON.stringify(await w.run('injections')));assert.equal(injections.length,1);
- assert.deepEqual(injections[0],{target:{tabId:1,frameIds:[0]},files:['queue-parser.js','content.js']});
+ const injections=JSON.parse(JSON.stringify(await w.run('injections')));assert.equal(injections.length,2);
+ assert.deepEqual(injections[0].target,{tabId:1,frameIds:[0]});
+ assert.deepEqual(injections[1],{target:{tabId:1,frameIds:[0]},files:['queue-parser.js','content.js']});
 });
 test('a changed generation is adopted only with a new claim and a fresh read',async()=>{
  const w=worker();await w.settle();
@@ -178,4 +230,125 @@ test('only the exact extension popup may request status, including when opened i
  assert.equal(response.connected,true);
  for(const sender of [{id:'other',url:'chrome-extension://fixture/popup.html'},{id:'fixture',url:'https://myoffice.bombparty.com/live-party-orders',tab:{id:1}},{id:'fixture',url:'chrome-extension://fixture/other.html'}])
   assert.equal(w.listeners.message({action:'sparkle-v2-status'},sender,()=>{throw Error('Untrusted page received private status')}),false);
+});
+
+test('2.0.8 reporting: worker/reader mismatch never certifies ready and recovers on a matching fresh read',async()=>{
+  const w=worker({version:'2.0.8',readerVersion:'2.0.7'});await w.settle();
+  const packets=w.requests.filter(x=>x.action==='snapshot').map(x=>x.packet);
+  assert.ok(packets.length);assert.ok(packets.every(p=>p.parserState==='partial' && p.observation.settled===false));
+  assert.equal(packets[0].diagnostics.sourceVersion,'2.0.8');assert.equal(packets[0].diagnostics.readerVersion,'2.0.7');
+  assert.equal((await w.run('status()')).connected,false);
+  w.run("chrome.tabs.sendMessage=async(_id,m)=>({protocol:2,readerVersion:'2.0.8',generation:m.generation,source:{documentId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',serial:100,settled:true},snapshot:{parserState:'ready',entries:[],revealedIds:[],revealedEntries:[]}})");
+  w.advance(121000);assert.equal((await w.run('exclusive(pull)')).status,'confirmed');
+  assert.equal((await w.run('status()')).connected,true);
+  const content=fs.readFileSync('chrome-extension/content.js','utf8');
+  const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
+  assert.equal(content.match(/const READER_VERSION = "([^"]+)"/)[1],manifest.version);
+  for(const forbidden of [/reload|location\.href|location\.replace/,/document\.createElement|appendChild|innerHTML|insertAdjacentHTML/,/alert\(|confirm\(|prompt\(/,/fetch\(|chrome\.storage/])assert.equal(forbidden.test(content),false);
+});
+test('2.0.8 reporting: bounded diagnostics use existing packets and cannot earn stale health',async()=>{
+  const w=worker({version:'2.0.8',nonready:true});await w.settle();
+  const claim=w.requests.find(x=>x.action==='claim'),snapshot=w.requests.find(x=>x.action==='snapshot');
+  assert.ok(claim && snapshot);
+  for(const d of [claim.diagnostics,snapshot.packet.diagnostics]) {
+    assert.deepEqual(Object.keys(d).sort(),['parserReason','parserState','readerVersion','sourceVersion','updateState']);
+    assert.equal(d.parserReason,'reveal_state_missing');assert.equal(d.updateState,'unknown');
+    assert.equal(d.readerVersion,'2.0.8');assert.equal(d.sourceVersion,'2.0.8');
+    assert.equal(JSON.stringify(d).includes('TST-0001'),false);
+  }
+  assert.equal(snapshot.packet.parserReason,'reveal_state_missing');
+  await w.run("(async()=>store.update((await store.load()).configVersion,{lastReadyAckAt:Date.now(),lastAckAt:Date.now(),readyDeadline:Date.now()+45000}))()");
+  assert.equal((await w.run('status()')).connected,false);
+  const healthy=worker({version:'2.0.8'});await healthy.settle();
+  assert.equal((await healthy.run('status()')).connected,true);
+  healthy.run('localReadyAck=null;localReadyDeadline=0');
+  assert.equal((await healthy.run('status()')).connected,false);
+  // Even if local health is lost, a recent good receipt refuses a mid-show update.
+  await healthy.run("(async()=>{const c=await updaterContext();await chrome.storage.local.set({sparkleUpdaterV1:{release:{protocol:1,version:'2.0.9',publishedAt:new Date(0).toISOString(),rolloutEnabled:true},descriptorCheckedAt:Date.now(),downloadedVersion:'2.0.9',brokenAt:Date.now()-700000,lastObservedAt:Date.now(),sourceIdentity:c.sourceIdentity}});})()");
+  healthy.run('globalThis.reloads=0;chrome.runtime.reload=()=>{reloads++};localReadyAck=null;localReadyDeadline=0');
+  assert.equal(await healthy.run('updater.consider(updaterContext)'),false);
+  assert.equal(await healthy.run('reloads'),0);
+  let state={token:'TST-0001',enabled:true,configVersion:'x',generation:0,claimId:documentId,needsClaim:true,nextSequence:0};
+  const outgoing=[];const stamp=new Date().toISOString();
+  const client=createPublisherClient({store:{load:async()=>state,update:async(_v,p)=>{state={...state,...p};return true}},post:async(_token,b)=>{
+    outgoing.push(b);return b.action==='claim'?{generation:0,publisherId:rep,epoch:1,revision:1,acceptedSequence:-1,serverTime:stamp,leaseExpiresAt:new Date(Date.parse(stamp)+90000).toISOString(),claimId:documentId,capabilities:'lineup-2.0.5'}:
+      {ok:true,revision:2,acceptedSequence:0,serverTime:stamp,leaseExpiresAt:new Date(Date.parse(stamp)+15000).toISOString(),freshForMs:0};
+  }});
+  const bad={parserState:'partial',reason:'Customer name and order 123',readerVersion:'2.0.8',entries:[],revealedIds:[],customer:'private',observation:{documentId,serial:1,serverTime:stamp,settled:false}};
+  await client.sync(bad,'2.0.8',{diagnosticSnapshot:bad});
+  assert.equal(JSON.stringify(outgoing).includes('Customer name'),false);assert.equal(JSON.stringify(outgoing).includes('private'),false);
+  assert.equal(state.readyDeadline,0);
+});
+
+
+// Direct-child fixtures model multiple tbody sections without a browser or real orders.
+function resilienceTable(groups, columns=['OrderID','OrderDate','FirstName','LastName','PartyID','IsRevealed']) {
+  const result=table([],columns);const head=result.querySelector('thead');
+  head.rows=[{}];result.tHead=head;
+  result.tBodies=groups.map(group=>{
+    const body={parentElement:result,children:[]};
+    body.children=group.map(data=>{
+      const row=table([data],columns).querySelector('tbody').querySelectorAll('tr')[0];
+      const cells=Array.from(row.querySelectorAll('td'));
+      cells.forEach(cell=>{cell.tagName='TD';});
+      Object.assign(row,{tagName:'TR',parentElement:body,children:cells,recognized:data.recognized!==false,
+        querySelector:selector=>selector==='table'&&data.nested?{}:null,
+        querySelectorAll:selector=>selector==='td'?cells:[]});
+      return row;
+    });
+    body.querySelectorAll=selector=>selector==='tr.product.product-row'?body.children.filter(row=>row.recognized):body.children;
+    return body;
+  });
+  return result;
+}
+test('2.0.9 resilience: every direct body contributes once and duplicate identities still fail',()=>{
+  const fixture=resilienceTable([[{id:'late',party:'P9',date:200}],[{id:'early',party:'P9',date:100},{id:'done',party:'P9',date:150,checked:true}]]);
+  const result=parseTable(fixture);
+  assert.equal(result.parserState,'ready');
+  assert.deepEqual(result.entries.map(row=>row.id),['P9:early','P9:late']);
+  assert.deepEqual(result.revealedIds,['P9:done']);
+  assert.equal(result.structure.bodyCount,2);assert.equal(result.structure.unmatchedRows,'0');
+  assert.equal(parseTable(resilienceTable([[{id:'same',party:'P9'}],[{id:'same',party:'P9'}]])).reason,'duplicate_order_identity');
+  assert.equal(parseTable(resilienceTable(Array.from({length:33},()=>[]))).reason,'scan_capacity_exceeded');
+});
+test('2.0.9 resilience: mixed or nested markup cannot publish an incomplete healthy lineup',()=>{
+  for(const groups of [
+    [[{id:'ok',party:'P9'},{id:'hidden',party:'P9',recognized:false}]],
+    [[{id:'ok',party:'P9'}],[{id:'hidden',party:'P9',recognized:false}]],
+    [[{id:'hidden',party:'P9',recognized:false}]],
+    [[{id:'nested',party:'P9',nested:true}]],
+  ]) {
+    const result=parseTable(resilienceTable(groups));
+    assert.equal(result.parserState,'partial');assert.equal(result.reason,'table_incomplete');
+    assert.deepEqual(result.entries,[]);assert.deepEqual(result.revealedIds,[]);
+  }
+  assert.equal(parseTable(resilienceTable([[],[]])).parserState,'ready');
+  const multipleHeaders=resilienceTable([[{id:'ok',party:'P9'}]]);multipleHeaders.tHead.rows=[{},{}];
+  assert.equal(parseTable(multipleHeaders).parserState,'partial');
+});
+test('2.0.9 resilience: scope and real data validation stay strict across body sections',()=>{
+  const selection={partyIds:['P9','P10'],excludedPartyIds:['P10'],carryEntryIds:[],startedAt:new Date(0).toISOString()};
+  const valid=parseTable(resilienceTable([[{id:'00017',party:'P9',orderText:'Order #00017',date:50}],[{id:'excluded',party:'P10',busy:true}]]),selection);
+  assert.equal(valid.parserState,'ready');assert.deepEqual(valid.entries.map(row=>row.id),['P9:00017']);
+  for(const [data,reason] of [
+    [{id:'00017',party:'P9',orderText:'Order #17'},'missing_order_identity'],
+    [{id:'date',party:'P9',date:'11/16/2026'},'invalid_order_time'],
+    [{id:'name',party:'P9',name:'Bad\nName'},'invalid_first_name'],
+    [{id:'busy',party:'P9',busy:true},'reveal_state_missing'],
+  ]) assert.equal(parseTable(resilienceTable([[{id:'old',party:'P9'}],[data]]),selection).reason,reason);
+});
+test('2.0.9 resilience: structural report uses bounded enums and no page or customer values',()=>{
+  const secret='PRIVATE_customer_123_URL';
+  const fixture=resilienceTable([[{id:secret,party:'P9',name:secret}],[{id:'unknown',party:'P9',recognized:false}]]);
+  const old=fixture.tHead.querySelectorAll;
+  fixture.tHead.querySelectorAll=()=>[...old(),{getAttribute:()=>secret,querySelector:()=>({textContent:secret})}];
+  const result=parseTable(fixture);const structure=result.structure;
+  assert.deepEqual(Object.keys(structure).sort(),['bodyCount','columns','hasOrderIdAttribute','hasOrderTimeAttribute','hasPartyIdAttribute','rowCount','unmatchedRows','version']);
+  assert.equal(structure.version,1);assert.equal(structure.columns.at(-1),'unknown');
+  assert.equal(structure.rowCount,'1-10');assert.equal(structure.unmatchedRows,'1-10');
+  assert.equal(structure.hasOrderIdAttribute,true);assert.equal(structure.hasPartyIdAttribute,true);assert.equal(structure.hasOrderTimeAttribute,true);
+  assert.equal(JSON.stringify(structure).includes(secret),false);
+  const missing=parseTable(null);assert.equal(missing.reason,'table_missing');assert.equal(missing.structure.bodyCount,0);assert.equal(missing.structure.rowCount,'0');
+  fixture.tHead.querySelectorAll=()=>Array.from({length:100},()=>({getAttribute:()=>secret,querySelector:()=>null}));
+  assert.equal(parseTable(fixture).structure.columns.length,32);
 });

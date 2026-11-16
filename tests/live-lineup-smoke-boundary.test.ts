@@ -11,7 +11,7 @@ it('accepts only the exact Smoke project and verified source for a Smoke release
 
 it('packages deterministic Smoke identity, endpoint, isolated storage, warning and exact inventory',()=>{
  const script = `import assert from 'node:assert/strict'; import {buildSmokeSources,verifySmokeSources} from './scripts/smoke-environment/package-extension.mjs';
- const sources=buildSmokeSources(),result=verifySmokeSources(sources);assert.equal(result.manifestVersion,'2.0.6');
+ const sources=buildSmokeSources(),result=verifySmokeSources(sources);assert.equal(result.manifestVersion,'2.0.7');
  const manifest=JSON.parse(sources.get('manifest.json'));assert.deepEqual(manifest.host_permissions,['https://myoffice.bombparty.com/*','https://sparkle-suite-smoke.vercel.app/*']);
  const worker=sources.get('background.js').toString();assert.ok(worker.includes('sparkleSmokePublisherV2'));assert.ok(!worker.includes('www.yoursparklesuite.com'));
  assert.ok(sources.get('popup.html').toString().includes('SMOKE — synthetic orders only'));

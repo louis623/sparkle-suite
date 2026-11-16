@@ -6,7 +6,7 @@ import type { LiveQueueSnapshot } from '@/lib/services/types'
 import { LIVE_LINEUP_CONNECTION_CODE_TABLE } from '@/lib/services/live-queue'
 import { projectPublicLineup } from '@/lib/amethyst/public-live-lineup'
 import { liveLineupOwnerMutationsAvailable } from './runtime-mode'
-import { applyLineupCommand, applySourcePacket, buildWorkspaceLineupSnapshot, canonicalizeLineupTimestamps, claimPublisher, createLineupState, healLineupStateTimestamps, isClaimId, isLineupState, lineupFreshness, parseLineupCommand } from './model'
+import { applyLineupCommand, applySourcePacket, buildWorkspaceLineupSnapshot, canonicalizeLineupTimestamps, claimPublisher, createLineupState, healLineupStateTimestamps, isClaimId, isLineupState, lineupFreshness, parseLineupCommand, parsePublisherDiagnostics } from './model'
 import type { LineupState, SourceDescriptor, WorkspaceLineupSnapshot } from './types'
 
 export class LineupServiceError extends Error {
@@ -365,14 +365,16 @@ async function replayClaim(db: SupabaseClient, publisher: AuthenticatedPublisher
   return claimReceipt(row.state, now)
 }
 
-export async function claimSource(db: SupabaseClient, token: string | null, claimId: unknown, now = Date.now(), generation: unknown = 0, capabilities?: unknown) {
+export async function claimSource(db: SupabaseClient, token: string | null, claimId: unknown, now = Date.now(), generation: unknown = 0, capabilities?: unknown, diagnosticInput?: unknown) {
+  const diagnostics = diagnosticInput === undefined ? undefined : parsePublisherDiagnostics(diagnosticInput)
+  if (diagnostics === null) throw new LineupServiceError('invalid_payload', 400)
   if (!isClaimId(claimId)) throw new LineupServiceError('invalid_claim_id', 400)
   if (!Number.isSafeInteger(generation) || (generation as number) < 0) throw new LineupServiceError('invalid_payload', 400)
   const publisher = await authenticatePublisher(db, token, now)
   const state = await readLineupState(db, publisher.rep_id) ?? createLineupState()
   if (capabilities !== undefined && capabilities !== 'lineup-2.0.5') throw new LineupServiceError('invalid_payload', 400)
   if (state.publisher?.claimId === claimId && state.publisher.capabilities !== capabilities) throw new LineupServiceError('publisher_conflict', 409)
-  const result = claimPublisher(state, publisher.id, state.revision, now, { claimId, generation: generation as number, ...(capabilities ? {capabilities: 'lineup-2.0.5' as const} : {}) })
+  const result = claimPublisher(state, publisher.id, state.revision, now, { claimId, generation: generation as number, ...(diagnostics ? {diagnostics} : {}), ...(capabilities ? {capabilities: 'lineup-2.0.5' as const} : {}) })
   if (!result.ok) throw new LineupServiceError(result.code, 409)
   if (result.state.revision === state.revision) return replayClaim(db, publisher, claimId, now, generation as number)
   try {

@@ -1,8 +1,16 @@
 (function () {
   "use strict";
-  if (globalThis.__sparkleLineupReaderActive) return;
+  // Captured package identity, never the updated worker manifest of an older reader.
+  const READER_VERSION = "2.0.9";
+  const prior=globalThis.__sparkleLineupReader;
+  if(prior?.version===READER_VERSION && !prior.stopped)return;
+  if(prior && typeof prior.stop==='function')prior.stop();
+  else if(globalThis.__sparkleLineupReaderActive)return;
+  const parser=SparkleQueueParser;
+  const lifecycle={version:READER_VERSION,stopped:false,stop};
+  globalThis.__sparkleLineupReader=lifecycle;
   globalThis.__sparkleLineupReaderActive = true;
-  let table = null, body = null, observer = null, pending = null, stopped = false;
+  let table = null, observer = null, pending = null, stopped = false;
   let documentId = crypto.randomUUID(), serial = 0;
   let lastMutationAt = Date.now();
   function changed() { lastMutationAt = Date.now(); notify(); }
@@ -15,16 +23,16 @@
     }, 250);
   }
   function discover() {
-    const next = document.getElementById("party-order-table"), nextBody = next?.querySelector("tbody") || null;
-    if (next === table && nextBody === body && (!next || next.isConnected)) return;
+    const next = document.getElementById("party-order-table");
+    if (next === table && (!next || next.isConnected)) return;
     observer?.disconnect();
-    table = next; body = nextBody;
+    table = next;
     // Replacement tables establish a new baseline; they cannot reverse an earlier table's observation.
     documentId = crypto.randomUUID(); serial = 0;
-    if (body) {
+    if (table) {
       observer = new MutationObserver(changed);
-      observer.observe(body, { childList: true, subtree: true, characterData: true, attributes: true,
-        attributeFilter: ["checked", "disabled", "data-orderid", "data-partyid", "data-order-utc-ms", "aria-busy"] });
+      observer.observe(table, { childList: true, subtree: true, characterData: true, attributes: true,
+        attributeFilter: ["checked", "disabled", "data-orderid", "data-partyid", "data-order-utc-ms", "aria-busy", "data-sort-by", "class", "colspan", "rowspan"] });
     }
     changed();
   }
@@ -36,25 +44,30 @@
     if (message.action === 'sparkle-v2-read' && (!Number.isSafeInteger(message.generation) || message.generation < 1 || !message.selection || Array.isArray(message.selection) || typeof message.selection !== 'object')) return false;
     discover();
     let snapshot;
-    try { snapshot = SparkleQueueParser.parseTable(table, message.action === 'sparkle-v2-inspect' ? null : message.selection); }
-    catch { snapshot = { parserState: "invalid", entries: [], revealedIds: [], revealedEntries: [] }; }
+    try { snapshot = parser.parseTable(table, message.action === 'sparkle-v2-inspect' ? null : message.selection); }
+    catch { snapshot = { parserState: "invalid", reason: "parser_exception", entries: [], revealedIds: [], revealedEntries: [] }; }
     // A stable empty table is connected; a transient clearing during render is not.
     if (snapshot.parserState === 'ready' && (Date.now() < lastMutationAt || Date.now() - lastMutationAt < 500))
       snapshot = {...snapshot, parserState:'loading', reason:'table_settling'};
     if (!Number.isSafeInteger(++serial)) { documentId = crypto.randomUUID(); serial = 1; }
-    respond({ protocol: 2, ...(message.action === 'sparkle-v2-read' ? { generation: message.generation } : {}),
+    respond({ protocol: 2, readerVersion: READER_VERSION, ...(message.action === 'sparkle-v2-read' ? { generation: message.generation } : {}),
       source: { documentId, serial, settled: snapshot.parserState === 'ready' }, snapshot });
     return false;
   }
   function stop() {
-    stopped = true; globalThis.__sparkleLineupReaderActive = false; observer?.disconnect(); clearTimeout(pending); clearInterval(poll); clearInterval(heartbeat);
+    if(stopped)return;
+    stopped = true; lifecycle.stopped=true;
+    if(globalThis.__sparkleLineupReader===lifecycle){globalThis.__sparkleLineupReaderActive = false;delete globalThis.__sparkleLineupReader;}
+    observer?.disconnect(); clearTimeout(pending); clearInterval(poll); clearInterval(heartbeat);
     document.removeEventListener('change', onInput, true); document.removeEventListener('input', onInput, true);
-    chrome.runtime.onMessage.removeListener(read);
+    try {chrome.runtime.onMessage.removeListener(read);} catch {}
+    window.removeEventListener('pagehide',onPageHide);window.removeEventListener('pageshow',onPageShow);
   }
   chrome.runtime.onMessage.addListener(read);
   document.addEventListener('change', onInput, true); document.addEventListener('input', onInput, true);
   const poll = setInterval(discover, 2000), heartbeat = setInterval(notify, 15000);
-  window.addEventListener('pagehide', event => { if (!event.persisted) stop(); });
-  window.addEventListener('pageshow', event => { if (event.persisted) { documentId = crypto.randomUUID(); serial = 0; notify(); } });
+  function onPageHide(event){if(!event.persisted)stop();}
+  function onPageShow(event){if(event.persisted){documentId=crypto.randomUUID();serial=0;notify();}}
+  window.addEventListener('pagehide',onPageHide);window.addEventListener('pageshow',onPageShow);
   discover(); notify();
 })();

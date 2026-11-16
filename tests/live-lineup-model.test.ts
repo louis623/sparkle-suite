@@ -1,6 +1,9 @@
+import { GET as releaseGET } from '../app/api/live-lineup/release/route'
+import { LIVE_LINEUP_RELEASE } from '../lib/live-lineup/release'
+import { parseParserStructure } from '../lib/live-lineup/model'
 import { describe, expect, it } from 'vitest'
 import { applyLineupCommand, applySourcePacket, buildWorkspaceLineupSnapshot, claimPublisher, createLineupState,
-  canonicalizeLineupTimestamps, canonicalizeTime, healLineupStateTimestamps, isCanonicalTime, isLineupState, LINEUP_LEASE_MS, LINEUP_MAX_ENTRIES, parseLineupCommand, parseSourcePacket } from '@/lib/live-lineup/model'
+  canonicalizeLineupTimestamps, canonicalizeTime, healLineupStateTimestamps, isCanonicalTime, isLineupState, LINEUP_LEASE_MS, LINEUP_MAX_ENTRIES, parseLineupCommand, parseSourcePacket, parsePublisherDiagnostics } from '@/lib/live-lineup/model'
 import type { LineupResult, LineupState, SourceEntry, SourcePacket } from '@/lib/live-lineup/types'
 
 const T = Date.parse('2026-09-09T12:00:00Z')
@@ -310,5 +313,72 @@ describe('Live Lineup timestamp canonicalize / heal (Workspace harden)', () => {
     expect(healLineupStateTimestamps({})).toBeNull()
     expect(healLineupStateTimestamps({ ...populated(), revision: '2' })).toBeNull()
     expect(healLineupStateTimestamps({ ...populated(), lastChangedAt: 'yesterday' })).toBeNull()
+  })
+})
+
+it('2.0.8 reporting allowlists are backward compatible and diagnostic metadata cannot change authority', () => {
+  for (const version of ['2.0.6','2.0.7']) expect(parseSourcePacket(packet({sourceVersion:version}))).not.toBeNull()
+  const s=populated()
+  for (const [parserState,parserReason] of [['loading','table_missing'],['loading','table_busy'],['loading','table_incomplete'],['loading','table_settling'],['partial','row_incomplete'],['partial','table_incomplete'],['partial','reveal_state_missing'],['partial','selected_party_not_visible'],['invalid','invalid_first_name']] as const) {
+    const p=packet({sourceVersion:'2.0.8',sequence:1,parserState,parserReason,entries:[],revealedIds:[]})
+    const diagnostics={sourceVersion:'2.0.8',readerVersion:'2.0.8',updateState:'unknown' as const,parserState,parserReason}
+    expect(parseSourcePacket(p)).not.toBeNull()
+    const plain=state(applySourcePacket(s,p,T+10))
+    const reported=state(applySourcePacket(s,{...p,diagnostics},T+10))
+    expect(reported).toEqual({...plain,diagnostics:{...diagnostics,receivedAt:new Date(T+10).toISOString()}})
+    expect(reported.publisher).toEqual(plain.publisher)
+    expect(reported.lastReadyAt).toBe(s.lastReadyAt)
+    expect(reported.entries).toEqual(s.entries)
+    expect(isLineupState(reported)).toBe(true)
+    expect(parseSourcePacket({...p,parserState:'ready'})).toBeNull()
+  }
+  expect(parseSourcePacket(packet({parserState:'loading',parserReason:'invalid_first_name'}))).toBeNull()
+  expect(parseSourcePacket({...packet(),parserReason:'customer name'})).toBeNull()
+  const diagnostics={sourceVersion:'2.0.8',readerVersion:'2.0.7',updateState:'unknown' as const,parserState:'partial' as const}
+  expect(parseSourcePacket({...packet({sourceVersion:'2.0.8'}),diagnostics:{...diagnostics,parserState:'ready'}})).toBeNull()
+  expect(parsePublisherDiagnostics({...diagnostics,customer:'secret'})).toBeNull()
+  expect(parsePublisherDiagnostics({...diagnostics,readerVersion:'customer'})).toBeNull()
+  expect(parsePublisherDiagnostics({...diagnostics,updateState:'up_to_date'})).toBeNull()
+  const initial=createLineupState()
+  const plain=state(claimPublisher(initial,'device-a',0,T,{claimId:CLAIM_A}))
+  const reported=state(claimPublisher(initial,'device-a',0,T,{claimId:CLAIM_A,diagnostics}))
+  expect(reported).toEqual({...plain,diagnostics:{...diagnostics,receivedAt:new Date(T).toISOString()}})
+  expect(reported.lastReadyAt).toBeNull()
+  expect(reported.lastReceivedAt).toBeNull()
+  expect(isLineupState(reported)).toBe(true)
+  const replay=state(claimPublisher(reported,'device-a',reported.revision,T+10,{claimId:CLAIM_A,diagnostics:{...diagnostics,readerVersion:'2.0.8'}}))
+  expect(replay).toBe(reported)
+  expect(claimPublisher(reported,'device-b',reported.revision,T+10,{claimId:CLAIM_B,diagnostics})).toEqual({ok:false,code:'publisher_conflict'})
+})
+
+describe('2.0.9 diagnostic contract', () => {
+  const structure = {version:1,columns:['OrderID','FirstName','IsRevealed'],bodyCount:2,rowCount:'1-10',unmatchedRows:'0',hasOrderIdAttribute:true,hasPartyIdAttribute:true,hasOrderTimeAttribute:true}
+  it('accepts only bounded structure and update enums without changing retained state or authority', () => {
+    const s=populated()
+    for(const updateState of ['unknown','checking','no_update','throttled','downloaded','installing','failed'] as const) {
+      const diagnostics=parsePublisherDiagnostics({sourceVersion:'2.0.9',readerVersion:'2.0.9',updateState,parserState:'partial',parserReason:'table_incomplete',structure})!
+      expect(diagnostics).not.toBeNull()
+      const p=packet({sourceVersion:'2.0.9',sequence:1,parserState:'partial',parserReason:'table_incomplete',entries:[],revealedIds:[]})
+      const plain=state(applySourcePacket(s,p,T+10))
+      const report=state(applySourcePacket(s,{...p,diagnostics},T+10))
+      expect(report).toEqual({...plain,diagnostics:{...diagnostics,receivedAt:new Date(T+10).toISOString()}})
+      expect(report.entries).toEqual(s.entries)
+      expect(report.lastReadyAt).toBe(s.lastReadyAt)
+      expect(isLineupState(report)).toBe(true)
+    }
+    for(const bad of [{...structure,columns:['Customer Secret']},{...structure,url:'https://customer.test/'},{...structure,bodyCount:33},{...structure,rowCount:'12345'},{...structure,hasOrderIdAttribute:'12345'},{...structure,version:2}]) expect(parseParserStructure(bad)).toBeNull()
+    const d={sourceVersion:'2.0.9',readerVersion:'2.0.9',updateState:'unknown',parserState:'ready',structure}
+    expect(parsePublisherDiagnostics({...d,updateState:'installed_current'})).toBeNull()
+    expect(parsePublisherDiagnostics({...d,customer:'Secret'})).toBeNull()
+    expect(parsePublisherDiagnostics({...d,structure:{...structure,customer:'Secret'}})).toBeNull()
+    expect(parseSourcePacket({...packet({sourceVersion:'2.0.9'}),diagnostics:{...d,readerVersion:'2.0.7'}})).toBeNull()
+  })
+  it('publishes only the disabled known-release descriptor, never the candidate or a download URL', async () => {
+    const response=await releaseGET()
+    expect(response.status).toBe(200)
+    expect(response.headers.get('cache-control')).toBe('no-store')
+    expect(await response.json()).toEqual(LIVE_LINEUP_RELEASE)
+    expect(LIVE_LINEUP_RELEASE).toEqual({protocol:1,version:'2.0.7',publishedAt:null,rolloutEnabled:false})
+    expect(Object.keys(LIVE_LINEUP_RELEASE).sort()).toEqual(['protocol','publishedAt','rolloutEnabled','version'])
   })
 })
