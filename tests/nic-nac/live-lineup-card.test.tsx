@@ -36,6 +36,7 @@ const reset = async () => { await act(async () => root.unmount()); host.remove()
 
 beforeEach(() => {
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
+  vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
   Object.defineProperty(document, 'hidden', { configurable: true, value: false })
   Object.assign(HTMLDialogElement.prototype, {
     showModal(this: HTMLDialogElement) { this.setAttribute('open', ''); this.querySelector<HTMLButtonElement>('button')?.focus() },
@@ -46,6 +47,12 @@ beforeEach(() => {
   audience.matches = { 'order-1': { id: 'order-1', status: 'matched', audienceId: 'customer-1', birthday: null, preferences: [] },
     'order-2': { id: 'order-2', status: 'needs_clarification', birthday: null, preferences: [] } }
   vi.stubGlobal('fetch', vi.fn(async (_url, init) => {
+    if (String(_url).endsWith('/customers')) {
+      return { ok: true, status: 200, json: async () => ({ customer: null, match: {
+        status: 'needs_clarification', audienceId: null, label: null, birthday: null, preferences: [],
+        candidates: [{ id: 'customer-choice', name: 'Danielle Jones', label: 'Local pickup' }],
+      } }) }
+    }
     if (init?.method === 'POST') {
       const { command } = JSON.parse(String(init.body)); writes.push(command)
       const index = current.entries.findIndex(entry => entry.id === command.entryId)
@@ -62,7 +69,7 @@ beforeEach(() => {
   }))
   host = document.createElement('div'); document.body.append(host); root = createRoot(host)
 })
-afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
+afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.unstubAllGlobals(); vi.restoreAllMocks(); vi.useRealTimers() })
 
 describe('Concept C Live Lineup', () => {
   it('offers Customer card only on an existing matched row', async () => {
@@ -70,7 +77,6 @@ describe('Concept C Live Lineup', () => {
     const cards = Array.from(host.querySelectorAll('button')).filter(node => node.textContent === 'Customer card')
     expect(cards).toHaveLength(1)
     expect(cards[0].closest('li')?.getAttribute('aria-label')).toContain('Dinelle')
-    expect(host.textContent).not.toContain('Which customer?')
   })
   it('uses the public projection for names, positions and grouped order counts', async () => {
     await mount()
@@ -138,4 +144,53 @@ describe('Concept C Live Lineup', () => {
       }
     }
   })
+  it("expanded group order tiles do not repeat the next group's number", async () => {
+    await mount()
+    await click(host.querySelector<HTMLButtonElement>('button[aria-expanded]')!)
+    for (const full of [false, true]) {
+      if (full) await click(button('↗ Full lineup'))
+      const scope = full ? document.querySelector('dialog')! : host
+      const orders = scope.querySelectorAll<HTMLElement>('ol[aria-label="Individual orders for Danielle"] > li')
+      expect(orders).toHaveLength(2)
+      orders.forEach((order, index) => {
+        expect(order.querySelector('strong')?.textContent).toBe('Order ' + (index + 1))
+        expect(Array.from(order.querySelectorAll('button[data-lineup-grab] > span')).filter(span => /^\d+$/.test(span.textContent ?? ''))).toHaveLength(0)
+        expect(order.querySelector('button[data-lineup-grab]')?.getAttribute('aria-label')).toContain('position ' + (index + 2))
+      })
+      const next = scope.querySelector('[aria-label="Kelly, position 3"]')!
+      expect(next.querySelector('button[data-lineup-grab] > span')?.textContent).toBe('3')
+    }
+  })
+  it('arrow key on an order moves that order id after the list reorders', async () => {
+    vi.useFakeTimers()
+    await mount()
+    await click(host.querySelector<HTMLButtonElement>('button[aria-expanded]')!)
+    const focused = host.querySelector<HTMLButtonElement>('[data-lineup-entry="order-3"] button[data-lineup-grab]')!
+    focused.focus()
+    const reordered = [current.entries[2], current.entries[0], current.entries[1], current.entries[3]]
+      .map((entry, index) => ({ ...entry, position: index + 1 }))
+    current = { ...current, revision: 2, entries: reordered, management: { ...current.management!, candidates: reordered } }
+    await act(async () => {
+      vi.advanceTimersByTime(5000)
+      // Resolve the poll while retaining the focused DOM's previous render inside this act scope.
+      for (let i = 0; i < 5; i++) await Promise.resolve()
+      expect(focused.isConnected).toBe(true)
+      expect(focused.getAttribute('aria-label')).toBe('Move Danielle, position 3')
+      focused.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }))
+    })
+    expect(writes).toEqual([{ type: 'move', entryId: 'order-3', beforeEntryId: 'order-2' }])
+  })
+  it('needs_clarification shows Which customer?', async () => {
+    audience.matches['order-2'] = { id: 'order-2', status: 'unavailable', birthday: null, preferences: [] }
+    audience.matches['order-3'] = { id: 'order-3', status: 'needs_clarification', birthday: null, preferences: [] }
+    await mount()
+    const clarify = button('Which customer?', host)
+    expect(clarify.closest('li')?.getAttribute('aria-label')).toBe('Danielle, position 2')
+    expect(clarify.closest('li')?.textContent).not.toContain('Customer card')
+    await click(clarify)
+    const inspected = vi.mocked(fetch).mock.calls.find(([url]) => String(url).endsWith('/customers'))!
+    expect(JSON.parse(String(inspected[1]?.body))).toMatchObject({ action: 'inspect', entryId: 'order-3', generation: 1, sourceIdentityVersion: 'v1' })
+    expect(document.querySelector('dialog')?.textContent).toContain('Which customer is this?')
+  })
+
 })

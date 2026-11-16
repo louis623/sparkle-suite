@@ -423,11 +423,13 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     }
   }
 
-  function keyboardMove(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+  function keyboardMove(event: KeyboardEvent<HTMLButtonElement>, entryId: string) {
     if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return
     event.preventDefault()
     const baseline = snapshotRef.current
     if (!baseline || pointerDrag.current || !canWriteNow()) return
+    const index = baseline.entries.findIndex(entry => entry.id === entryId)
+    if (index < 0) return
     const command = event.key === 'Home' ? (index > 0 ? {type: 'move' as const, entryId: baseline.entries[index].id, beforeEntryId: baseline.entries[0].id} : null)
       : event.key === 'End' ? (index < baseline.entries.length - 1 ? {type: 'move' as const, entryId: baseline.entries[index].id, beforeEntryId: null} : null)
       : moveCommand(baseline.entries, index, event.key === 'ArrowUp' ? -1 : 1)
@@ -467,21 +469,22 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     : 'No update received'
 
   function customerButton(entry: WorkspaceLineupEntry) {
-    if (viewOnly || !entry.identityEligible || audienceMatches[entry.id]?.status !== 'matched' || !snapshot?.management) return null
-    return <ControlTip tip="customer-card"><button type="button" className={styles.customerButton} disabled={saving || !!dragging}
-      onClick={() => setCustomerSelection({ entry, generation: snapshot.management!.generation })}>Customer card</button></ControlTip>
+    const status = audienceMatches[entry.id]?.status
+    if (viewOnly || !entry.identityEligible || (status !== 'matched' && status !== 'needs_clarification') || !snapshot?.management) return null
+    return <ControlTip tip="customer-card"><button type="button" className={styles.customerButton} data-clarify={status === 'needs_clarification'} disabled={saving || !!dragging}
+      onClick={() => setCustomerSelection({ entry, generation: snapshot.management!.generation })}>{status === 'needs_clarification' ? 'Which customer?' : 'Customer card'}</button></ControlTip>
   }
 
-  function orderControls(entry: WorkspaceLineupEntry, index: number, position: number, name: string, actions: boolean) {
+  function orderControls(entry: WorkspaceLineupEntry, index: number, position: number | null, name: string, actions: boolean) {
     return <>
       <button type="button" data-lineup-grab className={`${styles.handle} ${styles.person}`} disabled={disabled}
         onPointerDown={(event) => startDrag(event, entry)} onPointerMove={moveDrag} onPointerUp={finishDrag}
-        onPointerCancel={stopDrag} onLostPointerCapture={stopDrag} onKeyDown={(event) => keyboardMove(event, index)}
+        onPointerCancel={stopDrag} onLostPointerCapture={stopDrag} onKeyDown={(event) => keyboardMove(event, entry.id)}
         aria-label={`Move ${entry.name}, position ${index + 1}`} aria-describedby={keyboardInstructionsId} title="Drag to reorder · Arrow keys to move">
         <svg className={styles.grip} width="14" height="18" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true">
           {[5, 10, 15].flatMap(y => [5, 11].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.4" />))}
         </svg>
-        <span className={styles.position}>{position}</span><strong>{name}</strong>
+        {position !== null && <span className={styles.position}>{position}</span>}<strong style={position === null ? { gridColumn: '2 / -1' } : undefined}>{name}</strong>
       </button>
       {actions && <div className={styles.actions}>
         <ControlTip tip="reveal-next"><button type="button" disabled={disabled || index === 0} aria-label={`Reveal ${entry.name} next, position ${index + 1}`} onClick={() => void submit({ type: 'reveal-next', entryId: entry.id })}>Reveal next</button></ControlTip>
@@ -509,14 +512,14 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
             <span className={styles.position}>{groupIndex + 1}</span><strong>{group.name}</strong>
             <span className={styles.orders}>{group.members.length} orders</span>
           </button> : orderControls(entry, entryIndex.get(entry.id)!, groupIndex + 1, group.name, !compact || full)}
-          {customerButton(group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'matched') ?? entry)}
+          {customerButton(group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'matched') ?? group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'needs_clarification') ?? entry)}
           {multiple && <ol id={detailsId} className={styles.orderList} hidden={!open} aria-label={`Individual orders for ${group.name}`}>
             {open && group.members.map((id, orderIndex) => {
               const order = entryById.get(id)!
               const index = entryIndex.get(id)!
               return <li key={id} data-lineup-entry={id} data-lineup-active tabIndex={-1} aria-label={`${order.name}, order ${orderIndex + 1}, position ${index + 1}`}
                 className={`${styles.orderRow} ${dragging === id ? styles.dragging : ''}`}>
-                {orderControls(order, index, index + 1, `Order ${orderIndex + 1}`, true)}
+                {orderControls(order, index, null, `Order ${orderIndex + 1}`, true)}
                 {audienceMatches[id] && <div className={styles.chips} aria-label={order.name + ' private customer details'}>
                   {audienceMatches[id].birthday && <span>🎂 {audienceMatches[id].birthday}</span>}
                   {audienceMatches[id].preferences.map((preference, chipIndex) => <span key={chipIndex}>{preference}</span>)}
