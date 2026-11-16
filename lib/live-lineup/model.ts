@@ -1,3 +1,4 @@
+import { FAILURE_STAGES, VALUE_FORMATS, VALUE_LENGTHS, VALUE_CHARACTERS, type ParserFailure, type ValueShape, type IdentityEvidence, type DiagnosticHistoryEntry } from './types'
 import { UPDATE_STATES, STRUCTURE_COLUMNS, STRUCTURE_BUCKETS, type ParserStructure, type UpdateState, INVALID_PARSER_REASONS, LOADING_PARSER_REASONS, PARTIAL_PARSER_REASONS, type ParserReason, type PublisherDiagnostics } from './types'
 import type { AcceptedObservation, LineupCommand, LineupResult, LineupState, ParserState, PartyAbsence, RevealRestoration, SourceEntry, SourcePacket, WorkspaceLineupSnapshot } from './types'
 
@@ -47,17 +48,91 @@ export function parseParserStructure(input: unknown): ParserStructure | null {
     hasPartyIdAttribute:input.hasPartyIdAttribute,hasOrderTimeAttribute:input.hasOrderTimeAttribute}
 }
 
+const exactKeys = (input: Record<string, unknown>, keys: readonly string[]) => Object.keys(input).length === keys.length && keys.every(key => Object.hasOwn(input,key))
+function parseValueShape(input: unknown): ValueShape | null {
+  if (!record(input) || !exactKeys(input,['format','length','characters'])
+    || !VALUE_FORMATS.some(value => value === input.format) || !VALUE_LENGTHS.some(value => value === input.length)
+    || !Array.isArray(input.characters) || input.characters.length > VALUE_CHARACTERS.length
+    || new Set(input.characters).size !== input.characters.length
+    || input.characters.some(value => !VALUE_CHARACTERS.some(allowed => value === allowed))) return null
+  return {format:input.format as ValueShape['format'],length:input.length as ValueShape['length'],
+    characters:VALUE_CHARACTERS.filter(value => (input.characters as unknown[]).includes(value))}
+}
+function parseIdentityEvidence(input: unknown): IdentityEvidence | null {
+  if (!record(input) || !exactKeys(input,['problem','attribute','cell','link','comparisons'])
+    || !['none','missing','unsupported_format','conflict'].includes(input.problem as string)
+    || !record(input.comparisons) || !exactKeys(input.comparisons,['attributeCell','attributeLink','cellLink'])
+    || Object.values(input.comparisons).some(value => !['match','mismatch','unavailable'].includes(value as string))) return null
+  const attribute=parseValueShape(input.attribute),cell=parseValueShape(input.cell),link=parseValueShape(input.link)
+  if (!attribute || !cell || !link) return null
+  return {problem:input.problem as IdentityEvidence['problem'],attribute,cell,link,
+    comparisons:{attributeCell:input.comparisons.attributeCell as IdentityEvidence['comparisons']['attributeCell'],
+      attributeLink:input.comparisons.attributeLink as IdentityEvidence['comparisons']['attributeLink'],
+      cellLink:input.comparisons.cellLink as IdentityEvidence['comparisons']['cellLink']}}
+}
+/** Only fixed structural classifications leave the page; unknown fields fail closed. */
+export function parseParserFailure(input: unknown): ParserFailure | null {
+  if (!record(input) || Object.keys(input).some(key => !['version','stage','rowIndex','cellCount','order','party'].includes(key))
+    || input.version !== 1 || !FAILURE_STAGES.some(value => value === input.stage)
+    || !(input.rowIndex === null || validInteger(input.rowIndex) && input.rowIndex <= 50000)
+    || !(input.cellCount === null || validInteger(input.cellCount) && input.cellCount <= 32)) return null
+  const order=input.order === undefined ? undefined : parseIdentityEvidence(input.order)
+  const party=input.party === undefined ? undefined : parseIdentityEvidence(input.party)
+  if (order === null || party === null) return null
+  return {version:1,stage:input.stage as ParserFailure['stage'],rowIndex:input.rowIndex,cellCount:input.cellCount,
+    ...(order ? {order} : {}),...(party ? {party} : {})}
+}
+
 /** Exact metadata keys prevent raw DOM/customer text from becoming diagnostics. */
 export function parsePublisherDiagnostics(input: unknown): PublisherDiagnostics | null {
-  if (!record(input) || Object.keys(input).some(key => !['sourceVersion','readerVersion','updateState','parserState','parserReason','structure'].includes(key))
+  if (!record(input) || Object.keys(input).some(key => !['sourceVersion','readerVersion','updateState','parserState','parserReason','structure','failure'].includes(key))
     || typeof input.sourceVersion !== 'string' || !/^\d{1,5}(?:\.\d{1,5}){0,3}$/.test(input.sourceVersion)
     || !(input.readerVersion === null || typeof input.readerVersion === 'string' && /^\d{1,5}(?:\.\d{1,5}){0,3}$/.test(input.readerVersion))
     || !UPDATE_STATES.some(state => state === input.updateState) || !parsers.includes(input.parserState as ParserState)
     || input.parserReason !== undefined && !validParserReason(input.parserReason,input.parserState)) return null
   const structure = input.structure === undefined ? undefined : parseParserStructure(input.structure)
-  if (structure === null) return null
-  return {sourceVersion:input.sourceVersion,readerVersion:input.readerVersion as string | null,updateState:input.updateState as UpdateState,...(structure ? {structure} : {}),
+  const failure = input.failure === undefined ? undefined : parseParserFailure(input.failure)
+  if (structure === null || failure === null || failure && input.parserState === 'ready') return null
+  return {sourceVersion:input.sourceVersion,readerVersion:input.readerVersion as string | null,updateState:input.updateState as UpdateState,...(structure ? {structure} : {}),...(failure ? {failure} : {}),
     parserState:input.parserState as ParserState,...(input.parserReason === undefined ? {} : {parserReason:input.parserReason as ParserReason})}
+}
+
+export const DIAGNOSTIC_HISTORY_LIMIT = 12
+export const DIAGNOSTIC_HISTORY_TTL_MS = 14 * 86_400_000
+const DIAGNOSTIC_HISTORY_COUNT_MAX = 1_000_000
+/** Position, counts and updater polling are noise, not new parser failure classes. */
+function diagnosticSignature(report: PublisherDiagnostics): string {
+  const structure=report.structure ? {...report.structure,rowCount:undefined,unmatchedRows:undefined} : undefined
+  const failure=report.failure ? {...report.failure,rowIndex:undefined} : undefined
+  return JSON.stringify({sourceVersion:report.sourceVersion,readerVersion:report.readerVersion,
+    parserState:report.parserState,parserReason:report.parserReason,structure,failure})
+}
+function parseDiagnosticHistory(input: unknown): DiagnosticHistoryEntry[] | null {
+  if (!Array.isArray(input) || input.length > DIAGNOSTIC_HISTORY_LIMIT) return null
+  const output: DiagnosticHistoryEntry[]=[]
+  const signatures=new Set<string>()
+  for (const item of input) {
+    if (!record(item) || !exactKeys(item,['firstSeenAt','lastSeenAt','count','report'])
+      || !isCanonicalTime(item.firstSeenAt) || !isCanonicalTime(item.lastSeenAt)
+      || Date.parse(item.firstSeenAt) > Date.parse(item.lastSeenAt)
+      || !validInteger(item.count) || item.count < 1 || item.count > DIAGNOSTIC_HISTORY_COUNT_MAX) return null
+    const report=parsePublisherDiagnostics(item.report)
+    if (!report || report.parserState === 'ready') return null
+    const signature=diagnosticSignature(report)
+    if (signatures.has(signature)) return null
+    signatures.add(signature)
+    output.push({firstSeenAt:item.firstSeenAt as string,lastSeenAt:item.lastSeenAt as string,count:item.count,report})
+  }
+  return output
+}
+/** Called only after source authentication/fencing checks; healthy receipts retain failure evidence. */
+function rememberDiagnostics(previous: DiagnosticHistoryEntry[] | undefined, report: PublisherDiagnostics | undefined, now: number): DiagnosticHistoryEntry[] {
+  const history=(parseDiagnosticHistory(previous ?? []) ?? []).filter(item => now-Date.parse(item.lastSeenAt) <= DIAGNOSTIC_HISTORY_TTL_MS)
+  if (!report || report.parserState === 'ready') return history
+  const signature=diagnosticSignature(report),prior=history.find(item => diagnosticSignature(item.report) === signature)
+  const timestamp=new Date(now).toISOString()
+  return [...history.filter(item => item !== prior),{firstSeenAt:prior?.firstSeenAt ?? timestamp,lastSeenAt:timestamp,
+    count:Math.min(DIAGNOSTIC_HISTORY_COUNT_MAX,(prior?.count ?? 0)+1),report}].slice(-DIAGNOSTIC_HISTORY_LIMIT)
 }
 
 /** JS Date.toISOString() shape: exactly 3 millisecond digits, UTC Z. Postgres µs (6 digits) fails this. */
@@ -196,6 +271,7 @@ export function isLineupState(input: unknown): input is LineupState {
     const {receivedAt, ...report} = input.diagnostics
     if (!canonicalTime(receivedAt) || !parsePublisherDiagnostics(report)) return false
   }
+  if (input.diagnosticHistory !== undefined && parseDiagnosticHistory(input.diagnosticHistory) === null) return false
   if (input.show !== null && (!record(input.show) || !validInteger(input.show.generation) || input.show.generation < 1
     || !validParties(input.show.partyIds) || !input.show.partyIds.length || !validParties(input.show.excludedPartyIds)
     || !validIds(input.show.carryEntryIds, LINEUP_MAX_ENTRIES)
@@ -470,6 +546,7 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
     parserState: packet.parserState, parserReason: packet.parserReason ?? null, sourceVersion: packet.sourceVersion,
     sourceObservation: observation, retiredDocumentIds,
     diagnostics: packet.diagnostics ? {...packet.diagnostics,receivedAt} : null,
+    ...((state.diagnosticHistory !== undefined || packet.diagnostics?.failure) ? {diagnosticHistory:rememberDiagnostics(state.diagnosticHistory,packet.diagnostics,now)} : {}),
     publisher: { ...lease, lastSequence: packet.sequence, leaseExpiresAt: new Date(packet.parserState === 'ready' || packet.parserState === 'invalid' && upgraded
       ? now + LINEUP_LEASE_MS : Math.min(Date.parse(lease.leaseExpiresAt), now + LINEUP_OBSERVATION_MAX_AGE_MS)).toISOString() } }
   // Old publishers cannot revive cached identities on rows absent from their next snapshot.

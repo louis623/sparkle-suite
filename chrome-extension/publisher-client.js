@@ -26,11 +26,42 @@
     return {version:1,columns:[...input.columns],bodyCount:input.bodyCount,rowCount:input.rowCount,unmatchedRows:input.unmatchedRows,
       hasOrderIdAttribute:input.hasOrderIdAttribute,hasPartyIdAttribute:input.hasPartyIdAttribute,hasOrderTimeAttribute:input.hasOrderTimeAttribute};
   }
+  const exactKeys = (value, required, optional = []) => value && typeof value === 'object' && !Array.isArray(value)
+    && required.every(key => Object.hasOwn(value,key)) && Object.keys(value).every(key => required.includes(key) || optional.includes(key));
+  function cleanValueShape(value) {
+    const characters = ['ascii_letters','digits','whitespace','separator','non_ascii','other','control'];
+    if (!exactKeys(value,['format','length','characters']) || !['missing','plain','labelled','unsupported'].includes(value.format)
+      || !['0','1-10','11-100','101-1000','1001+'].includes(value.length) || !Array.isArray(value.characters)
+      || value.characters.length > 7 || new Set(value.characters).size !== value.characters.length
+      || value.characters.some(item => !characters.includes(item))) return null;
+    return {format:value.format,length:value.length,characters:[...value.characters]};
+  }
+  function cleanIdentityEvidence(value) {
+    if (!exactKeys(value,['problem','attribute','cell','link','comparisons'])
+      || !['none','missing','unsupported_format','conflict'].includes(value.problem)
+      || !exactKeys(value.comparisons,['attributeCell','attributeLink','cellLink'])
+      || Object.values(value.comparisons).some(item => !['match','mismatch','unavailable'].includes(item))) return null;
+    const attribute=cleanValueShape(value.attribute), cell=cleanValueShape(value.cell), link=cleanValueShape(value.link);
+    if (!attribute || !cell || !link) return null;
+    return {problem:value.problem,attribute,cell,link,comparisons:{attributeCell:value.comparisons.attributeCell,
+      attributeLink:value.comparisons.attributeLink,cellLink:value.comparisons.cellLink}};
+  }
+  function cleanFailure(value) {
+    if (!exactKeys(value,['version','stage','rowIndex','cellCount'],['order','party']) || value.version !== 1
+      || !['identity','row','date','name','reveal','columns','scope','capacity','table'].includes(value.stage)
+      || !(value.rowIndex === null || Number.isSafeInteger(value.rowIndex) && value.rowIndex >= 0 && value.rowIndex <= 50000)
+      || !(value.cellCount === null || Number.isSafeInteger(value.cellCount) && value.cellCount >= 0 && value.cellCount <= 32)) return null;
+    const order=value.order === undefined ? undefined : cleanIdentityEvidence(value.order);
+    const party=value.party === undefined ? undefined : cleanIdentityEvidence(value.party);
+    if (order === null || party === null) return null;
+    return {version:1,stage:value.stage,rowIndex:value.rowIndex,cellCount:value.cellCount,...(order ? {order} : {}),...(party ? {party} : {})};
+  }
   function diagnostics(snapshot, sourceVersion) {
     const structure = cleanStructure(snapshot?.structure);
+    const failure = snapshot?.parserState === 'ready' ? null : cleanFailure(snapshot?.failure);
     return {sourceVersion,readerVersion:version(snapshot?.readerVersion) ? snapshot.readerVersion : null,
       updateState:updateStates.has(snapshot?.updateState) ? snapshot.updateState : 'unknown',parserState:snapshot?.parserState || 'loading',
-      ...(structure ? {structure} : {}),
+      ...(structure ? {structure} : {}), ...(failure ? {failure} : {}),
       ...(reasonsFor(snapshot?.parserState).has(snapshot?.reason) ? {parserReason:snapshot.reason} : {})};
   }
   const integer = n => Number.isSafeInteger(n) && n >= 0;
@@ -72,7 +103,8 @@
     }
     const reason = typeof input.reason === "string" && /^[a-z_]{1,64}$/.test(input.reason) ? input.reason : null;
     const structure = cleanStructure(input.structure);
-    return {parserState: input.parserState, reason, updateState:updateStates.has(input.updateState) ? input.updateState : 'unknown', ...(structure ? {structure} : {}), ...(Object.hasOwn(input,"readerVersion") ? {readerVersion:version(input.readerVersion) ? input.readerVersion : null} : {}), entries, revealedIds, ...(revealedEntries ? {revealedEntries} : {}), ...(observation ? {observation} : {})};
+    const failure = input.parserState === 'ready' ? null : cleanFailure(input.failure);
+    return {parserState: input.parserState, reason, updateState:updateStates.has(input.updateState) ? input.updateState : 'unknown', ...(structure ? {structure} : {}), ...(failure ? {failure} : {}), ...(Object.hasOwn(input,"readerVersion") ? {readerVersion:version(input.readerVersion) ? input.readerVersion : null} : {}), entries, revealedIds, ...(revealedEntries ? {revealedEntries} : {}), ...(observation ? {observation} : {})};
   }
   function validClaim(r, generation = 0) {
     return r && r.generation === generation && integer(generation) && typeof r.publisherId === "string" && UUID.test(r.publisherId) && integer(r.epoch) && r.epoch > 0 && integer(r.revision)
@@ -122,7 +154,7 @@
         // latency can never turn an earlier table read into a fresh observation.
         snapshot = typeof input === 'function' ? cleanSnapshot(await input()) : snapshot;
         if (snapshot && Object.hasOwn(snapshot,'readerVersion') && snapshot.readerVersion !== sourceVersion) {
-          snapshot = {...snapshot,parserState:'partial',reason:null,entries:[],revealedIds:[],revealedEntries:[],
+          snapshot = {...snapshot,parserState:'partial',reason:null,failure:undefined,entries:[],revealedIds:[],revealedEntries:[],
             ...(snapshot.observation ? {observation:{...snapshot.observation,settled:false}} : {})};
         }
         const readCompletedAt = now();
@@ -135,7 +167,7 @@
         const sentAt = now();
         if (upgraded && (sentAt < readCompletedAt || sentAt - readCompletedAt > 5000))
           throw Object.assign(new Error('stale_observation'),{code:'stale_observation'});
-        const {reason, readerVersion, updateState, structure, ...sourcePacket} = snapshot;
+        const {reason, readerVersion, updateState, structure, failure, ...sourcePacket} = snapshot;
         const report = Object.hasOwn(snapshot,"readerVersion") ? diagnostics(snapshot,sourceVersion) : null;
         const receipt = await post(state.token, {action: "snapshot", packet: {...sourcePacket,
           ...(reasonsFor(snapshot.parserState).has(reason) ? {parserReason: reason} : {}),

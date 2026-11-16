@@ -77,7 +77,7 @@ function response(body,status=200){const r=new Response(JSON.stringify(body),{st
       const remove=(kind,f)=>events.get(kind)?.delete(f);
       const parser={parseTable:()=>({parserState:'ready',entries:[],revealedIds:[],revealedEntries:[]})};
       const c=vm.createContext({Date:class extends Date{static now(){return time;}},crypto,document:{getElementById:()=>table,addEventListener:add,removeEventListener:remove},window:{addEventListener:add,removeEventListener:remove},chrome:{runtime:{id:'own',sendMessage:()=>Promise.resolve(),onMessage:{addListener:f=>handlers.add(f),removeListener:f=>handlers.delete(f)}}},SparkleQueueParser:parser,MutationObserver:class{constructor(f){this.fn=f;observers.push(this);}observe(target,options){this.target=target;this.options=options;this.active=true;}disconnect(){this.active=false;}},setTimeout:()=>{const id=++nextId;timers.add(id);return id;},clearTimeout:id=>timers.delete(id),setInterval:()=>{const id=++nextId;intervals.add(id);return id;},clearInterval:id=>intervals.delete(id)});
-      vm.runInContext(text.replace('const READER_VERSION = "2.0.9"','const READER_VERSION = "2.0.8"'),c);
+      vm.runInContext(text.replace(/const READER_VERSION = "[^"]+"/,'const READER_VERSION = "2.0.8"'),c);
       a.equal(handlers.size,1);a.equal(intervals.size,2);
       c.SparkleQueueParser={parseTable:()=>{throw Error('wrong parser');}};time+=1000;
       let reply;[...handlers][0]({action:'sparkle-v2-inspect'},{id:'own'},x=>reply=x);a.equal(reply.snapshot.parserState,'ready','reader captures original parser');
@@ -110,7 +110,7 @@ function response(body,status=200){const r=new Response(JSON.stringify(body),{st
     return;
   }
   const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
-  a.equal(manifest.version,'2.0.9');a.deepEqual(manifest.permissions,['storage','alarms','scripting']);
+  a.equal(manifest.version,'2.0.10');a.deepEqual(manifest.permissions,['storage','alarms','scripting']);
   const popup=fs.readFileSync('chrome-extension/popup.html','utf8'),popupJs=fs.readFileSync('chrome-extension/popup.js','utf8');
   for(const phrase of ['Review / select source','First-time setup','computer name','pairing key','party IDs'])a.equal((popup+popupJs).includes(phrase),false,phrase);
   for(const phrase of ['Connect Live Lineup','Live Queue code','Detected parties'])a.equal(popup.includes(phrase),true,phrase);

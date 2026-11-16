@@ -5,6 +5,13 @@ description: "Use this skill whenever working on the Sparkle Suite Live Queue Ch
 
 # Sparkle Suite Live Queue — Chrome Extension Skill
 
+## Current v2 release guidance (November 16, 2026)
+
+The April architecture and main-branch instructions below are historical, not current release authority. Use verified GitHub production branch `codex/nic-nac-trade-hardening`, the authenticated `/api/live-lineup/publish` v2 publisher/model, and authorized Codespace/disposable workspace rules. Never access a rep account from a historical access claim in this skill.
+
+For automatic failure evidence and bounded private history, read `docs/sparkle-suite/operations/live-lineup-210-diagnostics.md`. Version2.0.10 collects fixed classifications, not actual order IDs/customer text. Compatible server first; Store submission and publication are separate and must be visibly verified. Do not announce a candidate as published. Old installed versions cannot acquire new diagnostics through remote configuration. Preserve all released ZIPs, and never roll back to a server that rejects diagnostics already stored or sent by installed extensions.
+
+
 ## What This Extension Does
 
 Scrapes the Bomb Party "Party Orders" dashboard and pushes the live reveal queue to each rep's Sparkle Suite website via Supabase. Used during live jewelry reveal shows where 300+ customers may be watching.

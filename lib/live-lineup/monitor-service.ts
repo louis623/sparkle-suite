@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { readLineupState } from './service'
 import { LIVE_LINEUP_RELEASE } from './release'
 import { advanceMonitor, applyExpectedShow, type MonitorShowWindow, groupChangedStructures, adoptionDue, classifyAdoption, incidentStillSendable, monitorFacts, type MonitorState } from './monitor'
-import { deliverMonitorJob, incidentPayload, monitorConfiguration, type MonitorDelivery } from './monitor-delivery'
+import { currentParserFailure, deliverMonitorJob, incidentPayload, monitorConfiguration, type MonitorDelivery } from './monitor-delivery'
 import { verifyPublicFeed } from './monitor-public'
 
 const MAX_REPS = 50
@@ -41,7 +41,7 @@ async function sampleRep(db: SupabaseClient, rep: Rep, now: number) {
     }
     const next = advanceMonitor(previous?.data ?? null, facts, now, randomUUID())
     const payload = next.event ? incidentPayload(next.event.kind, facts,
-      previous?.data.unhealthySince ?? next.state.unhealthySince, new Date(now).toISOString()) : null
+      previous?.data.unhealthySince ?? next.state.unhealthySince, new Date(now).toISOString(), currentParserFailure(source, now)) : null
     const {data, error} = await db.rpc('live_lineup_monitor_commit', {
       p_rep_id: rep.id, p_expected_revision: previous?.revision ?? 0, p_data: next.state,
       p_event_kind: next.event?.kind ?? null, p_incident_id: next.event?.incidentId ?? null, p_payload: payload,

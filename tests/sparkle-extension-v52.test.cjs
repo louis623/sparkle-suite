@@ -352,3 +352,61 @@ test('2.0.9 resilience: structural report uses bounded enums and no page or cust
   fixture.tHead.querySelectorAll=()=>Array.from({length:100},()=>({getAttribute:()=>secret,querySelector:()=>null}));
   assert.equal(parseTable(fixture).structure.columns.length,32);
 });
+
+
+test('2.0.10 diagnostics: identity absence, disagreement and unsupported format stay distinct',()=>{
+  const missing=parseTable(table([{party:'P9'}]));
+  assert.equal(missing.reason,'missing_order_identity');assert.equal(missing.failure.order.problem,'missing');assert.equal(missing.failure.party.problem,'none');
+  const party=parseTable(table([{id:'00017'}]));assert.equal(party.failure.party.problem,'missing');
+  const conflict=parseTable(table([{id:'00017',party:'P9',orderText:'Order #17'}]));
+  assert.equal(conflict.failure.order.problem,'conflict');assert.equal(conflict.failure.order.comparisons.attributeCell,'mismatch');
+  assert.equal(conflict.failure.order.cell.format,'labelled');
+  const invalid=parseTable(table([{id:'00017',party:'P9',orderLink:'PRIVATE/Order!'}]));
+  assert.equal(invalid.failure.order.problem,'unsupported_format');assert.equal(invalid.failure.order.link.format,'unsupported');
+  assert.ok(invalid.failure.order.link.characters.includes('other'));
+  for(const result of [missing,party,conflict,invalid]) {assert.equal(result.parserState,'invalid');assert.deepEqual(result.entries,[]);assert.deepEqual(result.revealedIds,[]);}
+});
+test('2.0.10 diagnostics: blocking row location and scope retain exact safe behavior',()=>{
+  const rows=resilienceTable([[{id:'a',party:'P9'}],[{id:'b',party:'P9',orderText:'different'}]]);
+  const result=parseTable(rows);assert.equal(result.failure.rowIndex,2);assert.equal(result.failure.cellCount,6);
+  const selected={partyIds:['P9','P10'],excludedPartyIds:['P10'],carryEntryIds:[],startedAt:new Date(0).toISOString()};
+  const healthy=parseTable(table([{id:'a',party:'P9'},{id:'bad',party:'P10',orderText:'unsupported / old'}]),selected);
+  assert.equal(healthy.parserState,'ready');assert.equal(healthy.failure,undefined);assert.deepEqual(healthy.entries.map(x=>x.id),['P9:a']);
+  const duplicate=parseTable(table([{id:'a',party:'P9'},{id:'a',party:'P9'}]));
+  assert.equal(duplicate.reason,'duplicate_order_identity');assert.equal(duplicate.failure.stage,'identity');assert.equal(duplicate.failure.rowIndex,2);
+});
+test('2.0.10 diagnostics: bounded shapes and failure stages contain no source values',()=>{
+  const secret='CUSTOMER_PRIVATE_SECRET_123';
+  const result=parseTable(table([{id:'00017',party:'P9',orderText:secret+' /\u200b\n'+ 'x'.repeat(1100),name:secret,lastName:secret}]));
+  const evidence=result.failure;assert.equal(evidence.order.cell.length,'1001+');
+  for(const flag of ['ascii_letters','digits','whitespace','separator','non_ascii','other','control'])assert.ok(evidence.order.cell.characters.includes(flag),flag);
+  const text=JSON.stringify({failure:evidence,structure:result.structure});
+  for(const raw of [secret,'00017','P9','x'.repeat(100)])assert.equal(text.includes(raw),false);
+  assert.ok(text.length<2000);assert.equal(evidence.order.cell.characters.length,7);
+  assert.equal(parseTable(table([{id:'a',party:'P9',date:'not-a-time'}])).failure.stage,'date');
+  assert.equal(parseTable(table([{id:'a',party:'P9',busy:true}])).failure.stage,'reveal');
+  assert.equal(parseTable(null).failure.stage,'table');
+});
+test('2.0.10 diagnostics: transport strips injected text and binds evidence to the current reader',async()=>{
+  const parsed=parseTable(table([{id:'00017',party:'P9',orderText:'17'}]));
+  const stamp=new Date(1000).toISOString();
+  const snapshot={...parsed,readerVersion:'2.0.10',observation:{documentId,serial:1,serverTime:stamp,settled:false}};
+  const packets=[];let state={enabled:true,token:'TST-0001',configVersion:'v',generation:1,claimId:documentId,publisherId:rep,epoch:1,nextSequence:0};
+  const client=createPublisherClient({now:()=>1000,store:{load:async()=>state,update:async(_,p)=>{state={...state,...p};return true;}},post:async(_,body)=>{
+    packets.push(body.packet);return {ok:true,revision:2,acceptedSequence:body.packet.sequence,serverTime:stamp,leaseExpiresAt:new Date(91000).toISOString(),freshForMs:0};
+  }});
+  await client.sync(snapshot,'2.0.10');assert.deepEqual(packets[0].diagnostics.failure,parsed.failure);assert.equal(packets[0].failure,undefined);
+  assert.equal(cleanSnapshot({...snapshot,failure:{...parsed.failure,customer:'PRIVATE'}}).failure,undefined);
+  assert.equal(cleanSnapshot({...snapshot,failure:{...parsed.failure,order:{...parsed.failure.order,cell:{...parsed.failure.order.cell,raw:'PRIVATE'}}}}).failure,undefined);
+  assert.equal(cleanSnapshot({...snapshot,parserState:'ready',reason:null,observation:{...snapshot.observation,settled:true}}).failure,undefined);
+  const before=packets.length;await client.sync({...snapshot,readerVersion:'2.0.7'},'2.0.10');
+  assert.equal(packets.at(-1).diagnostics.failure,undefined);assert.ok(packets.length>before);
+});
+test('2.0.10 diagnostics: package identity and read-only reader stay aligned',()=>{
+  const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
+  const content=fs.readFileSync('chrome-extension/content.js','utf8');
+  assert.equal(manifest.version,'2.0.10');assert.ok(content.includes('const READER_VERSION = "'+manifest.version+'"'));
+  assert.deepEqual(manifest.permissions,['storage','alarms','scripting']);
+  assert.deepEqual(manifest.host_permissions,['https://myoffice.bombparty.com/*','https://www.yoursparklesuite.com/*']);
+  for(const bad of [/reload|location\.href|location\.replace/,/document\.createElement|appendChild|innerHTML|insertAdjacentHTML/,/alert\(|confirm\(|prompt\(/,/fetch\(|chrome\.storage/]) assert.equal(bad.test(content),false);
+});
