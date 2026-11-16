@@ -277,11 +277,6 @@ body.bg-midnight-rose .hp-queue-modal-row .label { color: #dbc0bb; }
 body.bg-midnight-rose .hp-queue-modal-close { background: #271920; color: #fff0e8; }
 body.bg-midnight-rose .hp-queue-modal-close:hover { background: #51303b; }
 body.bg-midnight-rose :is(.hp-event-copy:hover, .hp-event-copy.copied, .hp-event-collection-pill:hover) { color: #321820; }
-body.bg-midnight-rose :is(.hp-lrq-item:not(.on-deck) .pos, .tp-lrq-row.now .pos, .tp-filter-badge, .tp-load-more, .tp-card-tier.unicorn) {
-  background: #efb5a3;
-  color: #321820;
-}
-body.bg-midnight-rose .tp-card-tier.unicorn .pip { background: #321820; }
 body.bg-midnight-rose :is(.tp-empty-reset, .tp-card-close) {
   background: #271920;
   color: #efb5a3;

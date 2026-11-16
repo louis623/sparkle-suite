@@ -78,9 +78,9 @@ body.bg-gilded-autumn :is(.hp-live-dot,.hp-trade-preview-head .live-dot,.tp-lrq-
    block. At this skin's fixed saturation of 1, remove that no-op filter. */
 body.bg-gilded-autumn .hp-saturate {filter:none}
 body.bg-gilded-autumn :is(.hp-calendar-modal-mask,.hp-queue-modal-mask) {background:#35211594}
-body.bg-gilded-autumn :is(.tp-card-expand-mask,.tp-sheet-mask) {background:#35211594;z-index:140}
-body.bg-gilded-autumn :is(.tp-card-expand,.tp-sheet,.tp-filters,.tp-filter-panel) {background:#fffdf7;color:#382617;border-color:#cdb18b}
-body.bg-gilded-autumn .tp-card-tier {color:#713518;background:#fff9ef;border-color:#cdb18b}
+body.bg-gilded-autumn .tp-card-expand-mask {background:#35211594;z-index:140}
+body.bg-gilded-autumn .tp-sheet-mask {background:#35211594;z-index:1000}
+body.bg-gilded-autumn :is(.tp-card-expand,.tp-filters,.tp-filter-panel) {background:#fffdf7;color:#382617;border-color:#cdb18b}
 body.bg-gilded-autumn :is(.hp-event-pill,.hp-step-num,.jp-final-btn,.jp-spot-btn,.jp-team-social,.tp-card-expand-cta,.tp-sheet-submit,.tp-filter-pill.active) {background:linear-gradient(120deg,#87451b,#713518);color:#fff9ef}
 body.bg-gilded-autumn :is(.hp-queue-modal-close,.hp-calendar-modal-close):hover {background:#f0dfc5}
 body.bg-gilded-autumn :is(a,button,input,select,textarea):focus-visible {outline:3px solid #91451d;outline-offset:3px;box-shadow:0 0 0 5px #fff9ef}
@@ -174,7 +174,6 @@ body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-card-name,.tp-card-expand-n
 body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-filter-link,.tp-filter-toggle,.tp-filter-pill,.tp-filter-chip,.tp-filter-sort,.tp-filter-drop,.tp-board-search input,.tp-board-sort select,.tp-sheet-field input,.tp-sheet-field textarea) {color:#382617;background:#fff8ec;border-color:#aa8653}
 body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-filter-pill.active,.tp-filter-chip.active,.tp-filter-toggle.active,.hp-shop-btn,.hp-header-shop,.tp-load-more,.tp-card-expand-cta,.tp-sheet-submit,.tp-empty-reset) {background:#91451d;color:#fff9ef;border-color:#91451d}
 body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-card-photo,.tp-card-expand-photo) {background:#f0dfc5;border-color:#cdb18b}
-body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-card-tier.diamond,.tp-card-tier.unicorn) {color:#87451b}
 body.bg-gilded-autumn.britt-with-bling-join :is(.jp-hero-card,.jp-team-card,.jp-benefit-card,.jp-faq-note,.jp-faq-item,.jp-final-card) {background:#fffdf7;color:#382617;border-color:#cdb18b;box-shadow:0 22px 64px #75411718}
 body.bg-gilded-autumn.britt-with-bling-join :is(.jp-hero-eyebrow,.jp-hero-compliance,.jp-section-eyebrow) {color:#87451b}
 body.bg-gilded-autumn.britt-with-bling-join :is(.jp-hero-pitch,.jp-hero-localized,.jp-section-sub,.jp-team-location,.jp-benefit-desc,.jp-faq-a-inner,.jp-spot-sub,.jp-team-bio) {color:#715d49}
@@ -206,11 +205,10 @@ body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-ticker-item .dot,.hp-ticker-t
 body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-live-strip,.hp-trade-preview) {background:#352115;color:#fff8ec;border-color:#aa8653}
 body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-trade-preview-pill,.hp-trade-preview-link) {color:#efd3a0}
 body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-shop-btn,.hp-header-shop,.tp-filter-pill.active,.tp-filter-chip.active,.tp-filter-toggle.active,.tp-load-more,.tp-card-expand-cta,.tp-sheet-submit,.tp-empty-reset) {background:#91451d;color:#fff9ef;border-color:#91451d;box-shadow:0 12px 28px #75411726}
-body.bg-gilded-autumn.mile-high-fizz-trade :is(.tp-filter-panel,.tp-filters,.tp-empty,.tp-sheet-upload,.tp-sheet-success-legal,.tp-card,.tp-card.diamond,.tp-card.unicorn,.tp-card-expand,.tp-sheet) {background:#fffdf7;border-color:#cdb18b;color:#382617;box-shadow:0 22px 54px #75411718}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.tp-filter-panel,.tp-filters,.tp-empty,.tp-sheet-upload,.tp-sheet-success-legal,.tp-card,.tp-card-expand,.tp-sheet) {background:#fffdf7;border-color:#cdb18b;color:#382617;box-shadow:0 22px 54px #75411718}
 body.bg-gilded-autumn.mile-high-fizz-trade .tp-card:hover {border-color:#aa8653;box-shadow:0 28px 70px #75411726}
 body.bg-gilded-autumn.mile-high-fizz-trade :is(.tp-card-photo,.tp-card-expand-photo,.tp-card-expand-specs,.tp-card-expand-box) {background:#f0dfc5;border-color:#cdb18b}
 body.bg-gilded-autumn.mile-high-fizz-trade :is(.tp-card-collection,.tp-card-meta,.tp-card-material,.tp-card-expand-collection,.tp-card-expand-desc,.tp-sheet-helper,.tp-sheet-piece,.tp-empty-sub) {color:#715d49}
-body.bg-gilded-autumn.mile-high-fizz-trade :is(.tp-card-tier,.tp-card-tier.diamond,.tp-card-tier.unicorn) {background:#f0dfc5;color:#713518;border-color:#aa8653;box-shadow:none}
 body.bg-gilded-autumn.mile-high-fizz-trade .tp-sheet-field :is(input,textarea) {background:#fffdf7;border-color:#aa8653;color:#382617}
 body.bg-gilded-autumn.mile-high-fizz-trade .tp-sheet-field :is(input,textarea):focus {border-color:#91451d;box-shadow:0 0 0 4px #b1833826}
 body.bg-gilded-autumn.mile-high-fizz-trade .hp-footer {background:#f3e4ca;color:#382617;border-color:#cdb18b}
@@ -222,9 +220,6 @@ body.bg-gilded-autumn.bling-kitchen-trade :is(.tp-card-expand-cta,.tp-request-su
 body.bg-gilded-autumn.bling-kitchen-join :is(.jp-spot-btn,.jp-final-card a) {background:linear-gradient(120deg,#91451d,#713518);color:#fff9ef}
 body.bg-gilded-autumn:is(.bling-kitchen-trade,.bling-kitchen-join) .hp-footer {background:#352115;color:#fff8ec;border-color:#aa8653}
 body.bg-gilded-autumn:is(.bling-kitchen-trade,.bling-kitchen-join) .hp-footer :is(.hp-footer-brand,a,p,span,.hp-footer-bottom) {background:none;color:#fff8ec;-webkit-text-fill-color:#fff8ec}
-body.bg-gilded-autumn :is(.tp-card-tier.diamond,.tp-card-tier.unicorn) {background:#f0dfc5;color:#713518;border-color:#aa8653;box-shadow:none}
-body.bg-gilded-autumn .tp-card-tier.unicorn .pip {background:#713518;box-shadow:none}
-body.bg-gilded-autumn .tp-card.diamond {border-color:#aa8653;box-shadow:0 0 0 1px #cdb18b inset}
 
 /* Gilded Autumn paint for Mile High Fizz's existing Join layout.
    Keeps its markup, dimensions, fonts, card shapes and responsive rules. */
@@ -282,3 +277,5 @@ body.bg-gilded-autumn:is(.mile-high-fizz-trade,.mile-high-fizz-join) .hp-trade-p
 body.bg-gilded-autumn.mile-high-fizz-trade .hp-trade-preview-pill {color:#382617}
 /* Keep the dark custom footer's social icons readable on interaction. */
 body.bg-gilded-autumn:is(.bling-kitchen,.bling-kitchen-trade,.bling-kitchen-join) .hp-footer .hp-footer-social:is(:hover,:focus-visible) {background:#efd3a0;color:#352115!important;-webkit-text-fill-color:#352115!important;border-color:#efd3a0}
+
+body.bg-gilded-autumn .tp-sheet {background:rgba(255,253,247,.88);color:#382617;border-color:#cdb18b;backdrop-filter:blur(18px)}

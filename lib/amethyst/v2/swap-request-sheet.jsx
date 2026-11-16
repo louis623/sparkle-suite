@@ -18,7 +18,7 @@ function collections(piece) {
   return chips;
 }
 
-export function RequestSheet({ initialPiece, recovered, site, urls, repName, initialFile, demoSuccess, deadlineUntil, board,
+export function RequestSheet({ danceFloorPath, initialPiece, recovered, site, urls, repName, initialFile, demoSuccess, deadlineUntil, board,
   refreshBoard, onClose, onSent, useDialog }) {
   const [piece, setPiece] = useState(initialPiece);
   const [saved, setSaved] = useState(() => readName(browserStorage("localStorage")));
@@ -375,10 +375,11 @@ export function RequestSheet({ initialPiece, recovered, site, urls, repName, ini
   const sendLabel = mismatch ? "Ask my rep to review anyway" : activeScreen?.failed ? "Send for rep review" : "Send swap request";
   const photoStatus = !online && file && !ready ? "Waiting for signal…" : attach?.label || (file ? "Preparing photo…" : "");
   const needsReview = mismatch || Boolean(activeScreen?.failed);
+  const receiptLink = receipt?.receiptUrl ? new URL(receipt.receiptUrl, location.origin) : null;
+  if (receiptLink && danceFloorPath) receiptLink.searchParams.set("back", danceFloorPath);
   return <div className="tp-sheet-mask" onClick={closeIntent}>
     <div ref={dialog} role="dialog" aria-modal="true" aria-labelledby="trade-request-title" tabIndex={-1} className="tp-sheet tp-swap-sheet" onClick={e => e.stopPropagation()}>
       <button type="button" className="tp-sheet-close" aria-label="Close" disabled={transport} onClick={closeIntent}>×</button>
-      <div className="tp-sheet-handle"/>
       {confirmClose ? <section><h3 id="trade-request-title" tabIndex={-1} ref={titleRef}>Discard your request?</h3>
         <button type="button" onClick={() => setConfirmClose(false)}>Keep my request</button>
         <button type="button" disabled={transport} onClick={discard}>Discard</button>{error && <p role="alert">{error}</p>}</section>
@@ -386,25 +387,23 @@ export function RequestSheet({ initialPiece, recovered, site, urls, repName, ini
         <p>{repName} will review this. It is not approved yet.</p>
         {receipt.warning && <p role="alert">{receipt.warning}</p>}
         {receipt.receiptUrl && <div className="tp-sheet-receipt"><strong>Save your private status link</strong>
-          <a href={receipt.receiptUrl} rel="noreferrer">View request status</a><button type="button" onClick={async () => {
-            try { await navigator.clipboard.writeText(new URL(receipt.receiptUrl, location.origin).href); setCopied(true); } catch { setCopied(false); }
+          <a href={receiptLink.pathname + receiptLink.search} rel="noreferrer">View request status</a><button type="button" onClick={async () => {
+            try { await navigator.clipboard.writeText(receiptLink.href); setCopied(true); } catch { setCopied(false); }
           }}>{copied ? "Copied" : "Copy link"}</button></div>}
         <p>This swap is between you and your rep.</p>
         {file && !choosing && <button type="button" onClick={() => setChoosing(true)}>Request another dancer with this photo</button>}
         {choosing && <div><p>Choose your next dancer.</p>{board.filter(p => p.id !== piece.id).map(p =>
           <button type="button" key={p.id} onClick={() => switchPiece(p, true)}>{p.name}</button>)}</div>}
         <button type="button" onClick={finish}>Done</button></section>
-      : <><p className="tp-sheet-eyebrow">Swap request · {step} of 2</p><p className="tp-sheet-piece">{piece.name} · {piece.collection}</p>
-        <h3 id="trade-request-title" className="tp-sheet-title" tabIndex={-1} ref={titleRef}>{step === 1 ? "Add a photo of your reveal" : "Your details"}</h3>
+      : <><p className="tp-sheet-piece">{piece.name} · {piece.collection}</p>
+        <h3 id="trade-request-title" className="tp-sheet-title" tabIndex={-1} ref={titleRef}>Swap request</h3>
         {optional && <p role="status">Photo upload is temporarily unavailable. You can still send a swap request with your name and any details you have.</p>}
         {notice && <p role="status">{notice}</p>}
         {uncertain ? <><p role="status">{transport ? "Checking your request…" : "Your request may already have been received."}</p>
           <button className="tp-sheet-submit" type="button" disabled={transport || Date.now() < sendAfter} onClick={() => void transmit("retry", attempt)}>Retry this same request</button>
           {alternatePieces.map(p => <button type="button" disabled={transport} key={p.id} onClick={() => switchPiece(p)}>{p.name}</button>)}</>
         : <><fieldset disabled={disabled}>
-          {step === 1 ? <><p>{optional ? "Optional." : "Required."} Crop out order and personal details.</p><small>Images are kept for 7 days.</small>
-            <div className="tp-swap-pickers"><label>Take a photo<input aria-label="Take a photo" type="file" accept={accept} capture="environment" onChange={setSelected}/></label>
-            <label>Choose from library<input aria-label="Choose from library" type="file" accept={accept} onChange={setSelected}/></label></div></>
+          {step === 1 ? <><div className="tp-swap-pickers"><label>Upload a photo{optional ? " (optional)" : " (required)"}<input aria-label="Upload a photo" type="file" accept={accept} onChange={setSelected}/></label></div></>
           : <><div className="tp-swap-photo-actions"><button ref={changeRef} type="button" onClick={changePhoto}>Change photo</button>
             {preview && <button ref={thumbRef} aria-label="Preview your photo" type="button" onClick={() => {pushHistory(); setExpanded(true);}}>
               <img src={preview} alt="Your selected reveal" onError={() => {if (urlOwner.current === preview) setPreview(null);}}/></button>}</div>
@@ -426,7 +425,7 @@ export function RequestSheet({ initialPiece, recovered, site, urls, repName, ini
           </>}
           {file && <div aria-live="polite">{photoStatus} <button type="button" onClick={() => replaceFile(null)}>Cancel photo</button>
             {attach?.retry && <button type="button" onClick={() => attach.owner.resume?.()}>Try again</button>}</div>}
-          {step === 1 ? <><button className="tp-sheet-submit" type="button" disabled={!file && !optional} onClick={showDetails}>{saved && ready ? "Add details" : "Continue"}</button>
+          {step === 1 ? <><button className="tp-sheet-submit" type="button" disabled={!(ready || optional)} onClick={showDetails}>{saved && ready ? "Add details" : "Continue"}</button>
             {saved && <button type="button" disabled={!ready || !allowed} onClick={() => send(needsReview)}>{needsReview ? sendLabel : "Send as " + (name.trim() || saved)}</button>}</>
           : <><button type="button" onClick={goBack}>Back</button><button type="button" className="tp-sheet-submit" disabled={!allowed} onClick={() => send(needsReview)}>{transport ? "Sending…" : sendLabel}</button></>}
         </fieldset></>}

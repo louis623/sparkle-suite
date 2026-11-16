@@ -279,11 +279,6 @@ body.bg-pearl-rose .hp-queue-modal-row .label { color: #785963; }
 body.bg-pearl-rose .hp-queue-modal-close { background: #fffefa; color: #4d2931; }
 body.bg-pearl-rose .hp-queue-modal-close:hover { background: #f5e4dd; }
 body.bg-pearl-rose :is(.hp-event-copy:hover, .hp-event-copy.copied, .hp-event-collection-pill:hover) { color: #fff9f2; }
-body.bg-pearl-rose :is(.hp-lrq-item:not(.on-deck) .pos, .tp-lrq-row.now .pos, .tp-filter-badge, .tp-load-more, .tp-card-tier.unicorn) {
-  background: #954354;
-  color: #fff9f2;
-}
-body.bg-pearl-rose .tp-card-tier.unicorn .pip { background: #fff9f2; }
 body.bg-pearl-rose :is(.tp-empty-reset, .tp-card-close) {
   background: #fffefa;
   color: #954354;

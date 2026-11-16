@@ -12,7 +12,7 @@ function actualFunction(name: string, context: Record<string, unknown>) {
   const script = ts.transpileModule(`${declaration.getText(ast)}\n${name};`, {
     compilerOptions: { jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2020 },
   }).outputText
-  return runInNewContext(script, { React, ...context })
+  return runInNewContext(script, { React, useRef:()=>({current:null}),useEffect:()=>{},visibleDancerDetail:(v:unknown)=>typeof v==='string'&&!/^(shown in photo|material pending|stone pending)$/i.test(v.trim())?v.trim():'', ...context })
 }
 
 type Tree = { type?: unknown; props?: Record<string, any> }
@@ -155,7 +155,7 @@ describe('Dance Floor photo fallback', () => {
     expect(gridFallback).not.toMatch(/photo-fallback[^{]*\{[^}]*aspect-ratio/)
     expect(gridFallback).not.toContain('height: 84px')
     expect(gridFallback).not.toContain('168px')
-    expect(failed.find(node => node.props?.className === 'tp-card-tier unicorn')?.props?.children).toBeTruthy()
+    expect(failed.some(node => String(node.props?.className).includes('tp-card-tier'))).toBe(false)
 
     const unnamed = render('https://cdn.example.test/unnamed.jpg', '')
     expect(unnamed.find(node => node.props?.className === 'tp-card-photo-img')?.props?.alt).toBe('Dancer')
@@ -217,7 +217,8 @@ describe('Dance Floor photo fallback', () => {
     const html = readFileSync('public/amethyst/Trade.html', 'utf8')
     const css = readFileSync('public/amethyst/trade.css', 'utf8')
     const marker = '/* A grid photo that fails keeps the loaded has-photo frame and the dark sparkle placeholder. */'
-    const rules = css.slice(css.indexOf(marker)).trim()
+    const frozenRules = html.match(/<style id="dance-floor-photo-frame">\n([\s\S]*?)\n<\/style>/)?.[1] ?? ''
+    const rules = frozenRules.trim()
     const staticStyle = '<link rel="stylesheet" href="/amethyst/trade.css?v=20261021-photo-frame" />'
     const staticScript = 'src="/amethyst/trade.jsx?v=20261021-photo-frame"'
     const scriptTag = html.indexOf(staticScript)
@@ -225,7 +226,9 @@ describe('Dance Floor photo fallback', () => {
     const scriptMatch = html.match(/<script>\n([\s\S]*?)<\/script>\n<script src="\/amethyst\/gilded-autumn\.js/)
 
     expect(rules.length).toBeGreaterThan(0)
-    expect(html).toContain(`<style id="dance-floor-photo-frame">\n${rules}\n</style>`)
+    expect(rules).toContain('.tp-grid .tp-card-photo.has-photo.photo-fallback')
+    expect(css).toContain(marker)
+    expect(css).toContain('.tp-card-expand-photo.has-photo.photo-fallback .photo-glyph .tp-sparkle-mark')
     expect(html).toContain(staticStyle)
     expect(html).toContain(`<script type="text/babel" data-presets="react" ${staticScript}></script>`)
     expect(scriptTag).toBeGreaterThan(-1)

@@ -456,8 +456,6 @@ body.bg-halloween-pumpkin-witch .jp-hero-card {
   .hpw-sparkle { opacity: 0.72; transform: scale(0.65); }
   .hpw-motion-control { display: none; }
 }
-
-body.bg-halloween-pumpkin-witch .tp-card-tier.unicorn,
 body.bg-halloween-pumpkin-witch .tp-filter-badge {
   color: #160901;
 }

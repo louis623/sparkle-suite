@@ -291,11 +291,6 @@ html[data-customer-theme="starlight_christmas_hollow"] body .hp-queue-modal-row 
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-queue-modal-close { background: #132e4b; color: #fff7e9; }
 html[data-customer-theme="starlight_christmas_hollow"] body .hp-queue-modal-close:hover { background: #254765; }
 html[data-customer-theme="starlight_christmas_hollow"] body :is(.hp-event-copy:hover, .hp-event-copy.copied, .hp-event-collection-pill:hover) { color: #11263c; }
-html[data-customer-theme="starlight_christmas_hollow"] body :is(.hp-lrq-item:not(.on-deck) .pos, .tp-lrq-row.now .pos, .tp-filter-badge, .tp-load-more, .tp-card-tier.unicorn) {
-  background: #f2c77b;
-  color: #11263c;
-}
-html[data-customer-theme="starlight_christmas_hollow"] body .tp-card-tier.unicorn .pip { background: #11263c; }
 html[data-customer-theme="starlight_christmas_hollow"] body :is(.tp-empty-reset, .tp-card-close) {
   background: #132e4b;
   color: #f2c77b;

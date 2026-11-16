@@ -1,3 +1,4 @@
+import { getTradeListingEffectivePhotoUrl } from '@/lib/services/trade-listing-display'
 import { NextResponse } from 'next/server'
 import { allowTradeRequest } from '@/lib/amethyst/trade-request-rate-limit'
 import { readSwapJson, SwapHttpError, swapIpHash, verifySwapOrigin } from '@/lib/amethyst/swap-http'
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
       const ids = ((netRows ?? []) as Array<{ listing_id: string }>).map((row) => row.listing_id).filter((id) => id !== listingId)
       if (ids.length > 0) {
         const { data: rows, error } = await admin.from('trade_listings')
-          .select('id, listing_photo_url, manual_collection_family, manual_collection_name, manual_type_prefix, design:jewelry_designs(design_name, type_prefix, canonical_photo_url, collection:collections(name))')
+          .select('id, listing_source, manual_photo_url, manual_size, ring_size, uses_canonical_photo, listing_photo_url, manual_collection_family, manual_collection_name, manual_type_prefix, design:jewelry_designs(design_name, type_prefix, canonical_photo_url, collection:collections(name))')
           .in('id', ids)
         if (error) throw error
         for (const row of rows ?? []) {
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
             designName: design?.design_name ?? row.manual_collection_name ?? 'Available dancer',
             collectionName: family ?? 'Collection to verify',
             typePrefix: type ?? '',
-            photoUrl: row.listing_photo_url ?? design?.canonical_photo_url ?? null,
+            photoUrl: getTradeListingEffectivePhotoUrl({ ...row, design } as Parameters<typeof getTradeListingEffectivePhotoUrl>[0]),
           })
           if (alternatives.length >= 4) break
         }

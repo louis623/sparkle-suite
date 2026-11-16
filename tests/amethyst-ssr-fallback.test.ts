@@ -166,3 +166,15 @@ it.each([
   expect(actual).toBe(expected)
   expect(mocks.bootstrap).not.toHaveBeenCalled()
 })
+
+it('legacy and v2-failure Trade HTML select the public trade assets',async()=>{
+ vi.stubEnv('REP_RENDER_V2_SLUGS','')
+ const legacy=await (await renderAmethystPublicAssetResponse(request(),['Trade.html'],options)).text()
+ expect(legacy).toMatch(/(?:src|href)=["'][^"']*amethyst\/trade\.jsx/)
+ expect(legacy).toMatch(/(?:src|href)=["'][^"']*amethyst\/trade\.css/)
+ vi.stubEnv('REP_RENDER_V2_SLUGS','dudesfizzfest')
+ mocks.bootstrap.mockRejectedValueOnce(new Error('SSR unavailable'))
+ const fallback=await (await renderAmethystPublicAssetResponse(request(),['Trade.html'],options)).text()
+ expect(fallback).toMatch(/(?:src|href)=["'][^"']*amethyst\/trade\.jsx/)
+ expect(fallback).toMatch(/(?:src|href)=["'][^"']*amethyst\/trade\.css/)
+})

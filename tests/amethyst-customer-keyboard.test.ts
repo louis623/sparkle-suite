@@ -16,7 +16,7 @@ function actualFunction(page: string, name: string, context: Record<string, unkn
   const script = ts.transpileModule(`${declarations.map(node => node.getText(ast)).join('\n')}\n${name};`, {
     compilerOptions: { jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2020 },
   }).outputText
-  return runInNewContext(script, { React, ...context })
+  return runInNewContext(script, { React, useRef:()=>({current:null}),useEffect:()=>{}, ...context })
 }
 
 type Tree = { type?: unknown; props?: Record<string, any> }

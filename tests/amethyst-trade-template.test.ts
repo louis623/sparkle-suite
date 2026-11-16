@@ -318,7 +318,7 @@ describe('Amethyst trade page template wiring', () => {
       }),
     )
 
-    expect(firstRep.photoUrl).toBe('https://cdn.example.com/rep-a-gold.jpg')
+    expect(firstRep.photoUrl).toBe('https://cdn.example.com/rep-a-gold-canonical.jpg')
     expect(secondRep.photoUrl).toBe(
       'https://cdn.example.com/rep-b-rhodium-canonical.jpg',
     )
@@ -830,7 +830,7 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).not.toContain('MSRP')
     expect(jsx).not.toContain('tp-card-rep')
     expect(jsx).not.toContain('tp-card-expand-rep')
-    expect(jsx).toContain('View dancer and send a swap request')
+    expect(jsx).toContain('View & Swap')
     expect(jsx).toContain('data-slot="brand separation footer"')
   })
 
