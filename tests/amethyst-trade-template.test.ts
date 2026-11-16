@@ -206,7 +206,7 @@ describe('Amethyst trade page template wiring', () => {
       photoSource: 'canonical',
       quantityAvailable: 1,
     })
-    expect(mapped.note).toContain('Item-for-item only')
+    expect(mapped.tradePreferences).toContain('Item-for-item only')
     expect(mapped).not.toHaveProperty('msrp')
   })
 
@@ -412,7 +412,7 @@ describe('Amethyst trade page template wiring', () => {
     expect(JSON.stringify(mapped)).not.toMatch(
       /legacy|miscellaneous|grab bag|unknown|undocumented|Board Pieces|non-item number|piece without item number/i,
     )
-    expect(mapped.note).toBe(
+    expect(mapped.tradePreferences).toBe(
       'Item-for-item only. Requests must stay within the same collection and the same jewelry type.',
     )
     expect(mapped.photoSource).toBe('listing')
