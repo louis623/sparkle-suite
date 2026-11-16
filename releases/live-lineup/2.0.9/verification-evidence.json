@@ -58,5 +58,27 @@
   },
   "realStoreTransition": "unverified",
   "externalAlerts": "unconfigured/unverified",
-  "liveChanges": false
+  "liveChanges": false,
+  "finalServerAmendment": {
+    "affectedChecksPassed": 2,
+    "unaffectedChecksSkipped": 4,
+    "filter": "disables external delivery|rejects cron requests",
+    "corrections": [
+      "required owner email independent of optional Watch hook",
+      "50-active-account bound, batches of ten",
+      "four concurrent deliveries, independent awaited sampling and delivery"
+    ]
+  },
+  "initialPreviewBuild": {
+    "id": "dpl_BHCdf5Baq1cLjCNkVsZEUq9w34kr",
+    "sha": "4e2c0c52e2d182bff87906d4be0def697f8eb676",
+    "productionBuild": "PASS",
+    "typescript": "PASS"
+  },
+  "smokeMigration": {
+    "project": "pukemqiwlyqmyytxkdmo",
+    "version": "20261116205449",
+    "rlsAndGrants": "PASS",
+    "repDataWritten": false
+  }
 }

@@ -34,9 +34,13 @@ Required release sequence: focused checks and independent review; isolated Smoke
 
 The minute cron is defined in vercel.json and supported by the verified existing Vercel Pro plan. The isolated Preview wrapper has no crons. The route requires CRON_SECRET; production must have LIVE_LINEUP_MONITOR_ENABLED=true to sample and LIVE_LINEUP_ALERT_DELIVERY_ENABLED=true to deliver. Both default off. Preview/Smoke external delivery is blocked.
 
+The current runtime safety cap is 50 active reps, processed in batches of ten. A larger roster returns an explicit capacity error instead of silently omitting reps. Up to four uniquely claimed notification jobs run concurrently, independently of sampling; both tasks are fully awaited, including when one fails. This cap and the 60-second route budget require runtime verification before activation; they are not a promise of 500-rep coverage. Newly queued incidents may wait for the next cron invocation.
+
 Apply only the reviewed service-role monitoring migration to the intended environment after authorization. It creates dedicated private state/incidents/delivery records; existing publisher transactions and customer lineup data are not modified by this migration. Verify RLS, CAS, claim/finish ownership and dedupe before activation.
 
-Email requires the existing verified RESEND_API_KEY and RESEND_FROM_EMAIL. The separately required investigation hook requires LIVE_LINEUP_ALERT_WEBHOOK_URL and LIVE_LINEUP_ALERT_WEBHOOK_SECRET; the receiver must verify HMAC SHA256 of timestamp + '.' + exact body using X-Sparkle-Timestamp and X-Sparkle-Signature, reject stale/replayed events, and deduplicate eventId. Do not expose secrets in browser code, reports or links. Do not claim that a hook wakes Watch until the actual receiving integration is configured and verified.
+The required alert hook is Vercel's authenticated minute cron calling `/api/internal/live-lineup/monitor`. It evaluates incidents and sends owner email using the existing verified RESEND_API_KEY and RESEND_FROM_EMAIL; Supabase records incident timing, ownership, deduplication and delivery receipts. No external Watch receiver is required for this email path. The configuration `ready` flag means production delivery and email settings are enabled; it is not evidence of a received email or a working scheduler.
+
+An external Watch wakeup is an optional, independent integration using LIVE_LINEUP_ALERT_WEBHOOK_URL and LIVE_LINEUP_ALERT_WEBHOOK_SECRET. Without those settings, optional webhook jobs are canceled without sending, retrying, or exhausting delivery attempts; email remains independent. `externalWatchHookStatus` explicitly reports `not_configured`, `disabled`, or `configured_unverified`. If a receiver is added, it must verify HMAC SHA256 of timestamp + '.' + exact body using X-Sparkle-Timestamp and X-Sparkle-Signature, reject stale/replayed events, and deduplicate eventId. Do not expose secrets in browser code, reports or links. Never claim Watch was awakened without verifying the receiving integration.
 
 Provider acceptance is recorded separately from mailbox delivery. A delivered/bounced event integration and an actual controlled email receipt are separate acceptance evidence. Configured flags alone are not working alerts.
 
@@ -58,7 +62,7 @@ Initial failures were verification fixtures: an unbalanced test stub, the wrong 
 
 The one local TypeScript command failed on missing installed dependencies in unchanged card/QR modules (`@resvg/resvg-js`, `jsqr`, `qrcode`); it reported no changed-file diagnostics. A clean isolated Preview build is still required and must be recorded separately.
 
-Independent agent review found no new blocker in the final source. Actual Store-installed upgrade, real Bomb Party markup, live database activation, email receipt, and authenticated hook delivery remain unverified. The hook receiver has not been identified/configured: the sender currently implements a documented HMAC contract, not a proven adapter to Watch's webhook routine. Shared incidents are grouped internally but still send individual rep emails.
+Independent agent review found no new blocker in the final source. Actual Store-installed upgrade, real Bomb Party markup, live database activation, email receipt, and authenticated hook delivery remain unverified. The optional external Watch receiver has not been identified/configured: its sender implements a documented HMAC contract, not a proven adapter to Watch's webhook routine. This does not block the required Vercel cron and owner-email path. Shared incidents are grouped internally but still send individual rep emails.
 
 Calendar silence policy approved by Louis: alert only within a currently scheduled show with prior publisher contact during that show. Wording says “Feed stopped; show status unverified.” Silence first passes the 90-second freshness deadline, then the three-minute confirmation window; minute sampling can add delay. Unknown or missed monitoring intervals reset the confirmation timer.
 
@@ -72,3 +76,15 @@ Calendar silence policy approved by Louis: alert only within a currently schedul
 - Normal order-count changes are excluded from structural change hashes. Version support uses numeric comparisons instead of an exact-version gate.
 - Re-pairing with the same credential preserves exclusions; a different credential does not inherit another rep's exclusions.
 - Publication time is unknown, so the initial release descriptor is disabled rather than inventing a timestamp or claiming an unpublished candidate is current.
+
+- Louis clarified that the required alert hook should use the existing Vercel/Supabase stack. Removed the external Watch receiver as an email-readiness prerequisite; unconfigured optional hook jobs are canceled and cannot produce retry/exhaustion noise. A targeted recheck of the existing notification test is required for this amendment; the prior verification record applies to the earlier candidate.
+
+- Bounded the monitoring runtime to 50 active reps with ten concurrent samples and four concurrent claimed deliveries. Delivery drains independently of roster sampling, and failures still await both tasks rather than abandoning sends. Actual scheduler/runtime verification remains an activation gate.
+
+## Final server amendment and Smoke ledger evidence
+
+The two affected existing monitoring cases (`disables external delivery|rejects cron requests`) passed after the optional-Watch and runtime corrections. Four unchanged cases were skipped; there is no additional test file or full-suite rerun. The twenty distinct focused checks remain passing.
+
+The first isolated Preview at `4e2c0c52` completed its production build and TypeScript successfully: `dpl_BHCdf5Baq1cLjCNkVsZEUq9w34kr`. Release GET returned the disabled no-store descriptor; monitor GET failed closed with `monitor_not_configured`. A new Preview of this final server amendment is required before release.
+
+Smoke database `pukemqiwlyqmyytxkdmo` now has the exact reviewed private-ledger migration (Supabase history version `20261116205449`, source migration `20261116203706`). Schema inspection verified the three tables and four invoker RPCs: service role only, RLS enabled, no anon/authenticated access. No rep data was inserted or modified. The security advisor's no-policy notices are intentional for these service-role-only tables. Live database access remains prohibited pending the explicit release gate.

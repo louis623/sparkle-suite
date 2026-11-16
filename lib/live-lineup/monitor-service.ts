@@ -7,7 +7,7 @@ import { advanceMonitor, applyExpectedShow, type MonitorShowWindow, groupChanged
 import { deliverMonitorJob, incidentPayload, monitorConfiguration, type MonitorDelivery } from './monitor-delivery'
 import { verifyPublicFeed } from './monitor-public'
 
-const MAX_REPS = 500
+const MAX_REPS = 50
 const BATCH_SIZE = 4
 type Rep = {id: string; public_site_slug: string | null}
 type MonitorRow = {revision: number; data: MonitorState}
@@ -61,16 +61,21 @@ async function finish(db: SupabaseClient, job: MonitorDelivery, worker: string,
 
 async function sendJobs(db: SupabaseClient, now: number) {
   const configuration = monitorConfiguration()
-  if (!configuration.delivery) return {accepted: 0, deferred: 0, disabled: configuration.disabledReason}
+  if (!configuration.delivery) return {accepted: 0, deferred: 0, skippedOptionalHooks: 0, disabled: configuration.disabledReason}
   const worker = randomUUID()
   const {data, error} = await db.rpc('live_lineup_monitor_claim', {p_worker: worker, p_limit: BATCH_SIZE})
   if (error) throw new Error('monitor_delivery_claim_unavailable')
-  let accepted = 0, deferred = 0
-  for (const job of (data ?? []) as MonitorDelivery[]) {
+  let accepted = 0, deferred = 0, skippedOptionalHooks = 0
+  if (!Array.isArray(data) || data.length > BATCH_SIZE || new Set(data.map(job => job.id)).size !== data.length) throw new Error('monitor_delivery_claim_invalid')
+  const deliveries = await Promise.allSettled((data as MonitorDelivery[]).map(async job => {
     try {
+      // Vercel's authenticated cron is the required alert hook. An external Watch wakeup is optional.
+      if (job.channel === 'webhook' && !configuration.webhookConfigured) {
+        await finish(db, job, worker, 'canceled'); skippedOptionalHooks++; return
+      }
       // Provider idempotency lasts 24h. Stop blind retries before its expiry, retain uncertain status for review.
       if (job.attempt_count > 10 || now - Date.parse(job.created_at) > 23 * 3_600_000) {
-        await finish(db, job, worker, 'exhausted'); deferred++; continue
+        await finish(db, job, worker, 'exhausted'); deferred++; return
       }
       if (job.incident_id && job.rep_id) {
         const {data: incident, error: incidentError} = await db.from('live_lineup_monitor_incidents')
@@ -87,14 +92,14 @@ async function sendJobs(db: SupabaseClient, now: number) {
         const current = await monitorRow(db, job.rep_id)
         if (job.kind === 'incident' && (incident.status === 'recovered' || facts.health === 'healthy'
           || job.payload.event.reason === 'feed_stopped_show_unverified' && facts.reason !== 'feed_stopped_show_unverified')) {
-          await finish(db, job, worker, 'canceled'); continue
+          await finish(db, job, worker, 'canceled'); return
         }
         let permitted = job.kind === 'incident'
           ? incidentStillSendable(current?.data ?? null, facts, job.incident_id, Date.now())
           : incident.status === 'recovered' && facts.health === 'healthy'
             && current?.data.health === 'healthy' && current.data.recoveryStreak >= 2
         if (permitted && job.kind === 'recovery') permitted = facts.publicVerification === 'matched'
-        if (!permitted) {await finish(db, job, worker, 'retry'); deferred++; continue}
+        if (!permitted) {await finish(db, job, worker, 'retry'); deferred++; return}
       }
       const providerId = await deliverMonitorJob(job)
       await finish(db, job, worker, 'accepted', providerId)
@@ -104,21 +109,20 @@ async function sendJobs(db: SupabaseClient, now: number) {
       await finish(db, job, worker, 'retry', null, Math.min(600, 60 * 2 ** Math.min(job.attempt_count - 1, 4)))
       deferred++
     }
-  }
-  return {accepted, deferred, disabled: null}
+  }))
+  if (deliveries.some(result => result.status === 'rejected')) throw new Error('monitor_delivery_receipt_unavailable')
+  return {accepted, deferred, skippedOptionalHooks, disabled: null}
 }
 
-export async function runLineupMonitor(db: SupabaseClient, now = Date.now()) {
-  const configuration = monitorConfiguration()
-  if (!configuration.monitoring) return {configuration, sampled: 0, delivery: null}
+async function sampleRoster(db: SupabaseClient, now: number) {
   // Never silently truncate coverage. The operator must raise/rework this bound if the active roster grows.
   const {data, error} = await db.from('reps').select('id,public_site_slug').eq('status', 'active').order('id').limit(MAX_REPS + 1)
   if (error || !Array.isArray(data)) throw new Error('monitor_roster_unavailable')
   if (data.length > MAX_REPS) throw new Error('monitor_roster_capacity')
   const facts = []
   let failures = 0
-  for (let index = 0; index < data.length; index += 5) {
-    const samples = await Promise.allSettled((data as Rep[]).slice(index,index+5).map(rep => sampleRep(db, rep, now)))
+  for (let index = 0; index < data.length; index += 10) {
+    const samples = await Promise.allSettled((data as Rep[]).slice(index,index+10).map(rep => sampleRep(db, rep, now)))
     for (const result of samples) {
       if (result.status === 'fulfilled') facts.push(result.value)
       else failures++
@@ -137,6 +141,16 @@ export async function runLineupMonitor(db: SupabaseClient, now = Date.now()) {
     if (result.error) throw new Error('monitor_adoption_unavailable')
     adoption = 'recorded_once_per_release'
   }
-  return {configuration, sampled: facts.length, sampleFailures: failures, adoption, suspectedSharedChanges: groupChangedStructures(facts), delivery: await sendJobs(db, now),
+  return {sampled: facts.length, sampleFailures: failures, adoption, suspectedSharedChanges: groupChangedStructures(facts),
     limits: ['silence_alerts_only_in_scheduled_window_with_prior_contact' , 'public_feed_network_failures_unknown', 'shared_change_groups_reported_not_combined_emails', 'provider_acceptance_not_mailbox_delivery']}
+}
+
+/** Both tasks are awaited even when either fails; no detached delivery work after the response. */
+export async function runLineupMonitor(db: SupabaseClient, now = Date.now()) {
+  const configuration = monitorConfiguration()
+  if (!configuration.monitoring) return {configuration, sampled: 0, delivery: null}
+  const [sampling, delivery] = await Promise.allSettled([sampleRoster(db, now), sendJobs(db, now)])
+  if (sampling.status === 'rejected') throw sampling.reason
+  if (delivery.status === 'rejected') throw delivery.reason
+  return {configuration, ...sampling.value, delivery: delivery.value}
 }

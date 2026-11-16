@@ -107,6 +107,23 @@ describe('Live Lineup monitor', () => {
     expect(fetcher).not.toHaveBeenCalled()
     vi.stubEnv('VERCEL_ENV','production'); vi.stubEnv('SPARKLE_ENVIRONMENT','live')
     vi.stubEnv('RESEND_API_KEY','synthetic-only'); vi.stubEnv('RESEND_FROM_EMAIL','Sparkle <no-reply@example.com>')
+    vi.stubEnv('LIVE_LINEUP_ALERT_WEBHOOK_URL',''); vi.stubEnv('LIVE_LINEUP_ALERT_WEBHOOK_SECRET','')
+    expect(monitorConfiguration()).toMatchObject({ready:true,emailStatus:'configured_unverified',externalWatchHookStatus:'not_configured'})
+    const roster = {select(){return this},eq(){return this},order(){return this},async limit(){return {data:[],error:null}}}
+    const optionalJobs = Array.from({length:4},(_,index) => ({...job,id:incident.slice(0,-1)+String(index+1),channel:'webhook'}))
+    const releaseFinish: Array<() => void> = []
+    const db = {from:vi.fn(() => roster),rpc:vi.fn(async (name:string,_args:unknown) => name === 'live_lineup_monitor_claim'
+      ? {data:optionalJobs,error:null} : await new Promise<{data:boolean;error:null}>(resolve => releaseFinish.push(() => resolve({data:true,error:null}))))}
+    const {runLineupMonitor} = await import('@/lib/live-lineup/monitor-service')
+    const monitorRun = runLineupMonitor(db as never,at)
+    await Promise.resolve(); await Promise.resolve()
+    expect(releaseFinish).toHaveLength(4) // All uniquely claimed jobs start before any finish resolves.
+    releaseFinish.forEach(release => release())
+    const monitorResult = await monitorRun
+    expect(monitorResult.delivery).toMatchObject({accepted:0,deferred:0,skippedOptionalHooks:4})
+    expect(db.rpc.mock.calls.filter(([name]) => name === 'live_lineup_monitor_finish').every(([,args]) => (args as {p_outcome:string}).p_outcome === 'canceled')).toBe(true)
+    expect(db.from).toHaveBeenCalledTimes(1)
+    expect(fetcher).not.toHaveBeenCalled()
     expect(await deliverMonitorJob(job,fetcher)).toBe('provider-123')
     await deliverMonitorJob(job,fetcher)
     const first = fetcher.mock.calls[0] as unknown as [string,RequestInit]
@@ -115,6 +132,7 @@ describe('Live Lineup monitor', () => {
     expect((fetcher.mock.calls[1] as unknown as [string,RequestInit])[1].body).toBe(first[1].body)
     vi.stubEnv('LIVE_LINEUP_ALERT_WEBHOOK_URL','https://hooks.example.com/lineup')
     vi.stubEnv('LIVE_LINEUP_ALERT_WEBHOOK_SECRET','synthetic-hook-key')
+    expect(monitorConfiguration()).toMatchObject({ready:true,externalWatchHookStatus:'configured_unverified'})
     await deliverMonitorJob({...job,channel:'webhook'},fetcher)
     const hook = (fetcher.mock.calls[2] as unknown as [string,RequestInit])[1]
     const headers = hook.headers as Record<string,string>
@@ -133,6 +151,22 @@ describe('Live Lineup monitor', () => {
     vi.stubEnv('LIVE_LINEUP_MONITOR_ENABLED','false')
     const response = await GET(new Request('https://example.com/api/internal/live-lineup/monitor',{headers:{authorization:'Bearer synthetic-cron'}}))
     expect(response.status).toBe(200); expect((await response.json()).status).toBe('disabled')
+    vi.stubEnv('LIVE_LINEUP_MONITOR_ENABLED','true'); vi.stubEnv('LIVE_LINEUP_ALERT_DELIVERY_ENABLED','true')
+    vi.stubEnv('VERCEL_ENV','production'); vi.stubEnv('SPARKLE_ENVIRONMENT','live')
+    let releaseDelivery!: () => void
+    const rosterFailure = {select(){return this},eq(){return this},order(){return this},async limit(){throw new Error('synthetic_roster_failure')}}
+    const db = {from:vi.fn(() => rosterFailure),rpc:vi.fn(async () => await new Promise(resolve => {releaseDelivery = () => resolve({data:[],error:null})}))}
+    const {runLineupMonitor} = await import('@/lib/live-lineup/monitor-service')
+    let settled = false
+    const outcome = runLineupMonitor(db as never,at).then(() => 'unexpected_success', error => String(error.message)).then(result => {settled = true; return result})
+    expect(db.rpc).toHaveBeenCalledWith('live_lineup_monitor_claim',expect.objectContaining({p_limit:4}))
+    await Promise.resolve(); await Promise.resolve()
+    expect(settled).toBe(false) // Roster failure must not abandon an in-flight delivery pump.
+    releaseDelivery()
+    expect(await outcome).toBe('synthetic_roster_failure')
+    const tooMany = {select(){return this},eq(){return this},order(){return this},async limit(){return {data:Array.from({length:51},() => ({})),error:null}}}
+    const capped = {from:() => tooMany,rpc:async () => ({data:[],error:null})}
+    await expect(runLineupMonitor(capped as never,at)).rejects.toThrow('monitor_roster_capacity')
   })
 
   it('keeps durable claim/CAS, recovery-send races and one-per-release ledger boundaries in the migration', () => {

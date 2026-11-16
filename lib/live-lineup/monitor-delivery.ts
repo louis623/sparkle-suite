@@ -25,8 +25,9 @@ export function monitorConfiguration(env: NodeJS.ProcessEnv = process.env) {
   } catch {}
   return {monitoring, delivery, emailConfigured: email, webhookConfigured: hook,
     emailStatus: !delivery ? 'disabled' : email ? 'configured_unverified' : 'not_configured',
-    webhookStatus: !delivery ? 'disabled' : hook ? 'configured_unverified' : 'not_configured',
-    ready: delivery && email && hook,
+    externalWatchHookStatus: !delivery ? 'disabled' : hook ? 'configured_unverified' : 'not_configured',
+    // Configuration readiness for the required Vercel cron -> email path; not delivery proof.
+    ready: delivery && email,
     disabledReason: !monitoring ? 'monitor_disabled' : !production ? 'external_delivery_requires_production'
       : !delivery ? 'delivery_disabled' : null}
 }
