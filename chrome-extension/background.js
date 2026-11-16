@@ -1,15 +1,18 @@
-importScripts("publisher-client.js");
+importScripts("publisher-client.js", "update-client.js");
 const ENVIRONMENT = "production";
 const ENDPOINT = "https://www.yoursparklesuite.com/api/live-lineup/publish";
 const KEY = ENVIRONMENT === 'smoke' ? 'sparkleSmokePublisherV2' : 'sparklePublisherV2';
 const SOURCE = ENVIRONMENT === 'smoke' ? 'sparkleSmokeSourceV2' : 'sparkleSourceV2';
+const UPDATE_KEY = ENVIRONMENT === 'smoke' ? 'sparkleSmokeUpdaterV1' : 'sparkleUpdaterV1';
+const RELEASE_ENDPOINT = new URL('/api/live-lineup/release', ENDPOINT).href;
 const POPUP = chrome.runtime.getURL('popup.html');
 const CREDENTIAL = /^(?:sslp_[A-Za-z0-9_-]{43}|[A-Z0-9]{3}-[0-9]{4})$/;
 const CODE = /^[A-Z0-9]{3}-[0-9]{4}$/, PARTY = /^[A-Za-z0-9][A-Za-z0-9_-]{0,60}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const safeCodes = new Set(['unauthorized','lease_expired','lease_required','publisher_conflict','revision_conflict','stale_sequence','rate_limited','invalid_payload','show_changed','invalid_scope','configuration_changed','source_not_ready','stale_observation','capacity_exceeded','source_unavailable','source_ambiguous','invalid_receipt','server_update_required']);
 const fail = code => Object.assign(new Error(code), {code});
-let serial = Promise.resolve(), requesting = false, lastRequest = 0, activePull = null;
+let serial = Promise.resolve(), requesting = false, lastRequest = 0, activePull = null, pendingActions = 0, observedDocumentId = null, updaterTask = null;
+const readerHealAt = new Map();
 // A persisted wall-clock deadline alone cannot prove freshness after worker restart
 // or a clock correction. Only an acknowledgment in this worker earns local health.
 const monotonicNow = () => typeof performance !== 'undefined' ? performance.now() : Date.now();
@@ -80,7 +83,7 @@ async function post(token, body, guard = null) {
   finally { guard?.controllers.delete(controller); clearTimeout(timer); controller.abort(); if (reader) void reader.cancel().catch(()=>{}); }
 }
 function cleanDescriptor(value) {
-  if (['2.0.6','2.0.7','2.0.8'].includes(chrome.runtime.getManifest().version) && value?.orderScope !== 'selected-parties') throw fail('server_update_required');
+  if (SparkleUpdateClient.compare(chrome.runtime.getManifest().version,'2.0.6') >= 0 && value?.orderScope !== 'selected-parties') throw fail('server_update_required');
   if (!value || value.protocol !== 2 || !Number.isSafeInteger(value.generation) || value.generation < 0 || typeof value.serverTime !== 'string' || !Number.isFinite(Date.parse(value.serverTime))) throw fail('invalid_receipt');
   if (value.generation === 0 && value.scope === null) return {protocol:2,generation:0,scope:null,serverTime:value.serverTime};
   const s = value.scope;
@@ -114,30 +117,48 @@ async function messageTab(tabId, message) {
   if (guard?.invalidated || guard && guard.tabId !== tabId) throw fail('configuration_changed');
   return result;
 }
+async function healReader(tabId) {
+  if (activePull?.invalidated) throw fail('configuration_changed');
+  const time=Date.now(), previous=readerHealAt.get(tabId);
+  if (Number.isFinite(previous) && time>=previous && time-previous<30000) return false;
+  readerHealAt.set(tabId,time);
+  const current=(await tabs()).find(tab=>tab.id===tabId);
+  if (!current || !chrome.scripting?.executeScript) return false;
+  // Probe before replacing the parser global: an old reader must never run a new parser under its old version.
+  const probe=await chrome.scripting.executeScript({target:{tabId,frameIds:[0]},func:()=>{
+    const lifecycle=globalThis.__sparkleLineupReader;
+    if(lifecycle && typeof lifecycle.stop==='function') {lifecycle.stop();return true;}
+    return globalThis.__sparkleLineupReaderActive !== true;
+  }});
+  if(activePull?.invalidated)throw fail('configuration_changed');
+  if(probe?.[0]?.result!==true)return false;
+  if(!(await tabs()).some(tab=>tab.id===tabId))return false;
+  await chrome.scripting.executeScript({target:{tabId,frameIds:[0]},files:['queue-parser.js','content.js']});
+  if(activePull?.invalidated)throw fail('configuration_changed');
+  return true;
+}
 async function messageTabWithHeal(tabId, message) {
   try { return await messageTab(tabId,message); }
   catch (error) {
-    if (error?.code !== 'source_unavailable' || activePull?.invalidated) throw error;
-    const current = (await tabs()).find(tab => tab.id === tabId);
-    if (activePull?.invalidated) throw fail('configuration_changed');
-    if (!current || !chrome.scripting?.executeScript) throw fail('source_unavailable');
-    await chrome.scripting.executeScript({target:{tabId,frameIds:[0]},files:['queue-parser.js','content.js']});
-    if (activePull?.invalidated) throw fail('configuration_changed');
+    if (error?.code !== 'source_unavailable' || activePull?.invalidated || !await healReader(tabId)) throw error;
     return messageTab(tabId,message);
   }
 }
 async function sourceRead(tabId, descriptor, inspectOnly = false) {
   const started = Date.now();
-  const response = await messageTabWithHeal(tabId, inspectOnly || descriptor.generation === 0 ? {action:'sparkle-v2-inspect'} : {action:'sparkle-v2-read',selection:descriptor.scope,generation:descriptor.generation});
+  let response = await messageTabWithHeal(tabId, inspectOnly || descriptor.generation === 0 ? {action:'sparkle-v2-inspect'} : {action:'sparkle-v2-read',selection:descriptor.scope,generation:descriptor.generation});
+  if(response?.readerVersion !== chrome.runtime.getManifest().version && await healReader(tabId))
+    response=await messageTab(tabId,inspectOnly || descriptor.generation===0 ? {action:'sparkle-v2-inspect'} : {action:'sparkle-v2-read',selection:descriptor.scope,generation:descriptor.generation});
   if (Date.now() < started || Date.now() - started > 5000 || response?.protocol !== 2
     || !inspectOnly && descriptor.generation > 0 && response.generation !== descriptor.generation
     || !UUID.test(response.source?.documentId || '') || !Number.isSafeInteger(response.source?.serial) || response.source.serial < 0
     || typeof response.source.settled !== 'boolean') throw fail('source_unavailable');
+  observedDocumentId=response.source.documentId;
   const readerVersion = typeof response.readerVersion === 'string' && /^\d{1,5}(?:\.\d{1,5}){0,3}$/.test(response.readerVersion) ? response.readerVersion : null;
   const matched = readerVersion === chrome.runtime.getManifest().version;
   // An old/unknown reader cannot certify the new worker's snapshot. Do not refresh the page.
   const snapshot = matched ? response.snapshot : {parserState:'partial',reason:null,entries:[],revealedIds:[],revealedEntries:[]};
-  return {...snapshot,readerVersion,observation:{...response.source,settled:matched && response.source.settled,serverTime:descriptor.serverTime}};
+  return {...snapshot,readerVersion,updateState:await updater.getState(),observation:{...response.source,settled:matched && response.source.settled,serverTime:descriptor.serverTime}};
 }
 async function adopt(state, descriptor, source, parties, configured = false) {
   const changed = state.generation !== descriptor.generation;
@@ -227,14 +248,14 @@ async function pull() {
 }
 function requestPull() {
   if (requesting || Date.now() >= lastRequest && Date.now() - lastRequest < 700) return Promise.resolve({status:'busy'});
-  requesting = true; lastRequest = Date.now(); return exclusive(pull).finally(()=>{requesting=false;});
+  requesting = true; lastRequest = Date.now(); return exclusive(pull).finally(()=>{requesting=false;scheduleUpdate();});
 }
 async function popupMessage(message) {
   if (message.action === 'sparkle-v2-status') return status();
   if (message.action === 'sparkle-v2-connect') {
     const credential = typeof message.credential === 'string' ? message.credential.toUpperCase() : '';
     if (!CODE.test(credential)) return {ok:false,error:'invalid_token'};
-    const previous = await store.load(), candidate = {token:credential,enabled:true,excludedPartyIds:[],workflowVersion:4,configVersion:crypto.randomUUID(),claimId:null,nextSequence:0,needsClaim:true,nextAttemptAt:0,authFailed:false,scopePending:true};
+    const previous = await store.load(), candidate = {token:credential,enabled:true,excludedPartyIds:previous?.token===credential ? [...(previous.excludedPartyIds || [])] : [],workflowVersion:4,configVersion:crypto.randomUUID(),claimId:null,nextSequence:0,needsClaim:true,nextAttemptAt:0,authFailed:false,scopePending:true};
     await chrome.storage.local.set({[KEY]:candidate});
     try { await describe(candidate); }
     catch (error) { if (previous) await chrome.storage.local.set({[KEY]:previous}); else await chrome.storage.local.remove(KEY); return {ok:false,error:error?.code || 'connection_failed'}; }
@@ -256,11 +277,50 @@ async function popupMessage(message) {
   }
   return {ok:false,error:'invalid_action'};
 }
+async function fetchRelease() {
+  const controller=new AbortController();let reader,timer;
+  try {
+    const work=(async()=>{
+      const response=await fetch(RELEASE_ENDPOINT,{redirect:'error',credentials:'omit',cache:'no-store',signal:controller.signal});
+      if(!response.ok || response.redirected || response.url!==RELEASE_ENDPOINT || (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase()!=='application/json' || !response.body)throw fail('invalid_receipt');
+      reader=response.body.getReader();let text='',size=0;const decoder=new TextDecoder('utf-8',{fatal:true});
+      for(;;){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;if(size>2048)throw fail('invalid_receipt');text+=decoder.decode(part.value,{stream:true});}
+      return JSON.parse(text+decoder.decode());
+    })();
+    return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(fail('connection_failed'));},5000);})]);
+  } finally {clearTimeout(timer);controller.abort();if(reader)void reader.cancel().catch(()=>{});}
+}
+async function boundedUpdateCheck(){
+  let timer;
+  try {return await Promise.race([chrome.runtime.requestUpdateCheck(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(fail('connection_failed')),5000);})]);}
+  finally {clearTimeout(timer);}
+}
+const updater=SparkleUpdateClient.create({storage:chrome.storage.local,key:UPDATE_KEY,version:chrome.runtime.getManifest().version,
+  fetchRelease,requestCheck:boundedUpdateCheck,reload:()=>chrome.runtime.reload()});
+function scheduleUpdate(){
+  if(updaterTask)return updaterTask;
+  // Release discovery must never hold up a publish/claim. Only the final installation guard joins that queue.
+  updaterTask=updater.check().then(()=>exclusive(()=>updater.consider(updaterContext))).catch(()=>{}).finally(()=>{updaterTask=null;});
+  return updaterTask;
+}
+async function updaterContext(){
+  const choices=await tabs(),state=await store.load(),health=await status(),source=await selected();
+  const scopeKey=JSON.stringify([source?.selection?.partyIds || [],source?.selection?.excludedPartyIds || []]);
+  return {tabCount:choices.length,enabled:Boolean(state?.enabled),healthy:health.connected,lastReadyAckAt:state?.lastReadyAckAt,
+    busy:Boolean(activePull),pendingActions,
+    sourceIdentity:choices.length===1 ? choices[0].id+':'+(state?.generation ?? 'unknown')+':'+(observedDocumentId ?? 'unknown')+':'+scopeKey : null};
+}
+chrome.runtime.onUpdateAvailable?.addListener(details=>{
+  void exclusive(()=>updater.noteDownload(details?.version)).then(()=>{lastRequest=0;return requestPull();}).catch(()=>{});
+});
+chrome.runtime.onStartup?.addListener(()=>{lastRequest=0;void requestPull().catch(()=>{});});
+chrome.runtime.onInstalled?.addListener(()=>{lastRequest=0;void requestPull().catch(()=>{});});
 chrome.runtime.onMessage.addListener((message,sender,respond)=>{
   if (sender.id !== chrome.runtime.id || !message || typeof message !== 'object') return false;
   if (sender.url === POPUP) {
-    if (['sparkle-v2-connect','sparkle-v2-toggle','sparkle-v2-filter'].includes(message.action)) invalidatePull();
-    exclusive(()=>popupMessage(message)).then(result=>{respond(result);if(result.ok && ['sparkle-v2-connect','sparkle-v2-toggle','sparkle-v2-filter'].includes(message.action)){lastRequest=0;void requestPull().catch(()=>{});}},()=>respond({ok:false,error:'operation_failed'})); return true;
+    const mutation=['sparkle-v2-connect','sparkle-v2-toggle','sparkle-v2-filter'].includes(message.action);
+    if (mutation) {pendingActions++;invalidatePull();}
+    exclusive(()=>popupMessage(message)).then(result=>{respond(result);if(result.ok && ['sparkle-v2-connect','sparkle-v2-toggle','sparkle-v2-filter'].includes(message.action)){lastRequest=0;void requestPull().catch(()=>{});}},()=>respond({ok:false,error:'operation_failed'})).finally(()=>{if(mutation)pendingActions--;}); return true;
   }
   if (message.action === 'sparkle-v2-changed' && sender.frameId === 0 && sender.tab && bpUrl(sender.url)) {
     ready.then(()=>requestPull()).then(()=>respond({ok:true}),()=>respond({ok:false})); return true;
@@ -268,7 +328,7 @@ chrome.runtime.onMessage.addListener((message,sender,respond)=>{
   return false;
 });
 chrome.alarms.onAlarm.addListener(a=>{if(a.name === 'sparkle-sync') void requestPull().catch(()=>{});});
-chrome.tabs.onRemoved.addListener(tabId=>{invalidatePull(tabId);void requestPull().catch(()=>{});});
+chrome.tabs.onRemoved.addListener(tabId=>{readerHealAt.delete(tabId);invalidatePull(tabId);void requestPull().catch(()=>{});});
 chrome.tabs.onUpdated.addListener((tabId,change)=>{if(change.status === 'loading' || change.url) invalidatePull(tabId);if(change.status === 'complete' || change.url){lastRequest=0;void requestPull().catch(()=>{});}});
 chrome.tabs.onActivated?.addListener(()=>{lastRequest=0;void requestPull().catch(()=>{});});
-ready.then(()=>chrome.alarms.create('sparkle-sync',{periodInMinutes:.5})).then(()=>requestPull()).catch(()=>{});
+ready.then(()=>{scheduleUpdate();return chrome.alarms.create('sparkle-sync',{periodInMinutes:.5});}).then(()=>requestPull()).catch(()=>{});

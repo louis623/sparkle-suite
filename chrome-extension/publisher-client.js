@@ -12,10 +12,25 @@
   const partialReasons = new Set(['table_incomplete','row_incomplete','reveal_state_missing','selected_party_not_visible']);
   const reasonsFor = state => state === 'invalid' ? invalidReasons : state === 'loading' ? loadingReasons : state === 'partial' ? partialReasons : new Set();
   const version = value => typeof value === 'string' && /^\d{1,5}(?:\.\d{1,5}){0,3}$/.test(value);
+  const updateStates = new Set(['unknown','checking','no_update','throttled','downloaded','installing','failed']);
+  function cleanStructure(input) {
+    const keys = ['version','columns','bodyCount','rowCount','unmatchedRows','hasOrderIdAttribute','hasPartyIdAttribute','hasOrderTimeAttribute'];
+    const columns = ['PartyID','OrderID','FirstName','LastName','OrderDate','IsRevealed','unknown'];
+    const buckets = ['0','1-10','11-100','101-1000','1001-10000','10001+'];
+    if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).length !== keys.length
+      || Object.keys(input).some(key => !keys.includes(key)) || input.version !== 1
+      || !Array.isArray(input.columns) || input.columns.length > 32 || input.columns.some(value => !columns.includes(value))
+      || !Number.isSafeInteger(input.bodyCount) || input.bodyCount < 0 || input.bodyCount > 32
+      || !buckets.includes(input.rowCount) || !buckets.includes(input.unmatchedRows)
+      || ['hasOrderIdAttribute','hasPartyIdAttribute','hasOrderTimeAttribute'].some(key => typeof input[key] !== 'boolean')) return null;
+    return {version:1,columns:[...input.columns],bodyCount:input.bodyCount,rowCount:input.rowCount,unmatchedRows:input.unmatchedRows,
+      hasOrderIdAttribute:input.hasOrderIdAttribute,hasPartyIdAttribute:input.hasPartyIdAttribute,hasOrderTimeAttribute:input.hasOrderTimeAttribute};
+  }
   function diagnostics(snapshot, sourceVersion) {
+    const structure = cleanStructure(snapshot?.structure);
     return {sourceVersion,readerVersion:version(snapshot?.readerVersion) ? snapshot.readerVersion : null,
-      // No Store check or update listener in this reporting-only release.
-      updateState:'unknown',parserState:snapshot?.parserState || 'loading',
+      updateState:updateStates.has(snapshot?.updateState) ? snapshot.updateState : 'unknown',parserState:snapshot?.parserState || 'loading',
+      ...(structure ? {structure} : {}),
       ...(reasonsFor(snapshot?.parserState).has(snapshot?.reason) ? {parserReason:snapshot.reason} : {})};
   }
   const integer = n => Number.isSafeInteger(n) && n >= 0;
@@ -56,7 +71,8 @@
       observation = {documentId:o.documentId,serial:o.serial,serverTime:o.serverTime,settled:o.settled};
     }
     const reason = typeof input.reason === "string" && /^[a-z_]{1,64}$/.test(input.reason) ? input.reason : null;
-    return {parserState: input.parserState, reason, ...(Object.hasOwn(input,"readerVersion") ? {readerVersion:version(input.readerVersion) ? input.readerVersion : null} : {}), entries, revealedIds, ...(revealedEntries ? {revealedEntries} : {}), ...(observation ? {observation} : {})};
+    const structure = cleanStructure(input.structure);
+    return {parserState: input.parserState, reason, updateState:updateStates.has(input.updateState) ? input.updateState : 'unknown', ...(structure ? {structure} : {}), ...(Object.hasOwn(input,"readerVersion") ? {readerVersion:version(input.readerVersion) ? input.readerVersion : null} : {}), entries, revealedIds, ...(revealedEntries ? {revealedEntries} : {}), ...(observation ? {observation} : {})};
   }
   function validClaim(r, generation = 0) {
     return r && r.generation === generation && integer(generation) && typeof r.publisherId === "string" && UUID.test(r.publisherId) && integer(r.epoch) && r.epoch > 0 && integer(r.revision)
@@ -119,7 +135,7 @@
         const sentAt = now();
         if (upgraded && (sentAt < readCompletedAt || sentAt - readCompletedAt > 5000))
           throw Object.assign(new Error('stale_observation'),{code:'stale_observation'});
-        const {reason, readerVersion, ...sourcePacket} = snapshot;
+        const {reason, readerVersion, updateState, structure, ...sourcePacket} = snapshot;
         const report = Object.hasOwn(snapshot,"readerVersion") ? diagnostics(snapshot,sourceVersion) : null;
         const receipt = await post(state.token, {action: "snapshot", packet: {...sourcePacket,
           ...(reasonsFor(snapshot.parserState).has(reason) ? {parserReason: reason} : {}),

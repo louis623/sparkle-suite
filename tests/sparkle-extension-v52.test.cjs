@@ -5,6 +5,7 @@ const vm = require('node:vm');
 const {webcrypto} = require('node:crypto');
 const {parseTable} = require('../chrome-extension/queue-parser.js');
 const {cleanSnapshot,createPublisherClient} = require('../chrome-extension/publisher-client.js');
+const updateClient = require('../chrome-extension/update-client.js');
 const documentId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const rep='11111111-1111-4111-8111-111111111111';
 function table(rows, columns=['OrderID','OrderDate','FirstName','LastName','PartyID','IsRevealed']) {
@@ -122,8 +123,13 @@ function worker({noOp=false,nonready=false,multiple=false,legacyBridge=false,emp
   const chrome={runtime:{id:'fixture',getURL:p=>'chrome-extension://fixture/'+p,getManifest:()=>({version}),onMessage:event('message')},storage:{local:area(local),session:area(session),sync:area({sync_code:'TST-0001',enabled:true,excluded_party_ids:[]})},alarms:{create:async()=>{},onAlarm:event('alarm')},tabs:{query:async()=>[{id:1,url:'https://myoffice.bombparty.com/live-party-orders'},...(multiple?[{id:2,url:'https://myoffice.bombparty.com/live-party-orders'}]:[])],sendMessage:async(_id,m)=>({protocol:2,readerVersion,generation:m.generation,snapshot:full,...(legacyBridge?{}:{source:{documentId,serial:++observations,settled:!nonready}})}),onRemoved:event('removed'),onUpdated:event('updated'),onActivated:event('activated')}};
   class Clock extends Date {static now(){return clock;}}
   const endpoint='https://www.yoursparklesuite.com/api/live-lineup/publish';
-  const context=vm.createContext({chrome,importScripts:()=>{},SparklePublisherClient:{createPublisherClient:args=>createPublisherClient({...args,now:()=>clock})},URL,TextEncoder,TextDecoder,AbortController,crypto:webcrypto,Date:Clock,performance:{now:()=>clock},setTimeout:(f,n)=>setTimeout(f,n===550?1:1000),clearTimeout,
-    fetch:async(_url,o)=>{clock+=600;const b=JSON.parse(o.body);requests.push(b);let body;const stamp=new Date(clock).toISOString(),lease=new Date(clock+90000).toISOString();
+  const context=vm.createContext({chrome,importScripts:()=>{},SparkleUpdateClient:{...updateClient,create:args=>updateClient.create({...args,now:()=>clock})},SparklePublisherClient:{createPublisherClient:args=>createPublisherClient({...args,now:()=>clock})},URL,TextEncoder,TextDecoder,AbortController,crypto:webcrypto,Date:Clock,performance:{now:()=>clock},setTimeout:(f,n)=>setTimeout(f,n===550?1:1000),clearTimeout,
+    fetch:async(_url,o)=>{
+      if(_url==='https://www.yoursparklesuite.com/api/live-lineup/release'){
+        const response=new Response(JSON.stringify({protocol:1,version:'2.0.7',publishedAt:null,rolloutEnabled:false}),{headers:{'content-type':'application/json'}});
+        Object.defineProperty(response,'url',{value:_url});return response;
+      }
+      clock+=600;const b=JSON.parse(o.body);requests.push(b);let body;const stamp=new Date(clock).toISOString(),lease=new Date(clock+90000).toISOString();
       if(b.action==='describe')body={...descriptor,serverTime:stamp};
       else if(b.action==='claim'){epoch++;seq=-1;body={claimId:b.claimId,capabilities:b.capabilities,generation:descriptor.generation,publisherId:rep,epoch,revision:requests.length,acceptedSequence:seq,serverTime:stamp,leaseExpiresAt:lease};}
       else if(b.action==='snapshot'){
@@ -204,10 +210,11 @@ test('closed selected tab recovers with the only replacement tab and a fresh obs
 });
 test('ordinary Chrome missing-receiver rejection heals by injecting only packaged reader files',async()=>{
  const w=worker();await w.settle();
- await w.run("globalThis.injections=[];const originalSend=chrome.tabs.sendMessage;chrome.tabs.sendMessage=async()=>{throw new Error('Could not establish connection. Receiving end does not exist.')};chrome.scripting={executeScript:async args=>{injections.push(args);chrome.tabs.sendMessage=originalSend;}}");
+ await w.run("globalThis.injections=[];const originalSend=chrome.tabs.sendMessage;chrome.tabs.sendMessage=async()=>{throw new Error('Could not establish connection. Receiving end does not exist.')};chrome.scripting={executeScript:async args=>{injections.push(args);if(args.func)return [{result:true}];chrome.tabs.sendMessage=originalSend;}}");
  await w.run('exclusive(pull)');assert.equal((await w.run('status()')).connected,true);
- const injections=JSON.parse(JSON.stringify(await w.run('injections')));assert.equal(injections.length,1);
- assert.deepEqual(injections[0],{target:{tabId:1,frameIds:[0]},files:['queue-parser.js','content.js']});
+ const injections=JSON.parse(JSON.stringify(await w.run('injections')));assert.equal(injections.length,2);
+ assert.deepEqual(injections[0].target,{tabId:1,frameIds:[0]});
+ assert.deepEqual(injections[1],{target:{tabId:1,frameIds:[0]},files:['queue-parser.js','content.js']});
 });
 test('a changed generation is adopted only with a new claim and a fresh read',async()=>{
  const w=worker();await w.settle();
@@ -256,8 +263,11 @@ test('2.0.8 reporting: bounded diagnostics use existing packets and cannot earn 
   assert.equal((await healthy.run('status()')).connected,true);
   healthy.run('localReadyAck=null;localReadyDeadline=0');
   assert.equal((await healthy.run('status()')).connected,false);
-  const workerText=fs.readFileSync('chrome-extension/background.js','utf8');
-  assert.equal(/runtime\.(reload|requestUpdateCheck|onUpdateAvailable)/.test(workerText),false);
+  // Even if local health is lost, a recent good receipt refuses a mid-show update.
+  await healthy.run("(async()=>{const c=await updaterContext();await chrome.storage.local.set({sparkleUpdaterV1:{release:{protocol:1,version:'2.0.9',publishedAt:new Date(0).toISOString(),rolloutEnabled:true},descriptorCheckedAt:Date.now(),downloadedVersion:'2.0.9',brokenAt:Date.now()-700000,lastObservedAt:Date.now(),sourceIdentity:c.sourceIdentity}});})()");
+  healthy.run('globalThis.reloads=0;chrome.runtime.reload=()=>{reloads++};localReadyAck=null;localReadyDeadline=0');
+  assert.equal(await healthy.run('updater.consider(updaterContext)'),false);
+  assert.equal(await healthy.run('reloads'),0);
   let state={token:'TST-0001',enabled:true,configVersion:'x',generation:0,claimId:documentId,needsClaim:true,nextSequence:0};
   const outgoing=[];const stamp=new Date().toISOString();
   const client=createPublisherClient({store:{load:async()=>state,update:async(_v,p)=>{state={...state,...p};return true}},post:async(_token,b)=>{
@@ -268,4 +278,77 @@ test('2.0.8 reporting: bounded diagnostics use existing packets and cannot earn 
   await client.sync(bad,'2.0.8',{diagnosticSnapshot:bad});
   assert.equal(JSON.stringify(outgoing).includes('Customer name'),false);assert.equal(JSON.stringify(outgoing).includes('private'),false);
   assert.equal(state.readyDeadline,0);
+});
+
+
+// Direct-child fixtures model multiple tbody sections without a browser or real orders.
+function resilienceTable(groups, columns=['OrderID','OrderDate','FirstName','LastName','PartyID','IsRevealed']) {
+  const result=table([],columns);const head=result.querySelector('thead');
+  head.rows=[{}];result.tHead=head;
+  result.tBodies=groups.map(group=>{
+    const body={parentElement:result,children:[]};
+    body.children=group.map(data=>{
+      const row=table([data],columns).querySelector('tbody').querySelectorAll('tr')[0];
+      const cells=Array.from(row.querySelectorAll('td'));
+      cells.forEach(cell=>{cell.tagName='TD';});
+      Object.assign(row,{tagName:'TR',parentElement:body,children:cells,recognized:data.recognized!==false,
+        querySelector:selector=>selector==='table'&&data.nested?{}:null,
+        querySelectorAll:selector=>selector==='td'?cells:[]});
+      return row;
+    });
+    body.querySelectorAll=selector=>selector==='tr.product.product-row'?body.children.filter(row=>row.recognized):body.children;
+    return body;
+  });
+  return result;
+}
+test('2.0.9 resilience: every direct body contributes once and duplicate identities still fail',()=>{
+  const fixture=resilienceTable([[{id:'late',party:'P9',date:200}],[{id:'early',party:'P9',date:100},{id:'done',party:'P9',date:150,checked:true}]]);
+  const result=parseTable(fixture);
+  assert.equal(result.parserState,'ready');
+  assert.deepEqual(result.entries.map(row=>row.id),['P9:early','P9:late']);
+  assert.deepEqual(result.revealedIds,['P9:done']);
+  assert.equal(result.structure.bodyCount,2);assert.equal(result.structure.unmatchedRows,'0');
+  assert.equal(parseTable(resilienceTable([[{id:'same',party:'P9'}],[{id:'same',party:'P9'}]])).reason,'duplicate_order_identity');
+  assert.equal(parseTable(resilienceTable(Array.from({length:33},()=>[]))).reason,'scan_capacity_exceeded');
+});
+test('2.0.9 resilience: mixed or nested markup cannot publish an incomplete healthy lineup',()=>{
+  for(const groups of [
+    [[{id:'ok',party:'P9'},{id:'hidden',party:'P9',recognized:false}]],
+    [[{id:'ok',party:'P9'}],[{id:'hidden',party:'P9',recognized:false}]],
+    [[{id:'hidden',party:'P9',recognized:false}]],
+    [[{id:'nested',party:'P9',nested:true}]],
+  ]) {
+    const result=parseTable(resilienceTable(groups));
+    assert.equal(result.parserState,'partial');assert.equal(result.reason,'table_incomplete');
+    assert.deepEqual(result.entries,[]);assert.deepEqual(result.revealedIds,[]);
+  }
+  assert.equal(parseTable(resilienceTable([[],[]])).parserState,'ready');
+  const multipleHeaders=resilienceTable([[{id:'ok',party:'P9'}]]);multipleHeaders.tHead.rows=[{},{}];
+  assert.equal(parseTable(multipleHeaders).parserState,'partial');
+});
+test('2.0.9 resilience: scope and real data validation stay strict across body sections',()=>{
+  const selection={partyIds:['P9','P10'],excludedPartyIds:['P10'],carryEntryIds:[],startedAt:new Date(0).toISOString()};
+  const valid=parseTable(resilienceTable([[{id:'00017',party:'P9',orderText:'Order #00017',date:50}],[{id:'excluded',party:'P10',busy:true}]]),selection);
+  assert.equal(valid.parserState,'ready');assert.deepEqual(valid.entries.map(row=>row.id),['P9:00017']);
+  for(const [data,reason] of [
+    [{id:'00017',party:'P9',orderText:'Order #17'},'missing_order_identity'],
+    [{id:'date',party:'P9',date:'11/16/2026'},'invalid_order_time'],
+    [{id:'name',party:'P9',name:'Bad\nName'},'invalid_first_name'],
+    [{id:'busy',party:'P9',busy:true},'reveal_state_missing'],
+  ]) assert.equal(parseTable(resilienceTable([[{id:'old',party:'P9'}],[data]]),selection).reason,reason);
+});
+test('2.0.9 resilience: structural report uses bounded enums and no page or customer values',()=>{
+  const secret='PRIVATE_customer_123_URL';
+  const fixture=resilienceTable([[{id:secret,party:'P9',name:secret}],[{id:'unknown',party:'P9',recognized:false}]]);
+  const old=fixture.tHead.querySelectorAll;
+  fixture.tHead.querySelectorAll=()=>[...old(),{getAttribute:()=>secret,querySelector:()=>({textContent:secret})}];
+  const result=parseTable(fixture);const structure=result.structure;
+  assert.deepEqual(Object.keys(structure).sort(),['bodyCount','columns','hasOrderIdAttribute','hasOrderTimeAttribute','hasPartyIdAttribute','rowCount','unmatchedRows','version']);
+  assert.equal(structure.version,1);assert.equal(structure.columns.at(-1),'unknown');
+  assert.equal(structure.rowCount,'1-10');assert.equal(structure.unmatchedRows,'1-10');
+  assert.equal(structure.hasOrderIdAttribute,true);assert.equal(structure.hasPartyIdAttribute,true);assert.equal(structure.hasOrderTimeAttribute,true);
+  assert.equal(JSON.stringify(structure).includes(secret),false);
+  const missing=parseTable(null);assert.equal(missing.reason,'table_missing');assert.equal(missing.structure.bodyCount,0);assert.equal(missing.structure.rowCount,'0');
+  fixture.tHead.querySelectorAll=()=>Array.from({length:100},()=>({getAttribute:()=>secret,querySelector:()=>null}));
+  assert.equal(parseTable(fixture).structure.columns.length,32);
 });

@@ -1,4 +1,4 @@
-import { INVALID_PARSER_REASONS, LOADING_PARSER_REASONS, PARTIAL_PARSER_REASONS, type ParserReason, type PublisherDiagnostics } from './types'
+import { UPDATE_STATES, STRUCTURE_COLUMNS, STRUCTURE_BUCKETS, type ParserStructure, type UpdateState, INVALID_PARSER_REASONS, LOADING_PARSER_REASONS, PARTIAL_PARSER_REASONS, type ParserReason, type PublisherDiagnostics } from './types'
 import type { AcceptedObservation, LineupCommand, LineupResult, LineupState, ParserState, PartyAbsence, RevealRestoration, SourceEntry, SourcePacket, WorkspaceLineupSnapshot } from './types'
 
 export const LINEUP_MAX_ENTRIES = 2000
@@ -34,14 +34,29 @@ export function createLineupState(): LineupState {
 
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value)
 
+/** Fixed enums/count buckets only: no raw page labels, attributes, IDs or text. */
+export function parseParserStructure(input: unknown): ParserStructure | null {
+  if (!record(input) || Object.keys(input).length !== 8 || Object.keys(input).some(key => !['version','columns','bodyCount','rowCount','unmatchedRows','hasOrderIdAttribute','hasPartyIdAttribute','hasOrderTimeAttribute'].includes(key))
+    || input.version !== 1 || !Array.isArray(input.columns) || input.columns.length > 32
+    || input.columns.some(value => !STRUCTURE_COLUMNS.some(column => column === value))
+    || !validInteger(input.bodyCount) || input.bodyCount > 32
+    || !STRUCTURE_BUCKETS.some(bucket => bucket === input.rowCount) || !STRUCTURE_BUCKETS.some(bucket => bucket === input.unmatchedRows)
+    || typeof input.hasOrderIdAttribute !== 'boolean' || typeof input.hasPartyIdAttribute !== 'boolean' || typeof input.hasOrderTimeAttribute !== 'boolean') return null
+  return {version:1,columns:[...input.columns],bodyCount:input.bodyCount,rowCount:input.rowCount as ParserStructure['rowCount'],
+    unmatchedRows:input.unmatchedRows as ParserStructure['unmatchedRows'],hasOrderIdAttribute:input.hasOrderIdAttribute,
+    hasPartyIdAttribute:input.hasPartyIdAttribute,hasOrderTimeAttribute:input.hasOrderTimeAttribute}
+}
+
 /** Exact metadata keys prevent raw DOM/customer text from becoming diagnostics. */
 export function parsePublisherDiagnostics(input: unknown): PublisherDiagnostics | null {
-  if (!record(input) || Object.keys(input).some(key => !['sourceVersion','readerVersion','updateState','parserState','parserReason'].includes(key))
+  if (!record(input) || Object.keys(input).some(key => !['sourceVersion','readerVersion','updateState','parserState','parserReason','structure'].includes(key))
     || typeof input.sourceVersion !== 'string' || !/^\d{1,5}(?:\.\d{1,5}){0,3}$/.test(input.sourceVersion)
     || !(input.readerVersion === null || typeof input.readerVersion === 'string' && /^\d{1,5}(?:\.\d{1,5}){0,3}$/.test(input.readerVersion))
-    || input.updateState !== 'unknown' || !parsers.includes(input.parserState as ParserState)
+    || !UPDATE_STATES.some(state => state === input.updateState) || !parsers.includes(input.parserState as ParserState)
     || input.parserReason !== undefined && !validParserReason(input.parserReason,input.parserState)) return null
-  return {sourceVersion:input.sourceVersion,readerVersion:input.readerVersion as string | null,updateState:'unknown',
+  const structure = input.structure === undefined ? undefined : parseParserStructure(input.structure)
+  if (structure === null) return null
+  return {sourceVersion:input.sourceVersion,readerVersion:input.readerVersion as string | null,updateState:input.updateState as UpdateState,...(structure ? {structure} : {}),
     parserState:input.parserState as ParserState,...(input.parserReason === undefined ? {} : {parserReason:input.parserReason as ParserReason})}
 }
 
