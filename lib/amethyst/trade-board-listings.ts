@@ -1,12 +1,24 @@
 import type { TradeListingWithDesign } from '@/lib/services/types'
-import { getMyBoard } from '@/lib/services/trade-board'
 import {
   getTradeListingDisplayFields,
+  type TradeListingDisplayInput,
   TRADE_LISTING_TYPE_LABELS,
 } from '@/lib/services/trade-listing-display'
 import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { jewelryRarityToTradeBoardTier } from '@/lib/services/jewelry-rarity'
+
+// Public reads deliberately cannot select the private rep editor fields.
+type PublicTradeListing = TradeListingDisplayInput & Pick<TradeListingWithDesign,
+  'id' | 'trade_preferences' | 'rarity_classification' | 'quantity_available'
+>
+export const PUBLIC_TRADE_LISTING_SELECT = `
+  id, quantity_available, trade_preferences, ring_size, listing_photo_url,
+  rarity_classification, listing_source, manual_type_prefix, manual_collection_family,
+  manual_collection_name, manual_size, manual_photo_url,
+  design:jewelry_designs(id, item_number, design_name, material, main_stone, bp_msrp,
+    canonical_photo_url, type_prefix, rarity_classification, collection:collections(id, name))
+`
 
 export type AmethystTradeBoardTier = 'everyday' | 'diamond' | 'unicorn'
 
@@ -19,7 +31,7 @@ export interface AmethystTradeBoardListing {
   material: string
   stone: string
   size: string | null
-  note: string
+  tradePreferences: string
   glyph: string
   tier: AmethystTradeBoardTier
   photoUrl: string | null
@@ -33,13 +45,13 @@ const DEFAULT_TRADE_NOTE =
   'Item-for-item only. Requests must stay within the same collection and the same jewelry type.'
 
 function demoDancer(
-  listing: Omit<AmethystTradeBoardListing, 'note' | 'glyph' | 'tier' | 'photoSource' | 'quantityAvailable' | 'size'> & {
+  listing: Omit<AmethystTradeBoardListing, 'tradePreferences' | 'glyph' | 'tier' | 'photoSource' | 'quantityAvailable' | 'size'> & {
     size?: string | null
   },
 ): AmethystTradeBoardListing {
   return {
     size: null,
-    note: DEFAULT_TRADE_NOTE,
+    tradePreferences: DEFAULT_TRADE_NOTE,
     glyph: listing.name.charAt(0).toUpperCase(),
     tier: 'everyday',
     photoSource: 'listing',
@@ -135,7 +147,7 @@ export const defaultAmethystTradeBoardListings: AmethystTradeBoardListing[] = [
 ]
 
 export function getTradeBoardPhotoSource(
-  listing: TradeListingWithDesign,
+  listing: PublicTradeListing,
 ): AmethystTradeBoardListing['photoSource'] {
   const display = getTradeListingDisplayFields(listing)
   if (!display.photoUrl) return 'missing'
@@ -143,14 +155,14 @@ export function getTradeBoardPhotoSource(
   return 'listing'
 }
 
-function inferTradeBoardTier(listing: TradeListingWithDesign): AmethystTradeBoardTier {
+function inferTradeBoardTier(listing: PublicTradeListing): AmethystTradeBoardTier {
   return jewelryRarityToTradeBoardTier(
     listing.rarity_classification ?? listing.design?.rarity_classification,
   )
 }
 
 export function mapTradeListingToAmethystTradeBoardListing(
-  listing: TradeListingWithDesign,
+  listing: PublicTradeListing,
   pendingReservationCount = 0,
 ): AmethystTradeBoardListing {
   const display = getTradeListingDisplayFields(listing)
@@ -159,10 +171,7 @@ export function mapTradeListingToAmethystTradeBoardListing(
   const stone = display.mainStone?.trim() || 'Shown in photo'
   const collection = display.collectionName?.trim() || 'Collection'
   const type = TYPE_LABELS[display.typePrefix]
-  const note =
-    listing.trade_preferences?.trim() ||
-    (display.listingSource === 'catalog' ? listing.rep_notes?.trim() : null) ||
-    DEFAULT_TRADE_NOTE
+  const tradePreferences = listing.trade_preferences?.trim() || DEFAULT_TRADE_NOTE
 
   return {
     id: listing.id,
@@ -173,7 +182,7 @@ export function mapTradeListingToAmethystTradeBoardListing(
     material,
     stone,
     size: display.size,
-    note,
+    tradePreferences,
     glyph: displayName.charAt(0).toUpperCase() || '?',
     tier: inferTradeBoardTier(listing),
     photoUrl: display.photoUrl,
@@ -236,17 +245,20 @@ export async function loadAmethystTradeBoardPreviewListings(
       return targeted ? [] : defaultAmethystTradeBoardListings
     }
 
-    const board = await getMyBoard(admin, rep.id as string, {
-      statusFilter: 'available',
-      sortBy: 'listed_at',
-      sortOrder: 'desc',
-    })
-
-    if (!board.listings.length) {
-      return targeted ? [] : defaultAmethystTradeBoardListings
-    }
-
-    const listingById = new Map(board.listings.map((listing) => [listing.id, listing]))
+    const { data, error } = await admin.from('trade_listings')
+      .select(PUBLIC_TRADE_LISTING_SELECT)
+      .eq('rep_id', rep.id as string)
+      .eq('status', 'available')
+      .in('id', netRows.map(row => row.listingId))
+      .returns<Array<Omit<PublicTradeListing, 'design'> & {
+        design: PublicTradeListing['design'] | NonNullable<PublicTradeListing['design']>[]
+      }>>()
+    if (error) throw error
+    const listings = (data ?? []).map(row => ({
+      ...row, design: Array.isArray(row.design) ? row.design[0] ?? null : row.design,
+    }))
+    if (!listings.length) return targeted ? [] : defaultAmethystTradeBoardListings
+    const listingById = new Map(listings.map(listing => [listing.id, listing]))
     return netRows.flatMap((row) => {
       const listing = listingById.get(row.listingId)
       if (!listing) return []

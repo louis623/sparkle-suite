@@ -68,7 +68,7 @@ const listings: AmethystTradeBoardListing[] = [
 ].map(([name, type, collection, size, glyph], index) => ({
   id: `sample-listing-${index + 1}`, name: name!, type: type!, collection: collection!,
   material: 'Sample finish', stone: 'Sample detail', msrp: null, size,
-  note: 'Sample dancer. Item-for-item, same collection and jewelry type.',
+  tradePreferences: 'Sample dancer. Item-for-item, same collection and jewelry type.',
   glyph: glyph!, tier: 'everyday', photoUrl: null, photoSource: 'missing', quantityAvailable: 1,
 }))
 

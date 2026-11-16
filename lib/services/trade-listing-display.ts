@@ -66,8 +66,14 @@ export function getTradeListingEffectivePhotoUrl(listing: Pick<TradeListingWithD
   return cleanText(listing.design?.canonical_photo_url) ?? cleanText(listing.listing_photo_url)
 }
 
+export type TradeListingDisplayInput = Pick<TradeListingWithDesign,
+  'listing_source' | 'design' | 'manual_type_prefix' | 'manual_collection_name' |
+  'manual_collection_family' | 'manual_size' | 'ring_size' | 'manual_photo_url' |
+  'listing_photo_url'
+>
+
 export function getTradeListingDisplayFields(
-  listing: TradeListingWithDesign,
+  listing: TradeListingDisplayInput,
 ): TradeListingDisplayFields {
   const listingSource = getTradeListingSource(listing)
 

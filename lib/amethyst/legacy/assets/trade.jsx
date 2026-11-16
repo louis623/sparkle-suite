@@ -552,7 +552,7 @@ function buildSamples(count) {
       ...piece,
       tier: "everyday",
       size: null,
-      note: "Dance Floor dancer.",
+      tradePreferences: "Dance Floor dancer.",
       glyph: piece.name.charAt(0),
       quantityAvailable: 1,
     }));
@@ -585,8 +585,8 @@ function normalizeBootstrapPiece(piece, index) {
       : "Stone pending",
     quantityAvailable: Number.isFinite(quantity) ? Math.max(0, quantity) : 0,
     size: typeof piece.size === "string" && piece.size.trim() ? piece.size.trim() : null,
-    note: typeof piece.note === "string" && piece.note.trim()
-      ? piece.note.trim()
+    tradePreferences: typeof piece.tradePreferences === "string" && piece.tradePreferences.trim()
+      ? piece.tradePreferences.trim()
       : "Item-for-item only. Requests must stay within the same collection and the same jewelry type.",
     glyph: typeof piece.glyph === "string" && piece.glyph.trim()
       ? piece.glyph.trim().charAt(0).toUpperCase()
@@ -699,7 +699,7 @@ function searchableTradeBoardText(listing) {
     listing.stone,
     listing.size ? `size ${listing.size}` : "",
     listing.tier,
-    listing.note,
+    listing.tradePreferences,
   ].filter(Boolean).join(" ").toLowerCase();
 }
 
@@ -1586,7 +1586,7 @@ function useTradeDialog(open, onClose, view) {
   return ref;
 }
 
-function isSpecificDancerNote(note) {
+function isSpecificTradePreference(note) {
   const value = String(note || "").trim().toLowerCase();
   if (!value) return false;
   return value !== "item-for-item only. requests must stay within the same collection and the same jewelry type."
@@ -1659,10 +1659,10 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
               <dd>{Math.max(0, Number(piece.quantityAvailable ?? 1))}</dd>
             </div>
           </dl>
-          {isSpecificDancerNote(piece.note) ? (
+          {isSpecificTradePreference(piece.tradePreferences) ? (
             <div className="tp-card-expand-note">
               <SparkleMark />
-              <p>{piece.note}</p>
+              <p>{piece.tradePreferences}</p>
             </div>
           ) : null}
           <p className="tp-card-expand-rule">A dancer swap is one dancer for one dancer, with no added payment or credit. Your rep makes the final decision.</p>
