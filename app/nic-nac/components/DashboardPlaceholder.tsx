@@ -7422,9 +7422,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     setPreviewUnavailableMessage(null)
     setActiveSection(nextSection)
   }
-  const homeTradeRequestsCount = tradeRequestsState.pendingCount
-  const homeAvailableDancerCount = tradeBoardState.board?.summary.availableDancerCount
-  const homeNewDancersTodayCount = tradeBoardState.board?.summary.newDancersTodayCount
   const homeNextShowLabel = buildHomeNextShowLabel(
     calendarState.summary?.upcomingEvents ?? [],
   )
@@ -7523,13 +7520,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           onAskCustomer={onSendNicNacPrompt}
               chat={desktopChat}
               onTradeAlertTarget={setHomeTradeAlertTarget}
-              tradeRequestsCount={homeTradeRequestsCount}
-              availableDancerCount={homeAvailableDancerCount}
-              newDancersTodayCount={homeNewDancersTodayCount}
               nextShow={homeNextShow}
               siteLive={Boolean(customerSparkleSiteHref)}
               onLaunchAction={(action) => onLaunchNicNacAction?.(action)}
-              onOpenTradeBoard={() => setActiveSection('trade-board')}
               onOpenCalendar={() => setActiveSection('show-calendar')}
               onOpenPublicSite={handleOpenCustomerSitePreview}
               onOpenHelp={() => setActiveSection('help-resources')}
@@ -7838,13 +7831,9 @@ function ConceptHomeWorkspace({
   chat,
   onAskCustomer,
   onTradeAlertTarget,
-  tradeRequestsCount,
-  availableDancerCount,
-  newDancersTodayCount,
   nextShow,
   siteLive,
   onLaunchAction,
-  onOpenTradeBoard,
   onOpenCalendar,
   onOpenPublicSite,
   onOpenHelp,
@@ -7857,13 +7846,9 @@ function ConceptHomeWorkspace({
   onAskCustomer?: (prompt:string)=>void
   chat?: ReactNode | null
   onTradeAlertTarget: (target: HTMLElement | null) => void
-  tradeRequestsCount?: number
-  availableDancerCount?: number
-  newDancersTodayCount?: number
   nextShow: HomeNextShowSummary | null
   siteLive: boolean
   onLaunchAction: (action: WorkspaceLaunchAction) => void
-  onOpenTradeBoard: () => void
   onOpenCalendar: () => void
   onOpenPublicSite: () => void
   onOpenHelp: () => void
@@ -7914,27 +7899,7 @@ function ConceptHomeWorkspace({
 
   return (
     <section className={`${styles.conceptHome} ${styles.signatureHome}`} aria-label="Nic-Nac first workspace">
-      <aside className={styles.conceptRail} aria-label="Swap info at a glance">
-        <button
-          type="button"
-          className={styles.railLaunchAction}
-          onClick={() => onLaunchAction('add_trade_piece')}
-        >
-          <span className={styles.railLaunchPieceIcon} aria-hidden="true">+</span>
-          <span>Add a dancer</span>
-        </button>
-        <ConceptPanel title="Swap Info" icon={<CalendarDays aria-hidden="true" />}>
-          <MetricRows
-            rows={[
-              ['Swap requests', tradeRequestsCount ?? '—'],
-              ['Dancers on the Floor', availableDancerCount ?? '—'],
-              ['New dancers today', newDancersTodayCount ?? '—'],
-            ]}
-          />
-          <button type="button" className={styles.panelCtaButton} onClick={onOpenTradeBoard}>
-            Open Dance Floor
-          </button>
-        </ConceptPanel>
+      <aside className={`${styles.conceptRail} ${styles.lineupRail}`} aria-label="Live Lineup at a glance">
         <div className={styles.railLiveLineup}>
           <LiveLineupCard compact readOnly={liveLineupReadOnly} onAskCustomer={onAskCustomer} />
         </div>
@@ -8175,19 +8140,6 @@ function ConceptPanel({
       </div>
       {children}
     </section>
-  )
-}
-
-function MetricRows({ rows }: { rows: Array<[string, number | string]> }) {
-  return (
-    <div className={styles.metricRows}>
-      {rows.map(([label, value]) => (
-        <div key={label} className={styles.metricRow}>
-          <span>{value}</span>
-          <small>{label}</small>
-        </div>
-      ))}
-    </div>
   )
 }
 

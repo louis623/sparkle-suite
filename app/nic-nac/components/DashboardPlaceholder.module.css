@@ -832,44 +832,15 @@
   overscroll-behavior: contain;
 }
 
+.conceptRail.lineupRail {
+  overflow: hidden;
+}
+
 .railLiveLineup {
   display: flex;
-  flex: 1 1 460px;
-  min-height: 460px;
+  flex: 1 1 0;
+  min-height: 0;
   min-width: 0;
-  order: 3;
-}
-
-.railLaunchAction {
-  width: 100%;
-  min-height: 58px;
-  border: 1px solid rgba(67, 42, 116, 0.12);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #171034;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  padding: 10px 14px;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 850;
-  box-shadow: 0 12px 34px rgba(48, 30, 92, 0.05);
-}
-
-.railLaunchAction:hover,
-.railLaunchAction:focus-visible {
-  border-color: rgba(226, 25, 143, 0.28);
-  background: #fff7fc;
-  outline: none;
-}
-
-.railLaunchAction svg {
-  width: 21px;
-  height: 21px;
-  color: #7345ca;
 }
 
 .railLaunchPieceIcon {
@@ -7250,20 +7221,18 @@
     order: 2;
   }
 
+  .conceptRail.lineupRail {
+    height: max(460px, calc(100dvh - 160px));
+  }
+
   .conceptRail:last-child {
     display: flex;
     grid-template-columns: none;
     order: 3;
   }
 
-  .conceptRail:first-child .conceptPanel,
   .conceptRail:last-child .conceptPanel {
     display: none;
-  }
-
-  .conceptRail:first-child .conceptPanel:nth-child(2) {
-    display: block;
-    order: 2;
   }
 
   .conceptRail:last-child .youtubeGlancePanel {
@@ -7312,10 +7281,6 @@
     font-size: 1.25rem;
     font-weight: 500;
     line-height: 1;
-  }
-
-  .railLaunchAction {
-    display: none;
   }
 
   .mobileHeroQuickActions {
@@ -7714,7 +7679,6 @@
     order: 2;
   }
 
-  .conceptRail:first-child .conceptPanel:nth-child(2),
   .conceptRail:last-child .recentConversationsPanel {
     height: 100%;
   }
@@ -8096,7 +8060,6 @@
 }
 
 .signatureHome .conceptPanel,
-.signatureHome .railLaunchAction,
 .signatureHome .railLiveLineup > :first-child {
   border: 1px solid rgba(115, 69, 202, 0.16);
   border-radius: 22px;
@@ -8136,7 +8099,6 @@
 }
 
 .signatureHome .panelCtaButton,
-.signatureHome .railLaunchAction,
 .signatureHome .mobileHeroQuickActions button {
   background: var(--dash-magenta);
   color: var(--dash-cream);
@@ -8150,7 +8112,6 @@
 }
 
 .signatureHome .panelCtaButton:hover,
-.signatureHome .railLaunchAction:hover,
 .signatureHome .mobileHeroQuickActions button:hover {
   background: var(--workspace-accent-hover);
 }
