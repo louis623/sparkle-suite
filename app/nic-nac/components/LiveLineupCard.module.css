@@ -132,7 +132,7 @@
   font-family: var(--font-prelaunch-sans), sans-serif;
   box-shadow: 0 18px 40px color-mix(in srgb, var(--dash-amethyst) 12%, transparent);
 }
-.card.compact { height: 100%; min-height: 0; max-height: none; border-radius: 22px; }
+.card.compact { width: 100%; max-width: 100%; flex: 1 1 0; box-sizing: border-box; height: 100%; min-height: 0; max-height: none; border-radius: 22px; }
 .header, .compact .header, .modalHeader {
   padding: 14px 12px 12px;
   background:
@@ -240,4 +240,39 @@
 @media (max-width: 380px) {
   .card .fullDialog .row { grid-template-columns: minmax(0, 1fr); }
   .fullDialog .row > [data-control-tip='customer-card'] { grid-column: 1; grid-row: auto; margin: 6px 0 0 24px; }
+}
+
+/* Stretch the rail card; use wider desktop rows without changing stacked layouts. */
+@media (min-width: 841px) {
+  .compact > .scroll > .list > .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+  }
+  .compact > .scroll > .list > .row > .person {
+    flex: 1 1 120px;
+    width: auto;
+    grid-template-columns: 14px 24px minmax(0, 1fr) auto;
+    column-gap: 6px;
+  }
+  .compact > .scroll > .list > .row > .expand { flex-basis: 180px; }
+  .compact > .scroll > .list > .row > .person .orders {
+    grid-column: 4;
+    grid-row: 1;
+    white-space: nowrap;
+  }
+  .compact > .scroll > .list > .row > [data-control-tip='customer-card'] {
+    flex: 0 0 auto;
+    max-width: 100%;
+  }
+  .compact > .scroll > .list > .row > [data-control-tip='customer-card'] .customerButton {
+    margin: 0;
+    padding-inline: 8px;
+  }
+  .compact > .scroll > .list > .row > .orderList {
+    flex: 1 0 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
 }

@@ -814,7 +814,7 @@
 
 .conceptHome {
   display: grid;
-  grid-template-columns: minmax(190px, 250px) minmax(420px, 1fr) minmax(210px, 290px);
+  grid-template-columns: minmax(280px, 340px) minmax(420px, 1fr) minmax(210px, 290px);
   gap: 22px;
   flex: 1 1 auto;
   min-height: 0;
@@ -7068,7 +7068,7 @@
   }
 
   .conceptHome {
-    grid-template-columns: minmax(170px, 220px) minmax(360px, 1fr);
+    grid-template-columns: minmax(240px, 280px) minmax(360px, 1fr);
   }
 
   .conceptRail:last-child {
