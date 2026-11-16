@@ -98,8 +98,8 @@
       hasPartyIdAttribute:allRows.some(row => row.getAttribute?.('data-partyid') != null),
       hasOrderTimeAttribute:allRows.some(row => Array.from(row.querySelectorAll?.('td') || []).some(cell => cell.getAttribute?.('data-order-utc-ms') != null))};
   }
-  function parseRows(table, selection, parts) {
-    let parties = null, excluded = new Set();
+  function parseRows(table, selection, parts, discoveryExclusions = null) {
+    let parties = null, excluded = new Set(discoveryExclusions || []);
     if (typeof selection === "string") {
       if (!ID.test(selection)) return unavailable("invalid", "invalid_scope");
       parties = new Set([selection]);
@@ -151,11 +151,14 @@
       const rowFailure = reason => failureContext(reason,rowOffset+1,Math.min(cells.length,32));
       const orderId = readIdentity(row,cells,'data-orderid',columns.OrderID,'Order');
       const partyId = readIdentity(row,cells,'data-partyid',columns.PartyID,'Party');
-      // Ignore only proven out-of-scope rows, never unidentified current orders.
-      if (partyId && (parties && !parties.has(partyId) || excluded.has(partyId))) continue;
+      // Discovery may ignore excluded row data only after both identities agree.
+      // A malformed/ambiguous identity must not hide an unknown new party.
+      const outside = partyId && (parties && !parties.has(partyId) || excluded.has(partyId));
+      if (outside && discoveryExclusions === null) continue;
       if (!ID.test(orderId) || !ID.test(partyId)) return unavailable("invalid", "missing_order_identity", {
         ...rowFailure('missing_order_identity'),order:identityEvidence(row,cells,'data-orderid',columns.OrderID,'Order'),
         party:identityEvidence(row,cells,'data-partyid',columns.PartyID,'Party')});
+      if (outside) continue;
       const id = partyId + ":" + orderId;
       if (seen.has(id)) return unavailable("invalid", "duplicate_order_identity", rowFailure("duplicate_order_identity"));
       seen.add(id);
@@ -181,7 +184,7 @@
       }
       if (entries.length > 2000 || revealedIds.length > 10000) return unavailable("invalid", "capacity_exceeded", rowFailure("capacity_exceeded"));
     }
-    if (rows.length && !seen.size && (!parties || [...parties].some(id => !excluded.has(id)))) return unavailable("partial", "selected_party_not_visible");
+    if (discoveryExclusions === null && rows.length && !seen.size && (!parties || [...parties].some(id => !excluded.has(id)))) return unavailable("partial", "selected_party_not_visible");
     entries.sort((a, b) => (a.orderedAt ?? Number.MAX_SAFE_INTEGER) - (b.orderedAt ?? Number.MAX_SAFE_INTEGER) || a.id.localeCompare(b.id));
     return {parserState: "ready", reason: null, entries, revealedIds, revealedEntries};
   }
@@ -191,7 +194,14 @@
     const result = parseRows(table,selection,parts);
     return {...result,structure,...(result.parserState!=='ready'&&!result.failure?{failure:failureContext(result.reason)}:{})};
   }
-  const api = Object.freeze({parseTable});
+  function parseDiscovery(table, excludedPartyIds = []) {
+    const parts = tableParts(table), structure = structureOf(parts);
+    const valid = Array.isArray(excludedPartyIds) && excludedPartyIds.length <= 100
+      && excludedPartyIds.every(id => typeof id === 'string' && ID.test(id)) && new Set(excludedPartyIds).size === excludedPartyIds.length;
+    const result = valid ? parseRows(table,null,parts,excludedPartyIds) : unavailable('invalid','invalid_scope');
+    return {...result,structure,...(result.parserState!=='ready'&&!result.failure?{failure:failureContext(result.reason)}:{})};
+  }
+  const api = Object.freeze({parseTable,parseDiscovery});
   root.SparkleQueueParser = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

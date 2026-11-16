@@ -1,6 +1,6 @@
 # Live Lineup 2.0.10: automatic failure evidence
 
-Louis authorized automatic, richer diagnostics before Store submission because the existing missing_order_identity reason conflates absent, unsupported and conflicting values. This release changes reporting only; it does not loosen identity validation or claim to repair Britt's unseen page.
+Louis authorized automatic, richer diagnostics before Store submission because the existing missing_order_identity reason conflates absent, unsupported and conflicting values. The original candidate added reporting. The final pre-submission revision also fixes discovery honesty and obsolete update status, as documented below. It does not loosen identity validation or claim to repair Britt's unseen page.
 
 ## What is collected
 
@@ -39,3 +39,18 @@ Rollback after any2.0.10 adoption must retain the failure-aware validator/histor
 - Updated the package verifier explicit version list for the unchanged scripting permission after its first check rejected2.0.10; no permissions were added.
 - Updated version-dependent test fixtures; marked historical skill architecture/branch guidance as superseded by current v2 code and production branch.
 - Documented archive retention separately from active-state expiration and made the rollback compatibility constraint explicit.
+
+## Final pre-submission review (November 16, 2026)
+
+Two cumulative-release gaps were corrected before Store submission:
+
+- A failed whole-table discovery can no longer be hidden by a healthy scoped subset. The reader returns discovery and scoped results in the same synchronous callback. New parties require configuration and a fresh read before healthy status. Known current-generation parties and exclusions survive; previous-generation caches do not. Proven excluded rows may skip bad names/dates only after both identities validate. Ambiguous identities remain invalid. Generation-zero bootstrap retains its validated initial read.
+- Chrome idle installation now clears obsolete downloaded status independently of an explicit reload attempt. The serialized state update preserves newer downloads and failed-attempt cooldowns.
+
+Six additional focused checks passed: the first four discovery checks and one updater check passed on their first runs. Independent review then caught the all-parties-excluded edge case; it was corrected and only its new focused case ran, passing once. Files: tests/live-lineup-discovery-honesty.test.cjs and tests/live-lineup-update-installed.test.cjs. Content forbidden-action scans all returned zero and diff checking passed. No full suite or real rep page was used. These extension-only changes require no additional server migration or application deployment; the compatible server at6829c9cd is already Live.
+
+The original unsubmitted2.0.10 ZIP and evidence remain unchanged. The final candidate is sparkle-suite-live-lineup-2.0.10-cws-r3.zip with separate r3 evidence. The unsubmitted r2 candidate is also preserved; it predates the all-excluded correction. Only that revised archive should be uploaded. This is still2.0.10 because neither candidate has been submitted or published.
+
+Limits: malformed non-excluded old rows deliberately block healthy status; arbitrary formats and pagination are not guessed. A real Store upgrade from legacy2.0.7 with its orders tab open remains unverified and may require one-time help. Chrome controls update timing. Email delivery is enabled; the optional separate Watch webhook is not configured. Do not call a Store upload or review submission complete without visible confirmation.
+
+Spec corrections: distinguished the final behavioral corrections from the original reporting-only scope, preserved the earlier archive, and retained server compatibility without redeploying unchanged application code.

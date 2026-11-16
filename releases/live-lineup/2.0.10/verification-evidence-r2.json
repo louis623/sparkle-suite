@@ -1,0 +1,17 @@
+{
+  "version": "2.0.10",
+  "supersedesUnsubmittedSha256": "ed00fadc3f960c1ffb961824cd5d707a475db132d90ca77df7db32d19aab31bf",
+  "sha256": "da4be64ab45b01b7e386be63f918ca52b44b5a7cb380425410ecac588dde4fa6",
+  "focusedChecks": {
+    "discoveryHonesty": 4,
+    "installedUpdateState": 1
+  },
+  "result": "5 passed on first runs; prior11checks apply to unchanged diagnostic/server code",
+  "contentSafetyScans": [
+    0,
+    0,
+    0
+  ],
+  "storeSubmitted": false,
+  "serverCompatibleSha": "6829c9cd0539f7f5ee939448692740f1a9b206d5"
+}
