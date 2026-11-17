@@ -29,14 +29,22 @@ const names=[{name:'Sample Harper',position:1,token:'sample-one',remainingOrders
 describe('public customer lineup follows entries, independently of showtime and skin',()=>{
   for(const page of ['homepage','trade','join']) {
     const prepared=template(page)
-    for(const [state,message] of [['empty','Live lineup connected. No one is waiting.'],['delayed','Working on live lineup issue. We will have it back up and running soon']]) {
-      it(page+': '+state+' without names displays its connection status',async()=>{
-        const html=(await prepared)(state)
-        expect(html).toContain(message)
-        expect(html).not.toContain('Check the calendar for the next show')
-        expect(html).not.toContain('href="/smokecodex#events"')
-      })
-    }
+    it(page+': empty without names displays its connection status',async()=>{
+      const html=(await prepared)('empty')
+      expect(html).toContain('Live lineup connected. No one is waiting.')
+      expect(html).not.toContain('Check the calendar for the next show')
+      expect(html).not.toContain('href="/smokecodex#events"')
+      expect(html).not.toContain('Working on live lineup issue')
+    })
+    it(page+': delayed without names uses the offline calendar prompt',async()=>{
+      const html=(await prepared)('delayed')
+      expect(html).toContain('data-lineup-surface="calendar"')
+      expect(html).toContain('Check the calendar for the next show')
+      expect(html).toContain('href="/smokecodex#events"')
+      expect(html).not.toContain('Working on live lineup issue')
+      expect(html).not.toContain('back up and running soon')
+      expect(html.slice(html.indexOf('<section'))).not.toMatch(/View (full )?lineup|Waiting for update|Updated|live-dot/)
+    })
     for(const state of ['offline','loading']) {
       it(page+': '+state+' without names has only a compact calendar action',async()=>{
         const html=(await prepared)(state)
@@ -55,7 +63,9 @@ describe('public customer lineup follows entries, independently of showtime and 
         expect(html).toContain('2 orders')
         expect(html).toMatch(/<button[^>]*>View (full )?lineup<\/button>/)
         expect(html).not.toContain('data-lineup-surface="calendar"')
-        if(state==='delayed') expect(html).toContain('Working on live lineup issue. We will have it back up and running soon')
+        expect(html).not.toContain('Working on live lineup issue')
+        expect(html).not.toContain('back up and running soon')
+        if(state==='delayed') expect(html).toContain('Last update')
       })
     }
     it(page+': unavailable calendar has no dead link',async()=>{

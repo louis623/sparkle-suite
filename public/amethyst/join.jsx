@@ -801,7 +801,6 @@ function LiveLineupUpdatedAt({ lineup }) {
   if (!Number.isFinite(updatedAt)) return null;
   return (
     <div className="hp-trade-preview-updated">
-      {lineup?.liveQueueState === "delayed" && <span>Working on live lineup issue. We will have it back up and running soon </span>}
       <time
       dateTime={new Date(updatedAt).toISOString()}
       title={new Date(updatedAt).toLocaleString()}

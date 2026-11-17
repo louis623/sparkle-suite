@@ -31,8 +31,9 @@ describe('Amethyst homepage template data wiring', () => {
 
     for (const source of publicLineupSources) {
       expect(source).not.toContain('Update delayed')
+      expect(source).not.toContain('Working on live lineup issue')
+      expect(source).not.toContain('back up and running soon')
       expect(source).toContain('className="hp-trade-preview-updated"')
-      expect(source).toContain('Working on live lineup issue. We will have it back up and running soon')
       expect(source).toContain("new Date(updatedAt).toLocaleTimeString")
       expect(source).toMatch(
         /className="hp-trade-preview-items"[\s\S]*?className="hp-trade-preview-link"[\s\S]*?<LiveLineupUpdatedAt lineup=\{lineup\} \/>/,
@@ -137,7 +138,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20261112-tap-to-play-fix1')
+    expect(homepage).toContain('homepage.jsx?v=20261113-video-queue')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -917,10 +918,8 @@ describe('Amethyst homepage template data wiring', () => {
 
     expect(noQueueYet.liveQueueSummary).toBe('Check the calendar for the next show.')
     expect(noQueueYet.liveQueueSummary).not.toMatch(/waiting|retry/i)
-    expect(waitingForUpdate.liveQueueSummary).toBe(
-      'Working on live lineup issue. We will have it back up and running soon',
-    )
-    expect(waitingForUpdate.liveQueueSummary).not.toContain('stale')
+    expect(waitingForUpdate.liveQueueSummary).toBe('Live Lineup is updating automatically.')
+    expect(waitingForUpdate.liveQueueSummary).not.toMatch(/issue|difficult|stale/i)
   })
 
   it('uses workspace-backed ticker and queue payloads in the public homepage export', () => {
