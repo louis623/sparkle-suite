@@ -100,18 +100,19 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
     if (src.startsWith('/amethyst/')) return ''
     return tag // Preserve the original analytics tags exactly once.
   })
-  const winterScene = data.appearancePreset === 'starlight_christmas_hollow' || data.appearancePreset === 'macies_christmas_globe'
+  const winterScene = data.appearancePreset === 'silver_bells' || data.appearancePreset === 'starlight_christmas_hollow' || data.appearancePreset === 'macies_christmas_globe'
   const mileHighFizzControls = page === 'homepage' && !winterScene && data.homepage.publicSiteVariant === 'mile_high_fizz_hybrid' ? earlyMileHighFizzControls : ''
   // Frozen HTML predates this theme. Add only its missing assets without editing
   // frozen sources or changing the output of existing themes.
   if (winterScene) {
-    const name = data.appearancePreset === 'macies_christmas_globe' ? 'macies-christmas-globe' : 'starlight-christmas-hollow'
+    const name = data.appearancePreset === 'silver_bells' ? 'silver-bells' : data.appearancePreset === 'macies_christmas_globe' ? 'macies-christmas-globe' : 'starlight-christmas-hollow'
     let additions = ''
     if (!result.includes('data-ssr-style="' + name + '.css"')) {
       additions += '<style data-ssr-style="' + name + '.css">' + homepageStyles[`${name}.css`] + '</style>'
     }
-    if (!result.includes('src="/amethyst/ssr-motion/starlight-christmas-hollow.js"')) {
-      additions += '<script defer data-starlight-runtime src="/amethyst/ssr-motion/starlight-christmas-hollow.js"></script>'
+    const motionScript = data.appearancePreset === 'silver_bells' ? 'silver-bells' : 'starlight-christmas-hollow'
+    if (!result.includes('src="/amethyst/ssr-motion/' + motionScript + '.js"')) {
+      additions += '<script defer ' + (data.appearancePreset === 'silver_bells' ? 'data-silver-bells-runtime' : 'data-starlight-runtime') + ' src="/amethyst/ssr-motion/' + motionScript + '.js"></script>'
     }
     result = result.replace('</head>', additions + '</head>')
       .replace(/<html\b/, '<html data-customer-theme="' + data.appearancePreset + '"')

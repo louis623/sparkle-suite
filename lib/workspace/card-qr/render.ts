@@ -574,6 +574,23 @@ function foregroundSvg(input: {
     if (gradient && !gradient.every(color => /^#[0-9a-f]{6}$/i.test(color))) throw new Error('Flyer gradient stops must be six-digit hex colors.')
   }
   const { pill, qr, qrFrame, panel, lowerPanel } = input.layout
+  // Silver Bells: Louis requested a complete portrait scene with a simple white
+  // rounded QR panel. Keep the real adaptive layout and all optional fields.
+  if ((input.appearancePreset as string) === 'silver_bells') {
+    const backing = (box: FlyerBox | null) => box ? `<rect x="${box.x}" y="${box.y}" width="${box.width}" height="${box.height}" rx="26" fill="#071329" fill-opacity=".73"/>` : ''
+    return canvasSvg(`
+      ${backing(panel)}${backing(lowerPanel)}
+      ${svgBlock(input.layout.showTitle, fonts.heading, '#f5f8ff', 400)}
+      ${svgBlock(input.layout.tagline, fonts.body, '#dce8f5', 500)}
+      <rect x="${pill.x}" y="${pill.y}" width="${pill.width}" height="${pill.height}" rx="30" fill="#102443" fill-opacity=".9"/>
+      ${svgText({value: FLYER_SCAN_LABEL, y: pill.y + (pill.height - input.layout.pillSize) / 2, family: fonts.body, size: input.layout.pillSize, fill:'#ffffff', weight:700, letterSpacing:2})}
+      ${input.showQr ? `<rect x="${qrFrame.x}" y="${qrFrame.y}" width="${qrFrame.width}" height="${qrFrame.height}" rx="32" fill="#ffffff"/>` : ''}
+      ${svgBlock(input.layout.instructions, fonts.body, '#f5f8ff', 500)}
+      ${svgBlock(input.layout.website, fonts.body, '#f5f8ff', 700)}
+      ${svgBlock(input.layout.textLink, fonts.body, '#f5f8ff', 600)}
+      ${svgBlock(input.layout.signOff, fonts.body, '#dce8f5', 500)}
+    `)
+  }
   const pillTextY = pill.y + (pill.height - input.layout.pillSize) / 2
   const titleGap = panel ? pill.y - (panel.y + panel.height) : 0
   const lowerGap = lowerPanel.y - (qrFrame.y + qrFrame.height)

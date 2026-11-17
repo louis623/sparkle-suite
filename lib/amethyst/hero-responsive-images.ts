@@ -25,7 +25,7 @@ export function responsiveHeroCss(css: string, pictureOwnsStill = false) {
 
 export function heroImagePreload(markup: string, preset: string) {
   if (preset === 'macies_christmas_globe' && markup.includes('class="jp-hero-media')) return ''
-  if ((preset === 'starlight_christmas_hollow' || preset === 'macies_christmas_globe') && /class="(?:hp-hero|jp-hero-media|mhf-hero|bwb-hero|bk-home-hero|bkf-hero)(?:[" ])/.test(markup)) {
+  if ((preset === 'silver_bells' || preset === 'starlight_christmas_hollow' || preset === 'macies_christmas_globe') && /class="(?:hp-hero|jp-hero-media|mhf-hero|bwb-hero|bk-home-hero|bkf-hero)(?:[" ])/.test(markup)) {
     const folder = preset.replaceAll('_', '-')
     return `<link rel="preload" as="image" type="image/webp" href="/amethyst/skins/${folder}/hero-poster.webp" media="(min-width: 641px)" fetchpriority="high" data-ssr-hero-preload><link rel="preload" as="image" type="image/webp" href="/amethyst/skins/${folder}/hero-poster-phone.webp" media="(max-width: 640px)" fetchpriority="high" data-ssr-hero-preload>`
   }

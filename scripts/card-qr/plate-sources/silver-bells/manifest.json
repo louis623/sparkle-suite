@@ -1,0 +1,139 @@
+{
+  "theme": "Silver Bells",
+  "proposedThemeId": "silver_bells",
+  "visibility": "community",
+  "status": "local review package; not deployed or integrated into live theme picker",
+  "approvedDirection": "Use original artwork as master for everything. Soft blurred partly cropped background tree; no newly invented full tree. No jewelry. Blue/silver only.",
+  "heroUnchanged": true,
+  "flyer": "Built-in image tool portrait adaptation of approved hero; generated pixels, not an exact-pixel copy. Latest source supersedes earlier sharp/full-tree versions.",
+  "businessCard": "Approved original hero resized and reframed for 1125x675; no regenerated art.",
+  "animation": {
+    "model": "bytedance/seedance-2.5/image-to-video",
+    "requestId": "01a1ea2d-676b-7d1a-bd10-5e60af7bbd1d",
+    "estimateUsd": 7.8216,
+    "paidSubmissions": 1,
+    "rawSeconds": 12.041667,
+    "finishedSeconds": 11,
+    "width": 1918,
+    "height": 1080,
+    "fps": 24,
+    "audio": false,
+    "processing": "Trim reference boundary corrections; 0.5-second circular forward overlap; H264 faststart. No stabilization. Revision 3: local retiming of four existing bulb regions at different phases, with four other visible bulb regions steady; 55% steady blend avoids switching fully off. Snowfall timing retained."
+  },
+  "music": {
+    "title": "Jingle Bells (Calm)",
+    "artist": "Kevin MacLeod",
+    "license": "CC BY 4.0",
+    "seconds": 142.053878,
+    "independent": true,
+    "autoplay": false,
+    "modified": false
+  },
+  "print": {
+    "sampleOnly": true,
+    "qr": "https://example.com/silver-bells-preview",
+    "sourceRevision": "b007bb06",
+    "renderer": "Current Suite real renderers with new candidate theme tokens; user-requested simplified Silver Bells flyer overlay only.",
+    "cardPdf": "Two-page CMYK, 3.5 x 2 inch trim, 0.125 inch bleed, crop marks",
+    "checks": "Normal and long names; optional fields; PNG/JPG QR decoding; safe bounds; CMYK/TrimBox/BleedBox/2 pages"
+  },
+  "files": [
+    {
+      "name": "hero-approved.png",
+      "source": "C:/Users/louis/.codex/generated_images/01a1e9e3-8ff9-7030-8e21-b3c446626ecc/exec-39b91615-eddc-43cf-ba71-b8c73535f0ab.png",
+      "bytes": 2594026,
+      "sha256": "2c9f2fec4ad86c02d87c73a47110e8a1e27edea3f3da850e4141ce4151c8390c"
+    },
+    {
+      "name": "flyer-portrait-source.png",
+      "source": "C:/Users/louis/.codex/generated_images/01a1e9e3-8ff9-7030-8e21-b3c446626ecc/exec-f7d3094c-8ad6-4809-809c-8b5c8b4a79a8.png",
+      "bytes": 2009127,
+      "sha256": "65fb5c5e4478f2ab9e7b104de022427b9b664f85df353a2addfa0915c514b7de"
+    },
+    {
+      "name": "silver-bells-loop.mp4",
+      "source": "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\17\\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\\video-edit\\outputs\\silver-bells-loop.mp4",
+      "bytes": 3100301,
+      "sha256": "a17a713ff03f1c68f7cd6acf2edac62c4ad0f13d837e1d742504a540a81638fa"
+    },
+    {
+      "name": "jingle-bells-calm.mp3",
+      "source": "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\17\\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\\.superpowers\\brainstorm\\midnight-velvet\\content\\jingle-bells-calm.mp3",
+      "bytes": 4836673,
+      "sha256": "9e13c421d117b6b2852164c1cca6d2bb628856de11ba273e78b86fd4fbaafca8"
+    },
+    {
+      "name": "music-license.txt",
+      "source": "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\17\\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\\.superpowers\\brainstorm\\midnight-velvet\\content\\music-license.txt",
+      "bytes": 421,
+      "sha256": "c25c56ec0453a9d460524f76a7931c56978579ea3721f4d6911f54643838c9ba"
+    },
+    {
+      "name": "flyer.png",
+      "source": "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\17\\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\\.superpowers\\brainstorm\\midnight-velvet\\content\\print\\flyer-standard.png",
+      "bytes": 1587261,
+      "sha256": "7f8df0d691465c5f657838949968653141c58772b7bdfdf179e0ca6e67b8b50a"
+    },
+    {
+      "name": "flyer.jpg",
+      "source": "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\17\\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\\.superpowers\\brainstorm\\midnight-velvet\\content\\print\\flyer-standard.jpg",
+      "bytes": 345052,
+      "sha256": "1837008b7ab312838fc140c37b0688c5cb555c78e1f41d2c01ee23ceafe5bc6b"
+    },
+    {
+      "name": "business-card-front.png",
+      "source": "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\17\\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\\.superpowers\\brainstorm\\midnight-velvet\\content\\print\\card-front-standard.png",
+      "bytes": 1659496,
+      "sha256": "3018c343d87199b5cf7808d48d7562ef27e77a440d8008ea55cb4ea8eaf0754f"
+    },
+    {
+      "name": "business-card-back.png",
+      "source": "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\17\\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\\.superpowers\\brainstorm\\midnight-velvet\\content\\print\\card-back-standard.png",
+      "bytes": 43602,
+      "sha256": "348a2f420b62e771cf2530b47ddb4f286c121b1da6e583b7dff337b1fde2ef72"
+    },
+    {
+      "name": "business-card-preview.png",
+      "source": "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\17\\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\\.superpowers\\brainstorm\\midnight-velvet\\content\\print\\card-pair-standard.png",
+      "bytes": 1823880,
+      "sha256": "de191e52ee53190f44ff466e665cb0bd1b1e3d18327a938bec5896661dc01ba5"
+    },
+    {
+      "name": "business-card-print.pdf",
+      "source": "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\17\\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\\.superpowers\\brainstorm\\midnight-velvet\\content\\print\\business-card-standard.pdf",
+      "bytes": 1810179,
+      "sha256": "97449ad61a2e58af2eaa2c63bf87bedd1ccf5c6578f3585f586107bd45d2ce8b"
+    },
+    {
+      "name": "print-qa.json",
+      "source": "C:\\Users\\louis\\.codex\\visualizations\\2026\\11\\17\\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\\.superpowers\\brainstorm\\midnight-velvet\\content\\print\\qa.json",
+      "bytes": 5479,
+      "sha256": "b53bfda6783b20d2abeb16cc765af25ba68b240e9354d43ede261294cfb43dd3"
+    }
+  ],
+  "controls": "Revision 4: individual Pause animation / Play music / Mute buttons followed by inline linked artist/license credit. No wrapper card, border, backdrop or shadow. Wrap only when narrow. Hero and controls share the900px breakpoint; desktop copy remains over the left side above900px.",
+  "updatedAt": "2026-11-17T16:12:09.463Z",
+  "responsiveQa": {
+    "cases": 33,
+    "widths": [
+      320,
+      390,
+      768,
+      900,
+      901,
+      1000,
+      1100,
+      1101,
+      1440
+    ],
+    "pages": [
+      "homepage",
+      "join",
+      "trade"
+    ],
+    "resizeMatchesRefresh": true,
+    "noContentOverlap": true,
+    "noHorizontalOverflow": true,
+    "noControlCard": true
+  }
+}

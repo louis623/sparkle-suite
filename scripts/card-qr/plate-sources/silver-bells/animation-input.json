@@ -1,0 +1,12 @@
+{
+  "model": "bytedance/seedance-2.5/image-to-video",
+  "input": {
+    "prompt": "Animate this exact approved midnight-blue and silver Christmas still life as a subtle continuous website background. Locked tripod camera, no pan, zoom, drift or cuts. Preserve every foreground detail and its position: two engraved silver bells, crystal trim, velvet bow, silver and ice-blue baubles, thick shiny silver tinsel, velvet folds, and empty dark left area. These objects remain completely motionless and do not change shape or texture. Only two motions: steady moderately brisk natural snowfall OUTSIDE the window, confined behind the glass and window frame, small distant flakes with occasional nearer flakes drifting gently sideways while falling downward at consistent speed; and a few existing Christmas tree bulbs gently brightening and dimming asynchronously while most remain steady. No flashing, no new lights, no global exposure changes, no sweeping glints or additional particles. Snow is already in motion at the first frame and continues at the same density and velocity through the last. Tree lights return smoothly to their initial brightness phase. Design for an invisible circular loop with no opening, closing, freeze, reset or sudden change. No reverse snowfall, no moving decorations, no sound, no text. Twelve seconds, landscape, restrained realistic motion.",
+    "duration": 12,
+    "image_url": "https://d3snorpfx4xhv8.cloudfront.net/f2292b8b-85ea-4197-9471-2ea84f163dda/143f8e7f-6d18-4613-be3a-dc3b0acfda4d.png",
+    "end_image_url": "https://d3snorpfx4xhv8.cloudfront.net/f2292b8b-85ea-4197-9471-2ea84f163dda/143f8e7f-6d18-4613-be3a-dc3b0acfda4d.png",
+    "resolution": "1080p",
+    "output_format": "mp4",
+    "generate_audio": false
+  }
+}

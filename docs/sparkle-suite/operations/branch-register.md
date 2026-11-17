@@ -446,3 +446,7 @@ Branch codex/video-queue-preserved-embeds starts at c5f10c6f. Louis authorized S
 ## November 16, 2026 — Live Lineup 2.0.8 reporting
 
 Louis authorized codex/live-lineup-208-reporting from PR198 aa74f2db, integrating production a4a7d5fb, in isolated Codespace /workspaces/ss-208-reporting. Preview only in Sparkle Suite Smoke (prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ). Shared Smoke alias unchanged; no Live/Store release, merge, default-branch or production-branch change.
+## November 17, 2026 — Silver Bells disposable workspace
+
+Louis explicitly approved registering `C:\Users\louis\.codex\visualizations\2026\11\17\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\silver-bells-release` for the existing active branch `codex/nic-nac-trade-hardening`, cloned from verified GitHub tip `b007bb065609a3037a5899a26681310a4a6152f5`. Scope: implement and release the approved Community Silver Bells customer-site theme, animation, independent music, QR flyer and business cards. No branch-status, default-branch, production-branch, or guard logic change.
+

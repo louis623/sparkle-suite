@@ -22,6 +22,7 @@ const MATCH_SITE_SURFACES: Record<
   AmethystAppearancePresetId,
   Pick<CardQrPalette, 'background' | 'ink' | 'muted' | 'panel'>
 > = {
+  silver_bells: { background: '#071329', ink: '#102443', muted: '#365478', panel: '#dce8f5' },
   amethyst: { background: '#f4edff', ink: '#24124a', muted: '#5c4d78', panel: '#ffffff' },
   sparkle_suite_morganite: { background: '#fff4f8', ink: '#3a1630', muted: '#7a5368', panel: '#ffffff' },
   black_diamond: { background: '#111111', ink: '#f8f1dc', muted: '#d9cba8', panel: '#1c1c1c' },
@@ -54,6 +55,7 @@ const MATCH_SITE_SURFACES: Record<
  * qrModuleColor darkens anything that is under 7:1 on white.
  */
 const CARD_QR_THEME_DARK: Record<AmethystAppearancePresetId, string> = {
+  silver_bells: '#102443',
   amethyst: '#3d0cb0',
   sparkle_suite_morganite: '#5b1e3b',
   black_diamond: '#1a1408',

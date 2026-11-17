@@ -655,6 +655,15 @@ const PRESETS = {
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
     shapeRadius: "soft", density: "regular",
   },
+  silver_bells: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "silver-bells", cardSurface: "silver-bells",
+    textureOverlay: "none", buttonEnergy: "silver-bells-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-midnight", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "silverBells", primaryColor: "#96bce8", accentColor: "#dce8f5",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
   starlight_christmas_hollow: {
     heroMotion: "sparkle_rise", sparkleLevel: "subtle",
     bgTreatment: "starlight-christmas-hollow", cardSurface: "starlight-christmas-hollow",
@@ -3484,11 +3493,11 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
         {/* Keep the existing Gilded video eager; hydration must never wait for its poster. */}
         {t.preset === "gilded_autumn" && <HeroMotionScene t={t} eager />}
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-        {t.preset !== "gilded_autumn" && !["starlight_christmas_hollow", "macies_christmas_globe"].includes(t.preset) && <video className="mhf-hero-video" muted loop playsInline preload="metadata" poster="" aria-hidden="true" tabIndex={-1} suppressHydrationWarning>
+        {t.preset !== "gilded_autumn" && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells"].includes(t.preset) && <video className="mhf-hero-video" muted loop playsInline preload="metadata" poster="" aria-hidden="true" tabIndex={-1} suppressHydrationWarning>
           <source src={CONTENT.heroVideoUrl || heroVideoUrl} type="video/mp4" />
         </video>}
         <div className="mhf-hero-shade" aria-hidden="true" />
-        {t.preset !== "gilded_autumn" && !["starlight_christmas_hollow", "macies_christmas_globe"].includes(t.preset) && <button type="button" className="mhf-video-control" data-mhf-video-toggle="" aria-label="Pause background video" suppressHydrationWarning>Pause background video</button>}
+        {t.preset !== "gilded_autumn" && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells"].includes(t.preset) && <button type="button" className="mhf-video-control" data-mhf-video-toggle="" aria-label="Pause background video" suppressHydrationWarning>Pause background video</button>}
         <HeroCopyReservation enabled={["gilded_autumn", "alpine_opal", "fall_owl_harvest_moon", "midnight_rose", "rose_gold"].includes(t.preset)}>
         <div className="mhf-hero-content">
           <h1 id="mhf-hero-title" className="mhf-hero-title mhf-logo-gradient">
@@ -3621,7 +3630,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="bwb-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bwb-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-        {!["starlight_christmas_hollow", "macies_christmas_globe"].includes(t.preset) && <img className="bwb-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "Live jewelry reveals", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />}
+        {!["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells"].includes(t.preset) && <img className="bwb-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "Live jewelry reveals", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />}
         <div className="bwb-hero-shade" aria-hidden="true" />
         <div className="bwb-hero-content">
           <p className="bwb-hero-team">{CONTENT.heroEyebrow || "The Virtuous Fizzers"}</p>
@@ -3695,7 +3704,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
             </div>
             <p className="bkf-live"><i aria-hidden="true"></i>Live M / W / F · 7 PM EST</p>
           </div>
-          {heroImageUrl && !["starlight_christmas_hollow", "macies_christmas_globe"].includes(t.preset) && (
+          {heroImageUrl && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells"].includes(t.preset) && (
             <div className="bkf-card">
               <img {...responsiveRepImage(heroImageUrl, { alt: "Heather in the kitchen with Bomb Party jewelry on display", sizes: "(max-width: 800px) 100vw, 480px", widths: [384, 640, 828, 1200], eager: true })} />
             </div>
@@ -3705,7 +3714,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
       ) : (
       <section className="bk-home-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bk-home-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-        {heroImageUrl && !["starlight_christmas_hollow", "macies_christmas_globe"].includes(t.preset) && <img className="bk-home-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "BlingKitchen", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />}
+        {heroImageUrl && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells"].includes(t.preset) && <img className="bk-home-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "BlingKitchen", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />}
         <div className="bk-home-hero-content">
           <p>{CONTENT.heroEyebrow || "With Heather"}</p>
           <h1 id="bk-home-hero-title">{businessName}</h1>
@@ -4028,6 +4037,7 @@ function App() {
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
               { value: "midnight_rose", label: "Midnight Rose" },
+              { value: "silver_bells", label: "Silver Bells" },
               { value: "starlight_christmas_hollow", label: "Starlight Christmas Hollow" },
               { value: "fall_owl_harvest_moon", label: "Fall Owl and Harvest Moon" },
               { value: "gobble_and_fizz", label: "Gobble & Fizz" },

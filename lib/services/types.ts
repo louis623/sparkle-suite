@@ -651,6 +651,7 @@ export type SiteAppearancePreset =
   | 'midnight_rose'
   | 'fall_owl_harvest_moon'
   | 'macies_christmas_globe'
+  | 'silver_bells'
   | 'starlight_christmas_hollow'
   | 'gobble_and_fizz'
   | 'pie_please'

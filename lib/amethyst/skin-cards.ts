@@ -340,6 +340,15 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     ],
   },
   {
+    id: 'silver_bells', visibility: 'community', code: 'SB-01', label: 'Silver Bells',
+    previewHref: '/skin-preview/silver_bells/homepage',
+    description: 'Blue velvet, polished silver bells and a softly sparkling Christmas scene.',
+    headingFont: 'Great Vibes', bodyFont: 'DM Sans',
+    surfaceNote: 'Sapphire sections, frosted silver cards and shining ice-blue highlights',
+    motionNote: 'Subtle snowfall and individual tree-light twinkles; optional Jingle Bells music.',
+    swatches: [{label:'Midnight',value:'#071329'},{label:'Sapphire',value:'#15365f'},{label:'Ice blue',value:'#96bce8'},{label:'Silver',value:'#dce8f5'}],
+  },
+  {
     id: 'starlight_christmas_hollow',
     visibility: 'community',
     code: 'SC-01',

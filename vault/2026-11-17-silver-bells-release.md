@@ -1,0 +1,5 @@
+# Silver Bells release
+
+Approved Community Silver Bells (SB-01) implemented from verified b007bb065609a3037a5899a26681310a4a6152f5 in the explicitly registered disposable clone. Includes scoped Home/Trade/Join visuals, original approved hero, 11-second snow/twinkle video, independently played licensed Jingle Bells music with attribution, actual Cards & QR flyer/card registries, portrait plate, print front/back styling, fonts and reproducible sources.
+
+Louis authorized live release, requested no unnecessary checks, assigned follow-up review to Grokbot, and requested stop immediately after deployment. TypeScript and the 11 shared-layout source guards passed. Production build/deploy and additive Community catalog activation are the final release steps. No saved customer appearance is changed. Preserve previous live dpl_EbAntr5snKeqDoxPhLXX3JW1NqmK for rollback. Authenticated picker/save/export click-through has not been performed; approved real-renderer proof QR/print checks precede integration. Final deploy provenance belongs in the release response; do not call this pre-deploy note a deployment receipt.

@@ -347,6 +347,15 @@ const PRESETS = {
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
     shapeRadius: "soft", density: "regular",
   },
+  silver_bells: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "silver-bells", cardSurface: "silver-bells",
+    textureOverlay: "none", buttonEnergy: "silver-bells-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-midnight", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "silverBells", primaryColor: "#96bce8", accentColor: "#dce8f5",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
   starlight_christmas_hollow: {
     heroMotion: "sparkle_rise", sparkleLevel: "subtle",
     bgTreatment: "starlight-christmas-hollow", cardSurface: "starlight-christmas-hollow",
@@ -1752,6 +1761,7 @@ function App() {
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
               { value: "midnight_rose", label: "Midnight Rose" },
+              { value: "silver_bells", label: "Silver Bells" },
               { value: "starlight_christmas_hollow", label: "Starlight Christmas Hollow" },
               { value: "fall_owl_harvest_moon", label: "Fall Owl and Harvest Moon" },
               { value: "gobble_and_fizz", label: "Gobble & Fizz" },

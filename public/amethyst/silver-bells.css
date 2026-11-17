@@ -1,0 +1,403 @@
+@font-face{font-family:'Great Vibes';src:url('/amethyst/skins/silver-bells/fonts/great-vibes.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Cormorant Garamond';src:url('/amethyst/skins/silver-bells/fonts/cormorant.ttf') format('truetype');font-weight:300 700;font-display:swap}
+@font-face{font-family:'DM Sans';src:url('/amethyst/skins/silver-bells/fonts/dm-sans.ttf') format('truetype');font-weight:100 900;font-display:swap}
+/* Silver Bells: palette and decorative hero only. Shared Amethyst
+ * fonts, spacing, header, tickers and Live Lineup geometry stay untouched. */
+html[data-customer-theme="silver_bells"] {
+  background: #071329;
+  --bg: #071329;
+  --bg-elevated: #102443;
+}
+html[data-customer-theme="silver_bells"] body {
+  color-scheme: dark;
+  --fg: #f4f7fc;
+  --fg-muted: #bacce2;
+  --border: #657d9b;
+  --hp-bg: #071329;
+  --hp-bg-elevated: #102443;
+  --bg-deep: #030b1a;
+  --hp-preview-bg: #102443;
+  --hp-preview-fg: #f4f7fc;
+  --hp-preview-muted: #bacce2;
+  --hp-preview-border: #657d9b;
+  --hp-card-fg: #f4f7fc;
+  --hp-card-muted: #bacce2;
+  --hp-card-accent: #dce8f5;
+  --hp-form-panel-bg: #102443;
+  --hp-form-panel-fg: #f4f7fc;
+  --hp-field-bg: #102443;
+  --hp-field-fg: #f4f7fc;
+  --hp-final-fg: #f4f7fc;
+  --hp-final-muted: #bacce2;
+  --hp-final-icon-fg: #071329;
+  --hp-action-fg: #071329;
+  --hp-media-card-bg: #102443;
+  --hp-media-card-fg: #f4f7fc;
+  --hp-media-card-muted: #bacce2;
+  --hp-media-card-border: #657d9b;
+  --hp-media-card-header-bg: linear-gradient(135deg, #dce8f5, #dce8f5);
+  --hp-media-card-footer-bg: #163256;
+  --hp-media-card-shadow: 0 24px 64px #0000003b;
+  --hp-media-card-hover-shadow: 0 30px 74px #00000050;
+  --hp-media-card-accent-contrast: #071329;
+  --hp-media-icon-fg: #071329;
+  --hp-media-cta-fg: #071329;
+  --hp-media-placeholder-fg: #bacce2;
+  --hp-media-placeholder-bg: #163256;
+  --hp-media-cta-bg: #dce8f5;
+  background: #071329;
+  color: #f4f7fc;
+}
+
+html[data-customer-theme="silver_bells"] body .hp-header {
+  background: #102443;
+  border-color: #657d9b;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-brand-name, .hp-header-link) { color: #f4f7fc; }
+html[data-customer-theme="silver_bells"] body .hp-brand-sub { color: #bacce2; }
+html[data-customer-theme="silver_bells"] body .hp-header-link[aria-current="page"] { color: #dce8f5; }
+
+html[data-customer-theme="silver_bells"] body :is(.hp-ticker, .hp-ticker-row) {
+  background: #0a1b36;
+  color: #f4f7fc;
+  border-color: #657d9b;
+}
+html[data-customer-theme="silver_bells"] body .hp-ticker-row.reverse { background: #163256; }
+html[data-customer-theme="silver_bells"] body :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #f4f7fc; }
+html[data-customer-theme="silver_bells"] body .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #f4f7fc; }
+html[data-customer-theme="silver_bells"] body .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #dce8f5; }
+html[data-customer-theme="silver_bells"] body .hp-ticker-row .hp-ticker-label {
+  background: linear-gradient(90deg, #0a1b36 0%, #0a1b36 70%, transparent 100%);
+  color: #f4f7fc;
+}
+html[data-customer-theme="silver_bells"] body .hp-ticker-row.reverse .hp-ticker-label {
+  background: linear-gradient(90deg, #163256 0%, #163256 70%, transparent 100%);
+  color: #f4f7fc;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-trade-preview, .hp-lrq-strip, .hp-lrq, .hp-lineup-calendar-row) {
+  background: #102443;
+  color: #f4f7fc;
+  border-color: #657d9b;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-lineup-idle-prompt, .hp-trade-preview-head, .hp-trade-preview-link, .hp-trade-preview-pill) { color: #f4f7fc; }
+html[data-customer-theme="silver_bells"] body :is(.hp-trade-preview-updated, .hp-trade-preview-pill .label) { color: #bacce2; }
+
+html[data-customer-theme="silver_bells"] body :is(.hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .tp-card-expand-cta, .tp-sheet-submit, .jp-spot-btn, .jp-final-btn) {
+  background: #dce8f5;
+  color: #071329;
+  border-color: #657d9b;
+  box-shadow: 0 9px 24px #0000003b;
+}
+
+/* The original full-bleed hero and original HTML copy/actions stay in place. */
+html[data-customer-theme="silver_bells"] body .hp-hero[data-appearance-preset="silver_bells"] .hp-hero-media,
+html[data-customer-theme="silver_bells"] body .jp-hero-media {
+  background: linear-gradient(90deg, rgba(20, 8, 15, .08), rgba(20, 8, 15, 0)),
+    url('/amethyst/skins/silver-bells/hero-poster.webp') center center / cover no-repeat;
+  background-blend-mode: normal;
+}
+html[data-customer-theme="silver_bells"] body .hp-hero[data-appearance-preset="silver_bells"] .hp-hero-headline {
+  color: #f4f7fc;
+  -webkit-text-fill-color: #f4f7fc;
+  background: none;
+  text-shadow: 0 2px 14px #030b1a88;
+}
+html[data-customer-theme="silver_bells"] body .hp-hero[data-appearance-preset="silver_bells"] .hp-hero-sub {
+  color: #c8d8ee;
+  text-shadow: 0 1px 6px #030b1a99;
+}
+html[data-customer-theme="silver_bells"] body .hp-hero[data-appearance-preset="silver_bells"] :is(.hp-btn-outline, .hp-btn-watch) {
+  color: #f4f7fc;
+  border-color: #dce8f599;
+  background: #071329a6;
+  backdrop-filter: blur(8px);
+}
+html[data-customer-theme="silver_bells"] body .hp-hero[data-appearance-preset="silver_bells"] .hp-hero-fx-layer { display: none; }
+
+
+
+
+
+
+
+
+/* Surface tokens serve Home, Trade, Join and their existing forms uniformly. */
+html[data-customer-theme="silver_bells"] body :is(#events, #wibp, #about, .hp-signup, .hp-footer) {
+  background: #071329;
+  color: #f4f7fc;
+  border-color: #657d9b;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-event-card, .hp-wibp-card, .hp-trade-card, .hp-signup-card, .tp-lrq-rail, .tp-filters, .tp-card, .tp-card-expand, .tp-sheet, .jp-hero-card, .jp-team-card, .jp-benefit-card, .jp-faq-item, .jp-final-card) {
+  background: #102443;
+  color: var(--hp-card-fg);
+  border-color: #657d9b;
+  box-shadow: 0 15px 38px #00000035;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-section-title, .hp-event-title, .hp-about-headline, .hp-signup-title, .tp-hero-title, .jp-hero-title, .jp-section-title) {
+  color: #f4f7fc;
+  -webkit-text-fill-color: #f4f7fc;
+  background: none;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-section-sub, .hp-event-desc, .hp-event-meta, .hp-about-text, .hp-footer-tagline, .tp-hero-sub, .jp-hero-pitch, .jp-hero-localized, .jp-hero-compliance, .jp-section-sub) { color: #bacce2; }
+html[data-customer-theme="silver_bells"] body .jp-hero-eyebrow { color: #dce8f5; }
+html[data-customer-theme="silver_bells"] body .jp-hero-eyebrow::before,
+html[data-customer-theme="silver_bells"] body .jp-hero-eyebrow::after { background: #657d9b; }
+html[data-customer-theme="silver_bells"] body .jp-hero-compliance a { color: #dce8f5; }
+html[data-customer-theme="silver_bells"] body :is(.hp-event-tag, .hp-event-badge, .jp-hero-promo) {
+  background: #1c4068;
+  color: #dce8f5;
+  border-color: #657d9b;
+}
+html[data-customer-theme="silver_bells"] body .hp-event-pill { background: #dce8f5; color: #071329; }
+html[data-customer-theme="silver_bells"] body .hp-event-pill .pip { background: #071329; }
+html[data-customer-theme="silver_bells"] body .hp-step-num { background: #dce8f5; color: #102443; }
+html[data-customer-theme="silver_bells"] body .tp-filter-chip { background: #071329; color: #f4f7fc; border-color: #657d9b; }
+html[data-customer-theme="silver_bells"] body .tp-filter-chip.active { background: #dce8f5; color: #071329; border-color: #dce8f5; }
+html[data-customer-theme="silver_bells"] body .hp-footer :is(.hp-footer-brand, .hp-footer-team, .hp-footer-col a) { color: var(--hp-card-fg); }
+html[data-customer-theme="silver_bells"] body .hp-footer :is(.hp-footer-tag, .hp-footer-coming-soon, .hp-footer-bottom, .hp-footer-bottom a) { color: var(--hp-card-muted); }
+html[data-customer-theme="silver_bells"] body .hp-footer .hp-footer-bottom { border-color: var(--border); }
+html[data-customer-theme="silver_bells"] body .hp-footer .hp-footer-coming-soon span {
+  background: #1c4068;
+  color: var(--hp-card-muted);
+  border-color: var(--border);
+}
+html[data-customer-theme="silver_bells"] body .hp-footer .hp-footer-social {
+  background: #102443;
+  color: var(--hp-card-fg);
+  border-color: var(--border);
+}
+html[data-customer-theme="silver_bells"] body .hp-footer .hp-footer-social:hover {
+  background: #1c4068;
+  color: var(--hp-card-fg);
+  border-color: var(--hp-card-accent);
+}
+html[data-customer-theme="silver_bells"] body .hp-footer :is(.hp-footer-col a, .hp-footer-bottom a):hover { color: var(--hp-card-accent); }
+html[data-customer-theme="silver_bells"] body .hp-footer a:focus-visible { outline-color: var(--hp-card-accent); }
+
+/* Platform labels and glyphs inherit the theme rather than provider colors. */
+html[data-customer-theme="silver_bells"] body :is(.hp-event-platform, .event-platform-btn, .hp-calendar-choice.google, .hp-calendar-choice.outlook) {
+  background: linear-gradient(105deg, #dce8f5, #dce8f5);
+  color: #071329;
+  border-color: #dce8f5;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-event-platform, .event-platform-btn) .glyph {
+  background: #071329;
+  color: #dce8f5;
+}
+html[data-customer-theme="silver_bells"] body .hp-event-platform .glyph::after { color: #dce8f5; }
+html[data-customer-theme="silver_bells"] body :is(.hp-stream-btn, .hp-watch-option, .stream-option) .glyph {
+  background: #dce8f5;
+  color: #071329;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-stream-btn, .hp-watch-option) {
+  background: #102443;
+  color: #f4f7fc;
+  border-color: #657d9b;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-stream-btn, .hp-watch-option):hover { background: #1c4068; color: #f4f7fc; }
+html[data-customer-theme="silver_bells"] body :is(.hp-stream-btn, .hp-watch-option) .handle { color: #bacce2; }
+html[data-customer-theme="silver_bells"] body .jp-team-social {
+  background: #102443;
+  color: #dce8f5;
+  border-color: #657d9b;
+}
+html[data-customer-theme="silver_bells"] body .jp-team-social:hover {
+  background: #dce8f5;
+  color: #071329;
+  border-color: #dce8f5;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-event-platform, .event-platform-btn, .jp-team-social):focus-visible {
+  outline-color: #dce8f5;
+}
+
+/* Keep existing icon bubbles distinct from their own surrounding surfaces. */
+html[data-customer-theme="silver_bells"] body .hp-customer-media-empty-icon {
+  background: #071329;
+  color: #dce8f5;
+  border-color: #8ba7cb;
+}
+html[data-customer-theme="silver_bells"] body :is(.jp-benefit-icon, .jp-final-icon, .tp-sheet-success-icon) {
+  background: #dce8f5;
+  color: #071329;
+  border-color: #8ba7cb;
+}
+html[data-customer-theme="silver_bells"] body .tp-empty-glyph { color: #dce8f5; opacity: 1; }
+html[data-customer-theme="silver_bells"] body .hp-calendar-modal-close { background: #102443; color: #f4f7fc; }
+html[data-customer-theme="silver_bells"] body .hp-calendar-modal-close:hover { background: #1c4068; }
+
+/* Selective champagne/copper accents on existing reveal and lineup circles. */
+html[data-customer-theme="silver_bells"] body :is(.hp-step-num, .jp-benefit-icon, .hp-trade-preview-pill .pos, .hp-queue-modal-row .pos) {
+  background: linear-gradient(135deg, #a9bfd7, #dce8f5 48%, #9db6d2);
+  color: #071329;
+  border-color: #8099b8;
+  box-shadow: inset 0 0 0 1px #dce8f588;
+}
+
+/* Existing dialog, lineup and form states keep their original dimensions. */
+html[data-customer-theme="silver_bells"] body :is(.hp-calendar-modal, .hp-queue-modal, .hp-queue-modal-row) {
+  background: #102443;
+  color: #f4f7fc;
+  border-color: #657d9b;
+}
+html[data-customer-theme="silver_bells"] body .hp-queue-modal-row.now { background: #1c4068; }
+html[data-customer-theme="silver_bells"] body .hp-queue-modal-row .name { color: #f4f7fc; }
+html[data-customer-theme="silver_bells"] body .hp-queue-modal-row .label { color: #bacce2; }
+html[data-customer-theme="silver_bells"] body .hp-queue-modal-close { background: #102443; color: #f4f7fc; }
+html[data-customer-theme="silver_bells"] body .hp-queue-modal-close:hover { background: #1c4068; }
+html[data-customer-theme="silver_bells"] body :is(.hp-event-copy:hover, .hp-event-copy.copied, .hp-event-collection-pill:hover) { color: #071329; }
+html[data-customer-theme="silver_bells"] body :is(.hp-lrq-item:not(.on-deck) .pos, .tp-lrq-row.now .pos, .tp-filter-badge, .tp-load-more, .tp-card-tier.unicorn) {
+  background: #dce8f5;
+  color: #071329;
+}
+html[data-customer-theme="silver_bells"] body .tp-card-tier.unicorn .pip { background: #071329; }
+html[data-customer-theme="silver_bells"] body :is(.tp-empty-reset, .tp-card-close) {
+  background: #102443;
+  color: #dce8f5;
+  border-color: #657d9b;
+}
+html[data-customer-theme="silver_bells"] body .tp-sheet-receipt input {
+  background: #102443;
+  color: #f4f7fc;
+  border-color: #657d9b;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-signup-input, .tp-board-search input, .tp-sheet-field input, .tp-sheet-field textarea)::placeholder {
+  color: #bacce2;
+  opacity: 1;
+}
+html[data-customer-theme="silver_bells"] body .hp-signup-status.success { color: #cce6ce; }
+html[data-customer-theme="silver_bells"] body .hp-signup-status.error { color: #ffb7ad; }
+html[data-customer-theme="silver_bells"] body .tp-sheet-error {
+  background: #38212a;
+  color: #ffb7ad;
+  border-color: #a76b6c;
+}
+
+/* Approved Silver Bells composition. */
+
+
+html[data-customer-theme="silver_bells"] body{--primary:#2e5ca8;--accent:#dce8f5;--hp-primary:#dce8f5!important;--hp-accent:#96bce8!important;--hp-display-font:'Cormorant Garamond',Georgia,serif!important;--hp-body-font:'DM Sans',Arial,sans-serif!important;--font-heading:'Cormorant Garamond',Georgia,serif;--font-body:'DM Sans',Arial,sans-serif;font-family:'DM Sans',Arial,sans-serif!important}
+html[data-customer-theme="silver_bells"] body :is(h1,h2,h3,.hp-section-title,.jp-section-title,.hp-about-headline,.hp-signup-title,.tp-hero-title){font-family:'Cormorant Garamond',Georgia,serif!important;font-weight:600!important;letter-spacing:-.025em!important}
+html[data-customer-theme="silver_bells"] body :is(.hp-brand-name,.hp-header-link,.hp-shop-btn,.hp-btn-primary,.hp-btn-outline,.hp-btn-watch,input,select,textarea){font-family:'DM Sans',Arial,sans-serif!important}
+html[data-customer-theme="silver_bells"] body .hp-hero{min-height:max(640px,56.25vw);max-height:none;background:#071329}
+html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-media{background:url('/amethyst/skins/silver-bells/hero-poster.webp') center center/cover no-repeat!important}
+html[data-customer-theme="silver_bells"] body .hp-hero :is(.mdr-media,.hp-hero-fx-layer,.mdr-toggle){display:none!important}
+html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-inner{width:43%;max-width:none;margin:0;padding:56px 38px 104px;grid-template-columns:minmax(0,460px);justify-content:center;text-align:center;align-self:start}
+html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-headline{font-family:'Great Vibes',cursive!important;font-weight:400!important;font-size:clamp(50px,4.3vw,64px);line-height:1.14;letter-spacing:0!important;color:#f4f7fc!important;-webkit-text-fill-color:#f4f7fc;text-shadow:0 2px 12px #0008;margin-inline:auto}
+html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-sub{font-family:'DM Sans',Arial,sans-serif;max-width:365px;margin-inline:auto;color:#c8d8ee;line-height:1.7;font-size:16px}
+html[data-customer-theme="silver_bells"] body .hp-hero :is(.hp-hero-ctas,.hp-hero-cta-primary-row){justify-content:center}
+html[data-customer-theme="silver_bells"] body :is(.hp-btn-primary,.hp-shop-btn,.hp-signup-submit,.jp-spot-btn,.jp-final-btn,.tp-card-expand-cta){background:linear-gradient(115deg,#a9bed5,#f1f6fc 46%,#c0d2e6)!important;color:#071329!important;border-color:#d7e5f5!important}
+html[data-customer-theme="silver_bells"] body .hp-hero :is(.hp-btn-outline,.hp-btn-watch){background:#0a1b36cc!important;color:#edf4ff!important;border-color:#8ba7cb!important}
+html[data-customer-theme="silver_bells"] body :is(.hp-section-title,.hp-about-headline,.hp-signup-title,.jp-section-title){font-size:clamp(32px,3.3vw,48px)!important}
+html[data-customer-theme="silver_bells"] body :is(.hp-event-card,.hp-wibp-card,.hp-trade-card,.hp-signup-card,.tp-card,.jp-benefit-card,.jp-final-card){background:linear-gradient(145deg,#122b50,#0e203b)!important;border-color:#526b8d!important;box-shadow:0 14px 42px #02081455!important}
+html[data-customer-theme="silver_bells"] body :is(.hp-section-eyebrow,.jp-hero-eyebrow,.tp-hero-eyebrow){color:#b4cdec!important}
+html[data-customer-theme="silver_bells"] body .jp-hero-media{background:linear-gradient(90deg,#061125aa,#06112522),url('/amethyst/skins/silver-bells/hero-poster.webp') center/cover!important}
+html[data-customer-theme="silver_bells"] body .jp-hero-card{background:#0a1b36e8!important;border:1px solid #8297b7!important;backdrop-filter:blur(12px)}
+html[data-customer-theme="silver_bells"] body .jp-hero-title{font-family:'Great Vibes',cursive!important;font-weight:400!important;letter-spacing:0!important;color:#f4f7fc!important;-webkit-text-fill-color:#f4f7fc}
+html[data-customer-theme="silver_bells"] body :is(.tp-screenshot-tip,.jp-faq-note){background:#132d50!important;color:#c8d8ee!important;border-color:#526b8d!important}
+html[data-customer-theme="silver_bells"] body :is(.tp-hero,.jp-team,.jp-benefits,.jp-faq,.jp-final){background-color:#071329!important;color:#f4f7fc}
+html[data-customer-theme="silver_bells"] body :is(.tp-filter-chip,.tp-board-search,.tp-board-sort select,.hp-signup-input,.tp-sheet-field input){color:#eef4fc!important;background-color:#0c1d36!important;border-color:#657d9b!important}
+html[data-customer-theme="silver_bells"] body .tp-filter-chip.active{background:#dce8f5!important;color:#071329!important}
+html[data-customer-theme="silver_bells"] body .tp-card-image{background:#e7eef7!important}
+html[data-customer-theme="silver_bells"] body :is(.tp-card-title,.jp-benefit-title,.jp-team-name){color:#f4f7fc!important}
+html[data-customer-theme="silver_bells"] body :is(.jp-benefit-desc,.jp-team-bio,.jp-faq-answer,.jp-faq-note,.tp-card-meta){color:#bacce2!important}
+html[data-customer-theme="silver_bells"] body :is(.jp-faq-question,.jp-faq-link,.tp-card-detail){color:#e4edf9!important}
+html[data-customer-theme="silver_bells"] body :is(input,select,textarea):focus-visible{outline:2px solid #b5d7ff;outline-offset:3px}
+html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-sub{margin-bottom:24px}
+html[data-customer-theme="silver_bells"] body :is(.hp-ticker-item)::before{background:#b6cde6!important}
+html[data-customer-theme="silver_bells"] body .hp-header-link[aria-current="page"]::after{background:#dce8f5!important}
+html[data-customer-theme="silver_bells"] body :is(.hp-section-eyebrow,.jp-section-eyebrow)::before,html[data-customer-theme="silver_bells"] body :is(.hp-section-eyebrow,.jp-section-eyebrow)::after{background:#8ba7cb!important}
+@media(min-width:901px) and (max-width:1100px){
+ html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-inner{padding:32px 20px 104px}
+}
+@media(max-width:900px){
+ html[data-customer-theme="silver_bells"] body .hp-hero{display:flex;flex-direction:column;min-height:0}
+ html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-media{position:relative;inset:auto;width:100%;aspect-ratio:16/9;flex:none;background-size:cover!important}
+ html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-inner{width:100%;max-width:100%;margin:0;padding:32px 24px 48px;grid-template-columns:minmax(0,620px);justify-content:center}
+ html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-headline{font-size:58px}
+ html[data-customer-theme="silver_bells"] body .jp-hero-card{background:#0a1b36f2!important}
+}
+@media(max-width:600px){
+ html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-media{aspect-ratio:16/9;background-position:center center!important}
+ html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-headline{font-size:50px}
+ html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-inner{padding:28px 20px 38px}
+}
+/* Review v2: silver and ice-blue accents below the approved hero only. */
+html[data-customer-theme="silver_bells"] body :is(#events,#wibp,#about,.hp-signup,.jp-team,.jp-benefits,.jp-faq,.jp-final){
+ background:radial-gradient(ellipse at 12% 12%,#99c5f329,transparent 37%),radial-gradient(ellipse at 88% 80%,#9bbfe31f,transparent 40%),linear-gradient(145deg,#15345b,#0a1b35 70%)!important;
+ border-top:1px solid #a3bfd368;
+}
+html[data-customer-theme="silver_bells"] body :is(#events,.jp-benefits){
+ background:radial-gradient(circle at 5% 17%,#fff 0 1px,transparent 2px),radial-gradient(circle at 94% 30%,#dceeff 0 1.5px,transparent 3px),radial-gradient(circle at 87% 85%,#fff9 0 1px,transparent 2px),radial-gradient(ellipse at 50% 0%,#3f71a8,transparent 70%),linear-gradient(130deg,#15365f,#0d2343)!important;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-section-title,.hp-wibp-title,.hp-about-headline,.hp-signup-title,.jp-section-title,.jp-final-title,.tp-hero-title){text-shadow:0 1px 1px #fff2,0 0 24px #afcfff35!important}
+html[data-customer-theme="silver_bells"] body :is(.hp-section-eyebrow,.jp-section-eyebrow){color:#e5f2ff!important}
+html[data-customer-theme="silver_bells"] body :is(.hp-section-eyebrow,.jp-section-eyebrow)::before,
+html[data-customer-theme="silver_bells"] body :is(.hp-section-eyebrow,.jp-section-eyebrow)::after{background:linear-gradient(90deg,transparent,#eff8ff,#9abbde)!important;box-shadow:0 0 7px #dceeff80}
+
+/* Frosted-silver cards, with their own readable text and field tokens. */
+html[data-customer-theme="silver_bells"] body :is(.hp-event-card,.jp-benefit-card){
+ --hp-primary:#214e80!important;--hp-accent:#305d8f!important;
+ --hp-card-fg:#112e50;--hp-card-muted:#365371;--hp-card-accent:#214e80;
+ --hp-field-bg:#f5f9ff;--hp-field-fg:#163656;--hp-form-panel-bg:#d7e5f4;--hp-form-panel-fg:#163656;--hp-action-fg:#f5f9ff;
+ color:#112e50!important;border:1px solid transparent!important;
+ background:linear-gradient(130deg,#f2f7fc,#d5e4f4 42%,#edf5fe 74%,#bdd3ec) padding-box,linear-gradient(135deg,#fff,#91aaca 23%,#f8fcff 49%,#8ca8ca 75%,#e8f3ff) border-box!important;
+ box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 #92acc477,0 14px 38px #020b2233,0 0 26px #b5dbff16!important;
+}
+html[data-customer-theme="silver_bells"] body .hp-event-card :is(.hp-event-title,.hp-event-meta,.hp-event-desc,.hp-event-discount-label,.hp-event-collection-label,h3,h4,strong),
+html[data-customer-theme="silver_bells"] body .jp-benefit-card :is(.jp-benefit-title,.jp-benefit-desc){color:#173859!important}
+html[data-customer-theme="silver_bells"] body .hp-event-card :is(p,.hp-event-note){color:#365371!important}
+html[data-customer-theme="silver_bells"] body .hp-event-card :is(.hp-event-desc,.hp-event-discount){background:#f5f9ff99!important;border-color:#94acc7!important}
+html[data-customer-theme="silver_bells"] body .hp-event-card :is(.hp-event-tag,.hp-event-badge,.hp-event-collection-pill){background:#e9f3ff!important;color:#214e80!important;border-color:#9ab0cc!important}
+html[data-customer-theme="silver_bells"] body .hp-event-card :is(.hp-event-copy,.hp-event-calendar,.hp-event-code){background:#f4f8ff!important;color:#214e80!important;border-color:#849dbd!important}
+html[data-customer-theme="silver_bells"] body .hp-event-card :is(.hp-event-platform,.event-platform-btn){background:linear-gradient(130deg,#214a7b,#376aa5)!important;color:#fff!important;border-color:#315a86!important;box-shadow:inset 0 1px 0 #9abbdf}
+html[data-customer-theme="silver_bells"] body .hp-event-card :is(.hp-event-platform,.event-platform-btn) .glyph{background:#e5effb!important;color:#193a63!important}
+html[data-customer-theme="silver_bells"] body .hp-event-card svg{color:inherit}
+html[data-customer-theme="silver_bells"] body .hp-event-card :is(.hp-event-name,.hp-event-meta-row,.hp-event-meta-row span,.hp-event-meta-icon,.hp-event-section-head,.hp-event-section-title,.hp-event-section-icon,.hp-event-add,.hp-event-add span,.hp-event-add svg){color:#214568!important}
+html[data-customer-theme="silver_bells"] body .hp-event-card .hp-event-code-row{background:#f4f8ff!important;border-color:#9cb4ce!important}
+html[data-customer-theme="silver_bells"] body .hp-event-card :is(.hp-event-code-text,.hp-event-code-text span,.hp-event-code-text strong){color:#24496d!important}
+html[data-customer-theme="silver_bells"] body .hp-event-card .hp-event-platform .glyph::after{color:#173859!important}
+html[data-customer-theme="silver_bells"] body .jp-benefits{background:transparent!important;border-top:0!important}
+html[data-customer-theme="silver_bells"] body .tp-card-placeholder svg{color:#557da5!important;opacity:1!important}
+html[data-customer-theme="silver_bells"] body .jp-benefit-icon{background:linear-gradient(135deg,#fafdff,#b7cce3 50%,#f6fbff)!important;border:1px solid #8aa6c7!important;color:#173859!important;box-shadow:0 3px 10px #385f8b25,inset 0 1px 0 #fff!important}
+
+/* Bright silver edging on the remaining sapphire surfaces. */
+html[data-customer-theme="silver_bells"] body :is(.hp-wibp-card,.hp-trade-card,.hp-signup-card,.tp-card,.jp-team-card,.jp-faq-item,.jp-final-card){
+ background:linear-gradient(145deg,#254d7a,#15365c 50%,#102b4b) padding-box,linear-gradient(130deg,#edf8ff,#6f94bf 25%,#cfe5fc 55%,#5f81aa 80%,#e0edfb) border-box!important;
+ border:1px solid transparent!important;box-shadow:inset 0 1px 0 #e5f5ff30,0 12px 32px #020b2238,0 0 20px #9dcfff12!important;
+}
+html[data-customer-theme="silver_bells"] body :is(.hp-wibp-card,.hp-signup-card,.jp-team-card,.jp-faq-item,.jp-final-card){--hp-card-fg:#f5f9ff;--hp-card-muted:#d3e4f6;--hp-card-accent:#e4f1ff;--hp-form-panel-bg:#153253;--hp-field-bg:#102a48;--hp-field-fg:#f5f9ff}
+html[data-customer-theme="silver_bells"] body :is(.hp-customer-media-card){border:1px solid #bbd3ee!important;box-shadow:0 10px 30px #03132b44,0 0 16px #b3d7ff19!important}
+html[data-customer-theme="silver_bells"] body .hp-customer-media-card header{background:linear-gradient(115deg,#a9c1dc,#f3f8ff 48%,#bed4ec)!important}
+html[data-customer-theme="silver_bells"] body .tp-hero{background:radial-gradient(ellipse at 50% 0%,#426c9b77,transparent 75%),linear-gradient(135deg,#17385f,#102541)!important}
+html[data-customer-theme="silver_bells"] body.tradepage{background:radial-gradient(ellipse at 90% 50%,#39699755,transparent 65%),#102541!important}
+html[data-customer-theme="silver_bells"] body .tp-filters{background:linear-gradient(120deg,#37618d,#24476f 60%,#325d87)!important;border-color:#b1cbe6!important;box-shadow:inset 0 1px 0 #e5f5ff88,0 8px 28px #020b2233!important}
+html[data-customer-theme="silver_bells"] body :is(.tp-board-search,.tp-board-sort){background:transparent!important}
+html[data-customer-theme="silver_bells"] body .tp-filters :is(label,.tp-filter-label,.tp-board-count){color:#eaf5ff!important}
+html[data-customer-theme="silver_bells"] body :is(.tp-card-image,.tp-card-photo,.tp-card-img,.tp-card-placeholder){background:radial-gradient(ellipse at 35% 25%,#fff,#dce9f6 40%,#a7c4e2 100%)!important;color:#527ba4!important}
+html[data-customer-theme="silver_bells"] body .tp-card :is(.tp-card-tier,.tp-card-label){border-color:#bbd3ee!important}
+html[data-customer-theme="silver_bells"] body :is(.tp-card button,.tp-card a){border-color:#bed6ef!important}
+html[data-customer-theme="silver_bells"] body :is(.hp-footer){background:linear-gradient(#112b49,#071329)!important;border-top:1px solid #99b4cf88!important}
+
+.sb-motion{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.sb-controls{position:absolute;right:18px;bottom:18px;z-index:20;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;padding:0;border:0;border-radius:0;background:none;color:#edf3fc;font:12px/1.45 'DM Sans',sans-serif;box-shadow:none;max-width:calc(100% - 36px)}
+.sb-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.sb-controls button{position:static;border:1px solid #bdcee5;border-radius:24px;background:#102443;color:#edf3fc;padding:8px 12px;min-height:40px;font:12px 'DM Sans',sans-serif;cursor:pointer}
+.sb-controls button:focus-visible,.sb-controls a:focus-visible{outline:3px solid #96bce8;outline-offset:3px}
+.sb-credit{display:block;font:11px/1.5 'DM Sans',sans-serif;color:#f5f8ff;margin:0;text-align:left;white-space:nowrap;text-shadow:1px 1px 1px #071329,-1px -1px 1px #071329,1px -1px 1px #071329,-1px 1px 1px #071329,0 0 5px #071329}
+.sb-credit a{color:#dce8f5;text-decoration:underline}.sb-status:empty{display:none}.sb-status{display:block;margin-top:4px}
+.tp-hero .sb-controls{position:relative;right:auto;bottom:auto;width:max-content;margin:20px 24px 0 auto}
+@media(max-width:900px){.hp-hero .sb-controls,.jp-hero .sb-controls{position:relative;right:auto;bottom:auto;align-self:center;margin:0 18px 18px;max-width:calc(100% - 36px);width:max-content;justify-content:center}.sb-controls button{min-height:44px}.sb-actions{justify-content:center}}
+@media(max-width:600px){.sb-controls{gap:8px}.sb-credit{white-space:normal;text-align:center;max-width:100%}}
+@media(max-width:900px){html[data-customer-theme="silver_bells"] body .jp-hero{flex-direction:column}.jp-hero .jp-hero-inner{flex-shrink:0;width:100%}.jp-hero .sb-controls{flex:none}}
+
+/* Media stays decorative; controls belong to the hero, outside its art plane. */
+html[data-customer-theme="silver_bells"]{--sb-poster:url('/amethyst/skins/silver-bells/hero-poster.webp')}
+.sb-media{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.sb-poster,.sb-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.sb-video{opacity:0}.sb-media[data-sb-has-frame="true"] .sb-video{opacity:1}
+html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-media{background:var(--sb-poster) center/cover no-repeat!important}
+html[data-customer-theme="silver_bells"] body .jp-hero-media{background:linear-gradient(90deg,#061125aa,#06112522),var(--sb-poster) center/cover!important}
+html[data-customer-theme="silver_bells"] body :is(.hp-hero-fx-layer,.ssr-utility-motion-control){display:none!important}
+html[data-customer-theme="silver_bells"] body :is(.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero){position:relative;background:var(--sb-poster) center/cover;isolation:isolate;padding-bottom:104px}
+html[data-customer-theme="silver_bells"] body :is(.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero)>.sb-media{z-index:-1}
+@media(max-width:640px){html[data-customer-theme="silver_bells"]{--sb-poster:url('/amethyst/skins/silver-bells/hero-poster-phone.webp')}}
