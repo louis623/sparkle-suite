@@ -1,8 +1,9 @@
+import { danceFloorRouteError } from '@/lib/nic-nac/dance-floor-route-error'
 import { NextResponse } from 'next/server'
 
 import { AuthError, getPaidNicNacContext } from '@/lib/nic-nac/auth'
 import { ServiceError } from '@/lib/services/errors'
-import { getTradeSwapCleanupQueue } from '@/lib/services/trade-swaps'
+import { getTradeSwapCleanupQueue, finishTradeSwapFollowUp } from '@/lib/services/trade-swaps'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -26,4 +27,15 @@ export async function GET() {
     if (error instanceof ServiceError) return serviceErrorResponse(error)
     throw error
   }
+}
+
+export async function POST(request: Request) {
+  try {
+    const { repId, supabase } = await getPaidNicNacContext()
+    const body = await request.json()
+    const result = await finishTradeSwapFollowUp(supabase, repId, typeof body?.swapId === 'string' ? body.swapId : '', {
+      ringSize: body?.ringSize, collectionName: body?.collectionName, material: body?.material,
+    })
+    return NextResponse.json({ ok: true, result })
+  } catch (error) { return danceFloorRouteError(error) }
 }

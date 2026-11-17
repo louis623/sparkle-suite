@@ -55,3 +55,5 @@
   font-weight: 650;
   cursor: pointer;
 }
+
+.backButton{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 18px;border-radius:999px;background:#684586;color:white;text-decoration:none;font-weight:700;margin:12px 0}

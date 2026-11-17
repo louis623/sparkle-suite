@@ -1,53 +1,122 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { TradeListingWithDesign } from '@/lib/services/types'
 import { getTradeListingDisplayFields, TRADE_LISTING_TYPE_LABELS } from '@/lib/services/trade-listing-display'
-import { getBoardInventoryOptions, getBoardInventoryResults, hasActiveBoardInventoryBrowse, type BoardInventoryFilters } from '@/lib/nic-nac/board-inventory-view'
+import { getBoardInventoryOptions } from '@/lib/nic-nac/board-inventory-view'
+import { FloorPhoto } from './FloorPhoto'
 import { SectionState } from './SectionState'
+import { DancerEditor, type DancerDraft } from './DancerEditor'
+import { defaultFloorFilters, floorQuery, lookupFloorListing, mutateFloor, useEditableFloor, type FloorFilters } from './useDanceFloorData'
+import type { DanceFloorBoard } from './types'
 import styles from './dance-floor.module.css'
-const PAGE_SIZE = 24
-export function DancerFloor({ listings, search, onSearch, status, hasMore, onEnsureLoaded, loadingMore, onRetry }: {
-  listings: TradeListingWithDesign[]; search: string; onSearch: (value: string) => void;
-  status: 'loading' | 'ready' | 'error'; hasMore: boolean; onEnsureLoaded?: () => Promise<void>; loadingMore: boolean; onRetry: () => void
+export function DancerFloor(props: {
+  board?: DanceFloorBoard; listings: TradeListingWithDesign[]; search: string; onSearch: (value: string) => void;
+  status: 'loading' | 'ready' | 'error'; hasMore: boolean; onEnsureLoaded?: () => Promise<void>; loadingMore: boolean; onRetry: () => void; onRefresh?: () => unknown
 }) {
-  const [filters, setFilters] = useState<Omit<BoardInventoryFilters, 'search'>>({ jewelryType: '', collection: '', sortMode: 'newest', rarity: '', material: '', size: '' })
-  const [visible, setVisible] = useState(PAGE_SIZE)
-  const board = listings.filter(listing => listing.status !== 'removed')
-  // The shared browser helper is available-only. Adapt only its input view; restore
-  // each original row afterward so already-returned pending/swapped statuses survive.
-  const browseRows = board.map(listing => ({ ...listing, status: 'available' as const }))
-  const options = getBoardInventoryOptions(browseRows)
-  const active = hasActiveBoardInventoryBrowse({ ...filters, search })
-  const originals = new Map(board.map(listing => [listing.id, listing]))
-  const results = getBoardInventoryResults(browseRows, { ...filters, search }).map(listing => originals.get(listing.id)!)
-  useEffect(() => { if (active && hasMore) void onEnsureLoaded?.() }, [active, hasMore, onEnsureLoaded])
-  function change(key: keyof typeof filters, value: string) { setFilters(current => ({ ...current, [key]: value })); setVisible(PAGE_SIZE) }
-  function clear() { setFilters({ jewelryType: '', collection: '', sortMode: 'newest', rarity: '', material: '', size: '' }); onSearch(''); setVisible(PAGE_SIZE) }
+  const { filters, setFilters, board, status, refresh, loadedQuery } = useEditableFloor(props.board)
+  const rows = board?.listings ?? props.listings
+  const options = board?.filterOptions ?? getBoardInventoryOptions((props.board?.listings ?? rows).map(row => ({ ...row, status: 'available' as const })))
+  // Draft state belongs to the Floor, never to its replaceable query rows.
+  const [draft, setDraft] = useState<DancerDraft | null>(null)
+  const editor = draft?.listing.id ?? null
+  const dirtyRef = useRef(false)
+  const fieldsDirtyRef = useRef(false)
+  const setDirty = useCallback((blocked: boolean, fields: boolean) => { dirtyRef.current = blocked; fieldsDirtyRef.current = fields }, [])
+  const close = useCallback(() => { setDraft(null); setDirty(false, false) }, [setDirty])
+  const pin = useCallback((listing: TradeListingWithDesign) => {
+    setDraft({ listing, index: Math.max(0, rows.findIndex(row => row.id === listing.id)), notes: listing.rep_notes ?? '', savedNotes: listing.rep_notes ?? '', quantity: listing.quantity_available ?? 1, savedQuantity: listing.quantity_available ?? 1, gone: false })
+  }, [rows])
+  const [message, setMessage] = useState('')
+  const [removed, setRemoved] = useState<string | null>(null)
+  const [restoring, setRestoring] = useState(false)
+  const [target, setTarget] = useState<string | null>(null)
+  const guard = () => { if (dirtyRef.current) { setMessage('Save or cancel your changes first.'); return false } return true }
+  const open = (id: string) => { if (id === editor) return; if (!guard()) return; setTarget(null); const row = rows.find(row => row.id === id); if (row) pin(row); setMessage('') }
+  const change = (next: Partial<FloorFilters>) => { if (guard()) { close(); setFilters(current => ({ ...current, ...next })); if (next.search !== undefined) props.onSearch(next.search) } }
+  const clear = () => { if (guard()) { close(); setFilters(defaultFloorFilters); props.onSearch('') } }
+  const { onRefresh } = props
+  const refreshAll = useCallback(async () => { await onRefresh?.(); await refresh() }, [onRefresh, refresh])
+  useEffect(() => {
+    const hash = () => {
+      if (!window.location.hash.startsWith('#dancer=')) return
+      if (dirtyRef.current) { setMessage('Save or cancel your changes first.'); return }
+      let id = ''; try { id = decodeURIComponent(window.location.hash.slice(8)) } catch { /* invalid link */ }
+      close(); setFilters(defaultFloorFilters); setTarget(id); setMessage('')
+    }
+    window.addEventListener('hashchange', hash); hash()
+    return () => { window.removeEventListener('hashchange', hash) }
+  }, [close, setFilters])
+  useEffect(() => {
+    if (!target || status !== 'ready' || loadedQuery !== floorQuery(defaultFloorFilters)) return
+    if (dirtyRef.current || editor) { setTarget(null); return }
+    const row = rows.find(item => item.id === target)
+    if (row && row.status !== 'traded' && row.status !== 'removed') {
+      if (dirtyRef.current || editor) { setTarget(null); return }
+      pin(row); setTarget(null)
+      requestAnimationFrame(() => document.getElementById('dancer-' + target)?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }))
+    } else if (board?.hasMore) { void refresh(rows.length) }
+    else { setTarget(null); setMessage("That dancer isn't on your Floor anymore.") }
+  }, [target, status, board, rows, refresh, loadedQuery, editor, pin])
+  useEffect(() => {
+    const leave = (event: Event) => { if (dirtyRef.current) { event.preventDefault(); setMessage('Save or cancel your changes first.') } }
+    const unload = (event: BeforeUnloadEvent) => { if (fieldsDirtyRef.current) { event.preventDefault(); event.returnValue = '' } }
+    window.addEventListener('dance-floor-before-leave', leave)
+    window.addEventListener('beforeunload', unload)
+    return () => { window.removeEventListener('dance-floor-before-leave', leave); window.removeEventListener('beforeunload', unload) }
+  }, [])
+  useEffect(() => {
+    if (!editor || status !== 'ready') return
+    const controller = new AbortController()
+    void lookupFloorListing(editor, controller.signal).then(listing => {
+      if (controller.signal.aborted) return
+      if (!listing || listing.status === 'removed' || listing.status === 'traded') {
+        setDraft(current => current?.listing.id === editor ? { ...current, gone: true, listing: listing?.status === 'traded' ? { ...current.listing, status: 'traded' } : current.listing } : current)
+      }
+    }).catch(() => { /* A failed read never means gone. Keep the draft. */ })
+    return () => controller.abort()
+  }, [editor, board, status])
+  const displayRows = [...rows]
+  if (draft) {
+    const current = displayRows.findIndex(row => row.id === editor)
+    const latest = current >= 0 ? displayRows.splice(current, 1)[0] : draft.listing
+    displayRows.splice(Math.min(draft.index, displayRows.length), 0, latest)
+  }
+  const active = filters.search || filters.type || filters.collection || filters.rarity || filters.material || filters.size || filters.sort !== 'newest' || filters.sitting || filters.statuses.join(',') !== 'available,pending_trade'
   return <section id="floor" className={styles.section}>
     <p className={styles.kicker}>Your dancers</p><h2>My Dance Floor</h2><p>The dancers your customers can request, plus any that are mid-swap or already swapped.</p>
-    <label className={styles.field}>Search<input type="search" className="ph-no-capture" value={search} placeholder="Search name, collection, or size" onChange={event => { onSearch(event.target.value); setVisible(PAGE_SIZE) }} /></label>
+    <label className={styles.field}>Search<input type="search" className="ph-no-capture" value={filters.search} placeholder="Search name, collection, or size" onChange={e => change({ search: e.target.value })} /></label>
     <div className={styles.selects}>
-      <label className={styles.field}>Type<select value={filters.jewelryType} onChange={e => change('jewelryType', e.target.value)}><option value="">All types</option>{options.jewelryTypes.map(type => <option key={type} value={type}>{TRADE_LISTING_TYPE_LABELS[type as keyof typeof TRADE_LISTING_TYPE_LABELS]}</option>)}</select></label>
-      <label className={styles.field}>Collection<select value={filters.collection} onChange={e => change('collection', e.target.value)}><option value="">All collections</option>{options.collections.map(value => <option key={value}>{value}</option>)}</select></label>
-      <label className={styles.field}>Sort<select value={filters.sortMode} onChange={e => change('sortMode', e.target.value)}><option value="newest">Newest first</option><option value="collection">Collection</option><option value="type">Jewelry type</option><option value="name">Dancer name</option>{options.rarities.length > 0 && <option value="rarity">Rare first</option>}</select></label>
+      <label className={styles.field}>Type<select value={filters.type} onChange={e => change({ type: e.target.value })}><option value="">All types</option>{options.jewelryTypes.map(type => <option key={type} value={type}>{TRADE_LISTING_TYPE_LABELS[type as keyof typeof TRADE_LISTING_TYPE_LABELS]}</option>)}</select></label>
+      <label className={styles.field}>Collection<select value={filters.collection} onChange={e => change({ collection: e.target.value })}><option value="">All collections</option>{options.collections.map(value => <option key={value}>{value}</option>)}</select></label>
+      <label className={styles.field}>Sort<select value={filters.sort} onChange={e => change({ sort: e.target.value })}><option value="newest">Newest first</option><option value="collection">Collection</option><option value="type">Jewelry type</option><option value="name">Dancer name</option><option value="rarity">Rare first</option></select></label>
     </div>
-    <details><summary>More filters</summary><div className={styles.selects}>
-      {(['rarity', 'material', 'size'] as const).map(key => <label className={styles.field} key={key}>{key === 'rarity' ? 'Rarity' : key === 'material' ? 'Material' : 'Size'}
-        <select value={filters[key] ?? ''} onChange={e => change(key, e.target.value)}><option value="">All</option>{(key === 'rarity' ? options.rarities : key === 'material' ? options.materials : options.sizes).map(value => <option key={value}>{value}</option>)}</select></label>)}
-    </div></details>
-    {active && <button type="button" className={styles.linkButton} onClick={clear}>Clear filters</button>}
-    <SectionState status={status} loading="Loading your dancers…" error="Couldn't load your dancers." onRetry={onRetry} />
-    {status === 'ready' && !results.length && <p className={styles.empty}>{active ? 'No dancers match these filters. Clear filters or try another search.' : 'Your Dance Floor is empty. Add a dancer to show it here.'}</p>}
-    <div className={styles.floorGrid}>{results.slice(0, visible).map(listing => {
+    <div className={styles.chips}>{([['available','Available'],['pending_trade','Pending swap'],['traded','Swapped']] as const).map(([value,label]) => <label className={styles.filterChip} key={value}><input type="checkbox" checked={filters.statuses.includes(value)} onChange={e => change({ statuses: e.target.checked ? [...filters.statuses,value] : filters.statuses.filter(status => status !== value) })} />{label}</label>)}
+      <label className={styles.filterChip}><input type="checkbox" checked={filters.sitting} onChange={e => change({ sitting: e.target.checked })} />Sitting 30+ days</label>
+    </div>
+    <details><summary>More filters</summary><div className={styles.selects}>{(['rarity','material','size'] as const).map(key => <label className={styles.field} key={key}>{key === 'rarity' ? 'Rarity' : key === 'material' ? 'Material' : 'Size'}<select value={filters[key]} onChange={e => change({ [key]: e.target.value })}><option value="">All</option>{(key === 'rarity' ? options.rarities : key === 'material' ? options.materials : options.sizes).map(value => <option key={value}>{value}</option>)}</select></label>)}</div></details>
+    <div className={styles.historyControls}><span>{board?.total ?? rows.length} {(board?.total ?? rows.length) === 1 ? 'dancer' : 'dancers'}</span><button type="button" className={styles.linkButton} onClick={clear}>Clear filters</button></div>
+    {message && <p role="status">{message}</p>}
+    {removed && <div className={styles.empty}><p>Taken off your Dance Floor.</p><button type="button" className={styles.secondary} disabled={restoring} onClick={async () => {
+      setRestoring(true); setMessage('')
+      try { await mutateFloor('/api/nic-nac/trade-board','PATCH',{ listingId: removed, action: 'restore' }); setRemoved(null); await refreshAll() }
+      catch (e) { setMessage(e instanceof Error ? e.message : "Couldn't update that dancer. Try again.") }
+      finally { setRestoring(false) }
+    }}>Put back on the Floor</button></div>}
+    <SectionState status={status} loading="Loading your dancers…" error="Couldn't load your dancers." onRetry={() => void refresh()} />
+    {status === 'ready' && !rows.length && <p className={styles.empty}>{active ? 'No dancers match these filters. Clear filters or try another search.' : 'Your Dance Floor is empty. Add a dancer to show it here.'}</p>}
+    <div className={styles.floorGrid}>{displayRows.map(listing => {
       const display = getTradeListingDisplayFields(listing)
-      return <article className={styles.dancer} key={listing.id} data-dancer-row={listing.id}>
-        {display.photoUrl ? <img className={styles.photo} src={display.photoUrl} alt={display.designName} loading="lazy" /> : <div className={styles.noPhoto}><span aria-hidden="true">▧</span>No photo yet</div>}
-        <div className={styles.dancerInfo}><p className={styles.collection}>{display.collectionName}</p><h3>{display.designName}</h3><p>{display.typeLabel}{display.size ? ` · Size ${display.size}` : ''}</p>
-          <div className={styles.chips}><span className={listing.status === 'available' ? styles.available : listing.status === 'pending_trade' ? styles.pending : styles.swapped}>{listing.status === 'available' ? 'Available' : listing.status === 'pending_trade' ? 'Pending swap' : 'Swapped'}</span></div>
-          <p>Qty {listing.quantity_available ?? 1}</p>
+      return <article id={'dancer-' + listing.id} className={styles.dancer + (editor === listing.id ? ' ' + styles.dancerOpen : '')} key={listing.id} data-dancer-row={listing.id}>
+        <FloorPhoto photoUrl={display.photoUrl} alt={display.designName} />
+        <div className={styles.dancerInfo}><p className={styles.collection}>{display.collectionName}</p><h3>{display.designName}</h3><p>{display.typeLabel}{display.size ? ' · Size ' + display.size : ''}</p>
+          <div className={styles.chips}><span className={listing.status === 'available' ? styles.available : listing.status === 'pending_trade' ? styles.pending : styles.swapped}>{listing.status === 'available' ? 'Available' : listing.status === 'pending_trade' ? 'Pending swap' : 'Swapped'}</span>
+          {listing.status === 'available' && listing.listed_at && Date.parse(listing.listed_at) < Date.now() - 30 * 86400000 && <span className={styles.chip}>Sitting 30+ days</span>}</div>
+          <p className={styles.facts}>{listing.daysOnFloor ?? 0}d on the Floor · {listing.requestCount ? listing.requestCount + (listing.requestCount === 1 ? ' request' : ' requests') : 'No requests yet'} · Qty {listing.quantity_available ?? 1}</p>
         </div>
+        {listing.status !== 'traded' && listing.status !== 'removed' && editor !== listing.id && <button type="button" className={styles.secondary + ' ' + styles.editButton} onClick={() => open(listing.id)}>Edit</button>}
+        {draft && editor === listing.id && <DancerEditor draft={draft} setDraft={setDraft} onDirty={setDirty} onClose={() => { close(); setMessage('') }} onRefresh={refreshAll} onRemoved={id => { close(); setRemoved(id) }} />}
       </article>
     })}</div>
-    {(results.length > visible || hasMore) && <button type="button" className={styles.secondary} disabled={loadingMore} onClick={() => { setVisible(n => n + PAGE_SIZE); if (hasMore) void onEnsureLoaded?.() }}>{loadingMore ? 'Loading your dancers…' : 'Load more'}</button>}
+    {board?.hasMore && <button type="button" className={styles.secondary} disabled={status === 'loading'} onClick={() => void refresh(rows.length)}>{status === 'loading' ? 'Loading your dancers…' : 'Load more'}</button>}
   </section>
 }

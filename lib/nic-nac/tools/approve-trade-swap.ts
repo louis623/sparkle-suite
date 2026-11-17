@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 // Tool: approve_trade_swap - HITL. Approves a live-show trade request while
 // capturing the item number just revealed for the customer.
 
@@ -5,7 +6,7 @@ import { z } from 'zod'
 import { tool } from 'ai'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-import { approveTradeWithRevealedItemCapture } from '@/lib/services/trade-swaps'
+import { approveTradeFromReview } from '@/lib/services/trade-swaps'
 import { ServiceError } from '@/lib/services/errors'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { writeTradeActionAudit } from '@/lib/nic-nac/audit'
@@ -18,10 +19,6 @@ import type { ToolDefinition } from './types'
 
 const inputSchema = z.object({
   requestId: z.string().uuid(),
-  verifiedOfferedFamily: z.string().min(1),
-  verifiedOfferedType: z.enum(['RG', 'NK', 'ER', 'ST', 'BR']),
-  verificationConfirmed: z.literal(true),
-  finalConfirmation: z.literal(true),
   revealedItemNumber: z.string().min(1),
   revealedMaterial: z.string().optional(),
   revealedRingSize: z.string().optional(),
@@ -49,16 +46,12 @@ export function makeApproveTradeSwapTool(ctx: {
   return tool({
     description:
       "Approve a live-show Dance Floor swap for the authenticated rep. Ask the rep exactly: \"Which item number was just revealed for the customer?\" " +
-      'Use this instead of plain approve_trade when approving an in-show swap: the customer gets the requested dancer, and Sparkle Suite captures the just-revealed item number so it can be added back to the Dance Floor or finished after the show. ' +
+      'Use this instead of plain approve_trade when approving an in-show swap: the customer gets the requested dancer, and Sparkle Suite captures the just-revealed item number when it matches the requested dancer. An unknown, ambiguous or mismatched number is saved in private notes; nothing is added to the Floor. ' +
       'If the item number has multiple plating/material variants, include revealedMaterial when the rep provides it. If the revealed item is a ring and the rep knows the size, include revealedRingSize. Requires explicit user approval.',
     inputSchema,
     needsApproval: true,
     execute: async ({
       requestId,
-      verifiedOfferedFamily,
-      verifiedOfferedType,
-      verificationConfirmed,
-      finalConfirmation,
       revealedItemNumber,
       revealedMaterial,
       revealedRingSize,
@@ -84,25 +77,59 @@ export function makeApproveTradeSwapTool(ctx: {
       })
       const admin = createAdminClient()
 
-      let result: Awaited<ReturnType<typeof approveTradeWithRevealedItemCapture>>
+      let result: Awaited<ReturnType<typeof approveTradeFromReview>>
       try {
-        result = await approveTradeWithRevealedItemCapture(admin, ctx.repId, {
+        result = await approveTradeFromReview(admin, ctx.repId, {
           requestId,
           revealedItemNumber,
           revealedMaterial,
           revealedRingSize,
-          repNotes,
-          verification: { verifiedOfferedFamily, verifiedOfferedType, verificationConfirmed, finalConfirmation },
+          repNotes: validateRepNotes(repNotes),
         })
       } catch (err) {
         explainServiceError(err)
+      }
+
+      const listingId = result.kind === 'captured' ? result.outgoingListingId : result.listingId
+      if (result.kind !== 'captured') {
+        try {
+          await writeTradeActionAudit({
+            actionType: 'trade_approved', repId: ctx.repId, targetListingId: listingId,
+            beforeState: { requestId, requestStatus: 'pending' },
+            afterState: { requestId: result.requestId, requestStatus: 'approved', listingId, fulfillmentId: result.fulfillmentId },
+            details: { runId: ctx.runId, conversationId: ctx.conversationId, kind: result.kind },
+          })
+        } catch (error) { console.error('[nic-nac] approval audit failed', error) }
+        if (ctx.activeTradeWorkflow?.workflowType === 'trade_swap_capture') {
+          try {
+            await completeTradeWorkflowSession(admin, ctx.activeTradeWorkflow, {
+              knownFields: { requestId: result.requestId, listingId, fulfillmentRequestId: result.fulfillmentId, decision: 'approve' },
+              approvalState: 'approved',
+              dbAssertions: {
+                tradeRequest: { id: result.requestId, status: 'approved' },
+                outgoingListing: { id: listingId, status: 'traded' },
+                fulfillment: { id: result.fulfillmentId, requestId: result.requestId, status: 'approved' },
+              },
+              publicProof: { outgoingListingShouldBeHidden: true, listingId },
+              createdMutationIds: [
+                { kind: 'trade_request', id: result.requestId },
+                { kind: 'listing', id: listingId },
+                { kind: 'fulfillment', id: result.fulfillmentId },
+              ],
+            })
+          } catch (error) { console.error('[nic-nac] approval workflow completion failed', error) }
+        }
+        const ignored = [revealedMaterial ? 'revealedMaterial' : null, revealedRingSize ? 'revealedRingSize' : null].filter((field): field is string => Boolean(field))
+        return { ...result, ignored, message: (result.kind === 'noted_only'
+          ? `Swap approved. Item ${result.revealedItemNumber} was saved in your private notes and not added to your Floor. Add it with Nic-Nac.`
+          : 'Swap approved.') + (ignored.length ? ' Not used: ' + ignored.join(', ') + '.' : '') }
       }
 
       try {
         await writeTradeActionAudit({
           actionType: 'trade_swap_approved',
           repId: ctx.repId,
-          targetListingId: result.outgoingListingId,
+          targetListingId: listingId,
           beforeState: {
             requestId,
             requestStatus: 'pending',

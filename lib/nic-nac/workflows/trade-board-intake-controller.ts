@@ -1,3 +1,4 @@
+import { existingCatalogAddResolution } from './catalog-add-resolution'
 import { getCurrentPiecePhotos, getNewestMainPhotoCandidate, workflowPieceKey } from './workflow-photo-selection'
 import type { NicNacToolIntent } from '@/lib/nic-nac/tools'
 import { mergeTradeBoardKnownFields } from './trade-board-known-fields'
@@ -98,6 +99,7 @@ export function computeTradeBoardIntakeReadiness(
   const labelDetailsPhoto = state.photos.find(
     (photo) => photo.declaredRole === 'label_details',
   )
+  const existingCatalogDesign = existingCatalogAddResolution(state)
   const jewelryFrontPhoto = findPublishableJewelryFront(getCurrentPiecePhotos(state))
   const blockedLabel = state.photos.find(
     (photo) =>
@@ -115,11 +117,11 @@ export function computeTradeBoardIntakeReadiness(
     if (known.jewelryType === 'RG' && !known.ringSize) missing.push('ringSize')
   } else {
     if (!known.itemNumber) missing.push('itemNumber')
-    if (!known.designName) missing.push('designName')
-    if (!known.collectionName) missing.push('collectionName')
+    if (!existingCatalogDesign && !known.designName) missing.push('designName')
+    if (!(existingCatalogDesign?.found && existingCatalogDesign.hasCollection) && !known.collectionName) missing.push('collectionName')
     if (!labelDetailsPhoto && !known.itemNumber) missing.push('labelDetailsPhoto')
   }
-  if (!jewelryFrontPhoto) missing.push('jewelryFrontPhoto')
+  if (!existingCatalogDesign && !jewelryFrontPhoto) missing.push('jewelryFrontPhoto')
   if (!known.rarityClassification) missing.push('rarityClassification')
   if (
     blockedLabel &&
@@ -130,7 +132,7 @@ export function computeTradeBoardIntakeReadiness(
   ) {
     blockers.push('labelPhotoUnreadable')
   }
-  if (blockedJewelry && !jewelryFrontPhoto) {
+  if (!existingCatalogDesign && blockedJewelry && !jewelryFrontPhoto) {
     blockers.push('jewelryPhotoUnusable')
   }
 
@@ -148,6 +150,8 @@ export function computeTradeBoardAddAttemptReadiness(
   input: {
     catalogMode?: TradeBoardIntakeSessionState['catalogMode']
     itemNumber?: string
+    material?: string
+    mainStone?: string
     jewelryType?: TradeBoardIntakeSessionState['known']['jewelryType']
     designName?: string
     collectionFamily?: string
@@ -176,6 +180,7 @@ export function computeTradeBoardAddAttemptReadiness(
   const blockers: string[] = []
   const catalogMode = input.catalogMode ?? state.catalogMode ?? 'item_number'
 
+  const existingCatalogDesign = existingCatalogAddResolution(state, { ...state.known, ...input })
   const jewelryFrontPhoto = findPublishableJewelryFront(getCurrentPiecePhotos(state, input.itemNumber ?? workflowPieceKey(state)))
   const blockedLabel = state.photos.find(
     (photo) =>
@@ -194,7 +199,7 @@ export function computeTradeBoardAddAttemptReadiness(
   } else if (!known.itemNumber) {
     missing.push('itemNumber')
   }
-  if (!jewelryFrontPhoto) missing.push('jewelryFrontPhoto')
+  if (!existingCatalogDesign && !jewelryFrontPhoto) missing.push('jewelryFrontPhoto')
   if (!known.rarityClassification) missing.push('rarityClassification')
   if (
     blockedLabel &&
@@ -205,7 +210,7 @@ export function computeTradeBoardAddAttemptReadiness(
   ) {
     blockers.push('labelPhotoUnreadable')
   }
-  if (blockedJewelry && !jewelryFrontPhoto) {
+  if (!existingCatalogDesign && blockedJewelry && !jewelryFrontPhoto) {
     blockers.push('jewelryPhotoUnusable')
   }
 
@@ -334,6 +339,7 @@ export function buildTradeBoardIntakePromptState(
     blockers: readiness.blockers,
     nextAction: readiness.nextAction,
     hardRules: [
+      ...(existingCatalogAddResolution(state) ? ['This is a server-resolved existing catalog design. Use its approved catalog photo (or a placeholder). Do not ask for, preview, process or attach a rep photo.'] : []),
       'label_details photos cannot satisfy jewelry_front',
       'visible jewelry in a label_details photo does not change its declared role',
       'a jewelry or boxed-display photo already in this workflow satisfies jewelry_front',
@@ -469,6 +475,7 @@ export function applyMainPhotoConfirmation(
 }
 
 export function mainPhotoProblem(state: TradeBoardIntakeSessionState, itemNumber = workflowPieceKey(state)): string | null {
+  if (existingCatalogAddResolution(state, { ...state.known, itemNumber })) return null
   if (state.metadata.awaitingReplacementPhoto) return 'Please send a new customer-facing jewelry photo for this piece so I can preview it.'
   const photos = stampSoleReadinessJewelryFrontCandidate(getCurrentPiecePhotos(state, itemNumber))
   const mismatch = photos.flatMap((photo) => photo.notes).find((note) =>

@@ -129,7 +129,7 @@ function makeTool(messages?: Parameters<typeof makeConversationSupabase>[0]): To
 beforeEach(() => {
   addListingMock.mockReset()
   addListingBatchMock.mockReset()
-  resolveItemNumberMock.mockReset()
+  resolveItemNumberMock.mockReset().mockResolvedValue({found:false})
   processRepListingPhotoUrlMock.mockReset()
   createAdminClientMock.mockReset()
   createAdminClientMock.mockReturnValue({})
@@ -542,3 +542,12 @@ describe('add_listing — batch mode', () => {
     expect(addListingBatchMock).not.toHaveBeenCalled()
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })})
+
+it('batch resolves each exact variant before ignoring stale photos and pins each design',async()=>{
+ resolveItemNumberMock.mockImplementation(async(_db,number,variant)=>({found:true,hasCollection:true,design:{id:variant.material,itemNumber:number,collectionName:'OG',typePrefix:'NK'}}))
+ addListingBatchMock.mockResolvedValue({added:[],pending:{needCollection:[],needFullInfo:[]}})
+ await makeTool().execute({mode:'batch',items:[{itemNumber:'NK88350',material:'Gold',listingPhotoIndex:99},{itemNumber:'NK88350',material:'Silver',listingPhotoUrl:'https://untrusted.invalid/a'}]})
+ expect(addListingBatchMock.mock.calls[0][2].items).toEqual([expect.objectContaining({designId:'Gold'}),expect.objectContaining({designId:'Silver'})])
+ expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+ for(const item of addListingBatchMock.mock.calls[0][2].items)expect(item.listingPhotoUrl).toBeUndefined()
+})

@@ -1,12 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
-import type { PointerEvent, KeyboardEvent } from 'react'
+import type { PointerEvent, KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import type { WorkspaceLineupEntry, WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
 import { canAcceptWorkspaceRefresh, canRecoverLineup, workspaceFreshnessDeadline, workspaceWriteEligible, canRebaseDrag, dragScrollDelta, edgeScrollSpeed, isLineupCommandAcknowledgement, isWorkspaceLineupSnapshot, moveCommand, pointerDropAnchor } from './live-lineup-client'
 import type { WorkspaceLineupCommand } from './live-lineup-client'
 import styles from './LiveLineupCard.module.css'
+import palette from './RepDashboard.module.css'
 import { LineupCustomerEditor } from './LineupCustomerEditor'
 import { useLineupAudience } from './use-lineup-audience'
 import { ControlTip } from './ControlTip'
@@ -15,6 +16,7 @@ import { LiveLineupArchiveControls } from './LiveLineupArchiveControls'
 import { LiveLineupPublisherControls } from './LiveLineupPublisherControls'
 import { archiveRecoveryRequest, isArchiveRecoveryAcknowledgement, type ArchiveDetail } from './live-lineup-archive-client'
 import { canConfirmShow } from './live-lineup-client'
+import { groupLineupEntries } from '@/lib/live-lineup/grouping'
 import { workspaceLineupStatus } from '@/lib/live-lineup/status-copy'
 
 const ENDPOINT = '/api/workspace/live-lineup'
@@ -22,7 +24,10 @@ const ENDPOINT = '/api/workspace/live-lineup'
 export function LiveLineupCard({ compact = false, readOnly = false, onAskCustomer }: { compact?: boolean; readOnly?: boolean; onAskCustomer?:(prompt:string)=>void }) {
   const [customerSelection,setCustomerSelection] = useState<{entry:WorkspaceLineupEntry;generation:number}|null>(null)
   const headingId = useId()
-  const instructionsId = useId()
+  const popupTitleId = useId()
+  const [popup, setPopup] = useState<'status' | 'full' | null>(null)
+  const popupRef = useRef<HTMLDialogElement>(null)
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
   const keyboardInstructionsId = useId()
   const [snapshot, setSnapshot] = useState<WorkspaceLineupSnapshot | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -83,7 +88,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     if (!isWorkspaceLineupSnapshot(next)) throw new Error('Invalid lineup response')
     const tenantChanged = !!snapshotRef.current?.tenantContext && snapshotRef.current.tenantContext !== next.tenantContext
     if (!active.current || (snapshotRef.current && !tenantChanged && !canAcceptWorkspaceRefresh(snapshotRef.current, next))) return false
-    if (tenantChanged) stopDrag()
+    if (tenantChanged) { stopDrag(); setExpanded(new Set()); setPopup(null); setCustomerSelection(null) }
     const now = performance.now()
     freshnessDeadline.current = requestEpoch === lifecycleEpoch.current ? workspaceFreshnessDeadline(next, requestStarted, now) : 0
     suspended.current = document.hidden || requestEpoch !== lifecycleEpoch.current
@@ -190,9 +195,15 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     const id = focusAfterSave.current
     const scroller = scrollRef.current
     if (saving || !id || !scroller) return
-    focusAfterSave.current = null
+    const group = snapshot ? groupLineupEntries(snapshot.entries).find(group => group.members.includes(id)) : undefined
+    const groupKey = group ? [...group.members].sort()[0] : undefined
+    if (group && group.members.length > 1 && groupKey && !expanded.has(groupKey)) {
+      setExpanded(current => new Set([...current, groupKey]))
+      return
+    }
     const row = scroller.querySelector<HTMLElement>(`[data-lineup-entry="${CSS.escape(id)}"]`)
     if (!row) return
+    focusAfterSave.current = null
     // Holding/returning removes the focused button. Restore focus to the moved item
     // without scrolling the entire Workspace, including when it changed lists.
     const focusTarget = row.querySelector<HTMLElement>('[data-lineup-grab]') ?? row
@@ -201,7 +212,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     const item = row.getBoundingClientRect()
     if (item.top < box.top) scroller.scrollTop += item.top - box.top
     else if (item.bottom > box.bottom) scroller.scrollTop += item.bottom - box.bottom
-  }, [snapshot, saving])
+  }, [snapshot, saving, expanded])
 
   const submit = useCallback(async (command: WorkspaceLineupCommand, dragBaseline?: WorkspaceLineupSnapshot, preview?: WorkspaceLineupSnapshot) => {
     let current = snapshotRef.current
@@ -412,11 +423,13 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     }
   }
 
-  function keyboardMove(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+  function keyboardMove(event: KeyboardEvent<HTMLButtonElement>, entryId: string) {
     if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return
     event.preventDefault()
     const baseline = snapshotRef.current
     if (!baseline || pointerDrag.current || !canWriteNow()) return
+    const index = baseline.entries.findIndex(entry => entry.id === entryId)
+    if (index < 0) return
     const command = event.key === 'Home' ? (index > 0 ? {type: 'move' as const, entryId: baseline.entries[index].id, beforeEntryId: baseline.entries[0].id} : null)
       : event.key === 'End' ? (index < baseline.entries.length - 1 ? {type: 'move' as const, entryId: baseline.entries[index].id, beforeEntryId: null} : null)
       : moveCommand(baseline.entries, index, event.key === 'ArrowUp' ? -1 : 1)
@@ -446,53 +459,99 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
   const remainingEntries = entries.filter(entry => entry.id !== dragging)
   const dropPosition = dropBefore ? remainingEntries.findIndex(entry => entry.id === dropBefore) + 1 : entries.length
   const drag = pointerDrag.current
+  const groups = groupLineupEntries(entries)
+  const entryIndex = new Map(entries.map((entry, index) => [entry.id, index]))
+  const entryById = new Map(entries.map(entry => [entry.id, entry]))
+  const statusLabel = signal.tone === 'updating' ? 'Live' : signal.label
+  const waitingForSource = Boolean(snapshot && !viewOnly && !saving && (!fresh || !snapshot.canManage || !snapshot.authorized))
+  const receivedTime = snapshot?.lastReceivedAt && Number.isFinite(Date.parse(snapshot.lastReceivedAt))
+    ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }).format(new Date(snapshot.lastReceivedAt)) + ' ET'
+    : 'No update received'
+
+  function customerButton(entry: WorkspaceLineupEntry) {
+    const status = audienceMatches[entry.id]?.status
+    if (viewOnly || !entry.identityEligible || (status !== 'matched' && status !== 'needs_clarification') || !snapshot?.management) return null
+    return <ControlTip tip="customer-card"><button type="button" className={styles.customerButton} data-clarify={status === 'needs_clarification'} disabled={saving || !!dragging}
+      onClick={() => setCustomerSelection({ entry, generation: snapshot.management!.generation })}>{status === 'needs_clarification' ? 'Which customer?' : 'Customer card'}</button></ControlTip>
+  }
+
+  function orderControls(entry: WorkspaceLineupEntry, index: number, position: number | null, name: string, actions: boolean) {
+    return <>
+      <button type="button" data-lineup-grab className={`${styles.handle} ${styles.person}`} disabled={disabled}
+        onPointerDown={(event) => startDrag(event, entry)} onPointerMove={moveDrag} onPointerUp={finishDrag}
+        onPointerCancel={stopDrag} onLostPointerCapture={stopDrag} onKeyDown={(event) => keyboardMove(event, entry.id)}
+        aria-label={`Move ${entry.name}, position ${index + 1}`} aria-describedby={keyboardInstructionsId} title="Drag to reorder · Arrow keys to move">
+        <svg className={styles.grip} width="14" height="18" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true">
+          {[5, 10, 15].flatMap(y => [5, 11].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.4" />))}
+        </svg>
+        {position !== null && <span className={styles.position}>{position}</span>}<strong style={position === null ? { gridColumn: '2 / -1' } : undefined}>{name}</strong>
+      </button>
+      {actions && <div className={styles.actions}>
+        <ControlTip tip="reveal-next"><button type="button" disabled={disabled || index === 0} aria-label={`Reveal ${entry.name} next, position ${index + 1}`} onClick={() => void submit({ type: 'reveal-next', entryId: entry.id })}>Reveal next</button></ControlTip>
+        <ControlTip tip="hold"><button type="button" disabled={disabled} aria-label={`Hold ${entry.name} for later, position ${index + 1}`} onClick={() => void submit({ type: 'hold', entryId: entry.id })}>Hold</button></ControlTip>
+      </div>}
+    </>
+  }
+
+  function renderEntries(full = false) {
+    return <ol className={styles.list} aria-label="Customers waiting">
+      {groups.map((group, groupIndex) => {
+        const key = [...group.members].sort()[0]
+        const entry = entryById.get(group.members[0])!
+        const multiple = group.members.length > 1
+        const open = multiple && expanded.has(key)
+        const detailsId = `${headingId}-${full ? 'full' : 'card'}-${key}`
+        return <li key={key} data-lineup-entry={open ? undefined : entry.id} data-lineup-active={open ? undefined : true} tabIndex={-1}
+          aria-label={`${group.name}, position ${groupIndex + 1}`}
+          className={`${styles.row} ${fresh && snapshot?.connection === 'connected' && groupIndex === 0 ? styles.now : ''} ${dragging === entry.id && !open ? styles.dragging : ''}`}>
+          {multiple ? <button type="button" className={`${styles.expand} ${styles.person}`} aria-expanded={open} aria-controls={detailsId}
+            disabled={!!dragging || saving} onClick={() => setExpanded(current => {
+              const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next
+            })}>
+            <span className={styles.chevron} aria-hidden="true">{open ? '⌄' : '›'}</span>
+            <span className={styles.position}>{groupIndex + 1}</span><strong>{group.name}</strong>
+            <span className={styles.orders}>{group.members.length} orders</span>
+          </button> : orderControls(entry, entryIndex.get(entry.id)!, groupIndex + 1, group.name, !compact || full)}
+          {customerButton(group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'matched') ?? group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'needs_clarification') ?? entry)}
+          {multiple && <ol id={detailsId} className={styles.orderList} hidden={!open} aria-label={`Individual orders for ${group.name}`}>
+            {open && group.members.map((id, orderIndex) => {
+              const order = entryById.get(id)!
+              const index = entryIndex.get(id)!
+              return <li key={id} data-lineup-entry={id} data-lineup-active tabIndex={-1} aria-label={`${order.name}, order ${orderIndex + 1}, position ${index + 1}`}
+                className={`${styles.orderRow} ${dragging === id ? styles.dragging : ''}`}>
+                {orderControls(order, index, null, `Order ${orderIndex + 1}`, true)}
+                {audienceMatches[id] && <div className={styles.chips} aria-label={order.name + ' private customer details'}>
+                  {audienceMatches[id].birthday && <span>🎂 {audienceMatches[id].birthday}</span>}
+                  {audienceMatches[id].preferences.map((preference, chipIndex) => <span key={chipIndex}>{preference}</span>)}
+                </div>}
+              </li>
+            })}
+          </ol>}
+        </li>
+      })}
+    </ol>
+  }
   return (
-    <section className={`${styles.card} ${compact ? styles.compact : ''}`} aria-labelledby={headingId} aria-busy={saving}>
+    <section className={`${palette.palette} ${styles.card} ${compact ? styles.compact : ''}`} aria-labelledby={headingId} aria-busy={saving}>
       <header className={styles.header}>
-        <div className={styles.titleRow}>
-          <h2 id={headingId}>Live Lineup <span>{entries.length}</span></h2>
-        </div>
-        <p className={styles.connection} data-connection={signal.tone}>
-          <span aria-hidden="true" />{signal.label}
-        </p>
-        <p id={instructionsId} className={styles.hint}>{viewOnly ? 'Customers are shown in their current order.' : 'Grab a customer and drop them into place.'}</p>
+        <div className={styles.titleRow}><h2 id={headingId}>Live Lineup</h2><span className={styles.count}>{groups.length}</span></div>
+        <button type="button" className={styles.statusButton} data-connection={signal.tone} aria-haspopup="dialog" onClick={() => { stopDrag(); setPopup('status') }}>
+          <span className={styles.statusLine}><span className={styles.dot} aria-hidden="true" />{statusLabel}</span>
+          {signal.tone === 'attention' && <span className={styles.statusHint}>Tap for status</span>}
+        </button>
+        <button type="button" className={styles.fullButton} aria-haspopup="dialog" onClick={() => { stopDrag(); setPopup('full') }}>↗ Full lineup</button>
       </header>
-      <p id={keyboardInstructionsId} className={styles.srOnly}>Keyboard: focus a customer, then use Up or Down to move one place, Home for first, or End for last. Press Escape to cancel a drag.</p>
-      <div className={styles.feedback} aria-live="polite" aria-atomic="true">
-        {dragging ? (dropValid ? `Release to place at position ${dropPosition}` : 'Move back into the lineup to drop') : saving ? 'Saving…' : error ? 'We can’t update your lineup right now. We’ll keep trying.' : notice || (viewOnly
-          ? 'Lineup changes are temporarily unavailable. Customer updates will continue.'
-          : snapshot && disabled ? 'Waiting for a fresh source update. The last received order is preserved.' : '\u00a0')}
-      </div>
-      <div ref={scrollRef} className={styles.scroll} tabIndex={0} role="region" aria-label="Scrollable live lineup" aria-describedby={instructionsId}
+      <p id={keyboardInstructionsId} className={styles.srOnly}>Keyboard: focus an order, then use Up or Down to move one place, Home for first, or End for last. Press Escape to cancel a drag.</p>
+      {(dragging || saving || error || notice || viewOnly) && <div className={styles.feedback} aria-live="polite" aria-atomic="true">
+        {dragging ? (dropValid ? `Release to place at position ${dropPosition}` : 'Move back into the lineup to drop') : saving ? 'Saving…' : error ? 'We can’t update your lineup right now. We’ll keep trying.' : notice || 'Lineup changes are temporarily unavailable. Customer updates will continue.'}
+      </div>}
+      <div ref={popup === 'full' ? undefined : scrollRef} className={styles.scroll} tabIndex={0} role="region" aria-label="Scrollable live lineup" aria-describedby={keyboardInstructionsId}
         onKeyDown={(event) => { if (event.key === 'Escape') stopDrag() }}>
         {!snapshot && <p className={styles.empty}>{error ? 'Your lineup is unavailable right now. No orders have been changed.' : 'Loading your lineup…'}</p>}
         {snapshot && !entries.length && <p className={styles.empty}>{snapshot.management?.candidates.some(entry => !entry.held)
           ? 'Some waiting customers are hidden. Open the Live Lineup tool to show them.'
           : snapshot.connection === 'connected' ? 'No customers are waiting right now.' : 'Once connected, customers will appear here.'}</p>}
-        <ol className={styles.list} aria-label="Customers waiting">
-          {entries.map((entry, index) => (
-            <li key={entry.id} data-lineup-entry={entry.id} data-lineup-active tabIndex={-1} aria-label={`${entry.name}, position ${index + 1}`} className={`${styles.row} ${dragging === entry.id ? styles.dragging : ''}`}>
-              <button type="button" data-lineup-grab className={`${styles.handle} ${styles.person}`} disabled={disabled}
-                onPointerDown={(event) => startDrag(event, entry)} onPointerMove={moveDrag} onPointerUp={finishDrag}
-                onPointerCancel={stopDrag} onLostPointerCapture={stopDrag} onKeyDown={(event) => keyboardMove(event, index)}
-                aria-label={`Move ${entry.name}, position ${index + 1}`} aria-describedby={keyboardInstructionsId} title="Drag to reorder · Arrow keys to move">
-                <svg className={styles.grip} width="16" height="20" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true">
-                  {[5, 10, 15].flatMap(y => [5, 11].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.4" />))}
-                </svg>
-                <span className={styles.position}>{index + 1}</span><strong>{entry.name}</strong>
-              </button>
-              {audienceMatches[entry.id] && <div className={styles.chips} aria-label={entry.name + ' private customer details'}>
-                {audienceMatches[entry.id].birthday && <span>🎂 {audienceMatches[entry.id].birthday}</span>}
-                {audienceMatches[entry.id].preferences.map((preference, chipIndex) => <span key={chipIndex}>{preference}</span>)}
-              </div>}
-              {!viewOnly && entry.identityEligible && <ControlTip tip="customer-card"><button type="button" className={styles.customerButton} data-clarify={audienceMatches[entry.id]?.status === 'needs_clarification'} disabled={saving || !!dragging} onClick={()=>setCustomerSelection({entry,generation:snapshot!.management!.generation})}>{audienceMatches[entry.id]?.status === 'needs_clarification' ? 'Which customer?' : audienceMatches[entry.id]?.label || 'Customer card'}</button></ControlTip>}
-              {!compact && <div className={styles.actions}>
-                <ControlTip tip="reveal-next"><button type="button" disabled={disabled || index === 0} aria-label={`Reveal ${entry.name} next, position ${index + 1}`} onClick={() => void submit({ type: 'reveal-next', entryId: entry.id })}>Reveal next</button></ControlTip>
-                <ControlTip tip="hold"><button type="button" disabled={disabled} aria-label={`Hold ${entry.name} for later, position ${index + 1}`} onClick={() => void submit({ type: 'hold', entryId: entry.id })}>Hold</button></ControlTip>
-              </div>}
-            </li>
-          ))}
-        </ol>
+        {renderEntries()}
         {!compact && !!snapshot?.heldEntries.length && <section className={styles.held} aria-label="Held for later">
           <h3>Held for later <span>{snapshot.heldEntries.length}</span></h3>
           <ul className={styles.list}>{snapshot.heldEntries.map((entry, index) => <li key={entry.id} data-lineup-entry={entry.id} tabIndex={-1} aria-label={`${entry.name}, held for later, position ${index + 1}`} className={styles.heldRow}>
@@ -502,7 +561,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
                 {audienceMatches[entry.id].birthday && <span>🎂 {audienceMatches[entry.id].birthday}</span>}
                 {audienceMatches[entry.id].preferences.map((preference, chipIndex) => <span key={chipIndex}>{preference}</span>)}
               </div> : null}
-              {!viewOnly && entry.identityEligible && <ControlTip tip="customer-card"><button type="button" className={styles.customerButton} data-clarify={audienceMatches[entry.id]?.status === 'needs_clarification'} disabled={saving || !!dragging} onClick={()=>setCustomerSelection({entry,generation:snapshot!.management!.generation})}>{audienceMatches[entry.id]?.status === 'needs_clarification' ? 'Which customer?' : audienceMatches[entry.id]?.label || 'Customer card'}</button></ControlTip>}
+              {customerButton(entry)}
               <ControlTip tip="return"><button type="button" disabled={disabled} aria-label={`Return ${entry.name} to lineup, held position ${index + 1}`} onClick={() => void submit({ type: 'return', entryId: entry.id })}>Return</button></ControlTip>
             </div>
           </li>)}</ul>
@@ -515,6 +574,23 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
         <button type="button" disabled={disabled || !!dragging || !snapshot?.undoAvailable} title="Undo the last reorder, Reveal next, Hold, or Return—not party visibility" onClick={() => void submit({ type: 'undo' })}>Undo order / hold</button>
         <span>Bomb Party orders are unchanged.</span>
       </footer>}
+      {popup && <LineupDialog dialogRef={popupRef} titleId={popupTitleId} full={popup === 'full'} onClose={() => { stopDrag(); setPopup(null) }}>
+        <header className={styles.modalHeader}>
+          <div><p className={styles.eyebrow}>Live Lineup</p><h2 id={popupTitleId}>{popup === 'full' ? 'Full lineup' : 'Status'}</h2></div>
+          <button type="button" className={styles.closeButton} onClick={() => { stopDrag(); setPopup(null) }} aria-label={popup === 'full' ? 'Close full lineup' : 'Close status'}>×</button>
+        </header>
+        {popup === 'full' ? <div ref={scrollRef} className={styles.scroll} tabIndex={0} role="region" aria-label="Full lineup orders" aria-describedby={keyboardInstructionsId}>
+          {renderEntries(true)}
+          {!entries.length && <p className={styles.empty}>No customers are waiting right now.</p>}
+        </div> : <div className={styles.statusBody}>
+          <span className={styles.statusChip} data-connection={signal.tone}><span className={styles.dot} aria-hidden="true" />{statusLabel}</span>
+          {waitingForSource && <p>Waiting for a fresh source update. The last received order is preserved.</p>}
+          <dl className={styles.metaList}>
+            <div><dt>Last received</dt><dd>{receivedTime}</dd></div>
+            <div><dt>Connection</dt><dd>{snapshot?.connection ? snapshot.connection[0].toUpperCase() + snapshot.connection.slice(1) : 'Connecting'}</dd></div>
+          </dl>
+        </div>}
+      </LineupDialog>}
       {customerSelection && <LineupCustomerEditor entry={customerSelection.entry} generation={customerSelection.generation} valid={snapshot?.management?.generation===customerSelection.generation && [...(snapshot?.entries??[]),...(snapshot?.heldEntries??[])].some(e=>e.id===customerSelection.entry.id && e.sourceIdentityVersion===customerSelection.entry.sourceIdentityVersion)} onClose={()=>setCustomerSelection(null)} onAsk={onAskCustomer} />}
       {draggedEntry && drag && createPortal(<>
         <div ref={dragPreview} className={styles.dragPreview} aria-hidden="true" data-lineup-drag-preview
@@ -527,7 +603,31 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
           <span className={styles.previewCaption}>{dropValid ? `Position ${dropPosition}` : 'Outside lineup · release to cancel'}</span>
         </div>
         <div ref={dropMarker} className={styles.dropMarker} data-lineup-drop-marker aria-hidden="true" hidden={!dropValid} />
-      </>, document.body)}
+      </>, popup === 'full' && popupRef.current ? popupRef.current : document.body)}
     </section>
   )
+}
+
+/** Native top-layer isolation traps focus while preserving the workspace token inheritance. */
+function LineupDialog({ dialogRef, titleId, full, onClose, children }: { dialogRef: RefObject<HTMLDialogElement | null>; titleId: string; full: boolean; onClose: () => void; children: ReactNode }) {
+  const dialog = dialogRef
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    const overflow = document.body.style.overflow
+    const node = dialog.current!
+    node.showModal()
+    document.body.style.overflow = 'hidden'
+    return () => { node.close(); document.body.style.overflow = overflow; previous?.focus({ preventScroll: true }) }
+  }, [dialog])
+  return <dialog ref={dialog} role="dialog" aria-modal="true" aria-labelledby={titleId}
+    className={`${styles.dialog} ${full ? styles.fullDialog : styles.statusDialog}`}
+    onCancel={event => { event.preventDefault(); onClose() }} onKeyDown={event => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onClose() }
+      if (event.key === 'Tab') {
+        const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), [tabindex="0"]')).filter(element => !element.closest('[hidden]'))
+        const first = buttons[0], last = buttons.at(-1)
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+      }
+    }}>{children}</dialog>
 }

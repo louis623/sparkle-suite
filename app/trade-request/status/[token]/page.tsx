@@ -1,3 +1,4 @@
+import { validDanceFloorBackHref } from './receipt-back'
 import type { Metadata } from 'next'
 import ReceiptStatus from './receipt-status'
 
@@ -11,10 +12,12 @@ export const metadata: Metadata = {
 }
 
 export default async function TradeRequestStatusPage({
-  params,
+  params, searchParams,
 }: {
   params: Promise<{ token: string }>
+  searchParams: Promise<{ back?: string | string[] }>
 }) {
   const { token } = await params
-  return <ReceiptStatus token={token} />
+  const { back } = await searchParams
+  return <ReceiptStatus token={token} backHref={validDanceFloorBackHref(back)} />
 }

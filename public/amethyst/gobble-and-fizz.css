@@ -267,11 +267,6 @@ body.bg-gobble-and-fizz .hp-queue-modal-row .label { color: #e5cbbb; }
 body.bg-gobble-and-fizz .hp-queue-modal-close { background: #392330; color: #fff2df; }
 body.bg-gobble-and-fizz .hp-queue-modal-close:hover { background: #543345; }
 body.bg-gobble-and-fizz :is(.hp-event-copy:hover, .hp-event-copy.copied, .hp-event-collection-pill:hover) { color: #28161e; }
-body.bg-gobble-and-fizz :is(.hp-lrq-item:not(.on-deck) .pos, .tp-lrq-row.now .pos, .tp-filter-badge, .tp-load-more, .tp-card-tier.unicorn) {
-  background: #efb36c;
-  color: #28161e;
-}
-body.bg-gobble-and-fizz .tp-card-tier.unicorn .pip { background: #28161e; }
 body.bg-gobble-and-fizz :is(.tp-empty-reset, .tp-card-close) {
   background: #392330;
   color: #efb36c;

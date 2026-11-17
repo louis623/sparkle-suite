@@ -435,7 +435,7 @@ describe('reject_trade — write + audit', () => {
     })
   })
 
-  it('audits rejectionReason as null when reason is omitted (do NOT coerce to "other")', async () => {
+  it('audits effective rejectionReason other when omitted', async () => {
     rejectTradeMock.mockResolvedValueOnce({
       requestId: 'req-1',
       listingId: 'listing-1',
@@ -448,7 +448,7 @@ describe('reject_trade — write + audit', () => {
     const auditArg = writeTradeActionAuditMock.mock.calls[0][0] as {
       afterState: Record<string, unknown>
     }
-    expect(auditArg.afterState.rejectionReason).toBeNull()
+    expect(auditArg.afterState.rejectionReason).toBe('other')
   })
 
   it('audits listingStatus as pending_trade when listingRestored is false', async () => {

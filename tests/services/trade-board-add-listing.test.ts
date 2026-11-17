@@ -820,3 +820,10 @@ describe('addListing', () => {
     })
   })
 })
+
+it('catalog RPC ignores legacy photo inputs and retains the separate returned canonical group',async()=>{
+ const {client,spies}=makeAddListingWithCollectionSupabase()
+ await addListing(client,'rep-1',{itemNumber:'RG31452',collectionName:'Lustre',listingPhotoUrl:'https://untrusted.invalid/rep.jpg',idempotencyKey:'canonical-only',inputSignature:'stable-legacy-signature'})
+ expect(analyzeServerImageQualityMock).not.toHaveBeenCalled()
+ expect(spies.rpc).toHaveBeenCalledWith('rpc_add_or_increment_catalog_listing_v3',expect.objectContaining({p_listing_photo_url:null,p_uses_canonical_photo:true,p_input_signature:'stable-legacy-signature'}))
+})

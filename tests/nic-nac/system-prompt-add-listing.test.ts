@@ -44,7 +44,7 @@ describe('Nic-Nac system prompt — add listing flow', () => {
     expect(NIC_NAC_SYSTEM_PROMPT).toContain(
       'If missing, ask for whichever single input is actually missing or unusable',
     )
-    expect(NIC_NAC_SYSTEM_PROMPT).toContain('Two quality checks only')
+    expect(NIC_NAC_SYSTEM_PROMPT).toContain('Two quality checks only for NEW designs and manual dancers')
     expect(NIC_NAC_SYSTEM_PROMPT).toContain('readable item details')
     expect(NIC_NAC_SYSTEM_PROMPT).toContain('website-worthy jewelry image')
     expect(NIC_NAC_SYSTEM_PROMPT).toContain('Accept clear rep-provided collection')
@@ -116,15 +116,11 @@ describe('Nic-Nac system prompt — add listing flow', () => {
     )
   })
 
-  it('routes bad shared catalog photos to guarded catalog correction instead of Louis', () => {
-    expect(NIC_NAC_SYSTEM_PROMPT).toContain(
-      'If a canonical catalog photo is wrong because it shows a label/details photo',
-    )
-    expect(NIC_NAC_SYSTEM_PROMPT).toContain('approved jewelry-front replacement')
-    expect(NIC_NAC_SYSTEM_PROMPT).toContain('use report_jewelry_catalog_issue')
-    expect(NIC_NAC_SYSTEM_PROMPT).toContain(
-      'Do not say the catalog photo tool is unavailable',
-    )
+  it('reports bad photos without offering a catalog photo replacement',()=>{
+    expect(NIC_NAC_SYSTEM_PROMPT).toContain('report_jewelry_catalog_issue')
+    expect(NIC_NAC_SYSTEM_PROMPT).toContain('Bad photos remain reportable')
+    expect(NIC_NAC_SYSTEM_PROMPT).toContain('never replaces a catalog photo or accepts canonicalPhotoUrl for any issue type')
+    expect(NIC_NAC_SYSTEM_PROMPT).toContain('Do not ask the rep for a replacement photo')
   })
 
   it('groups identical physical copies while keeping catalog variants separate', () => {

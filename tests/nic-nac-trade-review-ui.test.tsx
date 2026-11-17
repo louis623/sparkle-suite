@@ -81,18 +81,19 @@ describe('rep trade review UI', () => {
     }))
     expect(html).toContain('Rule exception — rep review needed')
     expect(html).toContain('The customer selected the wrong family.')
-    expect(html).toContain('I verified these facts')
-    expect(html).toContain('I confirm this one-for-one dancer swap')
-    expect(html).toMatch(/type="submit"[^>]*disabled=""/)
+    expect(html).not.toContain('I verified these facts')
+    expect(html).not.toContain('I confirm this one-for-one dancer swap')
+    expect(html).toContain('>Approve</button>')
+    expect(html).toContain('>Deny</button>')
   })
 
   it('offers required denial reasons and a private notes field', () => {
     const html = renderToStaticMarkup(createElement(TradeRequestReviewDialog, {
       request, initialAction: 'reject', onClose: vi.fn(), onSubmit: vi.fn(),
     }))
-    expect(html).toContain('Collection mismatch')
-    expect(html).toContain('Jewelry type mismatch')
-    expect(html).toContain('Requested item unavailable')
+    expect(html).toContain('Message to customer (optional)')
+    expect(html).not.toContain('<select')
+    expect(html).toContain('>Back</button>')
     expect(html).toContain('Private rep notes')
   })
 
@@ -114,7 +115,7 @@ describe('rep trade review UI', () => {
     expect(alert).toContain("onReview(active.id, 'approve')")
     expect(alert).toContain("onReview(active.id, 'reject')")
     expect(alert).not.toContain('trade-alert-ack-v1')
-    expect(alert).toContain('Customer-reported details:')
+    expect(readFileSync(resolve(base, 'TradeRequestLiveCard.tsx'), 'utf8')).toContain('Customer says they revealed')
     expect(css).toContain('prefers-reduced-motion: reduce')
   })
 
@@ -125,7 +126,7 @@ describe('rep trade review UI', () => {
     expect(source).toContain('mobileAlertTarget={mobileTradeAlertTarget}')
     expect(source).toContain('soundTarget={tradeSoundTarget}')
     expect(source.indexOf('<div ref={onTradeAlertTarget}')).toBeGreaterThan(source.indexOf('<div className={styles.embeddedChat}>{chat}</div>'))
-    expect(board).toContain('<div ref={onSoundSettingsTarget}')
+    expect(board).toContain('<div ref={props.onSoundSettingsTarget}')
     const css = readFileSync(resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.module.css'), 'utf8')
     expect(css).toContain('.homeTradeAlertSlot')
   })

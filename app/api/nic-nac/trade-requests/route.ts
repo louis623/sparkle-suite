@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 import { NextResponse } from 'next/server'
 import {
   getPaidNicNacContext,
@@ -6,12 +7,11 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ServiceError } from '@/lib/services/errors'
 import {
-  approveTrade,
   getTradeRequests,
   getPendingTradeRequestCount,
   rejectTrade,
 } from '@/lib/services/trade-requests'
-import { approveTradeWithRevealedItemCapture } from '@/lib/services/trade-swaps'
+import { approveTradeFromReview } from '@/lib/services/trade-swaps'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -89,54 +89,21 @@ export async function POST(request: Request) {
     const body = await request.json()
     const action = typeof body?.action === 'string' ? body.action.trim() : ''
     const requestId = typeof body?.requestId === 'string' ? body.requestId.trim() : ''
-    const repNotes = typeof body?.repNotes === 'string' ? body.repNotes : undefined
-    const verification = {
-      verifiedOfferedFamily: typeof body?.verifiedOfferedFamily === 'string' ? body.verifiedOfferedFamily.trim() : '',
-      verifiedOfferedType: body?.verifiedOfferedType,
-      verificationConfirmed: body?.verificationConfirmed === true,
-      finalConfirmation: body?.finalConfirmation === true,
-    }
+    const repNotes = validateRepNotes(typeof body?.repNotes === 'string' ? body.repNotes : undefined)
 
     const { repId } = await getPaidNicNacContext()
     const supabase = createAdminClient()
 
     if (action === 'approve') {
-      const revealedItemNumber =
-        typeof body?.revealedItemNumber === 'string'
-          ? body.revealedItemNumber.trim()
-          : ''
-      if (revealedItemNumber) {
-        const result = await approveTradeWithRevealedItemCapture(
-          supabase,
-          repId,
-          {
-            requestId,
-            revealedItemNumber,
-            revealedRingSize:
-              typeof body?.revealedRingSize === 'string'
-                ? body.revealedRingSize
-                : undefined,
-            repNotes,
-            verification,
-          },
-        )
-        return NextResponse.json({ ok: true, result })
-      }
-
-      const result = await approveTrade(supabase, repId, requestId, repNotes, verification)
+      const result = await approveTradeFromReview(supabase, repId, {
+        requestId, repNotes,
+        revealedItemNumber: typeof body?.revealedItemNumber === 'string' ? body.revealedItemNumber : undefined,
+      })
       return NextResponse.json({ ok: true, result })
     }
-
     if (action === 'reject') {
-      const reason =
-        body?.reason === 'collection_mismatch' ||
-        body?.reason === 'jewelry_type_mismatch' ||
-        body?.reason === 'item_unavailable' ||
-        body?.reason === 'other'
-          ? body.reason
-          : undefined
-      const customerExplanation = typeof body?.customerExplanation === 'string' ? body.customerExplanation : undefined
-      const result = await rejectTrade(supabase, repId, requestId, reason, repNotes, customerExplanation)
+      const message = typeof body?.customerMessage === 'string' ? body.customerMessage : undefined
+      const result = await rejectTrade(supabase, repId, requestId, 'other', repNotes, message)
       return NextResponse.json({ ok: true, result })
     }
 

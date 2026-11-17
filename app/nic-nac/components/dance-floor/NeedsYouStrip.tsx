@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import styles from './dance-floor.module.css'
-export function NeedsYouStrip({ requests, followUps, photos, status, onRetry }: {
-  requests?: number; followUps?: number; photos?: number; status: 'loading' | 'ready' | 'error'; onRetry: () => void
+export function NeedsYouStrip({ requests, followUps, status, onRetry }: {
+  requests?: number; followUps?: number; status: 'loading' | 'ready' | 'error'; onRetry: () => void
 }) {
   const strip = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -13,13 +13,12 @@ export function NeedsYouStrip({ requests, followUps, photos, status, onRetry }: 
     const observer = new ResizeObserver(measure)
     observer.observe(target); measure()
     return () => observer.disconnect()
-  }, [status, requests, followUps, photos])
-  if (status === 'ready' && requests === 0 && followUps === 0 && photos === 0)
-    return <div id="needs-you" className={styles.empty}><strong>You're all caught up.</strong><p>No new requests, follow-ups, or missing photos.</p></div>
+  }, [status, requests, followUps])
+  if (status === 'ready' && requests === 0 && followUps === 0)
+    return <div id="needs-you" className={styles.empty}><strong>You're all caught up.</strong><p>No new requests or follow-ups.</p></div>
   const tiles = [
     { count: requests, label: 'New swap requests', sub: `${requests ?? 0} waiting`, cue: 'Review requests', href: '#requests' },
     { count: followUps, label: 'Follow-ups to finish', sub: `${followUps ?? 0} to finish`, cue: 'Finish follow-ups', href: '#follow-ups' },
-    { count: photos, label: 'Photos to fix', sub: `${photos ?? 0} need a photo`, cue: 'Fix photos', href: '#floor' },
   ]
   return <div ref={strip} id="needs-you" className={styles.strip}>
     <div className={styles.kicker}>{status === 'loading' ? 'Checking your Dance Floor…' : status === 'error' ? <>Couldn't refresh this list. <button type="button" className={styles.linkButton} onClick={onRetry}>Try again</button></> : 'Needs you first'}</div>

@@ -128,7 +128,7 @@ import { getHelpResources } from '@/lib/services/help-resources'
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Dance Floor Management|Today(?:&#x27;|')s swap work|Quick add|Swap fulfillment log|Browse dancers|Request inbox|Swap follow-up)</g,
+      /<h[12][^>]*>(Dance Floor|Swap requests|Follow-ups to finish|Add dancers|My Dance Floor|Swap history)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -272,14 +272,6 @@ describe('Dance Floor add retry keys', () => {
     expect(source).toContain('payload?.result?.mutationReplayed')
     expect(source).toContain('No new copy was added. Tap Add again')
     expect(source).toContain('body: JSON.stringify({\n          designId,')
-
-    const quickAddSource = source.slice(
-      source.indexOf('async function handleQuickAddListing()'),
-      source.indexOf('async function handleRemoveTradeListing'),
-    )
-    expect(quickAddSource.indexOf('await refreshTradeWorkspace()')).toBeLessThan(
-      quickAddSource.indexOf('clearTradeAddMutationKey(logicalMutation)'),
-    )
 
     const libraryAddSource = source.slice(
       source.indexOf('async function handleAddFromLibrary'),
@@ -738,16 +730,16 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Add a dancer')
     expect(html).not.toContain('Check my board')
     expect(html).toContain('Add a show')
-    expect(source).toContain('styles.railLaunchAction')
+    expect(source).not.toContain('styles.railLaunchAction')
     expect(source).not.toContain('styles.heroQuickActions')
-    expect(html).toContain('Swap Info')
-    expect(html).toContain('aria-label="Swap info at a glance"')
-    expect(html).toContain('Swap requests')
-    expect(html).toContain('Dancers on the Floor')
-    expect(html).toContain('New dancers today')
+    expect(html).not.toContain('Swap Info')
+    expect(html).toContain('aria-label="Live Lineup at a glance"')
+    expect(html).not.toContain('Swap requests')
+    expect(html).not.toContain('Dancers on the Floor')
+    expect(html).not.toContain('New dancers today')
     expect(html).not.toContain('Swap follow-up')
     expect(html).not.toContain('Fulfillment swaps')
-    expect(html).toContain('Open Dance Floor')
+    expect(html).not.toContain('Open Dance Floor')
     expect(html).not.toContain('Active Board')
     expect(html).not.toContain('View board')
     expect(html.match(/Upcoming Show/g)).toHaveLength(1)
@@ -786,6 +778,27 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Setup Checklist')
     expect(html).not.toContain('Confirm business/profile basics')
     expect(html).not.toContain('Understand the Chrome extension and Live Queue')
+  })
+
+  it('renders Live Lineup first and alone in the home left column without Add a dancer or Swap Info cards', () => {
+    const html = renderToStaticMarkup(createElement(DashboardPlaceholder))
+    const leftRail = html.match(/<aside\b[^>]*aria-label="Live Lineup at a glance"[^>]*>([\s\S]*?)<\/aside>/)?.[1]
+    expect(leftRail).toBeDefined()
+    expect(leftRail).toMatch(/^<div\b[^>]*railLiveLineup/)
+    expect(leftRail).toContain('Live Lineup')
+    expect(leftRail).not.toContain('Add a dancer')
+    expect(leftRail).not.toContain('Swap Info')
+    expect(leftRail).not.toContain('Swap requests')
+    expect(leftRail).not.toContain('Dancers on the Floor')
+    expect(leftRail).not.toContain('New dancers today')
+    expect(leftRail).not.toContain('Open Dance Floor')
+    // The separate phone shortcut belongs to the unchanged center section.
+    expect(html).toContain('Add a dancer')
+    expect(html).toContain('aria-label="Workspace glance"')
+    expect(html).toContain('Nic-Nac')
+    expect(html).toContain('Dance Floor')
+    expect(html).toContain('Calendar')
+    expect(html).toContain('Tools')
   })
 
   it('uses only the first name in the Nic-Nac Workspace welcome', () => {
@@ -2835,19 +2848,16 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(html).toContain('Dance Floor Management')
-    expect(html).not.toContain('Customer view')
+    expect(html).toContain('My Dance Floor')
     expect(html).toContain('src="https://cdn.example.com/sapphire-halo.jpg"')
-    expect(html).toContain('View Sapphire Halo')
-    expect(html).toContain('type="button"')
-    expect(html).toContain('aria-label="Dance Floor dancers"')
     expect(html).toContain('alt="Sapphire Halo"')
     expect(html).toContain('Sapphire Halo')
-    expect(html).toContain('Sterling · Sapphire')
-    expect(html).toContain('Showing 1 of 1 dancers')
-    expect(html).toContain('Remove')
+    expect(html).toContain('Qty 1')
+    expect(html).toContain('No requests yet')
+    expect(html).toContain('>Edit<')
+    expect(html).not.toContain('>Remove<')
     expect(html).toContain('Clear filters')
-    expect(html).not.toContain('Rose Quartz Stack')
+    expect(html).not.toContain('Customer view')
   })
 
   it('shows the available customer-style grid by default with the same browse controls', () => {
@@ -2871,40 +2881,17 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(getTradeBoardSectionLabels(html)).toEqual([
-      'Dance Floor Management',
-      "Today's swap work",
-      'Quick add',
-      'Swap fulfillment log',
-      'Browse dancers',
-    ])
-    expect(html).toContain('Jewelry type')
-    expect(html).toContain('Collection')
-    expect(html).toContain(
-      'Everything is caught up. New requests, swap follow-up, and fulfillment work will land here.',
-    )
-    expect(html).toContain('Know the item number? Add a dancer in one step.')
-    expect(html).toContain(
-      'Browse the same dancers your customers see.',
-    )
-    expect(html).toContain('More filters')
-    expect(html).toContain('Search Dance Floor')
-    expect(html).toContain('Sort dancers')
-    expect(html).toContain('All types')
-    expect(html).not.toContain('All rarity')
-    expect(html).not.toContain('Rare first')
-    expect(html).toContain('id="rep-collection-filters"')
+    expect(getTradeBoardSectionLabels(html)).toEqual(['Dance Floor','My Dance Floor','Swap history'])
+    for (const label of ['Type','Collection','type="search"','Sort','More filters','Available','Pending swap','Swapped','Sitting 30+ days']) expect(html).toContain(label)
+    expect(html).not.toContain('Know the item number? Add a dancer in one step.')
     expect(html).toContain('Sapphire Halo')
     expect(html).toContain('Rose Quartz Stack')
-    expect(html).not.toContain('Default landing section')
     expect(html).not.toContain('Request inbox')
-    expect(html).not.toContain('Swap follow-up')
     expect(html).not.toContain('Fulfillment queue')
-    expect(html).toContain('Loading dancers')
-    expect(html).not.toContain('Loading board pieces...')
+    expect(html).not.toContain('Coming soon in this rebuild.')
   })
 
-  it('shows rarity filters only when dancers have a rarity tag and hides browse filters on an empty Dance Floor', () => {
+  it('keeps rarity choices and empty Floor filters available', () => {
     const rareListing = {
       ...TRADE_BOARD_READY_STATE.board.listings[0],
       rarity_classification: 'diamond' as const,
@@ -2932,9 +2919,9 @@ describe('DashboardPlaceholder', () => {
         onAdvanceFulfillment: () => {},
       }),
     )
-    expect(rareHtml).toContain('All rarity')
+    expect(rareHtml).toContain('Rarity')
     expect(rareHtml).toContain('Rare first')
-    expect(rareHtml).toContain('Diamond')
+    expect(rareHtml).toContain('diamond')
 
     const emptyHtml = renderToStaticMarkup(
       createElement(TradeBoardWorkspaceCard, {
@@ -2960,8 +2947,8 @@ describe('DashboardPlaceholder', () => {
       }),
     )
     expect(emptyHtml).toContain('Your Dance Floor is empty. Add a dancer to show it here.')
-    expect(emptyHtml).not.toContain('All types')
-    expect(emptyHtml).not.toContain('Search Dance Floor')
+    expect(emptyHtml).toContain('All types')
+    expect(emptyHtml).toContain('type="search"')
     expect(emptyHtml).not.toContain('All rarity')
   })
 
@@ -2992,6 +2979,7 @@ describe('DashboardPlaceholder', () => {
               revealedItemNumber: 'ER00001',
               revealedRingSize: null,
               replacementStatus: 'needs_catalog_details',
+              missingFields: ['collectionName', 'material'],
               createdAt: '2026-06-11T20:00:00.000Z',
             },
           ],
@@ -3009,15 +2997,13 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(html).toContain('Swap follow-up')
-    expect(html).toContain('1 to finish')
-    expect(html).toContain(
-      'Approved swaps stay here until the missing ring size or catalog details are finished.',
-    )
-    expect(html).toContain('Revealed item number: ER00001')
-    expect(html).toContain(
-      'Finish catalog details after the show to put this reveal back on the Dance Floor.',
-    )
+    expect(html).toContain('Follow-ups to finish')
+    expect(html).toContain('Jamie · revealed ER00001')
+    expect(html).toContain('Finish the catalog details')
+    expect(html).toContain('Collection')
+    expect(html).toContain('Material')
+    expect(html).toContain('Add to Floor')
+    expect(html).not.toContain('finish these here soon')
   })
 
   it('routes trade-board decisions through shared review before the decision API', () => {
@@ -3860,7 +3846,7 @@ describe('DashboardPlaceholder', () => {
 
     expect(source).toContain('styles.homepagePortraitMediaCard')
     expect(source).toContain('styles.homepageVideoMediaCard')
-    expect(source).toContain('<div className={styles.homepageMediaGrid}>\n          <aside className={styles.homepageMediaHelp}')
+    expect(source).toMatch(/<div className=\{styles\.homepageMediaGrid\}>\s*\{!draft\.allSourcesEnabled && <aside className=\{styles\.homepageMediaHelp\}/)
     expect(source).not.toContain('<details className={styles.homepageMediaHelp}>')
     expect(css).toContain('grid-template-rows: repeat(5, auto)')
     expect(css).toMatch(/\.homepagePortraitMediaCard\s*\{[\s\S]*?grid-row:\s*1\s*\/\s*span 5;/)

@@ -35,7 +35,6 @@ const inputSchema = z.object({
       specialFeatures: z.string().nullable().optional(),
       lengthInfo: z.string().nullable().optional(),
       searchTags: z.array(z.string()).max(8).optional(),
-      canonicalPhotoUrl: z.string().optional(),
     })
     .optional(),
 })
@@ -46,9 +45,8 @@ function sanitizeCorrectionForIssueType(
 ) {
   if (!correction) return undefined
   const sanitized = sanitizeCatalogCorrectionFields(correction)
-  if (issueType !== 'bad_photo') {
-    delete sanitized.canonicalPhotoUrl
-  }
+  // Photo replacement is never a rep chat capability, including direct execute callers.
+  delete sanitized.canonicalPhotoUrl
   return sanitized
 }
 
@@ -69,7 +67,7 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
   build: (ctx: ToolContext) =>
     tool({
       description:
-        'Report and, when the rep provides corrected information, fix inaccurate shared jewelry catalog data. Use for wrong collection, bad photo, wrong name, wrong stone/material, duplicates, or other catalog quality issues. Canonical catalog photo replacement must use an approved jewelry-front image; never replace the canonical catalog photo with a label/details or back-of-card photo. Requires explicit user approval because shared catalog corrections affect every rep.',
+        'Report and, when the rep provides corrected information, fix inaccurate shared jewelry catalog data. Use for wrong collection, bad photo, wrong name, wrong stone/material, duplicates, or other catalog quality issues. Bad photos can be reported, but this tool never replaces a catalog photo. Requires explicit user approval because shared catalog corrections affect every rep.',
       inputSchema,
       needsApproval: true,
       execute: async (input) => {

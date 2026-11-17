@@ -29,7 +29,7 @@ const STATUS_COPY: Record<Receipt['status'], { heading: string; body: string }> 
   },
 }
 
-export default function ReceiptStatus({ token }: { token: string }) {
+export default function ReceiptStatus({ token, backHref }: { token: string; backHref?: string | null }) {
   const [receipt, setReceipt] = useState<Receipt | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -78,12 +78,12 @@ export default function ReceiptStatus({ token }: { token: string }) {
         {error ? <p className={styles.error}>{error}</p> : null}
         {receipt && !loading && !error ? (
           <>
-            <p>{STATUS_COPY[receipt.status].body}</p>
-            {receipt.status === 'denied' && receipt.denialExplanation ? <p className={styles.explanation}>{receipt.denialExplanation}</p> : null}
+            <p>{receipt.status === 'denied' ? receipt.denialExplanation || STATUS_COPY.denied.body : STATUS_COPY[receipt.status].body}</p>
             {receipt.photoExpired && <p>Your photo expired after 7 days.</p>}
             {receipt.updatedAt ? <p className={styles.updated}>Updated {new Date(receipt.updatedAt).toLocaleString()}</p> : null}
           </>
         ) : null}
+        {backHref ? <a className={styles.backButton} href={backHref}>Back to the Dance Floor</a> : null}
         {!loading && !invalidLink ? (
           <div className={styles.saveBox}>
             <strong>Keep this link private</strong>

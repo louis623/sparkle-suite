@@ -106,12 +106,13 @@ describe('workspace control hover tips', () => {
   })
 
   it('attaches Dance Floor, Tools list, and save tips, and not the parked intake', () => {
-    const board = source('app/nic-nac/components/TradeBoardWorkspaceCard.tsx')
+    const board = source('app/nic-nac/components/dance-floor/RequestInbox.tsx')
+    const editor = source('app/nic-nac/components/dance-floor/DancerEditor.tsx')
     const home = source('app/nic-nac/components/DashboardPlaceholder.tsx')
-    expect(board).toContain('<ControlTip tip="remove-dancer">')
-    expect(board).toContain('<ControlTip tip="approve-request">')
-    expect(board).toContain('<ControlTip tip="deny-request">')
-    expect(board).toContain("'Remove'")
+    expect(editor).toContain('>Remove</button>')
+    expect(board).toContain("onReviewRequest(request.id, 'approve')")
+    expect(board).toContain("onReviewRequest(request.id, 'reject')")
+    expect(editor).toContain('<RemoveConfirm')
     expect(board).toContain("'Approve'")
     expect(board).toContain("'Deny'")
     expect(home).toContain("section.key === 'jewelry-library' || section.key === 'wispr-flow'")
@@ -119,13 +120,8 @@ describe('workspace control hover tips', () => {
     expect(home).toContain('tip="save-site-settings"')
     expect(home).not.toContain('tip="collection-intake"')
 
-    const bulkStart = home.indexOf('id="dance-floor-bulk-intake-title"')
-    const bulkEnd = home.indexOf('<TradeBoardWorkspaceCard', bulkStart)
-    const bulk = home.slice(bulkStart, bulkEnd)
-    expect(bulk).toContain('Bulk Collection Intake')
-    expect(bulk).toContain('Coming Soon')
-    expect(bulk).not.toContain('ControlTip')
-    expect(bulk).not.toContain('data-control-tip')
+    expect(source('app/nic-nac/components/TradeBoardWorkspaceCard.tsx')).not.toContain('AddDancers')
+    expect(home).not.toContain('id="dance-floor-bulk-intake-title"')
 
     const preview = home.indexOf('Preview customer site')
     const previewButton = home.lastIndexOf('<button', preview)
@@ -250,6 +246,7 @@ describe('workspace control hover tips', () => {
           requests: [
             {
               id: 'request-1',
+              status: 'pending',
               customerName: 'Jamie Lane',
               customerDescription: 'Birthday ring',
               revealScreenshot: null,
@@ -279,10 +276,11 @@ describe('workspace control hover tips', () => {
         onSoundSettingsTarget: () => undefined,
       }),
     )
-    expect(board).toContain('data-control-tip="remove-dancer"')
-    expect(board).toContain('data-control-tip="approve-request"')
-    expect(board).toContain('data-control-tip="deny-request"')
-    expect(board).toContain('>Remove<')
+    expect(board).not.toContain('data-control-tip="remove-dancer"')
+    expect(board).not.toContain('data-control-tip="approve-request"')
+    expect(board).not.toContain('data-control-tip="deny-request"')
+    expect(board).toContain('>Edit<')
+    expect(board).not.toContain('>Remove<')
     expect(board).toContain('>Approve<')
     expect(board).toContain('>Deny<')
     expect(board).not.toContain(EXACT_TIPS['remove-dancer'])

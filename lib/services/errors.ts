@@ -371,3 +371,30 @@ export const errors = {
       statusCode: 409,
     }),
 }
+
+/** Rep editor mappings only; existing customer and approval mappings stay stable. */
+export const DANCE_FLOOR_MESSAGES: Record<string, string> = {
+  LISTING_NOT_FOUND: "This dancer isn't on your Floor anymore.",
+  LISTING_NOT_ACTIVE: "This dancer isn't on your Floor anymore.",
+  OPEN_SWAP: 'This dancer is part of an open swap. Finish that swap in Swap history first.',
+  QUANTITY_CHANGED: 'This dancer changed while you were editing. Reload and try again.',
+  QUANTITY_OUT_OF_RANGE: 'Quantity can be 1 to 99.',
+  BELOW_PENDING: 'Deny or approve those requests first.',
+  BELOW_FLOOR: 'Deny or approve those requests first.',
+  DUPLICATE_ACTIVE_LISTING: 'You already have this dancer on your Floor.',
+  RECOVERY_EXPIRED: "That dancer is outside the Put-back window. Add it again to put it on your Floor.",
+  LISTING_OFF_FLOOR: 'Put this dancer back on your Floor before reopening this swap.',
+  CATALOG_PHOTO_NOT_ALLOWED: 'Catalog dancers use the Nic-Nac catalog photo.',
+  PHOTO_REP_LIMIT: 'You can upload 50 photos per hour. Try again later.',
+  PHOTO_DANCER_LIMIT: "You can change this dancer's photo 5 times per day. Try again later.",
+  PHOTO_TARGET_INVALID: "That photo upload has expired or already been used. Choose the photo again.",
+}
+export function danceFloorError(code: string) {
+  const known = Object.hasOwn(DANCE_FLOOR_MESSAGES, code)
+  return new ServiceError({
+    code: known ? code : 'DANCE_FLOOR_UPDATE_FAILED',
+    message: known ? code : 'Dance Floor update failed',
+    userMessage: DANCE_FLOOR_MESSAGES[code] ?? "Couldn't update that dancer. Try again.",
+    statusCode: code === 'LISTING_NOT_FOUND' ? 404 : code.startsWith('PHOTO_') && code.endsWith('_LIMIT') ? 429 : known ? 409 : 500,
+  })
+}

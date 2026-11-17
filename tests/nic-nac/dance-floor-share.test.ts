@@ -9,7 +9,7 @@ import { danceFloorPublication } from '@/app/nic-nac/components/dance-floor/publ
 const origin = 'https://suite.example.test'
 const header = (publication: ReturnType<typeof danceFloorPublication>) => renderToStaticMarkup(createElement(DanceFloorHeader, { publication }))
 const sheet = (publication: ReturnType<typeof danceFloorPublication>) => renderToStaticMarkup(createElement(ShareSheet, { publication, onClose() {} }))
-describe('Share publication contract (explicit fixtures; production signal remains unknown)', () => {
+describe('Share publication contract (shared public access check)', () => {
   it('unpublished rep id never exposes its preview URL, Share, sheet or QR', () => {
     const publication = danceFloorPublication({ origin, published: false, repId: 'unpublished-rep', publicSiteSlug: 'reserved-slug' })
     const html = header(publication)
@@ -38,4 +38,28 @@ describe('Share publication contract (explicit fixtures; production signal remai
     expect(header(publication)).not.toMatch(/Open site setup|>Share<|https:\/\//)
     expect(sheet(publication)).toBe('')
   })
+})
+
+import { canServePublicCustomerSiteForRep } from '@/lib/services/workspace-access'
+import { dbFixture, repId } from '../helpers/dance-floor-fixture'
+describe('public/header access equivalence',()=>{
+ it.each([['active',true],['trialing',true],['past_due',true],['paused',false],['cancelled',false],['incomplete',false],[null,false]])('preserves public answer for %s',async(status,expected)=>{
+  const f=dbFixture({subscriptions:status?[{rep_id:repId,status}]:[]})
+  const publicAnswer=await canServePublicCustomerSiteForRep({supabase:f.client,repId})
+  const headerAnswer=await canServePublicCustomerSiteForRep({supabase:f.client,repId})
+  expect(publicAnswer).toBe(expected);expect(headerAnswer).toBe(publicAnswer)
+  const html=header(danceFloorPublication({origin,published:headerAnswer,publicSiteSlug:'fixture'}))
+  expect(html.includes('>Share<')).toBe(expected)
+  expect(html.includes('Open site setup')).toBe(!expected)
+ })
+ it('guards both actual importers against a duplicated entitlement implementation',()=>{
+  const publicSource=readFileSync('lib/amethyst/preview-rep.ts','utf8')
+  const route=readFileSync('app/api/nic-nac/trade-board/route.ts','utf8')
+  for(const source of [publicSource,route]){
+   expect(source).toContain("from '@/lib/services/workspace-access'")
+   expect(source).toMatch(/canServePublicCustomerSiteForRep\(\{/)
+  }
+  expect(route).not.toMatch(/status\s*===?\s*['"]past_due/)
+  expect(readFileSync('app/nic-nac/components/TradeBoardWorkspaceCard.tsx','utf8')).toContain('board?.publication')
+ })
 })

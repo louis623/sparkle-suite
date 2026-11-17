@@ -53,7 +53,7 @@ body.bg-halloween-pumpkin-cat .hp-section-sub{color:#c8b9aa}
 body.bg-halloween-pumpkin-cat :is(.hp-event-card,.tp-card,.tp-dancer-card,.jp-benefit,.jp-team-card,.hp-signup-card,.hp-unsubscribe-card){background:linear-gradient(140deg,#241a12,#100d0a);border:1px solid #59402b;color:#fff7ed;box-shadow:none}
 body.bg-halloween-pumpkin-cat .hp-event-card{padding:26px;gap:18px;border-radius:20px}
 body.bg-halloween-pumpkin-cat .hp-event-name{color:#ffbe85;font-family:Georgia,serif;font-size:25px}
-body.bg-halloween-pumpkin-cat :is(.hp-event-pill,.tp-filter-badge,.tp-card-tier.unicorn){background:#ffb776;color:#200d02}
+body.bg-halloween-pumpkin-cat :is(.hp-event-pill,.tp-filter-badge){background:#ffb776;color:#200d02}
 body.bg-halloween-pumpkin-cat :is(.hp-event-meta,.hp-event-description){color:#decebf}
 body.bg-halloween-pumpkin-cat :is(.hp-event-meta-row,.hp-event-meta-icon,.hp-event-copy,.hp-event-section-title){color:#ffb776}
 body.bg-halloween-pumpkin-cat .hp-event-collection-pill{color:#f6d7b9;border:1px solid #725033;background:#332316}

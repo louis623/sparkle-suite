@@ -28,15 +28,16 @@ function fixture() {
       const call = { table, equal: [] as Array<[string, unknown]> } as typeof calls[number]
       calls.push(call)
       let ids: string[] | null = null
+      let inColumn = 'id'
       const query: any = {
         select(columns: string) { call.select = columns; return query },
         eq(k: string, v: unknown) { call.equal.push([k, v]); return query },
-        in(_k: string, v: string[]) { ids = v; return query },
+        in(k: string, v: string[]) { inColumn=k; ids = v; return query },
         order() { return query },
         range(a: number, b: number) { call.range = [a, b]; return query },
         then(resolve: (result: unknown) => void) {
           let data = table === 'trade_listings' ? rows.filter(row => call.equal.every(([k, v]) => row[k as keyof typeof row] === v)) : []
-          if (ids) data = data.filter(row => ids!.includes(row.id))
+          if (ids) data = data.filter(row => ids!.includes(row[inColumn as keyof typeof row] as string))
           if (call.range) data = data.slice(call.range[0], call.range[1] + 1)
           return Promise.resolve({ data, error: null, count: 0 }).then(resolve)
         },
@@ -49,15 +50,15 @@ function fixture() {
 }
 beforeEach(() => { vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://fixture.invalid'); vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'fixture-only') })
 describe('rep-only whole-board attention', () => {
-  it('route computes one missing photo beyond page 24 and ignores board filters', async () => {
+  it('route keeps whole-board sitting attention without a photo counter', async () => {
     const f = fixture(); state.client = f.client
     const response = await GET(new Request('https://fixture.invalid/api/nic-nac/trade-board?limit=24&status=available&type=NK&collection=Other'))
     expect(response.status).toBe(200)
     const result = await response.json()
     expect(result.listings).toEqual([])
-    expect(result.attention).toEqual({ photosToFix: 1 })
+    expect(result.attention).toEqual({ sitting: 0 })
     const aggregate = f.calls.find(call => call.range)
-    expect(aggregate?.equal).toEqual([['rep_id', 'rep'], ['status', 'available']])
+    expect(aggregate?.equal).toEqual([['rep_id', 'rep']])
     expect(getTradeListingDisplayFields(rows[24]).photoUrl).toBeNull()
   })
   it('keeps single-status/default getMyBoard queries and fields unchanged', async () => {

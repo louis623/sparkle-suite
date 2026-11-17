@@ -202,11 +202,11 @@ describe('Amethyst trade page template wiring', () => {
       material: 'Sterling silver',
       stone: 'Diamond accent',
       tier: 'everyday',
-      photoUrl: 'https://cdn.example.com/listing-photo.jpg',
-      photoSource: 'listing',
+      photoUrl: 'https://cdn.example.com/canonical-photo.jpg',
+      photoSource: 'canonical',
       quantityAvailable: 1,
     })
-    expect(mapped.note).toContain('Item-for-item only')
+    expect(mapped.tradePreferences).toContain('Item-for-item only')
     expect(mapped).not.toHaveProperty('msrp')
   })
 
@@ -269,8 +269,8 @@ describe('Amethyst trade page template wiring', () => {
     expect(rhodium.material).toBe('Rhodium Plating')
     expect(gold.stone).toBe('Lapis Magnesite')
     expect(rhodium.stone).toBe('Malachite Magnesite')
-    expect(gold.photoUrl).toBe('https://cdn.example.com/nk88350-gold-jewelry.jpg')
-    expect(gold.photoSource).toBe('listing')
+    expect(gold.photoUrl).toBe('https://cdn.example.com/nk88350-gold-canonical.jpg')
+    expect(gold.photoSource).toBe('canonical')
     expect(rhodium.photoUrl).toBe(
       'https://cdn.example.com/nk88350-rhodium-own-canonical.jpg',
     )
@@ -318,7 +318,7 @@ describe('Amethyst trade page template wiring', () => {
       }),
     )
 
-    expect(firstRep.photoUrl).toBe('https://cdn.example.com/rep-a-gold.jpg')
+    expect(firstRep.photoUrl).toBe('https://cdn.example.com/rep-a-gold-canonical.jpg')
     expect(secondRep.photoUrl).toBe(
       'https://cdn.example.com/rep-b-rhodium-canonical.jpg',
     )
@@ -412,7 +412,7 @@ describe('Amethyst trade page template wiring', () => {
     expect(JSON.stringify(mapped)).not.toMatch(
       /legacy|miscellaneous|grab bag|unknown|undocumented|Board Pieces|non-item number|piece without item number/i,
     )
-    expect(mapped.note).toBe(
+    expect(mapped.tradePreferences).toBe(
       'Item-for-item only. Requests must stay within the same collection and the same jewelry type.',
     )
     expect(mapped.photoSource).toBe('listing')
@@ -543,7 +543,8 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).not.toContain('<RulesStrip />')
     expect(jsx).not.toContain('tp-rules-strip')
     expect(jsx).toContain('piece.material')
-    expect(jsx).toContain('[piece.type, piece.size ? `Size ${piece.size}` : "", piece.material, piece.stone]')
+    expect(jsx).toContain('visibleDancerDetail')
+    expect(jsx).toContain('displayCollectionLabel(piece.collection)')
     expect(jsx).toContain('piece.photoUrl')
     expect(jsx).toContain('same collection')
     expect(jsx).toContain('same jewelry type')
@@ -753,12 +754,16 @@ describe('Amethyst trade page template wiring', () => {
     const sheet = readFileSync(resolve(process.cwd(), 'lib/amethyst/v2/swap-request-sheet.jsx'), 'utf8')
     const upload = readFileSync(resolve(process.cwd(), 'lib/amethyst/v2/swap-request-photo.js'), 'utf8')
     expect(entry).toContain('import { RequestSheet } from "./swap-request-sheet.jsx"')
-    for (const copy of ['Add a photo of your reveal','Crop out order and personal details.','Images are kept for 7 days.',
-      'Take a photo','Choose from library','Your details','Your name','Not you? Clear','What type did you reveal?',
+    for (const copy of ['Swap request','Upload a photo','A photo or screenshot of the piece you revealed is required.','Your name','Not you? Clear','What type did you reveal?',
       'Which collection did you reveal?','Ask my rep to review anyway','View request status','Preview your photo',
       'Change photo','Request another dancer with this photo']) expect(sheet).toContain(copy)
-    for (const removed of ['What did you just reveal?', 'Photo or screenshot of your reveal (optional)', 'Send without a photo',
-      'clickwrapAcknowledged', 'acceptedTerms']) expect(sheet).not.toContain(removed)
+    const compiled = readFileSync(resolve(process.cwd(), 'public/amethyst/compiled/trade.js'), 'utf8')
+    for (const copy of ['Swap request', 'Upload a photo', 'A photo or screenshot of the piece you revealed is required.']) expect(compiled).toContain(copy)
+    for (const removed of ['Your details', 'What did you just reveal?', 'Photo or screenshot of your reveal (optional)', 'Send without a photo',
+      'clickwrapAcknowledged', 'acceptedTerms']) {
+      expect(sheet).not.toContain(removed)
+      expect(compiled).not.toContain(removed)
+    }
     expect(upload).toContain('new FormData()')
     expect(upload).toContain('xhr.upload.onprogress')
     expect(entry).toContain('url.searchParams.set("photoPolicy", "1")')
@@ -830,7 +835,7 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).not.toContain('MSRP')
     expect(jsx).not.toContain('tp-card-rep')
     expect(jsx).not.toContain('tp-card-expand-rep')
-    expect(jsx).toContain('View dancer and send a swap request')
+    expect(jsx).toContain('View & Swap')
     expect(jsx).toContain('data-slot="brand separation footer"')
   })
 

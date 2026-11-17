@@ -1,3 +1,4 @@
+import { validateRepNotes } from '@/lib/services/rep-notes'
 // Trade Requests service — submit/get/approve/reject + history.
 //
 // Client requirements:
@@ -90,7 +91,7 @@ function rpcError(err: PostgrestError | null): ServiceError | null {
     return new ServiceError({ code: 'MANUAL_REVIEW_REQUIRED', message: msg, userMessage: 'These dancers do not appear to match. Choose Ask my rep to review anyway to send this request.', statusCode: 409 })
   }
   if (msg.includes('VERIFICATION_REQUIRED') || msg.includes('REQUESTED_ITEM_UNVERIFIED')) {
-    return errors.INVALID_INPUT('verified offered family and type required', 'Confirm the offered collection and jewelry type before approving.')
+    return requestedTradeFactsError()
   }
   if (msg.includes('TRADE_FAMILY_MISMATCH')) {
     return new ServiceError({ code: 'TRADE_FAMILY_MISMATCH', message: msg, userMessage: 'The offered collection does not match this dancer.', statusCode: 409 })
@@ -738,11 +739,12 @@ export async function clearExpiredTradeRequestRevealScreenshots(
   return paths.length
 }
 
-async function assertRequestOwnedByRep(
+export async function assertRequestOwnedByRep(
   supabase: SupabaseClient,
   repId: string,
-  requestId: string
-): Promise<void> {
+  requestId: string,
+  allowHandled = false,
+): Promise<TradeRequestStatus> {
   const { data, error } = await supabase
     .from('trade_requests')
     .select('id, status, listing:trade_listings!inner(rep_id)')
@@ -755,9 +757,33 @@ async function assertRequestOwnedByRep(
   if (!ownerRep || ownerRep !== repId) {
     throw errors.UNAUTHORIZED(`request ${requestId} not owned by rep`)
   }
-  if ((data as { status: TradeRequestStatus }).status !== 'pending') {
+  if (!allowHandled && (data as { status: TradeRequestStatus }).status !== 'pending') {
     throw errors.REQUEST_NOT_PENDING()
   }
+  return (data as { status: TradeRequestStatus }).status
+}
+
+
+export function requestedTradeFactsError() {
+  return new ServiceError({ code: 'REQUESTED_ITEM_UNVERIFIED', message: 'requested dancer has no comparable catalog facts',
+    userMessage: "This dancer is missing its collection or type in the catalog, so it can't be approved here yet.", statusCode: 409 })
+}
+
+/** Raw SQL coalesce inputs, never the display helper's default labels. */
+export async function getRequestedTradeFacts(supabase: SupabaseClient, repId: string, requestId: string) {
+  const { data, error } = await supabase.from('trade_requests')
+    .select('listing:trade_listings!inner(rep_id,manual_collection_family,manual_type_prefix,design:jewelry_designs(type_prefix,collection:collections(name)))')
+    .eq('id', requestId).maybeSingle()
+  if (error) throw error
+  const one = <T,>(v: T | T[] | null | undefined): T | null => Array.isArray(v) ? v[0] ?? null : v ?? null
+  const listing = one(data?.listing)
+  if (!listing || listing.rep_id !== repId) throw errors.UNAUTHORIZED('request not owned by rep')
+  const design = one(listing.design)
+  const family = listing.manual_collection_family ?? one(design?.collection)?.name
+  const type = listing.manual_type_prefix ?? design?.type_prefix
+  const normalizedType = normalizeTradeType(type)
+  if (!normalizeTradeFamily(family) || !normalizedType) throw requestedTradeFactsError()
+  return { family: family as string, type: normalizedType }
 }
 
 export async function approveTrade(
@@ -765,25 +791,21 @@ export async function approveTrade(
   repId: string,
   requestId: string,
   repNotes?: string,
-  verification?: TradeApprovalVerification,
+  _legacyVerification?: TradeApprovalVerification,
 ): Promise<ApproveTradeResult> {
   if (!repId) throw errors.UNAUTHORIZED('repId required')
   if (!requestId) throw errors.MISSING_ITEM_INPUT()
-  if (!verification?.verificationConfirmed || !verification.finalConfirmation ||
-      !normalizeTradeFamily(verification.verifiedOfferedFamily) ||
-      !normalizeTradeType(verification.verifiedOfferedType)) {
-    throw errors.INVALID_INPUT('rep verification required', 'Confirm the offered collection and jewelry type before approving.')
-  }
-
   await assertRequestOwnedByRep(supabase, repId, requestId)
+  const facts = await getRequestedTradeFacts(supabase, repId, requestId)
 
   const { data, error } = await supabase.rpc('rpc_approve_trade_v2', {
     p_request_id: requestId,
     p_rep_id: repId,
-    p_verified_family: verification.verifiedOfferedFamily,
-    p_verified_type: verification.verifiedOfferedType,
-    p_verification_confirmed: verification.verificationConfirmed,
-    p_final_confirmation: verification.finalConfirmation,
+    // Verification intentionally derives family/type from the requested dancer.
+    p_verified_family: facts.family,
+    p_verified_type: facts.type,
+    p_verification_confirmed: true,
+    p_final_confirmation: true,
     p_rep_notes: repNotes ?? null,
   })
   const mapped = rpcError(error)
@@ -813,16 +835,19 @@ export async function rejectTrade(
   supabase: SupabaseClient,
   repId: string,
   requestId: string,
-  reason?: RejectionReason,
+  reason: RejectionReason = 'other',
   repNotes?: string,
   customerExplanation?: string,
 ): Promise<RejectTradeResult> {
   if (!repId) throw errors.UNAUTHORIZED('repId required')
   if (!requestId) throw errors.MISSING_ITEM_INPUT()
-  if (!reason || !['collection_mismatch', 'jewelry_type_mismatch', 'item_unavailable', 'other'].includes(reason) ||
-      (reason === 'other' && !customerExplanation?.trim()) || (customerExplanation?.length ?? 0) > 240) {
-    throw errors.INVALID_INPUT('denial reason required', 'Choose a denial reason and add a brief explanation for Other.')
+  if (!['collection_mismatch', 'jewelry_type_mismatch', 'item_unavailable', 'other'].includes(reason)) {
+    throw errors.INVALID_INPUT('invalid denial reason', 'Choose a valid reason.')
   }
+  validateRepNotes(repNotes)
+  const message = (customerExplanation ?? '').replace(/[\r\n\t]+/g, ' ').replace(/[\x00-\x1f\x7f]/g, '').trim()
+  if ([...message].length > 240) throw errors.INVALID_INPUT('customer message too long', 'Message to customer must be 240 characters or fewer.')
+  const explanation = message || 'Your rep could not approve this swap.'
 
   await assertRequestOwnedByRep(supabase, repId, requestId)
 
@@ -830,7 +855,7 @@ export async function rejectTrade(
     p_request_id: requestId,
     p_rep_id: repId,
     p_reason: reason,
-    p_customer_explanation: customerExplanation?.trim() ?? null,
+    p_customer_explanation: explanation,
     p_rep_notes: repNotes ?? null,
   })
   const mapped = rpcError(error)

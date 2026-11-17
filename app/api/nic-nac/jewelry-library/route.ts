@@ -3,9 +3,7 @@ import { createHash } from 'node:crypto'
 import { getPaidNicNacContext, AuthError } from '@/lib/nic-nac/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ServiceError } from '@/lib/services/errors'
-import { processRepCustomListingPhotoUrl } from '@/lib/services/listing-photo-processing'
 import { searchJewelryDatabase } from '@/lib/services/jewelry-database'
-import { catalogVariantPhotoAssetKey } from '@/lib/nic-nac/workflows/workflow-photo-selection'
 import {
   addListing,
   getCatalogListingMutationReceipt,
@@ -201,22 +199,6 @@ export async function POST(request: Request) {
     if (replay) {
       return NextResponse.json({ ok: true, result: replay })
     }
-    const variantAssetKey = catalogVariantPhotoAssetKey({
-      designId,
-      material,
-      mainStone,
-    })
-    const processedListingPhotoUrl = listingPhotoUrl
-      ? (
-          await processRepCustomListingPhotoUrl({
-            repId,
-            sourceImageUrl: listingPhotoUrl,
-            filenameStem: `${itemNumber || 'listing'}-listing-photo`,
-            mutationAssetKey: inputSignature,
-            ...(variantAssetKey ? { variantAssetKey } : {}),
-          })
-        ).photoUrl
-      : undefined
     const result = await addListing(admin, repId, {
       ...(designId ? { designId } : {}),
       itemNumber,
@@ -224,7 +206,6 @@ export async function POST(request: Request) {
       mainStone,
       repNotes,
       tradePreferences,
-      listingPhotoUrl: processedListingPhotoUrl,
       idempotencyKey,
       inputSignature,
     })

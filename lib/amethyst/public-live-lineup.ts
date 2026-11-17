@@ -1,46 +1,20 @@
 import { createHmac, randomBytes } from 'node:crypto'
+import { groupLineupEntries, type LineupGroupingEntry } from '@/lib/live-lineup/grouping'
 import type { LiveQueueSnapshot, PublicLineupPresentation } from '@/lib/services/types'
 
 export const LIVE_LINEUP_RETAIN_SECONDS = 3600
 export const LIVE_LINEUP_PRESENTATION = 'grouped-v1'
 const processKey = randomBytes(32)
-const normalize = (value: string) => value.trim().replace(/\s+/gu, ' ').normalize('NFC')
-const identityPart = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0 && value.length <= 100 && !/[\p{Cc}\p{Cf}]/u.test(value)
+export { publicSurnameInitial } from '@/lib/live-lineup/grouping'
+type PrivateEntry = LineupGroupingEntry
 
-/** Never return a whole surname or cut a surrogate/combining grapheme. */
-export function publicSurnameInitial(surname: string, firstName: string): string | null {
-  const usable = normalize(surname)
-  const first = new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(usable)[Symbol.iterator]().next().value?.segment
-  if (!first || first === usable || first.length > 8 || firstName.length + 1 + first.length > 108 || !/^[\p{L}\p{N}][\p{L}\p{N}\p{M}]*$/u.test(first)) return null
-  return first
-}
-
-type PrivateEntry = { id: string; name: string; lastName?: string; identityEligible?: boolean; identityConflict?: boolean }
 type PrivateReveal = { cursor: number; entryId: string; at: string; groupEntryIds: string[] }
 
 /** Input is already filtered to public waiting orders; output is an explicit privacy allowlist. */
 export function projectPublicLineup(input: { scope: string; entries: PrivateEntry[]; events: PrivateReveal[]; cursor: number; now: number }): PublicLineupPresentation {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || processKey
   const opaque = (kind: string, value: string) => createHmac('sha256', key).update(JSON.stringify(['live-lineup-grouped-v1', input.scope, kind, value])).digest('base64url').slice(0, 32)
-  const rows = input.entries.map(entry => {
-    const first = normalize(entry.name)
-    const surname = entry.identityEligible === true && !entry.identityConflict && identityPart(entry.lastName) ? normalize(entry.lastName) : null
-    return { id: entry.id, first, surname, tuple: surname ? JSON.stringify([first, surname]) : null }
-  })
-  const collisions = new Map<string, Set<string>>()
-  for (const row of rows) {
-    const identities = collisions.get(row.first) || new Set<string>()
-    identities.add(row.tuple || `unresolved:${row.id}`)
-    collisions.set(row.first, identities)
-  }
-  const groups: { tuple: string | null; members: string[]; name: string; token: string }[] = []
-  for (const row of rows) {
-    const initial = row.surname && (collisions.get(row.first)?.size || 0) > 1 ? publicSurnameInitial(row.surname, row.first) : null
-    const name = initial ? `${row.first} ${initial}` : row.first
-    const previous = groups.at(-1)
-    if (row.tuple && previous?.tuple === row.tuple) previous.members.push(row.id)
-    else groups.push({ tuple: row.tuple, members: [row.id], name, token: '' })
-  }
+  const groups = groupLineupEntries(input.entries)
   // A private order anchor gives each contiguous group its own token, independent of label/count/position.
   for (const group of groups) group.token = opaque('group', [...group.members].sort()[0])
   const membership = new Map<string, string>()

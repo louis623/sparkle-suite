@@ -1,3 +1,5 @@
+import { RemoveConfirm } from '@/app/nic-nac/components/dance-floor/RemoveConfirm'
+import { DancerEditor } from '@/app/nic-nac/components/dance-floor/DancerEditor'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -52,7 +54,7 @@ function hasNestedDeclaration(
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Dance Floor Management|Today(?:&#x27;|')s swap work|Quick add|Swap fulfillment log|Browse dancers|Request inbox|Swap follow-up)</g,
+      /<h[12][^>]*>(Dance Floor|Swap requests|Follow-ups to finish|Add dancers|My Dance Floor|Swap history)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -152,7 +154,7 @@ describe('Nic-Nac dance floor surface reset', () => {
     }
     const doneEmpty = renderLog('done', 0, 1)
     expect(doneEmpty).not.toContain('No done trades')
-    expect(doneEmpty).not.toContain('90 days')
+    expect(doneEmpty).toContain('No finished swaps in the last 90 days yet.')
     expect(doneEmpty).not.toContain('Track approved swaps')
     const allEmpty = renderLog('all', 0, 1)
     expect(allEmpty).not.toContain('No trades')
@@ -213,7 +215,7 @@ describe('Nic-Nac dance floor surface reset', () => {
     expect(html).toContain('aria-pressed="true">Done')
     expect(html).toContain('type="checkbox"')
     expect(html).toContain('checked=""')
-    expect(html).toContain('>Done</span>')
+    expect(html).toContain('aria-label="Return Anne to open"')
     expect(html).not.toContain('Mark done')
     expect(html).not.toContain('View protected reveal screenshot')
     expect(html).not.toContain('No done trades')
@@ -233,9 +235,7 @@ describe('Nic-Nac dance floor surface reset', () => {
       'utf8',
     )
 
-    expect(source).toContain(
-      "import surfaceStyles from './WorkspaceSurface.module.css'",
-    )
+    expect(source).toContain("import styles from './dance-floor/dance-floor.module.css'")
     expect(source).not.toContain("from './DashboardPlaceholder.module.css'")
   })
 
@@ -400,7 +400,7 @@ describe('Nic-Nac dance floor surface reset', () => {
     }
   })
 
-  it('keeps today, quick add, and browse as the first surfaced sections before queue detail', () => {
+  it('orders request work before adding, editing and history', () => {
     const html = renderToStaticMarkup(
       createElement(TradeBoardWorkspaceCard, {
         tradeBoardState: TRADE_BOARD_READY_STATE,
@@ -409,6 +409,7 @@ describe('Nic-Nac dance floor surface reset', () => {
           requests: [
             {
               id: 'request-1',
+              status: 'pending',
               customerName: 'Jamie Lane',
               customerDescription: 'Swap in the sapphire ring instead.',
               revealScreenshot: null,
@@ -474,87 +475,55 @@ describe('Nic-Nac dance floor surface reset', () => {
       }),
     )
     expect(getTradeBoardSectionLabels(html)).toEqual([
-      'Dance Floor Management',
-      "Today's swap work",
-      'Quick add',
-      'Swap fulfillment log',
-      'Browse dancers',
-      'Request inbox',
-      'Swap follow-up',
+      'Dance Floor',
+      'Swap requests',
+      'Follow-ups to finish',
+      'My Dance Floor',
+      'Swap history',
     ])
-    expect(html).toContain('Dancers on the Floor')
-    expect(html).toContain('New dancers today')
-    expect(html).toContain('2 live dancers')
+    expect(html).toContain('>Edit<')
+    expect(html).toContain('Pending swap')
+    expect(html).toContain('2 dancers')
     expect(html).toContain('/api/nic-nac/trade-requests/request-1/reveal-screenshot')
   })
 
-  it('locks the first screen into a mobile container contract instead of desktop spreadsheet grids', () => {
-    const tradeBoardCss = readFileSync(
-      resolve(
-        process.cwd(),
-        'app/nic-nac/components/TradeBoardWorkspaceCard.module.css',
-      ),
-      'utf8',
-    )
-
-    expect(hasDeclaration(tradeBoardCss, '.stack', 'container-type: inline-size')).toBe(
-      true,
-    )
-    expect(
-      hasDeclaration(
-        tradeBoardCss,
-        '.summaryStats',
-        'grid-template-columns: repeat(5, minmax(0, 1fr))',
-      ),
-    ).toBe(true)
-    expect(
-      hasDeclaration(
-        tradeBoardCss,
-        '.quickAddRow',
-        'grid-template-columns: minmax(0, 1fr) auto',
-      ),
-    ).toBe(true)
-    expect(
-      hasDeclaration(
-        tradeBoardCss,
-        '.filterGrid',
-        'grid-template-columns: repeat(2, minmax(0, 1fr))',
-      ),
-    ).toBe(true)
-    expect(
-      hasDeclaration(tradeBoardCss, '.tradeRow', 'flex-direction: column'),
-    ).toBe(true)
-    expect(
-      hasNestedDeclaration(
-        tradeBoardCss,
-        '@container (max-width: 760px)',
-        '.summaryStats',
-        'grid-template-columns: 1fr',
-      ),
-    ).toBe(false)
-    expect(
-      hasNestedDeclaration(
-        tradeBoardCss,
-        '@container (max-width: 560px)',
-        '.quickAddRow',
-        'grid-template-columns: 1fr',
-      ),
-    ).toBe(true)
-    expect(
-      hasNestedDeclaration(
-        tradeBoardCss,
-        '@container (max-width: 560px)',
-        '.filterGrid',
-        'grid-template-columns: 1fr',
-      ),
-    ).toBe(true)
-    expect(
-      hasNestedDeclaration(
-        tradeBoardCss,
-        '@container (max-width: 520px)',
-        '.boardInventoryGrid',
-        'grid-template-columns: 1fr',
-      ),
-    ).toBe(true)
+  it('locks the phone rows, desktop four-up grid and two-column inline editor', () => {
+    const css = readFileSync('app/nic-nac/components/dance-floor/dance-floor.module.css','utf8')
+    expect(css).toContain('.floorGrid')
+    expect(css).toContain('grid-template-columns: repeat(4,minmax(0,1fr))')
+    expect(css).toContain('.dancerOpen { grid-column: span 2;')
+    expect(css).toContain('.editor { grid-column: 1 / -1;')
+    expect(css).toContain('min-height: 44px')
+    expect(css).toContain('position: sticky')
+    expect(css).toContain('scroll-margin-top:')
   })
+
+  it('confirms quantity zero without a reason and Remove with optional reasons; both disclose cancellation', () => {
+    const base={pending:2,busy:false,onCancel(){},onConfirm(){}}
+    const zero=renderToStaticMarkup(createElement(RemoveConfirm,{...base,quantityZero:true}))
+    const remove=renderToStaticMarkup(createElement(RemoveConfirm,{...base,quantityZero:false}))
+    for(const html of [zero,remove]){
+      expect(html).toContain('Take this dancer off your Floor?')
+      expect(html).toContain('cancels 2 pending swap requests')
+      expect(html).toContain('Their request page will say cancelled.')
+      expect(html).toContain('They aren&#x27;t notified.')
+      expect(html).toContain('Take off Floor')
+    }
+    expect(zero).not.toContain('Why?')
+    expect(remove).toContain('Keeping it')
+    expect(remove).toContain('Added by mistake')
+    expect(remove).not.toMatch(/Sold|value="sold"/)
+  })
+  it('hides catalog photo without an image and keeps editing private with a quantity stepper', () => {
+    const html=renderToStaticMarkup(createElement(DancerEditor,{
+      draft:{listing:TRADE_BOARD_READY_STATE.board.listings[0] as import('@/lib/services/types').TradeListingWithDesign,index:0,notes:'',savedNotes:'',quantity:1,savedQuantity:1,gone:false},setDraft(){},onDirty(){},onClose(){},async onRefresh(){},onRemoved(){},
+    }))
+    expect(html).toContain('Private. Only you can see notes.')
+    expect(html).not.toContain('Change photo')
+    expect(html).not.toContain('Use catalog photo')
+    expect(html).toContain('aria-label="Decrease quantity"')
+    expect(html).toContain('aria-label="Increase quantity"')
+    expect(html).toContain('Set to 0 to take this dancer off your Floor.')
+  })
+
 })

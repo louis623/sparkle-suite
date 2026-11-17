@@ -30,7 +30,6 @@ const BUILTIN_TRADE_DEFAULTS = {
   contentState: "populated",
   cardCount: 18,
   cardAspect: "square",
-  tierVisibility: "rare",
   filterStyle: "dropdowns",
   demoSheet: "closed",
   showTicker: true,
@@ -554,7 +553,7 @@ function buildSamples(count) {
       ...piece,
       tier: "everyday",
       size: null,
-      note: "Dance Floor dancer.",
+      tradePreferences: "Dance Floor dancer.",
       glyph: piece.name.charAt(0),
       quantityAvailable: 1,
     }));
@@ -588,8 +587,8 @@ function normalizeBootstrapPiece(piece, index) {
       : "Stone pending",
     quantityAvailable: Number.isFinite(quantity) ? Math.max(0, quantity) : 0,
     size: typeof piece.size === "string" && piece.size.trim() ? piece.size.trim() : null,
-    note: typeof piece.note === "string" && piece.note.trim()
-      ? piece.note.trim()
+    tradePreferences: typeof piece.tradePreferences === "string" && piece.tradePreferences.trim()
+      ? piece.tradePreferences.trim()
       : "Item-for-item only. Requests must stay within the same collection and the same jewelry type.",
     glyph: typeof piece.glyph === "string" && piece.glyph.trim()
       ? piece.glyph.trim().charAt(0).toUpperCase()
@@ -602,7 +601,6 @@ function normalizeBootstrapPiece(piece, index) {
 const EMPTY_FILTER_STATE = {
   collection: "all",
   type: "all",
-  rarity: "all",
   material: "all",
   size: "all",
 };
@@ -682,7 +680,6 @@ function filterTradeBoardListings(listings, filters) {
   return listings.filter((listing) => {
     if (filters.collection !== "all" && displayCollectionLabel(listing.collection) !== filters.collection) return false;
     if (filters.type !== "all" && listing.type !== filters.type) return false;
-    if (filters.rarity !== "all" && listing.tier !== filters.rarity) return false;
     if (filters.material !== "all" && listing.material !== filters.material) return false;
     if (filters.size !== "all" && listing.size !== filters.size) return false;
     return true;
@@ -701,8 +698,7 @@ function searchableTradeBoardText(listing) {
     listing.material,
     listing.stone,
     listing.size ? `size ${listing.size}` : "",
-    listing.tier,
-    listing.note,
+    listing.tradePreferences,
   ].filter(Boolean).join(" ").toLowerCase();
 }
 
@@ -725,7 +721,6 @@ function compareTradeBoardText(left, right) {
 
 function sortTradeBoardListings(listings, sortMode) {
   const sorted = [...listings];
-  const rarityRank = { unicorn: 0, diamond: 1, everyday: 2 };
 
   if (sortMode === "collection") {
     return sorted.sort((left, right) =>
@@ -743,12 +738,6 @@ function sortTradeBoardListings(listings, sortMode) {
     );
   }
 
-  if (sortMode === "rarity") {
-    return sorted.sort((left, right) =>
-      (rarityRank[left.tier] ?? 3) - (rarityRank[right.tier] ?? 3) ||
-      compareTradeBoardText(left.name, right.name)
-    );
-  }
 
   if (sortMode === "name") {
     return sorted.sort((left, right) => compareTradeBoardText(left.name, right.name));
@@ -1187,9 +1176,6 @@ function Filters({
     setCollectionSearch("");
   };
 
-  useEffect(() => {
-    if (options.rarityTags.length === 0 && sortMode === "rarity") setSortMode("newest");
-  }, [options.rarityTags.length, sortMode, setSortMode]);
 
   if (listings.length === 0) return null;
 
@@ -1244,7 +1230,6 @@ function Filters({
             <option value="newest">Newest added</option>
             <option value="collection">Collection</option>
             <option value="type">Jewelry type</option>
-            {options.rarityTags.length > 0 && <option value="rarity">Rare first</option>}
             <option value="name">Dancer name</option>
           </select>
         </label>
@@ -1271,27 +1256,7 @@ function Filters({
           ))}
         </div>
 
-        {options.rarityTags.length > 0 && (
-          <div className="tp-filters-row tp-filters-row-primary">
-            <button
-              type="button"
-              className={`tp-filter-pill ${filters.rarity === "all" ? "active" : ""}`}
-              onClick={() => setFilter("rarity", "all")}
-            >
-              All rarity
-            </button>
-            {options.rarityTags.map((rarity) => (
-              <button
-                key={rarity}
-                type="button"
-                className={`tp-filter-pill ${filters.rarity === rarity ? "active" : ""}`}
-                onClick={() => setFilter("rarity", rarity)}
-              >
-                {rarityLabel(rarity)}
-              </button>
-            ))}
-          </div>
-        )}
+
 
         {options.collections.length > 0 && (
           <div className="tp-filters-row tp-filters-row-primary tp-filters-row-collections">
@@ -1408,39 +1373,38 @@ function Filters({
   );
 }
 
-function TradeCard({ piece, onTap, tierVisible }) {
+function visibleDancerDetail(value) {
+  const text = String(value || "").trim();
+  return !text || /^(shown in photo|material pending|stone pending)$/i.test(text) ? "" : text;
+}
+
+function TradeCard({ piece, onTap }) {
   const [failedPhotoUrl, setFailedPhotoUrl] = useState("");
+  const photoRef = useRef(null);
+  useEffect(() => {
+    if (piece?.photoUrl && photoRef.current?.complete && photoRef.current.naturalWidth === 0) setFailedPhotoUrl(piece.photoUrl);
+  }, [piece?.photoUrl]);
   const showPhoto = Boolean(piece.photoUrl) && failedPhotoUrl !== piece.photoUrl;
   const photoFailed = Boolean(piece.photoUrl) && !showPhoto;
-  const showTier = piece.tier !== "everyday" || tierVisible === "all";
-  const tierLabel = piece.tier === "unicorn" ? "Unicorn" : piece.tier === "diamond" ? "Diamond" : "Everyday";
-  const detailChips = [piece.type, piece.size ? `Size ${piece.size}` : "", piece.material, piece.stone]
-    .map((part) => String(part || "").trim())
+  const detailChips = [piece.type, piece.size ? `Size ${piece.size}` : "", piece.material, piece.stone, displayCollectionLabel(piece.collection)]
+    .map(visibleDancerDetail)
     .filter(Boolean)
     .join(" · ");
 
   return (
-    <article className={`tp-card ${piece.tier}`} onClick={() => onTap(piece)}>
+    <article className="tp-card" onClick={() => onTap(piece)}>
       <div className={`tp-card-photo slot ${photoFailed ? "has-photo photo-fallback" : showPhoto ? "has-photo" : ""}`} data-slot="jewelry photo">
-        {showTier && (
-          <span className={`tp-card-tier ${piece.tier}`}>
-            <span className="pip" />
-            {tierLabel}
-          </span>
-        )}
         {showPhoto ? (
-          <img className="tp-card-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 700px) 46vw, 280px", widths: [256, 384, 640] })} loading="lazy" decoding="async" onError={() => setFailedPhotoUrl(piece.photoUrl)} />
+          <img ref={photoRef} key={piece.photoUrl} className="tp-card-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 700px) 46vw, 280px", widths: [256, 384, 640] })} loading="lazy" decoding="async" onError={() => setFailedPhotoUrl(piece.photoUrl)} />
         ) : (
           <div className="photo-glyph" aria-hidden="true"><SparkleMark /></div>
         )}
       </div>
       <div className="tp-card-body">
-        <div className="tp-card-collection">{displayCollectionLabel(piece.collection)}</div>
         <h3 className="tp-card-name slot" data-slot="design name">{piece.name}</h3>
         <div className="tp-card-meta">{detailChips}</div>
-        <div className="tp-card-quantity">{Math.max(0, Number(piece.quantityAvailable ?? 1))} available</div>
-        <button type="button" className="tp-card-action" onClick={(event) => { event.stopPropagation(); onTap(piece); }}>
-          View dancer and send a swap request
+        <button type="button" className="tp-card-action" aria-label={`View and swap ${piece.name}`} onClick={(event) => { event.stopPropagation(); onTap(piece); }}>
+          View & Swap
         </button>
       </div>
     </article>
@@ -1486,7 +1450,7 @@ function useTradeDialog(open, onClose, view) {
   return ref;
 }
 
-function isSpecificDancerNote(note) {
+function isSpecificTradePreference(note) {
   const value = String(note || "").trim().toLowerCase();
   if (!value) return false;
   return value !== "item-for-item only. requests must stay within the same collection and the same jewelry type."
@@ -1504,15 +1468,14 @@ function SparkleMark() {
 function ExpandedCard({ piece, onClose, onWantThis }) {
   const dialogRef = useTradeDialog(Boolean(piece), onClose);
   const [failedPhotoUrl, setFailedPhotoUrl] = useState("");
+  const photoRef = useRef(null);
+  useEffect(() => {
+    if (piece?.photoUrl && photoRef.current?.complete && photoRef.current.naturalWidth === 0) setFailedPhotoUrl(piece.photoUrl);
+  }, [piece?.photoUrl]);
   const showPhoto = Boolean(piece?.photoUrl) && failedPhotoUrl !== piece?.photoUrl;
   const photoFailed = Boolean(piece?.photoUrl) && !showPhoto;
   if (!piece) return null;
 
-  const tierLabel = piece.tier === "unicorn"
-    ? "Unicorn"
-    : piece.tier === "diamond"
-      ? "Diamond"
-      : "Everyday";
   const typeLabel = String(piece.type || "dancer").toLowerCase();
   const typeArticle = /s$/i.test(typeLabel) && !/ss$/i.test(typeLabel) ? "These" : "This";
 
@@ -1522,16 +1485,12 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
         <button type="button" className="tp-card-close" onClick={onClose} aria-label="Close">&times;</button>
         <div className={`tp-card-expand-photo slot ${photoFailed ? "has-photo photo-fallback" : showPhoto ? "has-photo" : ""}`} data-slot="jewelry photo">
           {showPhoto ? (
-            <img className="tp-card-expand-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 800px) 92vw, 640px", widths: [384, 640, 828, 1200], eager: true })} onError={() => setFailedPhotoUrl(piece.photoUrl)} />
+            <img ref={photoRef} key={piece.photoUrl} className="tp-card-expand-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 800px) 92vw, 640px", widths: [384, 640, 828, 1200], eager: true })} onError={() => setFailedPhotoUrl(piece.photoUrl)} />
           ) : (
             <div className="photo-glyph" aria-hidden="true"><SparkleMark /></div>
           )}
         </div>
         <div className="tp-card-expand-body">
-          <span className={`tp-card-tier ${piece.tier} tp-card-expand-tier`}>
-            <span className="pip" />
-            {tierLabel}
-          </span>
           <div className="tp-card-expand-collection">{displayCollectionLabel(piece.collection)} collection</div>
           <h2 id="trade-expanded-title" className="tp-card-expand-name slot" data-slot="design name">{piece.name}</h2>
           <p className="tp-card-expand-desc slot" data-slot="description">
@@ -1546,23 +1505,19 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
               <dt>Jewelry type</dt>
               <dd>{piece.type}{piece.size ? ` - Size ${piece.size}` : ""}</dd>
             </div>
-            <div>
+            {visibleDancerDetail(piece.material) ? <div>
               <dt>Material</dt>
-              <dd>{piece.material}</dd>
-            </div>
-            <div>
+              <dd>{visibleDancerDetail(piece.material)}</dd>
+            </div> : null}
+            {visibleDancerDetail(piece.stone) ? <div>
               <dt>Main stone</dt>
-              <dd>{piece.stone}</dd>
-            </div>
-            <div>
-              <dt>Available</dt>
-              <dd>{Math.max(0, Number(piece.quantityAvailable ?? 1))}</dd>
-            </div>
+              <dd>{visibleDancerDetail(piece.stone)}</dd>
+            </div> : null}
           </dl>
-          {isSpecificDancerNote(piece.note) ? (
+          {isSpecificTradePreference(piece.tradePreferences) ? (
             <div className="tp-card-expand-note">
               <SparkleMark />
-              <p>{piece.note}</p>
+              <p>{piece.tradePreferences}</p>
             </div>
           ) : null}
           <p className="tp-card-expand-rule">A dancer swap is one dancer for one dancer, with no added payment or credit. Your rep makes the final decision.</p>
@@ -1596,7 +1551,7 @@ function NoMatchesState({ onClear }) {
       <div className="tp-empty-glyph" aria-hidden="true"><SparkleMark /></div>
           <h3 className="tp-empty-title">No dancers match these filters.</h3>
       <p className="tp-empty-sub">
-        Try a different collection, jewelry type, rarity tag, or material mix to widen the Dance Floor again.
+        Try a different collection, jewelry type, or material mix to widen the Dance Floor again.
       </p>
       <button type="button" className="tp-empty-reset" onClick={onClear}>
         Clear filters
@@ -1963,7 +1918,6 @@ function App() {
                             key={piece.id}
                             piece={piece}
                             onTap={(selectedPiece) => setExpanded(selectedPiece)}
-                            tierVisible={t.tierVisibility}
                           />
                         ))}
                       </div>
@@ -2012,7 +1966,7 @@ function App() {
         }}
       />
       {restoreNotice && <p role="status">{restoreNotice}</p>}
-      {requesting && <RequestSheet key={requesting.id} initialPiece={requesting} recovered={recovered} site={SWAP_SITE} urls={SWAP_URLS}
+      {requesting && <RequestSheet key={requesting.id} danceFloorPath={FOOTER_LINKS.tradeBoard} initialPiece={requesting} recovered={recovered} site={SWAP_SITE} urls={SWAP_URLS}
         demoSuccess={t.demoSheet === "success"} repName={repName} useDialog={useTradeDialog} deadlineUntil={deadlineUntil}
         board={bootstrappedListings} refreshBoard={refreshTradeBoardListings}
         onSent={id => { setSubmittedListingIds(ids => ids.includes(id) ? ids : [...ids, id]); void refreshTradeBoardListings(); }}
@@ -2055,15 +2009,7 @@ function App() {
               { value: "square", label: "Square" },
             ]}
           />
-          <TweakRadio
-            label="Tier labels"
-            value={t.tierVisibility}
-            onChange={(value) => setTweak("tierVisibility", value)}
-            options={[
-              { value: "rare", label: "Rare only" },
-              { value: "all", label: "All tiers" },
-            ]}
-          />
+
           <TweakSelect
             label="Filter bar style"
             value={t.filterStyle}

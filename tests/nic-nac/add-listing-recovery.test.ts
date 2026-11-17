@@ -311,7 +311,7 @@ function makeAdminClientMock(
 
   return {
     from: vi.fn((table: string) => {
-      if (table === 'trade_board_intake_photos') {
+      if (table === 'trade_board_intake_photos' || table === 'trade_board_intake_sessions') {
         const chain: Record<string, unknown> = { data: [], error: null }; chain.select = () => chain; chain.eq = () => chain; return chain
       }
       if (table === 'trade_listings') {
@@ -618,23 +618,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
     })
 
     expect(createDesignMock).not.toHaveBeenCalled()
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
-      filenameStem: 'ER13229-listing-photo',
-      mutationAssetKey: expect.any(String),
-      variantAssetKey: 'design-existing',
-    }, { confirmedJewelryFront: true })
-    expect(addListingMock).toHaveBeenCalledWith(
-      expect.anything(),
-      'rep-1',
-      expect.objectContaining({
-        itemNumber: 'ER13229',
-        collectionName: 'July Birthday',
-        listingPhotoUrl:
-          'https://cdn.example.com/listings/rep-1/florence-boxed-display.png',
-      }),
-    )
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
 
   it('creates a new catalog variant when the same item number has a different plating', async () => {
@@ -1013,7 +997,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
     expect(createDesignMock).not.toHaveBeenCalled()
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
-  it('uses the only image in the current user message as the listing photo for existing designs', async () => {
+  it('does not set a rep photo on an existing catalog design from a current-message image', async () => {
     addListingMock.mockResolvedValueOnce({
       listingId: 'listing-1',
       designId: 'design-1',
@@ -1046,18 +1030,11 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       clickwrapAccepted: true,
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'data:image/jpeg;base64,SkVXRUw=',
-      filenameStem: 'ER76003-listing-photo',
-      mutationAssetKey: expect.any(String),
-    }, { confirmedJewelryFront: true })
-    expect(addListingMock.mock.calls[0][2]).toMatchObject({
-      listingPhotoUrl: 'https://cdn.example.com/listings/rep-1/elodie-jewelry.png',
-    })
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+    expect(addListingMock.mock.calls[0][2]).not.toHaveProperty('listingPhotoUrl')
   })
 
-  it('requires a preview instead of guessing among unbound conversation photos', async () => {
+  it('does not set a rep photo on an existing catalog design from unbound conversation photos', async () => {
     const tool = makeTool(makeConversationLookupMock([]), { activeTradeBoardWorkflow: activeWorkflow() })
     await expect(tool.execute({ mode: 'single', itemNumber: 'ER76003', listingPhotoIndex: 1 })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
     expect(addListingMock).not.toHaveBeenCalled()
@@ -1102,20 +1079,14 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       listingPhotoIndex: 1,
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'data:image/jpeg;base64,SkVXRUw=',
-      filenameStem: 'ER13743-listing-photo',
-      mutationAssetKey: expect.any(String),
-    }, { confirmedJewelryFront: true })
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock.mock.calls[0][2]).toMatchObject({
       itemNumber: 'ER13743',
-      listingPhotoUrl:
-        'https://cdn.example.com/listings/rep-1/for-keeps-front.png',
     })
+    expect(addListingMock.mock.calls[0][2]).not.toHaveProperty('listingPhotoUrl')
   })
 
-  it('uses the most recent prior chat photo after the rep confirms it in a text-only turn', async () => {
+  it('does not set a rep photo on an existing catalog design after a text-only photo confirmation', async () => {
     addListingMock.mockResolvedValueOnce({
       listingId: 'listing-1',
       designId: 'design-1',
@@ -1164,21 +1135,15 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       collectionYear: 2026,
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'data:image/jpeg;base64,Qk9YRURfSkVXRUxSWQ==',
-      filenameStem: 'ER13229-listing-photo',
-      mutationAssetKey: expect.any(String),
-    }, { confirmedJewelryFront: true })
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock.mock.calls[0][2]).toMatchObject({
       itemNumber: 'ER13229',
       collectionName: 'July Birthday',
-      listingPhotoUrl:
-        'https://cdn.example.com/listings/rep-1/florence-boxed-display.png',
     })
+    expect(addListingMock.mock.calls[0][2]).not.toHaveProperty('listingPhotoUrl')
   })
 
-  it('treats listingPhotoIndex as a recent-conversation photo number when the latest turn is text-only', async () => {
+  it('does not set a rep photo on an existing catalog design from a prior-conversation photo index', async () => {
     addListingMock.mockResolvedValueOnce({
       listingId: 'listing-1',
       designId: 'design-1',
@@ -1222,12 +1187,8 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       listingPhotoIndex: 1,
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'data:image/jpeg;base64,Qk9YRURfSkVXRUxSWQ==',
-      filenameStem: 'ER13229-listing-photo',
-      mutationAssetKey: expect.any(String),
-    }, { confirmedJewelryFront: true })
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+    expect(addListingMock.mock.calls[0][2]).not.toHaveProperty('listingPhotoUrl')
   })
 })
 
@@ -1395,8 +1356,8 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         collectionName: 'Lustre',
       }),
     ).rejects.toMatchObject({
-      code: 'PHOTO_CHOICE_REQUIRED',
-      userMessage: expect.stringContaining('actual jewelry photo'),
+      code: 'MAIN_PHOTO_REQUIRED',
+      userMessage: expect.stringContaining('customer-facing jewelry photo'),
     })
     expect(uploadJewelryPhotoMock).not.toHaveBeenCalled()
     expect(uploadStagedOriginalPhotoMock).not.toHaveBeenCalled()
@@ -1710,7 +1671,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('NEW-100', 'data:image/jpeg;base64,BBBB') })
     await expect(
       tool.execute({
         mode: 'single',
@@ -1759,7 +1720,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         ],
       },
     ])
-    const tool = makeTool(supabaseMock)
+    const tool = makeTool(supabaseMock, { activeTradeBoardWorkflow: confirmedPhotoWorkflow('NEW-100', 'data:image/jpeg;base64,CCCC') })
     await expect(
       tool.execute({
         mode: 'single',
@@ -1790,7 +1751,7 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
         designName: 'Sapphire Halo',
         collectionName: 'Lustre',
       }),
-    ).rejects.toMatchObject({ code: 'MISSING_PIECE_PHOTO' })
+    ).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
     expect(createDesignMock).not.toHaveBeenCalled()
     expect(uploadJewelryPhotoMock).not.toHaveBeenCalled()
   })
@@ -2327,12 +2288,7 @@ describe('add_listing - active workflow readiness guard', () => {
     ).resolves.toMatchObject({
       listingId: 'listing-kelly-studs',
     })
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sourceImageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
-      }),
-      { confirmedJewelryFront: true },
-    )
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock).toHaveBeenCalled()
   })
 
@@ -2418,7 +2374,7 @@ describe('add_listing - active workflow readiness guard', () => {
     ).resolves.toMatchObject({
       listingId: 'listing-boxed-hex',
     })
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledTimes(2)
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledTimes(1)
   })
 
   it('refuses label-only intake even when a catalog canonical exists', async () => {
@@ -3109,21 +3065,11 @@ describe('add_listing - active workflow readiness guard', () => {
       itemNumber: 'ER13229',
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
-      {
-        repId: 'rep-1',
-        sourceImageUrl: 'data:image/jpeg;base64,U0VDT05E',
-        filenameStem: 'ER13229-listing-photo',
-        mutationAssetKey: expect.any(String),
-      },
-      { confirmedJewelryFront: true },
-    )
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock).toHaveBeenCalledWith(
       expect.anything(),
       'rep-1',
       expect.objectContaining({
-        listingPhotoUrl:
-          'https://cdn.example.com/listings/rep-1/florence-second-boxed-display.png',
       }),
     )
   })
@@ -3212,22 +3158,11 @@ describe('add_listing - active workflow readiness guard', () => {
       createdNewDesign: false,
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
-      {
-        repId: 'rep-1',
-        sourceImageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-        filenameStem: 'NK57811-listing-photo',
-        mutationAssetKey: expect.any(String),
-        variantAssetKey: 'design-nk57811',
-      },
-      { confirmedJewelryFront: true },
-    )
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock).toHaveBeenCalledWith(
       expect.anything(),
       'rep-1',
       expect.objectContaining({
-        listingPhotoUrl:
-          'https://cdn.example.com/listings/rep-1/statement-of-sparkle-jewelry.png',
       }),
     )
   })
@@ -3295,22 +3230,11 @@ describe('add_listing - active workflow readiness guard', () => {
       itemNumber: 'NK88350',
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
-      {
-        repId: 'rep-1',
-        sourceImageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-        filenameStem: 'NK88350-listing-photo',
-        mutationAssetKey: expect.any(String),
-        variantAssetKey: 'design-nk88350',
-      },
-      { confirmedJewelryFront: true },
-    )
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock).toHaveBeenCalledWith(
       expect.anything(),
       'rep-1',
       expect.objectContaining({
-        listingPhotoUrl:
-          'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
       }),
     )
   })
@@ -3418,16 +3342,7 @@ describe('add_listing - active workflow readiness guard', () => {
         mainStone: 'Malachite Magnesite',
       },
     )
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
-      {
-        repId: 'rep-1',
-        sourceImageUrl: rhodiumJewelryBytes,
-        filenameStem: 'NK88350-listing-photo',
-        mutationAssetKey: expect.any(String),
-        variantAssetKey: 'design-nk88350-rhodium',
-      },
-      { confirmedJewelryFront: true },
-    )
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalledWith(
       expect.objectContaining({
         sourceImageUrl: goldJewelryUrl,
@@ -3447,8 +3362,6 @@ describe('add_listing - active workflow readiness guard', () => {
         itemNumber: 'NK88350',
         material: 'Rhodium Plating',
         mainStone: 'Malachite Magnesite',
-        listingPhotoUrl:
-          'https://cdn.example.com/listings/rep-1/nk88350-rhodium-jewelry.png',
       }),
     )
   })
@@ -3512,8 +3425,8 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     })
 
-    await expect(tool.execute({ mode: 'single', itemNumber: 'NK88350', material: 'Rhodium Plating', mainStone: 'Malachite Magnesite' })).rejects.toMatchObject({ code: 'MAIN_PHOTO_REQUIRED' })
-    expect(addListingMock).not.toHaveBeenCalled()
+    await expect(tool.execute({ mode: 'single', itemNumber: 'NK88350', material: 'Rhodium Plating', mainStone: 'Malachite Magnesite' })).resolves.toMatchObject({listingId:'listing-half-moon-rhodium'})
+    expect(addListingMock).toHaveBeenCalledWith(expect.anything(),'rep-1',expect.objectContaining({designId:'design-nk88350-rhodium'}))
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
 })
@@ -3524,4 +3437,59 @@ describe('test wiring', () => {
   it('errors module exports ServiceError', () => {
     expect(typeof ServiceError).toBe('function')
   })
+})
+
+it.each([{}, {listingPhotoIndex:99}, {selectedPhotoId:'label-only'}, {piecePhotoUrl:'https://untrusted.invalid/photo'}, {listingPhotoUrl:'https://untrusted.invalid/photo'}])('existing catalog ignores stale photo inputs before all photo work: %j',async photo=>{
+ resolveItemNumberMock.mockResolvedValue({found:true,hasCollection:true,design:{id:'existing',itemNumber:'ER13229',collectionName:'OG',typePrefix:'ER',designName:'Existing'}})
+ addListingMock.mockResolvedValue({listingId:'added',designId:'existing',itemNumber:'ER13229',status:'available',usesCanonicalPhoto:true})
+ const workflow=activeWorkflow({known:{itemNumber:'ER13229',collectionName:'OG',rarityClassification:'standard'},photos:[]})
+ await expect(makeTool(makeConversationLookupMock([]),{activeTradeBoardWorkflow:workflow}).execute({mode:'single',itemNumber:'ER13229',...photo})).resolves.toMatchObject({listingId:'added'})
+ expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled();expect(createDesignMock).not.toHaveBeenCalled()
+ expect(addListingMock).toHaveBeenCalledWith(expect.anything(),'rep-1',expect.objectContaining({designId:'existing'}))
+ const args=addListingMock.mock.calls[0][2];expect(args.listingPhotoUrl).toBeUndefined()
+ const persisted=updateTradeBoardIntakeSessionMock.mock.calls.map(c=>c[1].patch.metadata).filter(Boolean)
+ expect(persisted.some(m=>m.catalogPhotoProvenance?.existing?.disposition==='catalog_photo_ignored')).toBe(true)
+})
+
+import {createHash} from 'node:crypto'
+describe('real new-design provenance persistence and recovery',()=>{
+ async function setupProvenance(fail=false){
+  const photo='data:image/jpeg;base64,Qk9YRUQ=',sha=createHash('sha256').update(Buffer.from('Qk9YRUQ=','base64')).digest('hex')
+  const workflow=confirmedPhotoWorkflow('ER13229',photo)
+  workflow.metadata.keepMe='preserved'
+  workflow.photos[0].contentSha256=sha
+  const persisted:Record<string,any>[]=[]
+  updateTradeBoardIntakeSessionMock.mockImplementation(async(_db,update)=>{
+   if(fail&&update.patch.metadata?.catalogPhotoProvenance)throw new Error('provenance write failed')
+   persisted.push(JSON.parse(JSON.stringify(update.patch)))
+  })
+  uploadJewelryPhotoMock.mockResolvedValue('https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/front.jpg')
+  uploadStagedOriginalPhotoMock.mockResolvedValue({objectPath:'rep-1/originals/front.jpg',signedUrl:'https://signed.example/front'})
+  createDesignMock.mockImplementation(async(_db,input)=>({designId:input.designId,itemNumber:input.itemNumber,collectionId:'coll',collectionName:'OG',typePrefix:'ER'}))
+  addListingMock.mockImplementation(async(_db,_rep,input)=>({listingId:'new-listing',designId:input.designId,itemNumber:'ER13229',status:'available',usesCanonicalPhoto:true}))
+  const tool=makeTool(makeConversationLookupMock([]),{activeTradeBoardWorkflow:workflow})
+  const input={mode:'single',itemNumber:'ER13229',designName:'New confirmed piece',collectionName:'OG',piecePhotoIndex:1}
+  return {workflow,persisted,tool,input,sha}
+ }
+ it('persists exact confirmed original source before insert, then preserves it on recovered completion',async()=>{
+  const {workflow,persisted,tool,input,sha}=await setupProvenance()
+  await tool.execute(input)
+  expect(createDesignMock).toHaveBeenCalledTimes(1)
+  const id=createDesignMock.mock.calls[0][1].designId
+  const patchIndex=updateTradeBoardIntakeSessionMock.mock.calls.findIndex(c=>c[1].patch.metadata?.catalogPhotoProvenance?.[id])
+  expect(updateTradeBoardIntakeSessionMock.mock.invocationCallOrder[patchIndex]).toBeLessThan(createDesignMock.mock.invocationCallOrder[0])
+  const entry=persisted.find(p=>p.metadata?.catalogPhotoProvenance?.[id])!.metadata.catalogPhotoProvenance[id]
+  expect(entry).toMatchObject({disposition:'catalog_source_saved',sourcePhotoId:workflow.photos[0].id,sourceSha256:sha,itemNumber:'ER13229'})
+  const reload=JSON.parse(JSON.stringify(workflow));reload.status='active'
+  reload.metadata=JSON.parse(JSON.stringify(persisted.at(-1)!.metadata))
+  resolveItemNumberMock.mockResolvedValue({found:true,hasCollection:true,design:{id,itemNumber:'ER13229',designName:'New confirmed piece',collectionName:'OG',typePrefix:'ER'}})
+  await makeTool(makeConversationLookupMock([]),{activeTradeBoardWorkflow:reload}).execute(input)
+  const completion=persisted.at(-1)!.metadata
+  expect(completion.catalogPhotoProvenance[id]).toEqual(entry);expect(completion.keepMe).toBe('preserved')
+ })
+ it('metadata persistence failure aborts before createDesign',async()=>{
+  const {tool,input}=await setupProvenance(true)
+  await expect(tool.execute(input)).rejects.toThrow('provenance write failed')
+  expect(createDesignMock).not.toHaveBeenCalled();expect(addListingMock).not.toHaveBeenCalled()
+ })
 })

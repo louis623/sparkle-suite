@@ -41,7 +41,7 @@ export function getTradeListingSource(
 ): ListingSource {
   if (listing.listing_source === 'non_item_number') return 'non_item_number'
   if (listing.listing_source === 'catalog') return 'catalog'
-  return listing.design ? 'catalog' : 'non_item_number'
+  return 'catalog'
 }
 
 export function buildNonItemNumberTradeListingName(input: {
@@ -59,8 +59,21 @@ export function buildNonItemNumberTradeListingName(input: {
     : `${collection} ${typeLabel}`
 }
 
+export function getTradeListingEffectivePhotoUrl(listing: Pick<TradeListingWithDesign, 'listing_source' | 'manual_photo_url' | 'listing_photo_url'> & {
+  design?: { canonical_photo_url?: string | null } | null
+}): string | null {
+  if (listing.listing_source === 'non_item_number') return cleanText(listing.manual_photo_url) ?? cleanText(listing.listing_photo_url)
+  return cleanText(listing.design?.canonical_photo_url) ?? cleanText(listing.listing_photo_url)
+}
+
+export type TradeListingDisplayInput = Pick<TradeListingWithDesign,
+  'listing_source' | 'design' | 'manual_type_prefix' | 'manual_collection_name' |
+  'manual_collection_family' | 'manual_size' | 'ring_size' | 'manual_photo_url' |
+  'listing_photo_url'
+>
+
 export function getTradeListingDisplayFields(
-  listing: TradeListingWithDesign,
+  listing: TradeListingDisplayInput,
 ): TradeListingDisplayFields {
   const listingSource = getTradeListingSource(listing)
 
@@ -70,8 +83,7 @@ export function getTradeListingDisplayFields(
       cleanText(listing.manual_collection_name) ??
       cleanText(listing.manual_collection_family)
     const size = cleanText(listing.manual_size) ?? cleanText(listing.ring_size)
-    const photoUrl =
-      cleanText(listing.manual_photo_url) ?? cleanText(listing.listing_photo_url)
+    const photoUrl = getTradeListingEffectivePhotoUrl(listing)
 
     return {
       listingSource,
@@ -116,14 +128,8 @@ export function getTradeListingDisplayFields(
 
   const listingPhotoUrl = cleanText(listing.listing_photo_url)
   const canonicalPhotoUrl = cleanText(design.canonical_photo_url)
-  // Shared display contract for every current and future Dance Floor.
-  // August 25 exact catalog identity is `designId`. Card photo is this
-  // listing's jewelry-front, else THIS design's canonical. Same item
-  // number + different finish/stone stays on its own `jewelry_designs.id`.
-  // Display never re-resolves by SKU and never branches on rep.
-  const photoUrl =
-    listingPhotoUrl ??
-    (listing.uses_canonical_photo ? canonicalPhotoUrl : null)
+  // Exact design identity, approved canonical first; legacy fallback only when absent.
+  const photoUrl = getTradeListingEffectivePhotoUrl(listing)
 
   return {
     listingSource,

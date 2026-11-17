@@ -114,6 +114,7 @@
     "esbuild": "^0.27.7",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "jsdom": "^27.4.0",
     "pg": "^8.20.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",

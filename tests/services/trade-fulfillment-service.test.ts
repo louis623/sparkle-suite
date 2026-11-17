@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
+const admin=vi.hoisted(()=>({rpc:vi.fn()}))
+vi.mock('@/lib/supabase/admin',()=>({createAdminClient:()=>admin}))
 import {
   getFulfillmentLogPage,
   getFulfillmentQueue,
@@ -53,6 +55,14 @@ function makeFulfillmentSupabase(row: Record<string, unknown>) {
     }
   })
 
+  admin.rpc.mockImplementation(async(_name,input)=>{
+    const statusChanged=input.p_next_status!==row.fulfillment_status
+    const notesChanged=Boolean(input.p_write_notes)&&(row.shipping_notes??'')!==(input.p_shipping_notes??'')
+    const changed=statusChanged||notesChanged
+    const patch=changed?{...(statusChanged?{fulfillment_status:input.p_next_status,completed_at:input.p_next_status==='completed'?new Date().toISOString():null}:{}),...(notesChanged?{shipping_notes:input.p_shipping_notes}:{})}:null
+    if(patch)update(patch)
+    return {data:{...row,...patch,previous_status:row.fulfillment_status,changed},error:null}
+  })
   return {
     supabase: { from },
     spies: {
@@ -225,7 +235,7 @@ describe('trade fulfillment service', () => {
       request: {
         id: 'request-1', customer_name: 'Jamie', customer_description: 'Blue ring',
         offered_family: 'Birthday', offered_type: 'RG',
-        verified_offered_family: 'Birthday', verified_offered_type: 'RG',
+        verified_offered_family: 'OG', verified_offered_type: 'NK',
         reveal_screenshot_path: 'private/request-1.jpg',
         reveal_screenshot_expires_at: new Date(Date.now() + 86_400_000).toISOString(),
         listing: {

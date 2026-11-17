@@ -214,14 +214,13 @@ describe('jewelry library route', () => {
       mainStone: 'Pink opal',
       repNotes: undefined,
       tradePreferences: undefined,
-      listingPhotoUrl: undefined,
       idempotencyKey: 'jewelry-library-api:library-add-1',
       inputSignature: expect.any(String),
     })
     expect(response.status).toBe(200)
   })
 
-  it('normalizes a custom listing photo before adding a searched design', async () => {
+  it('ignores a legacy photo URL when adding a searched design', async () => {
     getAuthenticatedRepMock.mockResolvedValueOnce({
       repId: 'rep-1',
       rep: { id: 'rep-1' },
@@ -250,25 +249,19 @@ describe('jewelry library route', () => {
       }),
     )
 
-    expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'https://dropbox.example.com/ring.png',
-      filenameStem: 'RG100-listing-photo',
-      mutationAssetKey: expect.any(String),
-    })
+    expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock).toHaveBeenCalledWith({ marker: 'admin' }, 'rep-1', {
       itemNumber: 'RG100',
       material: undefined,
       mainStone: undefined,
       repNotes: undefined,
       tradePreferences: undefined,
-      listingPhotoUrl: 'https://cdn.example.com/rep-1/ring-enhanced.png',
       idempotencyKey: 'jewelry-library-api:library-add-photo-1',
       inputSignature: expect.any(String),
     })
   })
 
-  it('keeps same-item-number finish/stone listing photos on their own designId cache key', async () => {
+  it('keeps exact same-SKU variants while ignoring both supplied photos', async () => {
     getAuthenticatedRepMock.mockResolvedValue({
       repId: 'rep-1',
       rep: { id: 'rep-1' },
@@ -314,23 +307,11 @@ describe('jewelry library route', () => {
       }),
     )
 
-    expect(processRepCustomListingPhotoUrlMock).toHaveBeenNthCalledWith(1, {
-      repId: 'rep-1',
-      sourceImageUrl: 'https://dropbox.example.com/gold.png',
-      filenameStem: 'NK88350-listing-photo',
-      mutationAssetKey: expect.any(String),
-      variantAssetKey: 'design-nk88350-gold',
-    })
-    expect(processRepCustomListingPhotoUrlMock).toHaveBeenNthCalledWith(2, {
-      repId: 'rep-1',
-      sourceImageUrl: 'https://dropbox.example.com/rhodium.png',
-      filenameStem: 'NK88350-listing-photo',
-      mutationAssetKey: expect.any(String),
-      variantAssetKey: 'design-nk88350-rhodium',
-    })
+    expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
+    expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
   })
 
-  it('scopes PhotoRoom cache by official material|stone keys before a designId exists', async () => {
+  it('keeps variant attributes without invoking PhotoRoom', async () => {
     getAuthenticatedRepMock.mockResolvedValueOnce({
       repId: 'rep-1',
       rep: { id: 'rep-1' },
@@ -361,12 +342,6 @@ describe('jewelry library route', () => {
       }),
     )
 
-    expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'https://dropbox.example.com/red-ruby.png',
-      filenameStem: 'RG100-listing-photo',
-      mutationAssetKey: expect.any(String),
-      variantAssetKey: 'silver finish|red ruby',
-    })
+    expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
   })
 })

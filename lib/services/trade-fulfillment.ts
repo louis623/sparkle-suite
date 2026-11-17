@@ -15,7 +15,8 @@ import {
   type FulfillmentLogPage,
   type TradeListingWithDesign,
 } from './types'
-import { errors } from './errors'
+import { errors, danceFloorError } from './errors'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getTradeListingDisplayFields } from './trade-listing-display'
 
 const TRANSITIONS: Record<FulfillmentStatus, FulfillmentStatus[]> = {
@@ -88,51 +89,17 @@ export async function updateFulfillmentStatus(
     throw errors.INVALID_INPUT('requestId or customerName required')
   }
 
-  const previousStatus = fulfillmentRow.fulfillment_status
-  if (previousStatus === input.nextStatus &&
-      (input.shippingNotes === undefined || input.shippingNotes === (fulfillmentRow.shipping_notes ?? ''))) {
-    return {
-      fulfillmentId: fulfillmentRow.id,
-      requestId: fulfillmentRow.request_id,
-      previousStatus,
-      status: previousStatus,
-      completedAt: fulfillmentRow.completed_at,
-      changed: false,
-      shouldPromptAddToBoard: false,
-    }
-  }
-
-  if (!isValidTransition(previousStatus, input.nextStatus)) {
-    throw errors.INVALID_STATUS_TRANSITION(previousStatus, input.nextStatus)
-  }
-
-  const nowIso = new Date().toISOString()
-  const update: Record<string, unknown> = {}
-  if (previousStatus !== input.nextStatus) {
-    update.fulfillment_status = input.nextStatus
-    update.status_updated_at = nowIso
-  }
-  if (input.shippingNotes !== undefined) update.shipping_notes = input.shippingNotes
-  if (input.nextStatus === 'completed' && previousStatus !== 'completed') update.completed_at = nowIso
-  if (previousStatus === 'completed' && input.nextStatus === 'approved') update.completed_at = null
-
-  const { data: updated, error: updErr } = await supabase
-    .from('trade_fulfillment')
-    .update(update)
-    .eq('id', fulfillmentRow.id)
-    .select('id, request_id, fulfillment_status, completed_at')
-    .single()
-  if (updErr) throw updErr
-
+  const { data: updated, error } = await createAdminClient().rpc('rpc_update_trade_fulfillment_v1', {
+    p_rep_id: repId, p_fulfillment_id: fulfillmentRow.id, p_next_status: input.nextStatus,
+    p_shipping_notes: input.shippingNotes ?? null, p_write_notes: input.shippingNotes !== undefined,
+  })
+  if (error) throw danceFloorError(error.message)
   return {
-    fulfillmentId: updated.id as string,
-    requestId: updated.request_id as string,
-    previousStatus,
+    fulfillmentId: updated.id as string, requestId: updated.request_id as string,
+    previousStatus: updated.previous_status as FulfillmentStatus,
     status: updated.fulfillment_status as FulfillmentStatus,
-    completedAt: (updated.completed_at as string | null) ?? null,
-    changed: true,
-    shouldPromptAddToBoard:
-      input.nextStatus === 'completed' && input.addToBoard === true,
+    completedAt: updated.completed_at as string | null, changed: Boolean(updated.changed),
+    shouldPromptAddToBoard: Boolean(updated.changed) && input.nextStatus === 'completed' && input.addToBoard === true,
   }
 }
 
@@ -342,8 +309,8 @@ export async function getFulfillmentLogPage(
     const gotParts = swap
       ? [swap.revealed_item_number, swap.revealed_material,
           swap.revealed_ring_size ? `Size ${swap.revealed_ring_size}` : null]
-      : [request.verified_offered_family ?? request.offered_family,
-          request.verified_offered_type ?? request.offered_type,
+      : [request.offered_family ?? request.verified_offered_family,
+          request.offered_type ?? request.verified_offered_type,
           request.description_is_placeholder ? null : request.customer_description]
     const expiry = request.reveal_screenshot_expires_at
     return [{

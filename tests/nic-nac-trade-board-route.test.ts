@@ -4,6 +4,7 @@ const getAuthenticatedNicNacContextMock = vi.fn()
 const getPaidNicNacContextMock = vi.fn()
 const getAuthenticatedRepMock = vi.fn()
 const getMyBoardMock = vi.fn()
+const ownedMock = vi.fn()
 const getDanceFloorDancerCountsMock = vi.fn()
 const addListingMock = vi.fn()
 const updateListingMock = vi.fn()
@@ -29,7 +30,12 @@ vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: vi.fn(() => ({ marker: 'admin' })),
 }))
 
+vi.mock('@/lib/services/dance-floor-board',()=>({getRepDanceFloorBoard:(...args:unknown[])=>getMyBoardMock(...args)}))
+vi.mock('@/lib/services/workspace-access',()=>({canServePublicCustomerSiteForRep:async()=>false}))
 vi.mock('@/lib/services/trade-board', () => ({
+  requireOwnedDanceFloorListing:(...args:unknown[])=>ownedMock(...args),
+  getBlockingDanceFloorSwaps:async()=>[],
+  getDanceFloorAttention:async()=>({sitting:0}),
   getMyBoard: (...args: unknown[]) => getMyBoardMock(...args),
   addListing: (...args: unknown[]) => addListingMock(...args),
   updateListing: (...args: unknown[]) => updateListingMock(...args),
@@ -52,7 +58,6 @@ import {
   DELETE,
   GET,
   PATCH,
-  POST,
 } from '@/app/api/nic-nac/trade-board/route'
 import { AuthError } from '@/lib/nic-nac/auth'
 import { ServiceError } from '@/lib/services/errors'
@@ -63,6 +68,7 @@ describe('dance floor route', () => {
     getPaidNicNacContextMock.mockReset()
     getAuthenticatedRepMock.mockReset()
     getMyBoardMock.mockReset()
+    ownedMock.mockReset().mockResolvedValue({id:'listing-1',status:'available'})
     getDanceFloorDancerCountsMock.mockReset()
     getDanceFloorDancerCountsMock.mockResolvedValue({
       availableDancerCount: 7,
@@ -102,15 +108,16 @@ describe('dance floor route', () => {
     expect(getMyBoardMock).toHaveBeenCalledWith(
       { marker: 'supabase' },
       'rep-1',
-      {
-        statusFilter: 'available',
+      'America/Chicago',
+      expect.objectContaining({
+        statusFilters: ['available'],
         typeFilter: 'RG',
         collectionFilter: 'Birthday',
         sortBy: 'listed_at',
         sortOrder: 'asc',
         limit: 8,
         offset: 16,
-      },
+      }),
     )
     expect(getDanceFloorDancerCountsMock).toHaveBeenCalledWith(
       { marker: 'supabase' }, 'rep-1', 'America/Chicago',
@@ -150,46 +157,9 @@ describe('dance floor route', () => {
     expect(getMyBoardMock).not.toHaveBeenCalled()
     expect(response.status).toBe(400)
     await expect(response.json()).resolves.toEqual({
+      code: 'INVALID_INPUT',
       error: 'limit must be a whole number.',
     })
-  })
-
-  it('adds a listing through the admin-backed fallback action without a confirmation checkbox', async () => {
-    getPaidNicNacContextMock.mockResolvedValueOnce({
-      repId: 'rep-1',
-      rep: { id: 'rep-1' },
-      supabase: { marker: 'supabase' },
-    })
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-2',
-      designId: 'design-2',
-      itemNumber: 'RG100',
-      designName: 'Aurora Ring',
-      status: 'available',
-      usesCanonicalPhoto: true,
-    })
-
-    const response = await POST(
-      new Request('http://localhost/api/nic-nac/trade-board', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          itemNumber: 'RG100',
-          repNotes: 'Front table piece',
-          mutationKey: 'quick-add-1',
-        }),
-      }),
-    )
-
-    expect(addListingMock).toHaveBeenCalledWith({ marker: 'admin' }, 'rep-1', {
-      itemNumber: 'RG100',
-      repNotes: 'Front table piece',
-      tradePreferences: undefined,
-      listingPhotoUrl: undefined,
-      idempotencyKey: 'trade-board-api:quick-add-1',
-      inputSignature: expect.any(String),
-    })
-    expect(response.status).toBe(200)
   })
 
   it('updates a listing with the authenticated rep client', async () => {
@@ -264,190 +234,10 @@ describe('dance floor route', () => {
     expect(response.status).toBe(200)
   })
 
-  it('normalizes a custom listing photo before addListing sees it', async () => {
-    getPaidNicNacContextMock.mockResolvedValueOnce({
-      repId: 'rep-1',
-      rep: { id: 'rep-1' },
-      supabase: { marker: 'supabase' },
-    })
-    processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
-      photoUrl: 'https://cdn.example.com/rep-1/ring-enhanced.png',
-    })
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-2',
-      designId: 'design-2',
-      itemNumber: 'RG100',
-      designName: 'Aurora Ring',
-      status: 'available',
-      usesCanonicalPhoto: false,
-    })
-
-    await POST(
-      new Request('http://localhost/api/nic-nac/trade-board', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          itemNumber: 'RG100',
-          listingPhotoUrl: 'https://dropbox.example.com/ring.png',
-          mutationKey: 'quick-add-photo-1',
-        }),
-      }),
-    )
-
-    expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'https://dropbox.example.com/ring.png',
-      filenameStem: 'RG100-listing-photo',
-      mutationAssetKey: expect.any(String),
-    })
-    expect(addListingMock).toHaveBeenCalledWith({ marker: 'admin' }, 'rep-1', {
-      itemNumber: 'RG100',
-      repNotes: undefined,
-      tradePreferences: undefined,
-      listingPhotoUrl: 'https://cdn.example.com/rep-1/ring-enhanced.png',
-      idempotencyKey: 'trade-board-api:quick-add-photo-1',
-      inputSignature: expect.any(String),
-    })
-  })
-
-  it('forwards exact designId so same-SKU finish/stone photos stay isolated', async () => {
-    getPaidNicNacContextMock.mockResolvedValueOnce({
-      repId: 'rep-1',
-      rep: { id: 'rep-1' },
-      supabase: { marker: 'supabase' },
-    })
-    processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
-      photoUrl: 'https://cdn.example.com/rep-1/nk88350-gold.png',
-    })
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-gold',
-      designId: 'design-nk88350-gold',
-      itemNumber: 'NK88350',
-      designName: 'Half Moon Crescent',
-      status: 'available',
-      usesCanonicalPhoto: false,
-    })
-
-    await POST(
-      new Request('http://localhost/api/nic-nac/trade-board', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          designId: 'design-nk88350-gold',
-          itemNumber: 'NK88350',
-          material: 'Gold Plating',
-          mainStone: 'Lapis Magnesite',
-          listingPhotoUrl: 'https://dropbox.example.com/gold.png',
-          mutationKey: 'quick-add-gold',
-        }),
-      }),
-    )
-
-    expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'https://dropbox.example.com/gold.png',
-      filenameStem: 'NK88350-listing-photo',
-      mutationAssetKey: expect.any(String),
-      variantAssetKey: 'design-nk88350-gold',
-    })
-    expect(addListingMock).toHaveBeenCalledWith({ marker: 'admin' }, 'rep-1', {
-      designId: 'design-nk88350-gold',
-      itemNumber: 'NK88350',
-      material: 'Gold Plating',
-      mainStone: 'Lapis Magnesite',
-      repNotes: undefined,
-      tradePreferences: undefined,
-      listingPhotoUrl: 'https://cdn.example.com/rep-1/nk88350-gold.png',
-      idempotencyKey: 'trade-board-api:quick-add-gold',
-      inputSignature: expect.any(String),
-    })
-  })
-
-  it('replays a committed custom-photo add before uploading another asset', async () => {
-    getPaidNicNacContextMock.mockResolvedValueOnce({
-      repId: 'rep-1',
-      rep: { id: 'rep-1' },
-      supabase: { marker: 'supabase' },
-    })
-    getCatalogListingMutationReceiptMock.mockResolvedValueOnce({
-      listingId: 'listing-committed',
-      designId: 'design-1',
-      itemNumber: 'RG100',
-      designName: 'Aurora Ring',
-      status: 'available',
-      usesCanonicalPhoto: false,
-      quantityAvailable: 1,
-      groupedWithExisting: false,
-      mutationReplayed: true,
-    })
-
-    const response = await POST(
-      new Request('http://localhost/api/nic-nac/trade-board', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          itemNumber: 'RG100',
-          listingPhotoUrl: 'https://dropbox.example.com/ring.png',
-          mutationKey: 'quick-add-photo-replay',
-        }),
-      }),
-    )
-
-    expect(response.status).toBe(200)
-    await expect(response.json()).resolves.toMatchObject({
-      ok: true,
-      result: {
-        listingId: 'listing-committed',
-        itemNumber: 'RG100',
-        quantityAvailable: 1,
-        mutationReplayed: true,
-      },
-    })
-    expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
-    expect(addListingMock).not.toHaveBeenCalled()
-  })
-
-  it('normalizes a custom listing photo before updateListing sees it', async () => {
-    getPaidNicNacContextMock.mockResolvedValueOnce({
-      repId: 'rep-1',
-      rep: { id: 'rep-1' },
-      supabase: { marker: 'supabase' },
-    })
-    processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
-      photoUrl: 'https://cdn.example.com/rep-1/ring-enhanced.png',
-    })
-    updateListingMock.mockResolvedValueOnce({
-      listingId: 'listing-1',
-      status: 'available',
-    })
-
-    await PATCH(
-      new Request('http://localhost/api/nic-nac/trade-board', {
-        method: 'PATCH',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          listingId: 'listing-1',
-          listingPhotoUrl: 'https://dropbox.example.com/ring.png',
-        }),
-      }),
-    )
-
-    expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'https://dropbox.example.com/ring.png',
-      filenameStem: 'listing-1-listing-photo',
-    })
-    expect(updateListingMock).toHaveBeenCalledWith(
-      { marker: 'supabase' },
-      'rep-1',
-      'listing-1',
-      {
-        repNotes: undefined,
-        tradePreferences: undefined,
-        listingPhotoUrl: 'https://cdn.example.com/rep-1/ring-enhanced.png',
-        useCanonicalPhoto: undefined,
-      },
-    )
+  it('ignores legacy photo-only patch after the owned active gate',async()=>{
+    getPaidNicNacContextMock.mockResolvedValueOnce({repId:'rep-1',supabase:{marker:'supabase'}})
+    const response=await PATCH(new Request('http://localhost/api/nic-nac/trade-board',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({listingId:'listing-1',listingPhotoUrl:'https://untrusted.invalid/photo'})}))
+    expect(response.status).toBe(200);expect(ownedMock).toHaveBeenCalled();expect(updateListingMock).not.toHaveBeenCalled();expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
   })
 
   it('removes a listing with a required reason', async () => {
@@ -496,6 +286,7 @@ describe('dance floor route', () => {
 
     expect(response.status).toBe(401)
     await expect(response.json()).resolves.toEqual({
+      code: 'UNAUTHENTICATED',
       error: 'unauthenticated',
     })
   })
@@ -523,27 +314,5 @@ describe('dance floor route', () => {
     })
   })
 
-  it('requires a paid subscription before adding a dance floor listing', async () => {
-    getPaidNicNacContextMock.mockRejectedValueOnce(
-      new ServiceError({
-        code: 'SPARKLE_SUBSCRIPTION_REQUIRED',
-        message: 'subscription required',
-        userMessage:
-          'Start your Sparkle Suite subscription before using workspace tools.',
-        statusCode: 402,
-      }),
-    )
 
-    const response = await POST(
-      new Request('http://localhost/api/nic-nac/trade-board', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ itemNumber: 'RG100' }),
-      }),
-    )
-
-    expect(addListingMock).not.toHaveBeenCalled()
-    expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
-    expect(response.status).toBe(402)
-  })
 })

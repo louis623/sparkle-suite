@@ -142,6 +142,7 @@ import { WorkspaceShell } from './WorkspaceShell'
 import type { WorkspaceSectionTab } from './WorkspaceSectionTabs'
 import { NicNacHomeWorkspaceCard } from './NicNacHomeWorkspaceCard'
 import { LiveLineupCard } from './LiveLineupCard'
+import { useFloorSectionGuard } from './dance-floor/useDanceFloorData'
 import { TradeBoardWorkspaceCard } from './TradeBoardWorkspaceCard'
 import { fetchDanceFloorBoard } from './dance-floor/useDanceFloorData'
 import { TradeRequestAlertCenter } from './TradeRequestAlertCenter'
@@ -3147,13 +3148,19 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (typeof window === 'undefined') return { customerId: null, teamMemberId: null }
     return getWorkspaceDeepLinkTargets(window.location.search)
   })
-  const [activeSection, setActiveSection] =
+  const [activeSection, setActiveSectionState] =
     useState<WorkspaceSectionKey>(() =>
       initialSectionOverride ??
       (typeof window === 'undefined'
         ? 'home'
         : getInitialWorkspaceSection(window.location.search)),
     )
+  const setActiveSection = useFloorSectionGuard(activeSection, setActiveSectionState, () => {
+    workspaceHistoryNavRef.current = 'idle'
+    const url = new URL(window.location.href)
+    url.search = syncWorkspaceSectionSearch(url.search, activeSection)
+    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash)
+  })
   const previousWorkspaceSectionRef = useRef(activeSection)
   const workspaceSectionUrlReadyRef = useRef(false)
   const workspaceHistoryNavRef = useRef<'idle' | 'pop'>('idle')
@@ -3529,7 +3536,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     resources: reviewWorkspaceMode ? [] : undefined,
   })
   const [tradeBoardSearchQuery, setTradeBoardSearchQuery] = useState('')
-  const [quickAddItemNumber, setQuickAddItemNumber] = useState('')
   const [librarySearchQuery, setLibrarySearchQuery] = useState('')
   const [libraryFilters, setLibraryFilters] = useState<JewelryLibraryFilters>(
     EMPTY_JEWELRY_LIBRARY_FILTERS,
@@ -5468,63 +5474,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }
 
-  async function handleQuickAddListing() {
-    if (!quickAddItemNumber.trim()) {
-      setTradeBoardActionState({
-        pendingKey: null,
-        error: 'Enter an item number first.',
-        helperMessage: null,
-      })
-      return
-    }
-
-    const logicalMutation = `quick-add:${quickAddItemNumber.trim().toUpperCase()}`
-    const mutationKey = getOrCreateTradeAddMutationKey(logicalMutation)
-
-    setTradeBoardActionState({
-      pendingKey: 'quick-add',
-      error: null,
-      helperMessage: null,
-    })
-
-    try {
-      const response = await fetch('/api/nic-nac/trade-board', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          itemNumber: quickAddItemNumber,
-          mutationKey,
-        }),
-      })
-
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: string; result?: { mutationReplayed?: boolean } }
-        | null
-
-      if (!response.ok) {
-        throw new Error(payload?.error || 'Unable to add that dancer right now.')
-      }
-
-      setQuickAddItemNumber('')
-      await refreshTradeWorkspace()
-      clearTradeAddMutationKey(logicalMutation)
-      setTradeBoardActionState({
-        pendingKey: null,
-        error: null,
-        helperMessage: payload?.result?.mutationReplayed
-          ? 'Your earlier add already completed. No new copy was added. Tap Add again if you have another identical dancer.'
-          : 'Dancer added to your Dance Floor.',
-      })
-    } catch (error) {
-      setTradeBoardActionState({
-        pendingKey: null,
-        error: "Couldn't add that dancer. Check the details and try again.",
-        helperMessage: null,
-      })
-    }
-  }
-
   async function handleRemoveTradeListing(listingId: string) {
     setTradeBoardActionState({
       pendingKey: `remove:${listingId}`,
@@ -5588,6 +5537,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         | {
             error?: string
             result?: {
+              kind?: 'captured' | 'noted_only' | 'approved'
+              revealedItemNumber?: string
               replacementStatus?: string
             }
           }
@@ -5603,8 +5554,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         setTradeRequestsState((current) => ({ ...current, status: 'error' }))
       }
       const replacementStatus = payload?.result?.replacementStatus
-      const approveMessage =
-        replacementStatus === 'added_to_board'
+      const approveMessage = payload?.result?.kind === 'noted_only'
+        ? `Swap approved. Item ${payload.result.revealedItemNumber} was saved in your private notes and not added to your Floor. Add it with Nic-Nac.`
+        : replacementStatus === 'added_to_board'
           ? 'Swap approved. Added the revealed dancer back to your Dance Floor.'
           : replacementStatus === 'needs_ring_size'
             ? 'Swap approved. I saved the item number to this swap; add the ring size after the show to add the dancer to the Dance Floor.'
@@ -7019,8 +6971,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           tradeBoardState={tradeBoardState}
           tradeBoardSearchQuery={tradeBoardSearchQuery}
           onTradeBoardSearchQueryChange={setTradeBoardSearchQuery}
-          quickAddItemNumber={quickAddItemNumber}
-          onQuickAddItemNumberChange={setQuickAddItemNumber}
           actionState={tradeBoardActionState}
           tradeRequestsState={{ ...tradeRequestsState, requests: tradeInboxLoaded ? tradeInboxRequests : tradeRequestsState.requests }}
           inboxLoadError={tradeInboxLoadError}
@@ -7035,7 +6985,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             )
           }}
           tradeSwapCleanupState={tradeSwapCleanupState}
-          onQuickAddListing={handleQuickAddListing}
           onRemoveListing={handleRemoveTradeListing}
           onReviewRequest={(requestId, action) => void openTradeReview(requestId, action)}
           onAdvanceFulfillment={handleAdvanceFulfillment}
@@ -7473,9 +7422,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     setPreviewUnavailableMessage(null)
     setActiveSection(nextSection)
   }
-  const homeTradeRequestsCount = tradeRequestsState.pendingCount
-  const homeAvailableDancerCount = tradeBoardState.board?.summary.availableDancerCount
-  const homeNewDancersTodayCount = tradeBoardState.board?.summary.newDancersTodayCount
   const homeNextShowLabel = buildHomeNextShowLabel(
     calendarState.summary?.upcomingEvents ?? [],
   )
@@ -7574,13 +7520,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           onAskCustomer={onSendNicNacPrompt}
               chat={desktopChat}
               onTradeAlertTarget={setHomeTradeAlertTarget}
-              tradeRequestsCount={homeTradeRequestsCount}
-              availableDancerCount={homeAvailableDancerCount}
-              newDancersTodayCount={homeNewDancersTodayCount}
               nextShow={homeNextShow}
               siteLive={Boolean(customerSparkleSiteHref)}
               onLaunchAction={(action) => onLaunchNicNacAction?.(action)}
-              onOpenTradeBoard={() => setActiveSection('trade-board')}
               onOpenCalendar={() => setActiveSection('show-calendar')}
               onOpenPublicSite={handleOpenCustomerSitePreview}
               onOpenHelp={() => setActiveSection('help-resources')}
@@ -7889,13 +7831,9 @@ function ConceptHomeWorkspace({
   chat,
   onAskCustomer,
   onTradeAlertTarget,
-  tradeRequestsCount,
-  availableDancerCount,
-  newDancersTodayCount,
   nextShow,
   siteLive,
   onLaunchAction,
-  onOpenTradeBoard,
   onOpenCalendar,
   onOpenPublicSite,
   onOpenHelp,
@@ -7908,13 +7846,9 @@ function ConceptHomeWorkspace({
   onAskCustomer?: (prompt:string)=>void
   chat?: ReactNode | null
   onTradeAlertTarget: (target: HTMLElement | null) => void
-  tradeRequestsCount?: number
-  availableDancerCount?: number
-  newDancersTodayCount?: number
   nextShow: HomeNextShowSummary | null
   siteLive: boolean
   onLaunchAction: (action: WorkspaceLaunchAction) => void
-  onOpenTradeBoard: () => void
   onOpenCalendar: () => void
   onOpenPublicSite: () => void
   onOpenHelp: () => void
@@ -7965,27 +7899,7 @@ function ConceptHomeWorkspace({
 
   return (
     <section className={`${styles.conceptHome} ${styles.signatureHome}`} aria-label="Nic-Nac first workspace">
-      <aside className={styles.conceptRail} aria-label="Swap info at a glance">
-        <button
-          type="button"
-          className={styles.railLaunchAction}
-          onClick={() => onLaunchAction('add_trade_piece')}
-        >
-          <span className={styles.railLaunchPieceIcon} aria-hidden="true">+</span>
-          <span>Add a dancer</span>
-        </button>
-        <ConceptPanel title="Swap Info" icon={<CalendarDays aria-hidden="true" />}>
-          <MetricRows
-            rows={[
-              ['Swap requests', tradeRequestsCount ?? '—'],
-              ['Dancers on the Floor', availableDancerCount ?? '—'],
-              ['New dancers today', newDancersTodayCount ?? '—'],
-            ]}
-          />
-          <button type="button" className={styles.panelCtaButton} onClick={onOpenTradeBoard}>
-            Open Dance Floor
-          </button>
-        </ConceptPanel>
+      <aside className={`${styles.conceptRail} ${styles.lineupRail}`} aria-label="Live Lineup at a glance">
         <div className={styles.railLiveLineup}>
           <LiveLineupCard compact readOnly={liveLineupReadOnly} onAskCustomer={onAskCustomer} />
         </div>
@@ -8226,19 +8140,6 @@ function ConceptPanel({
       </div>
       {children}
     </section>
-  )
-}
-
-function MetricRows({ rows }: { rows: Array<[string, number | string]> }) {
-  return (
-    <div className={styles.metricRows}>
-      {rows.map(([label, value]) => (
-        <div key={label} className={styles.metricRow}>
-          <span>{value}</span>
-          <small>{label}</small>
-        </div>
-      ))}
-    </div>
   )
 }
 
@@ -11726,9 +11627,10 @@ export function TeamManagementCard({
 }) {
   const [signInHref, setSignInHref] = useState('/login?redirect=%2Fnic-nac')
   useEffect(() => {
-    setSignInHref(buildTeamSignInHref(
+    const href = buildTeamSignInHref(
       `${window.location.pathname}${window.location.search}${window.location.hash}`,
-    ))
+    )
+    queueMicrotask(() => setSignInHref(href))
   }, [])
   const participants = state.participants ?? []
   const publicTeamRoster = state.publicTeamRoster ?? []
