@@ -22,7 +22,8 @@
     if (!controls) {
       controls = document.createElement('div'); controls.className = 'sb-controls'; controls.setAttribute('role', 'group'); controls.setAttribute('aria-label', 'Christmas scene controls');
       controls.innerHTML = '<div class="sb-actions">'+(video?'<button type="button" class="sb-toggle" data-hero-motion-toggle>Pause animation</button>':'')+'<button type="button" class="sb-music-toggle">Play music</button><button type="button" class="sb-mute-toggle">Mute</button></div>'+credit;
-      hero.append(controls);
+      const danceFloor = hero.querySelector('.hp-hero-trade-board-cta');
+      if (danceFloor) danceFloor.after(controls); else hero.append(controls);
     }
     const motion = controls.querySelector('[data-hero-motion-toggle]'), musicButton = controls.querySelector('.sb-music-toggle'), muteButton = controls.querySelector('.sb-mute-toggle'), status = controls.querySelector('.sb-status');
     // Audio is outside React's tree and never shares the eleven-second video timeline.

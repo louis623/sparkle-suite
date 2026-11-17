@@ -48,14 +48,10 @@ export function HeroMotionScene({ t, host = false, surface = "homepage", eager =
   useEffect(() => { window.sparkleStartHeroMotion?.(); if (t.preset === 'silver_bells') window.dispatchEvent(new Event('sparkle:silver-bells-hydrated')); }, [t.preset]);
   const motion = <button type="button" className={config.controlClass || 'ssr-motion-control'} data-hero-motion-toggle="" aria-pressed="true" suppressHydrationWarning>Pause animation</button>;
   const silver = t.preset === 'silver_bells';
-  const controls = silver ? <div className="sb-controls" role="group" aria-label="Christmas scene controls">
-    <div className="sb-actions">{motion}<button type="button" className="sb-music-toggle" aria-pressed="false" suppressHydrationWarning>Play music</button><button type="button" className="sb-mute-toggle" aria-pressed="false" suppressHydrationWarning>Mute</button></div>
-    <small className="sb-credit">“Jingle Bells (Calm)” · <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100188" target="_blank" rel="noopener">Kevin MacLeod</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></small>
-    <span className="sb-status" role="status" />
-  </div> : config.controlsClass ? <div className={config.controlsClass} role="group" aria-label="Hero animation controls">
+  const controls = silver ? <SilverBellsControls motion={motion} /> : config.controlsClass ? <div className={config.controlsClass} role="group" aria-label="Hero animation controls">
     {motion}{config.sound && <button type="button" className={config.controlClass} data-hero-sound-toggle={config.sound} aria-pressed="false" suppressHydrationWarning>{config.soundAction || 'Enable ' + config.sound}</button>}
   </div> : motion;
-  if (surface !== "homepage" && silver) return null;
+  if (silver && (!host || surface !== "homepage")) return null;
   if (surface !== "homepage" && config.kind !== "decoration") return <button type="button" className="ssr-utility-motion-control" data-hero-motion-toggle="" aria-pressed="true" suppressHydrationWarning>Pause animation</button>;
   if (Boolean(config.host) !== host) return config.controlsOutsideHost && !host ? controls : null;
   if (config.kind === 'decoration') {
@@ -108,3 +104,9 @@ export function SparkleFx({ level, motion, className = "hp-fx-layer hp-hero-fx-l
     </div>
   );
 }
+
+export function SilverBellsControls({ motion = <button type="button" className="sb-toggle" data-hero-motion-toggle="" aria-pressed="true" suppressHydrationWarning>Pause animation</button> }) { return <div className="sb-controls" role="group" aria-label="Christmas scene controls">
+    <div className="sb-actions">{motion}<button type="button" className="sb-music-toggle" aria-pressed="false" suppressHydrationWarning>Play music</button><button type="button" className="sb-mute-toggle" aria-pressed="false" suppressHydrationWarning>Mute</button></div>
+    <small className="sb-credit">“Jingle Bells (Calm)” · <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100188" target="_blank" rel="noopener">Kevin MacLeod</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></small>
+    <span className="sb-status" role="status" />
+  </div>; }

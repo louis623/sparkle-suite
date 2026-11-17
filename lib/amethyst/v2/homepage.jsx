@@ -1,7 +1,7 @@
 import "../../../public/amethyst/hosted-video.js";
 import { initialLineup } from "./initial-lineup.jsx";
 import { HeroCopyReservation } from "./hero-copy-reservation.jsx";
-import { HeroMotionScene, GnomeGardenScene } from "./hero-motion.jsx";
+import { HeroMotionScene, GnomeGardenScene, SilverBellsControls } from "./hero-motion.jsx";
 /* global React, ReactDOM */
 const { useState, useEffect, useMemo, useRef } = React;
 
@@ -940,6 +940,7 @@ function Hero({ t, isLive, liveShow }) {
                     {isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Browse the dance floor"}
                     <span className="spark" /><span className="spark" /><span className="spark" /><span className="spark" />
                   </a>
+                  {t.preset === "silver_bells" && <SilverBellsControls />}
                 </div>
               </>
             ) : (
@@ -960,6 +961,7 @@ function Hero({ t, isLive, liveShow }) {
                     {isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Browse the dance floor"}
                     <span className="spark" /><span className="spark" /><span className="spark" /><span className="spark" />
                   </a>
+                  {t.preset === "silver_bells" && <SilverBellsControls />}
                   {isHeatherBlingKitchenSite && CONTENT.pantryPageUrl && (
                     <a {...linkProps(CONTENT.pantryPageUrl)} className="hp-btn-primary hp-btn-sparkle hp-hero-trade-board-cta">
                       In the Pantry

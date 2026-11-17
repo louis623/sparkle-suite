@@ -401,3 +401,7 @@ html[data-customer-theme="silver_bells"] body :is(.hp-hero-fx-layer,.ssr-utility
 html[data-customer-theme="silver_bells"] body :is(.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero){position:relative;background:var(--sb-poster) center/cover;isolation:isolate;padding-bottom:104px}
 html[data-customer-theme="silver_bells"] body :is(.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero)>.sb-media{z-index:-1}
 @media(max-width:640px){html[data-customer-theme="silver_bells"]{--sb-poster:url('/amethyst/skins/silver-bells/hero-poster-phone.webp')}}
+
+/* Keep scene controls directly beneath the Dance Floor action at every width. */
+html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-trade-board-cta + .sb-controls{position:relative;inset:auto;align-self:center;justify-content:center;width:100%;max-width:100%;margin:14px 0 0;gap:8px;flex:none}
+html[data-customer-theme="silver_bells"] body .hp-hero .hp-hero-trade-board-cta + .sb-controls .sb-credit{white-space:normal;text-align:center}
