@@ -111,7 +111,7 @@
       "sha256": "b53bfda6783b20d2abeb16cc765af25ba68b240e9354d43ede261294cfb43dd3"
     }
   ],
-  "controls": "Revision 4: individual Pause animation / Play music / Mute buttons followed by inline linked artist/license credit. No wrapper card, border, backdrop or shadow. Wrap only when narrow. Hero and controls share the900px breakpoint; desktop copy remains over the left side above900px.",
+  "controls": "Revision 4 controls: Pause animation / Play music, followed by inline linked artist/license credit. No wrapper card, border, backdrop or shadow. Wrap only when narrow. Hero and controls share the900px breakpoint; desktop copy remains over the left side above900px.",
   "updatedAt": "2026-11-17T16:12:09.463Z",
   "responsiveQa": {
     "cases": 33,
