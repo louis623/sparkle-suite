@@ -1,7 +1,8 @@
+import { moveLineupCustomer } from '@/lib/live-lineup/grouping'
 import type { WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
 
 export type WorkspaceLineupCommand =
-  | { type: 'move'; entryId: string; beforeEntryId: string | null }
+  | { type: 'move' | 'move-customer'; entryId: string; beforeEntryId: string | null }
   | { type: 'hold' | 'return' | 'reveal-next'; entryId: string }
   | { type: 'undo' }
   | { type: 'start-show'; partyIds: string[]; carryEntryIds: string[]; confirmed: true }
@@ -260,7 +261,11 @@ export function isLineupCommandAcknowledgement(
     const activeIndex = expected.order.findIndex(entry => entry.id === command.entryId)
     const heldIndex = expected.held.findIndex(entry => entry.id === command.entryId)
     if (activeIndex < 0 && heldIndex < 0) return false
-    if (command.type === 'move') {
+    if (command.type === 'move-customer') {
+      const moved = moveLineupCustomer(expected.order, command.entryId, command.beforeEntryId, before.entries)
+      if (!moved) return false
+      expected.order = moved
+    } else if (command.type === 'move') {
       if (activeIndex < 0 || command.beforeEntryId === command.entryId) return false
       const [entry] = expected.order.splice(activeIndex, 1)
       const destination = command.beforeEntryId === null

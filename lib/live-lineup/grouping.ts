@@ -1,4 +1,4 @@
-/** Shared display projection. Never use groups as mutation targets. */
+/** Shared customer projection for display and validated, atomic customer moves. */
 const normalize = (value: string) => value.trim().replace(/\s+/gu, ' ').normalize('NFC')
 const identityPart = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0 && value.length <= 100 && !/[\p{Cc}\p{Cf}]/u.test(value)
 
@@ -33,4 +33,22 @@ export function groupLineupEntries(entries: LineupGroupingEntry[]) {
     else groups.push({ tuple: row.tuple, members: [row.id], name, token: '' })
   }
   return groups
+}
+
+/** Resolve the displayed customer on the server; never accept client-supplied member IDs. */
+export function moveLineupCustomer<T extends LineupGroupingEntry>(
+  entries: T[], entryId: string, beforeEntryId: string | null,
+  visibleEntries: LineupGroupingEntry[] = entries,
+): T[] | null {
+  const groups = groupLineupEntries(visibleEntries)
+  const group = groups.find(row => row.members[0] === entryId)
+  if (!group || (beforeEntryId !== null && (!groups.some(row => row.members[0] === beforeEntryId) || group.members.includes(beforeEntryId)))) return null
+  const members = new Set(group.members)
+  const moved = entries.filter(entry => members.has(entry.id))
+  if (moved.length !== members.size) return null
+  const remaining = entries.filter(entry => !members.has(entry.id))
+  const destination = beforeEntryId === null ? remaining.length : remaining.findIndex(entry => entry.id === beforeEntryId)
+  if (destination < 0) return null
+  remaining.splice(destination, 0, ...moved)
+  return remaining
 }

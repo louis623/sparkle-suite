@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import type { PointerEvent, KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import type { WorkspaceLineupEntry, WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
-import { canAcceptWorkspaceRefresh, canRecoverLineup, workspaceFreshnessDeadline, workspaceWriteEligible, canRebaseDrag, dragScrollDelta, edgeScrollSpeed, isLineupCommandAcknowledgement, isWorkspaceLineupSnapshot, moveCommand, pointerDropAnchor } from './live-lineup-client'
+import { canAcceptWorkspaceRefresh, canRecoverLineup, workspaceFreshnessDeadline, workspaceWriteEligible, canRebaseDrag, dragScrollDelta, edgeScrollSpeed, isLineupCommandAcknowledgement, isWorkspaceLineupSnapshot, pointerDropAnchor } from './live-lineup-client'
 import type { WorkspaceLineupCommand } from './live-lineup-client'
 import styles from './LiveLineupCard.module.css'
 import palette from './RepDashboard.module.css'
@@ -16,7 +16,7 @@ import { LiveLineupArchiveControls } from './LiveLineupArchiveControls'
 import { LiveLineupPublisherControls } from './LiveLineupPublisherControls'
 import { archiveRecoveryRequest, isArchiveRecoveryAcknowledgement, type ArchiveDetail } from './live-lineup-archive-client'
 import { canConfirmShow } from './live-lineup-client'
-import { groupLineupEntries } from '@/lib/live-lineup/grouping'
+import { groupLineupEntries, moveLineupCustomer } from '@/lib/live-lineup/grouping'
 import { workspaceLineupStatus } from '@/lib/live-lineup/status-copy'
 import { isDemoLineupSnapshot } from '@/lib/live-lineup/demo'
 
@@ -47,7 +47,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
   const writeController = useRef<AbortController | null>(null)
   const requestGeneration = useRef(0)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const pointerDrag = useRef<{ id: string; pointerId: number; target: HTMLButtonElement; startX: number; startY: number; x: number; y: number; started: boolean; valid: boolean; before: string | null; baseline: WorkspaceLineupSnapshot; width: number; offsetX: number; offsetY: number; previewWidth: number; previewHeight: number; rows: { id: string; top: number; bottom: number }[] } | null>(null)
+  const pointerDrag = useRef<{ id: string; pointerId: number; target: HTMLElement; startX: number; startY: number; x: number; y: number; started: boolean; valid: boolean; before: string | null; baseline: WorkspaceLineupSnapshot; width: number; offsetX: number; offsetY: number; previewWidth: number; previewHeight: number; rows: { id: string; top: number; bottom: number }[] } | null>(null)
   const {matches: audienceMatches, finishGesture} = useLineupAudience(snapshot, pointerDrag)
   const scrollSpeed = useRef(0)
   const animation = useRef<number | null>(null)
@@ -204,7 +204,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     if (saving || !id || !scroller) return
     const group = snapshot ? groupLineupEntries(snapshot.entries).find(group => group.members.includes(id)) : undefined
     const groupKey = group ? [...group.members].sort()[0] : undefined
-    if (group && group.members.length > 1 && groupKey && !expanded.has(groupKey)) {
+    if (group && id !== group.members[0] && group.members.length > 1 && groupKey && !expanded.has(groupKey)) {
       setExpanded(current => new Set([...current, groupKey]))
       return
     }
@@ -231,7 +231,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
       : 'The lineup changed. Review it again before confirming.'); return false }
     mutation.current = true
     setSaving(true)
-    if (command.type === 'move') setPendingMove(command)
+    if (command.type === 'move-customer') setPendingMove(command)
     setNotice('')
     setError(null)
     ++requestGeneration.current
@@ -254,7 +254,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
       })
       if (response.status === 409) {
         const failure: unknown = await response.json()
-        if (attempt < 2 && dragBaseline && command.type === 'move' && failure && typeof failure === 'object'
+        if (attempt < 2 && dragBaseline && command.type === 'move-customer' && failure && typeof failure === 'object'
           && (failure as { error?: unknown }).error === 'revision_conflict') {
           const latestStarted = performance.now()
           const latestEpoch = lifecycleEpoch.current
@@ -298,7 +298,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     }
   }, [accept, readOnly, refresh])
 
-  function startDrag(event: PointerEvent<HTMLButtonElement>, entry: WorkspaceLineupEntry) {
+  function startDrag(event: PointerEvent<HTMLElement>, entry: WorkspaceLineupEntry) {
     const baseline = snapshotRef.current
     if (readOnly || !baseline || !canWriteNow() || uncertainChange.current || mutation.current || !event.isPrimary || event.button !== 0) return
     ++requestGeneration.current
@@ -391,7 +391,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     }
   }
 
-  function moveDrag(event: PointerEvent<HTMLButtonElement>) {
+  function moveDrag(event: PointerEvent<HTMLElement>) {
     const drag = pointerDrag.current
     if (!drag || drag.pointerId !== event.pointerId) return
     if (!canWriteNow()) { lock(); return }
@@ -415,18 +415,18 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     }
   }
 
-  function finishDrag(event: PointerEvent<HTMLButtonElement>) {
+  function finishDrag(event: PointerEvent<HTMLElement>) {
     const drag = pointerDrag.current
     if (!drag || drag.pointerId !== event.pointerId) return
     drag.x = event.clientX
     drag.y = event.clientY
     updateDropTarget()
-    const command = pointerDrag.current === drag && canWriteNow() && drag.started && drag.valid ? { type: 'move' as const, entryId: drag.id, beforeEntryId: drag.before } : null
+    const command = pointerDrag.current === drag && canWriteNow() && drag.started && drag.valid ? { type: 'move-customer' as const, entryId: drag.id, beforeEntryId: drag.before } : null
     stopDrag()
     if (command) {
       const current = snapshotRef.current?.entries ?? []
-      const index = current.findIndex(entry => entry.id === command.entryId)
-      if (index >= 0 && (current[index + 1]?.id ?? null) !== command.beforeEntryId) void submit(command, drag.baseline)
+      const moved = moveLineupCustomer(current, command.entryId, command.beforeEntryId)
+      if (moved?.some((entry, index) => entry.id !== current[index].id)) void submit(command, drag.baseline)
     }
   }
 
@@ -435,12 +435,15 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     event.preventDefault()
     const baseline = snapshotRef.current
     if (!baseline || pointerDrag.current || !canWriteNow()) return
-    const index = baseline.entries.findIndex(entry => entry.id === entryId)
+    const customers = groupLineupEntries(baseline.entries)
+    const index = customers.findIndex(group => group.members[0] === entryId)
     if (index < 0) return
-    const command = event.key === 'Home' ? (index > 0 ? {type: 'move' as const, entryId: baseline.entries[index].id, beforeEntryId: baseline.entries[0].id} : null)
-      : event.key === 'End' ? (index < baseline.entries.length - 1 ? {type: 'move' as const, entryId: baseline.entries[index].id, beforeEntryId: null} : null)
-      : moveCommand(baseline.entries, index, event.key === 'ArrowUp' ? -1 : 1)
-    if (command) void submit(command, baseline)
+    const movingUp = event.key === 'Home' || event.key === 'ArrowUp'
+    if (movingUp ? index === 0 : index === customers.length - 1) return
+    const beforeEntryId = event.key === 'Home' ? customers[0].members[0]
+      : event.key === 'End' ? null
+      : event.key === 'ArrowUp' ? customers[index - 1].members[0] : customers[index + 2]?.members[0] ?? null
+    void submit({type: 'move-customer', entryId, beforeEntryId}, baseline)
   }
 
   const publisherChangeDisabled = saving || uncertainChange.current
@@ -453,20 +456,14 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     warning: snapshot?.warning ?? null,
     readError: Boolean(error),
   })
-  const entries = [...(snapshot?.entries ?? [])]
-  if (pendingMove) {
-    const index = entries.findIndex(entry => entry.id === pendingMove.entryId)
-    if (index >= 0) {
-      const [entry] = entries.splice(index, 1)
-      const destination = pendingMove.beforeEntryId === null ? entries.length : entries.findIndex(item => item.id === pendingMove.beforeEntryId)
-      entries.splice(destination < 0 ? index : destination, 0, entry)
-    }
-  }
-  const draggedEntry = entries.find(entry => entry.id === dragging)
-  const remainingEntries = entries.filter(entry => entry.id !== dragging)
-  const dropPosition = dropBefore ? remainingEntries.findIndex(entry => entry.id === dropBefore) + 1 : entries.length
-  const drag = pointerDrag.current
+  const originalEntries = snapshot?.entries ?? []
+  const entries = pendingMove ? moveLineupCustomer(originalEntries, pendingMove.entryId, pendingMove.beforeEntryId) ?? originalEntries : originalEntries
   const groups = groupLineupEntries(entries)
+  const draggedGroup = groups.find(group => group.members[0] === dragging)
+  const draggedEntry = entries.find(entry => entry.id === dragging)
+  const remainingGroups = groups.filter(group => group.members[0] !== dragging)
+  const dropPosition = dropBefore ? remainingGroups.findIndex(group => group.members[0] === dropBefore) + 1 : groups.length
+  const drag = pointerDrag.current
   const entryIndex = new Map(entries.map((entry, index) => [entry.id, index]))
   const entryById = new Map(entries.map(entry => [entry.id, entry]))
   const demoConnection = isDemoLineupSnapshot(snapshot)
@@ -483,17 +480,16 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
       onClick={() => setCustomerSelection({ entry, generation: snapshot.management!.generation })}>{status === 'needs_clarification' ? 'Which customer?' : 'Customer card'}</button></ControlTip>
   }
 
-  function orderControls(entry: WorkspaceLineupEntry, index: number, position: number | null, name: string, actions: boolean) {
+  function orderControls(entry: WorkspaceLineupEntry, index: number, position: number | null, name: string, actions: boolean, draggable = true) {
     return <>
-      <button type="button" data-lineup-grab className={`${styles.handle} ${styles.person}`} disabled={disabled}
-        onPointerDown={(event) => startDrag(event, entry)} onPointerMove={moveDrag} onPointerUp={finishDrag}
-        onPointerCancel={stopDrag} onLostPointerCapture={stopDrag} onKeyDown={(event) => keyboardMove(event, entry.id)}
-        aria-label={`Move ${entry.name}, position ${index + 1}`} aria-describedby={keyboardInstructionsId} title="Drag to reorder · Arrow keys to move">
+      {draggable ? <button type="button" data-lineup-grab className={`${styles.handle} ${styles.person}`} disabled={disabled}
+        onKeyDown={(event) => keyboardMove(event, entry.id)}
+        aria-label={`Move ${name}, position ${position ?? index + 1}`} aria-describedby={keyboardInstructionsId} title="Drag to reorder · Arrow keys to move">
         <svg className={styles.grip} width="14" height="18" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true">
           {[5, 10, 15].flatMap(y => [5, 11].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.4" />))}
         </svg>
         {position !== null && <span className={styles.position}>{position}</span>}<strong style={position === null ? { gridColumn: '2 / -1' } : undefined}>{name}</strong>
-      </button>
+      </button> : <strong className={styles.orderName}>{name}</strong>}
       {actions && <div className={styles.actions}>
         <ControlTip tip="reveal-next"><button type="button" disabled={disabled || index === 0} aria-label={`Reveal ${entry.name} next, position ${index + 1}`} onClick={() => void submit({ type: 'reveal-next', entryId: entry.id })}>Reveal next</button></ControlTip>
         <ControlTip tip="hold"><button type="button" disabled={disabled} aria-label={`Hold ${entry.name} for later, position ${index + 1}`} onClick={() => void submit({ type: 'hold', entryId: entry.id })}>Hold</button></ControlTip>
@@ -509,25 +505,31 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
         const multiple = group.members.length > 1
         const open = multiple && expanded.has(key)
         const detailsId = `${headingId}-${full ? 'full' : 'card'}-${key}`
-        return <li key={key} data-lineup-entry={open ? undefined : entry.id} data-lineup-active={open ? undefined : true} tabIndex={-1}
+        return <li key={key} data-lineup-entry={entry.id} data-lineup-active tabIndex={-1}
+          onPointerDown={(event) => {
+            const target = event.target as HTMLElement
+            if (target.closest('[data-lineup-order-detail]') || target.closest('button:not([data-lineup-grab]), a, input')) return
+            startDrag(event, entry)
+          }}
+          onPointerMove={moveDrag} onPointerUp={finishDrag} onPointerCancel={stopDrag} onLostPointerCapture={stopDrag}
           aria-label={`${group.name}, position ${groupIndex + 1}`}
-          className={`${styles.row} ${fresh && snapshot?.connection === 'connected' && groupIndex === 0 ? styles.now : ''} ${dragging === entry.id && !open ? styles.dragging : ''}`}>
-          {multiple ? <button type="button" className={`${styles.expand} ${styles.person}`} aria-expanded={open} aria-controls={detailsId}
-            disabled={!!dragging || saving} onClick={() => setExpanded(current => {
+          className={`${styles.row} ${fresh && snapshot?.connection === 'connected' && groupIndex === 0 ? styles.now : ''} ${dragging === entry.id ? styles.dragging : ''}`}>
+          {orderControls(entry, entryIndex.get(entry.id)!, groupIndex + 1, group.name, !multiple && (!compact || full))}
+          {multiple && <button type="button" className={styles.orderToggle} aria-expanded={open} aria-controls={detailsId}
+            aria-label={`${group.members.length} orders for ${group.name}`} disabled={!!dragging || saving}
+            onClick={() => setExpanded(current => {
               const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next
             })}>
-            <span className={styles.chevron} aria-hidden="true">{open ? '⌄' : '›'}</span>
-            <span className={styles.position}>{groupIndex + 1}</span><strong>{group.name}</strong>
-            <span className={styles.orders}>{group.members.length} orders</span>
-          </button> : orderControls(entry, entryIndex.get(entry.id)!, groupIndex + 1, group.name, !compact || full)}
+            {group.members.length} orders <span aria-hidden="true">{open ? '⌄' : '›'}</span>
+          </button>}
           {customerButton(group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'matched') ?? group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'needs_clarification') ?? entry)}
           {multiple && <ol id={detailsId} className={styles.orderList} hidden={!open} aria-label={`Individual orders for ${group.name}`}>
             {open && group.members.map((id, orderIndex) => {
               const order = entryById.get(id)!
               const index = entryIndex.get(id)!
-              return <li key={id} data-lineup-entry={id} data-lineup-active tabIndex={-1} aria-label={`${order.name}, order ${orderIndex + 1}, position ${index + 1}`}
+              return <li key={id} data-lineup-entry={id} data-lineup-order-detail tabIndex={-1} aria-label={`${order.name}, order ${orderIndex + 1}, position ${index + 1}`}
                 className={`${styles.orderRow} ${dragging === id ? styles.dragging : ''}`}>
-                {orderControls(order, index, null, `Order ${orderIndex + 1}`, true)}
+                {orderControls(order, index, null, `Order ${orderIndex + 1}`, true, false)}
                 {audienceMatches[id] && <div className={styles.chips} aria-label={order.name + ' private customer details'}>
                   {audienceMatches[id].birthday && <span>🎂 {audienceMatches[id].birthday}</span>}
                   {audienceMatches[id].preferences.map((preference, chipIndex) => <span key={chipIndex}>{preference}</span>)}
@@ -549,7 +551,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
         </button>
         <button type="button" className={styles.fullButton} aria-haspopup="dialog" onClick={() => { stopDrag(); setPopup('full') }}>↗ Full lineup</button>
       </header>
-      <p id={keyboardInstructionsId} className={styles.srOnly}>Keyboard: focus an order, then use Up or Down to move one place, Home for first, or End for last. Press Escape to cancel a drag.</p>
+      <p id={keyboardInstructionsId} className={styles.srOnly}>Keyboard: focus a customer, then use Up or Down to move all their orders one place, Home for first, or End for last. Press Escape to cancel a drag.</p>
       {(dragging || saving || error || notice || viewOnly) && <div className={styles.feedback} aria-live="polite" aria-atomic="true">
         {dragging ? (dropValid ? `Release to place at position ${dropPosition}` : 'Move back into the lineup to drop') : saving ? 'Saving…' : error ? 'We can’t update your lineup right now. We’ll keep trying.' : notice || 'Lineup changes are temporarily unavailable. Customer updates will continue.'}
       </div>}
@@ -604,7 +606,8 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
       {draggedEntry && drag && createPortal(<>
         <div ref={dragPreview} className={styles.dragPreview} aria-hidden="true" data-lineup-drag-preview
           style={{width: drag.previewWidth, minHeight: drag.previewHeight, transform: `translate3d(${drag.x - drag.offsetX}px, ${drag.y - drag.offsetY}px, 0)`}}>
-          <div className={styles.previewPerson}><svg className={styles.grip} width="16" height="20" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true">{[5, 10, 15].flatMap(y => [5, 11].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.4" />))}</svg><strong>{draggedEntry.name}</strong></div>
+          <div className={styles.previewPerson}><svg className={styles.grip} width="16" height="20" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true">{[5, 10, 15].flatMap(y => [5, 11].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.4" />))}</svg><strong>{draggedGroup?.name ?? draggedEntry.name}</strong></div>
+          {draggedGroup && draggedGroup.members.length > 1 && <span className={styles.previewCaption}>{draggedGroup.members.length} orders · moving together</span>}
           {audienceMatches[draggedEntry.id] && <div className={`${styles.chips} ${styles.previewChips}`}>
             {audienceMatches[draggedEntry.id].birthday && <span>🎂 {audienceMatches[draggedEntry.id].birthday}</span>}
             {audienceMatches[draggedEntry.id].preferences.map((value, index) => <span key={index}>{value}</span>)}

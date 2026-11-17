@@ -3,6 +3,7 @@ import { act, createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
+import { moveLineupCustomer } from '@/lib/live-lineup/grouping'
 import { projectPublicLineup } from '@/lib/amethyst/public-live-lineup'
 
 const audience = vi.hoisted(() => ({ matches: {} as Record<string, unknown>, finishGesture: vi.fn() }))
@@ -58,6 +59,10 @@ beforeEach(() => {
       const index = current.entries.findIndex(entry => entry.id === command.entryId)
       const entries = [...current.entries], held = [...current.heldEntries]
       const [entry] = entries.splice(index, 1)
+      if (command.type === 'move-customer') {
+        const moved = moveLineupCustomer(current.entries, command.entryId, command.beforeEntryId)!
+        entries.splice(0, entries.length, ...moved)
+      } else
       if (command.type === 'hold') held.push(entry)
       else if (command.type === 'reveal-next') entries.unshift(entry)
       else entries.splice(command.beforeEntryId === null ? entries.length : entries.findIndex(item => item.id === command.beforeEntryId), 0, entry)
@@ -126,7 +131,7 @@ describe('Concept C Live Lineup', () => {
   it('expands and collapses only grouped rows, preserving each order target in the card and pop-out', async () => {
     await mount()
     for (const full of [false, true]) {
-      for (const action of ['move', 'hold', 'reveal-next']) {
+      for (const action of ['hold', 'reveal-next']) {
         await reset()
         if (full) await click(button('↗ Full lineup'))
         const scope = full ? document.querySelector('dialog')! : host
@@ -137,10 +142,8 @@ describe('Concept C Live Lineup', () => {
         await click(expander); expect(expander.getAttribute('aria-expanded')).toBe('false')
         await click(expander)
         const target = scope.querySelector<HTMLElement>('[data-lineup-entry="order-3"]')!
-        if (action === 'move') await act(async () => target.querySelector('button[data-lineup-grab]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true })))
-        else await click(button(action === 'hold' ? 'Hold' : 'Reveal next', target))
+        await click(button(action === 'hold' ? 'Hold' : 'Reveal next', target))
         expect(writes).toEqual([expect.objectContaining({ type: action, entryId: 'order-3' })])
-        if (action === 'move') expect(writes[0].beforeEntryId).toBeNull()
       }
     }
   })
@@ -155,30 +158,22 @@ describe('Concept C Live Lineup', () => {
       orders.forEach((order, index) => {
         expect(order.querySelector('strong')?.textContent).toBe('Order ' + (index + 1))
         expect(Array.from(order.querySelectorAll('button[data-lineup-grab] > span')).filter(span => /^\d+$/.test(span.textContent ?? ''))).toHaveLength(0)
-        expect(order.querySelector('button[data-lineup-grab]')?.getAttribute('aria-label')).toContain('position ' + (index + 2))
+        expect(order.querySelector('button[data-lineup-grab]')).toBeNull()
       })
       const next = scope.querySelector('[aria-label="Kelly, position 3"]')!
       expect(next.querySelector('button[data-lineup-grab] > span')?.textContent).toBe('3')
     }
   })
-  it('arrow key on an order moves that order id after the list reorders', async () => {
-    vi.useFakeTimers()
+  it.each([false, true])('moves a whole customer using the keyboard in full=%s', async (full) => {
     await mount()
-    await click(host.querySelector<HTMLButtonElement>('button[aria-expanded]')!)
-    const focused = host.querySelector<HTMLButtonElement>('[data-lineup-entry="order-3"] button[data-lineup-grab]')!
-    focused.focus()
-    const reordered = [current.entries[2], current.entries[0], current.entries[1], current.entries[3]]
-      .map((entry, index) => ({ ...entry, position: index + 1 }))
-    current = { ...current, revision: 2, entries: reordered, management: { ...current.management!, candidates: reordered } }
-    await act(async () => {
-      vi.advanceTimersByTime(5000)
-      // Resolve the poll while retaining the focused DOM's previous render inside this act scope.
-      for (let i = 0; i < 5; i++) await Promise.resolve()
-      expect(focused.isConnected).toBe(true)
-      expect(focused.getAttribute('aria-label')).toBe('Move Danielle, position 3')
-      focused.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }))
-    })
-    expect(writes).toEqual([{ type: 'move', entryId: 'order-3', beforeEntryId: 'order-2' }])
+    if (full) await click(button('↗ Full lineup'))
+    const scope = full ? document.querySelector('dialog')! : host
+    await click(button('2 orders for Danielle', scope))
+    const handle = button('Move Danielle, position 2', scope)
+    await act(async () => handle.dispatchEvent(new KeyboardEvent('keydown', {key: 'End', bubbles: true, cancelable: true})))
+    expect(writes).toEqual([{type: 'move-customer', entryId: 'order-2', beforeEntryId: null}])
+    expect(current.entries.map(entry => entry.id)).toEqual(['order-1', 'order-4', 'order-2', 'order-3'])
+    expect(scope.querySelectorAll('[data-lineup-order-detail] [data-lineup-grab]')).toHaveLength(0)
   })
   it('needs_clarification shows Which customer?', async () => {
     audience.matches['order-2'] = { id: 'order-2', status: 'unavailable', birthday: null, preferences: [] }
@@ -215,9 +210,10 @@ describe('Live Lineup drag resize regression', () => {
     host.querySelector<HTMLElement>('[aria-label="Customers waiting"]')!.getBoundingClientRect = () => ({ bottom: 210 } as DOMRect)
     const handle = button('Move Dinelle, position 1')
     let captured = false
-    handle.setPointerCapture = () => { captured = true }
-    handle.hasPointerCapture = () => captured
-    handle.releasePointerCapture = () => { captured = false }
+    const captureTarget = handle.closest<HTMLElement>('[data-lineup-active]')!
+    captureTarget.setPointerCapture = () => { captured = true }
+    captureTarget.hasPointerCapture = () => captured
+    captureTarget.releasePointerCapture = () => { captured = false }
     const pointer = async (type: string, y: number) => act(async () => {
       const event = new MouseEvent(type, { bubbles: true, cancelable: true, button: 0, clientX: 100, clientY: y })
       Object.defineProperties(event, { isPrimary: { value: true }, pointerId: { value: 1 } })
@@ -234,7 +230,7 @@ describe('Live Lineup drag resize regression', () => {
       expect(document.querySelector('[data-lineup-drag-preview]')).not.toBeNull()
       await pointer('pointermove', 200)
       await pointer('pointerup', 200)
-      expect(writes).toEqual([{ type: 'move', entryId: 'order-1', beforeEntryId: null }])
+      expect(writes).toEqual([{ type: 'move-customer', entryId: 'order-1', beforeEntryId: null }])
       expect(current.entries.at(-1)?.id).toBe('order-1')
     } else {
       expect(captured).toBe(false)
@@ -243,5 +239,44 @@ describe('Live Lineup drag resize regression', () => {
       expect(writes).toEqual([])
       expect(host.textContent).toContain('The view changed size')
     }
+  })
+})
+
+describe('Live Lineup whole-customer pointer moves', () => {
+  it.each([false, true])('drags an expanded customer as one block in full=%s', async (full) => {
+    await mount()
+    if (full) await click(button('↗ Full lineup'))
+    const scope = full ? document.querySelector('dialog')! : host
+    await click(button('2 orders for Danielle', scope))
+    const scroller = scope.querySelector<HTMLElement>('[role="region"]')!
+    Object.defineProperty(scroller, 'clientWidth', {configurable: true, value: 300})
+    scroller.getBoundingClientRect = () => ({left: 0, right: 300, top: 0, bottom: 400, width: 300, height: 400} as DOMRect)
+    scope.querySelector<HTMLElement>('[aria-label="Customers waiting"]')!.getBoundingClientRect = () => ({bottom: 300} as DOMRect)
+    const rows = scope.querySelectorAll<HTMLElement>('[data-lineup-active]')
+    expect(rows).toHaveLength(3)
+    rows.forEach((row, index) => { row.getBoundingClientRect = () => ({left: 0, right: 300, top: index * 100, bottom: (index + 1) * 100, width: 300, height: 100} as DOMRect) })
+    const target = button('Move Danielle, position 2', scope)
+    const row = target.closest<HTMLElement>('[data-lineup-active]')!
+    let captured = false
+    row.setPointerCapture = () => { captured = true }
+    row.hasPointerCapture = () => captured
+    row.releasePointerCapture = () => { captured = false }
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1))
+    vi.stubGlobal('cancelAnimationFrame', vi.fn())
+    const pointer = async (type: string, y: number) => act(async () => {
+      const event = new MouseEvent(type, {bubbles: true, cancelable: true, button: 0, clientX: 100, clientY: y})
+      Object.defineProperties(event, {isPrimary: {value: true}, pointerId: {value: 1}})
+      target.dispatchEvent(event)
+    })
+    await pointer('pointerdown', 120)
+    await pointer('pointermove', 140)
+    expect(captured).toBe(true)
+    expect(document.querySelector('[data-lineup-drag-preview]')?.textContent).toContain('2 orders · moving together')
+    await pointer('pointermove', 280)
+    await pointer('pointerup', 280)
+    expect(writes).toEqual([{type: 'move-customer', entryId: 'order-2', beforeEntryId: null}])
+    expect(current.entries.map(entry => entry.id)).toEqual(['order-1', 'order-4', 'order-2', 'order-3'])
+    expect(scope.textContent).toContain('Danielle')
+    expect(document.querySelector('[data-lineup-drag-preview]')).toBeNull()
   })
 })

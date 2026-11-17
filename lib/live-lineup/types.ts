@@ -141,7 +141,7 @@ export interface SourcePacket {
   revealedEntries?: Pick<SourceEntry, 'id' | 'orderedAt'>[]
 }
 export type LineupCommand = { expectedRevision: number } & (
-  | { type: 'move'; entryId: string; beforeEntryId: string | null }
+  | { type: 'move' | 'move-customer'; entryId: string; beforeEntryId: string | null }
   | { type: 'hold' | 'return' | 'reveal-next'; entryId: string }
   | { type: 'undo' }
   | { type: 'start-show'; partyIds: string[]; carryEntryIds: string[]; confirmed: true }

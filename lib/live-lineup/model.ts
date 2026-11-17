@@ -1,3 +1,4 @@
+import { moveLineupCustomer } from './grouping'
 import { FAILURE_STAGES, VALUE_FORMATS, VALUE_LENGTHS, VALUE_CHARACTERS, type ParserFailure, type ValueShape, type IdentityEvidence, type DiagnosticHistoryEntry } from './types'
 import { UPDATE_STATES, STRUCTURE_COLUMNS, STRUCTURE_BUCKETS, type ParserStructure, type UpdateState, INVALID_PARSER_REASONS, LOADING_PARSER_REASONS, PARTIAL_PARSER_REASONS, type ParserReason, type PublisherDiagnostics } from './types'
 import type { AcceptedObservation, LineupCommand, LineupResult, LineupState, ParserState, PartyAbsence, RevealRestoration, SourceEntry, SourcePacket, WorkspaceLineupSnapshot } from './types'
@@ -434,7 +435,7 @@ export function parseLineupCommand(input: unknown): LineupCommand | null {
   if (c.type === 'filter-parties' && validParties(c.excludedPartyIds))
     return {type: 'filter-parties', excludedPartyIds: [...c.excludedPartyIds].sort(), expectedRevision: c.expectedRevision}
   if (!validId(c.entryId)) return null
-  if (c.type === 'move' && (c.beforeEntryId === null || validId(c.beforeEntryId)))
+  if ((c.type === 'move' || c.type === 'move-customer') && (c.beforeEntryId === null || validId(c.beforeEntryId)))
     return { type: c.type, entryId: c.entryId, beforeEntryId: c.beforeEntryId as string | null, expectedRevision: c.expectedRevision }
   if (c.type === 'hold' || c.type === 'return' || c.type === 'reveal-next')
     return { type: c.type, entryId: c.entryId, expectedRevision: c.expectedRevision }
@@ -765,7 +766,13 @@ export function applyLineupCommand(state: LineupState, input: unknown, now: numb
     held = [...state.undo.held.filter(id => current.has(id)), ...held.filter(id => !previous.has(id))]
   } else {
     if (!state.entries.some(e => e.id === command.entryId)) return fail('entry_not_found')
-    if (command.type === 'move') {
+    if (command.type === 'move-customer') {
+      const entriesById = new Map(state.entries.map(entry => [entry.id, entry]))
+      const ordered = order.map(id => entriesById.get(id)!)
+      const moved = moveLineupCustomer(ordered, command.entryId, command.beforeEntryId, buildWorkspaceLineupSnapshot(state, now, true).entries)
+      if (!moved) return fail('invalid_move')
+      order = moved.map(entry => entry.id)
+    } else if (command.type === 'move') {
       if (!order.includes(command.entryId) || command.beforeEntryId === command.entryId
         || (command.beforeEntryId !== null && !order.includes(command.beforeEntryId))) return fail('invalid_move')
       order = order.filter(id => id !== command.entryId)

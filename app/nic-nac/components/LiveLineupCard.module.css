@@ -276,3 +276,21 @@
     box-sizing: border-box;
   }
 }
+
+/* Customer moves as one block; only the count opens individual order details. */
+.card .orderToggle, .dialog .orderToggle {
+  display: inline-flex; align-items: center; gap: 8px; width: auto;
+  margin: 6px 0 0 22px; padding: 4px 10px; min-height: 30px;
+  border: 1px solid var(--workspace-border); border-radius: 999px;
+  background: var(--dash-lilac); color: var(--dash-amethyst);
+  font-size: 11px; font-weight: 750; cursor: pointer;
+}
+.orderToggle span { font-size: 17px; line-height: 1; }
+.orderName { display: block; padding: 2px 0 2px 22px; font-size: 13px; }
+.fullDialog .row > .orderToggle { grid-column: 1; grid-row: 2; justify-self: start; }
+@media (min-width: 841px) {
+  .compact > .scroll > .list > .row > .orderToggle { flex: 0 0 auto; margin: 0; }
+}
+@media (pointer: coarse) {
+  .card .orderToggle, .dialog .orderToggle { min-height: 44px; }
+}
