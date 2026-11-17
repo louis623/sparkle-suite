@@ -497,7 +497,6 @@ function LiveLineupUpdatedAt({ lineup }) {
   if (!Number.isFinite(updatedAt)) return null;
   return (
     <div className="hp-trade-preview-updated">
-      {lineup?.liveQueueState === "delayed" && <span>Working on live lineup issue. We will have it back up and running soon </span>}
       <time
       dateTime={new Date(updatedAt).toISOString()}
       title={serverClock ? undefined : homepageDateLabel(updatedAt, { dateStyle: "short", timeStyle: "medium" }, window.AMETHYST_HOMEPAGE_EVENTS?.[0]?.timeZone)}

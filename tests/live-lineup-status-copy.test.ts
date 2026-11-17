@@ -95,17 +95,17 @@ describe('Live Lineup status copy', () => {
       tone: 'good',
     })
     expect(popup({ scopePending: true, lastReadyAckAt: 1, parserState: 'loading' })).toMatchObject({
-      title: 'Connected + Updating',
-      tone: 'good',
+      title: 'Reconnecting',
+      tone: 'warn',
     })
     expect(popup({ parserReason: 'table_busy', parserState: 'loading', lastReadyAckAt: 1 })).toMatchObject({
-      title: 'Connected + Updating',
-      tone: 'good',
+      title: 'Reconnecting',
+      tone: 'warn',
       detail: 'Bomb Party is updating its orders.',
     })
     expect(popup({ parserReason: 'table_settling', lastReadyAckAt: 1 })).toMatchObject({
-      title: 'Connected + Updating',
-      tone: 'good',
+      title: 'Reconnecting',
+      tone: 'warn',
     })
   })
 

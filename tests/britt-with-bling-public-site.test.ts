@@ -443,7 +443,7 @@ describe('Britt With Bling hybrid public site contract', () => {
 
     expect(source).toContain('CONTENT.showAboutSection &&')
     expect(source).toContain('<AboutSection repName={repName} hideEmptyMedia />')
-    expect(source).toContain('if (hideEmptyMedia && !presentation.provider) return null;')
+    expect(source).toContain('if (hideEmptyMedia && !presentation.isPopulated) return null;')
   })
 
   it('scrubs stale live queue operational copy for Brittany customers', () => {
@@ -467,9 +467,8 @@ describe('Britt With Bling hybrid public site contract', () => {
     })
 
     expect(enriched.liveQueueState).toBe('delayed')
-    expect(enriched.liveQueueSummary).toBe(
-      'Working on live lineup issue. We will have it back up and running soon',
-    )
+    expect(enriched.liveQueueSummary).toBe('Check the calendar for the next show.')
+    expect(enriched.liveQueueSummary).not.toMatch(/issue|difficult/i)
     expect(enriched.tickerTopText).not.toContain('stale')
   })
 
