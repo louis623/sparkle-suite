@@ -294,3 +294,5 @@
 @media (pointer: coarse) {
   .card .orderToggle, .dialog .orderToggle { min-height: 44px; }
 }
+
+.fullDialog .row > .actions { grid-row: 2; }
