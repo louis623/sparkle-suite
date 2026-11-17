@@ -53,11 +53,6 @@ function playChime() {
 
 export function TradeRequestAlertCenter({
   requests,
-  pendingCount,
-  refreshError,
-  onReview,
-  alertTarget,
-  mobileAlertTarget,
   soundTarget,
 }: {
   requests: TradeRequestWithListing[]
@@ -70,7 +65,6 @@ export function TradeRequestAlertCenter({
 }) {
   const [chimeEnabled, setChimeEnabled] = useState(false)
   const [ready, setReady] = useState(false)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -101,36 +95,10 @@ export function TradeRequestAlertCenter({
     return () => window.clearTimeout(timer)
   }, [chimeEnabled, ready, requests])
 
-  const selectedIndex = requests.findIndex((request) => request.id === selectedId)
-  const activeIndex = selectedIndex < 0 ? 0 : selectedIndex
-  const active = requests[activeIndex]
-
-  function moveRequest(direction: -1 | 1) {
-    if (requests.length < 2) return
-    setSelectedId((currentId) => {
-      const currentIndex = requests.findIndex((request) => request.id === currentId)
-      const start = currentIndex < 0 ? 0 : currentIndex
-      return requests[(start + direction + requests.length) % requests.length].id
-    })
-  }
-
-  const renderAlert = () => active ? (
-    <TradeRequestAlertCard
-      active={active}
-      activeIndex={activeIndex}
-      requestCount={requests.length}
-      pendingCount={pendingCount}
-      refreshError={refreshError}
-      onPrevious={() => moveRequest(-1)}
-      onNext={() => moveRequest(1)}
-      onReview={onReview}
-    />
-  ) : null
-
+  // Requests are reviewed in the conversation and Dance Floor inbox.
+  // Keep the opt-in chime, without occupying the Nic-Nac conversation area.
   return (
     <>
-      {alertTarget && !mobileAlertTarget ? createPortal(renderAlert(), alertTarget) : null}
-      {mobileAlertTarget ? createPortal(renderAlert(), mobileAlertTarget) : null}
       {soundTarget ? createPortal(
         <TradeAlertSoundControls
           enabled={chimeEnabled}

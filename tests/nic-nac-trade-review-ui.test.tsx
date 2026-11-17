@@ -119,13 +119,15 @@ describe('rep trade review UI', () => {
     expect(css).toContain('prefers-reduced-motion: reduce')
   })
 
-  it('mounts the request card below the chat and sound controls on the Dance Floor', () => {
+  it('keeps the carousel unmounted and sound controls on the Dance Floor', () => {
     const source = readFileSync(resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'), 'utf8')
     const board = readFileSync(resolve(process.cwd(), 'app/nic-nac/components/TradeBoardWorkspaceCard.tsx'), 'utf8')
-    expect(source).toContain('alertTarget={homeTradeAlertTarget}')
-    expect(source).toContain('mobileAlertTarget={mobileTradeAlertTarget}')
+    const alert = readFileSync(resolve(process.cwd(), 'app/nic-nac/components/TradeRequestAlertCenter.tsx'), 'utf8')
+    expect(alert).not.toContain('createPortal(renderAlert()')
+    expect(alert).not.toContain('const renderAlert')
+    expect(alert).toContain('<TradeAlertSoundControls')
     expect(source).toContain('soundTarget={tradeSoundTarget}')
-    expect(source.indexOf('<div ref={onTradeAlertTarget}')).toBeGreaterThan(source.indexOf('<div className={styles.embeddedChat}>{chat}</div>'))
+    expect(source).toContain('<div className={styles.embeddedChat}>{chat}</div>')
     expect(board).toContain('<div ref={props.onSoundSettingsTarget}')
     const css = readFileSync(resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.module.css'), 'utf8')
     expect(css).toContain('.homeTradeAlertSlot')
