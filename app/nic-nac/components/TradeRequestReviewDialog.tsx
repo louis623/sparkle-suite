@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import type { TradeRequestWithListing } from '@/lib/services/types'
 import { screenTradeOffer } from '@/lib/services/trade-request-matcher'
+import { offeredDimensions, orderLabel, requestTiming, screeningLabel } from '@/lib/nic-nac/swap-request-display'
 import { TradeScreenshotLink } from './TradeScreenshotLink'
 import styles from './TradeRequestReviewDialog.module.css'
 
@@ -51,7 +52,7 @@ export function TradeRequestReviewDialog({
 }) {
   const [action, setAction] = useState<'approve' | 'reject'>(initialAction)
   const [family, setFamily] = useState(request.offeredFamily ?? '')
-  const [type, setType] = useState(request.offeredType ?? '')
+  const [type, setType] = useState<string>(request.offeredType ?? '')
   const [confirmed, setConfirmed] = useState(false)
   const [finalConfirmation, setFinalConfirmation] = useState(false)
   const [itemNumber, setItemNumber] = useState('')
@@ -91,13 +92,14 @@ export function TradeRequestReviewDialog({
     }
   }
 
+  const timing = requestTiming(request.createdAt, request.revealScreenshot?.expiresAt)
   const requested = request.listing.design
   const requestedLabel = requested.itemNumber
     ? `${requested.itemNumber} — ${requested.designName}`
     : requested.designName
   const exception = request.manualReviewRequested && request.screening?.status === 'mismatch'
   const match = screenTradeOffer(family, type, requested.collectionName, requested.typePrefix)
-  const canApprove = Boolean(family.trim() && type && confirmed && finalConfirmation && match.status === 'likely_match')
+  const canApprove = Boolean(request.listing.quantityAvailable !== 0 && family.trim() && type && confirmed && finalConfirmation && match.status === 'likely_match')
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -145,10 +147,16 @@ export function TradeRequestReviewDialog({
         {exception ? <div className={styles.exception}><strong>Rule exception — rep review needed.</strong> {request.screening?.reason}</div> : null}
         <div className={styles.facts}>
           <p><strong>Requested dancer:</strong> {requestedLabel}</p>
+          <p>{request.listing.quantityAvailable === undefined ? null : request.listing.quantityAvailable + (request.listing.quantityAvailable === 1 ? " copy" : " copies") + " remaining"}</p>
           <p><strong>Requested family and type:</strong> {requested.collectionName ?? 'Needs verification'} · {requested.typePrefix}</p>
-          <p><strong>Customer says they revealed:</strong> {request.customerDescription}</p>
-          <p><strong>Submitted:</strong> {new Date(request.createdAt).toLocaleString()}</p>
-          {request.revealScreenshot ? <TradeScreenshotLink requestId={request.id} customerName={request.customerName} imageClassName={styles.screenshot} /> : <p>No screenshot attached. Verify the offered item directly.</p>}
+          {request.customerDescription && <p><strong>Customer says they revealed:</strong> {request.customerDescription}</p>}
+          <p>Offered: {offeredDimensions(request.offeredType, request.offeredFamily) || 'Not given'}</p>
+          <p>{screeningLabel(request.screening?.status)}</p>
+          <p>{[timing.age, orderLabel(request.pendingPosition), timing.expiry].filter(Boolean).join(" · ")}</p>
+          <div className={styles.comparison}>
+          {request.revealScreenshot && !request.photoExpired && !timing.expired ? <TradeScreenshotLink requestId={request.id} customerName={request.customerName} imageClassName={styles.screenshot} /> : <p>{request.photoExpired || request.revealScreenshot ? 'Photo expired after 7 days. Ask the customer to resend.' : 'No screenshot attached. Verify the offered item directly.'}</p>}
+          {request.dancerPhotoUrl && <img src={request.dancerPhotoUrl} alt={requestedLabel} className={styles.screenshot}/>}
+          </div>
         </div>
         <form onSubmit={submit} className={styles.form}>
           <div className={styles.tabs} role="group" aria-label="Swap decision">

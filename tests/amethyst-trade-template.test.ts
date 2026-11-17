@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { canSend, freezeSend, openTransport, publishReceipt, readJson } from '@/lib/amethyst/v2/swap-request-state.js'
+import { preparePhoto, safePreview } from '@/lib/amethyst/v2/swap-request-photo.js'
+import { describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -372,16 +374,12 @@ describe('Amethyst trade page template wiring', () => {
   })
 
   it('uses one stable browser UUID for the direct image upload and JSON request', () => {
-    const jsx = readFileSync(
-      resolve(process.cwd(), 'public/amethyst/trade.jsx'),
-      'utf8',
-    )
-
-    expect(jsx).toContain('useState(() => crypto.randomUUID())')
-    expect(jsx).toContain('const TRADE_UPLOAD_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/uploads")')
-    expect(jsx).toContain('body: JSON.stringify({ listingId, submissionId, contentType, byteSize: file.size })')
-    expect(jsx).toContain('submissionId: payload.submissionId')
-    expect(jsx).toContain('submissionId,')
+    const entry = readFileSync(resolve(process.cwd(), 'lib/amethyst/v2/trade.jsx'), 'utf8')
+    const sheet = readFileSync(resolve(process.cwd(), 'lib/amethyst/v2/swap-request-sheet.jsx'), 'utf8')
+    expect(entry).toContain('const TRADE_UPLOAD_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/uploads")')
+    expect(sheet).toContain('recovered?.submissionId || crypto.randomUUID()')
+    expect(sheet).toContain('identity: { listingId: piece.id, submissionId }')
+    expect(sheet).toContain('freezeSend({name, family, type, listingId: piece.id, submissionId')
   })
 
   it('maps non-item-number trade listings as ordinary customer-facing cards', () => {
@@ -750,48 +748,81 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).not.toContain('label: "Sparkle Party"')
   })
 
-  it('wires the customer trade request submission flow without a trade checkbox', () => {
-    const jsx = readFileSync(
-      resolve(process.cwd(), 'public/amethyst/trade.jsx'),
-      'utf8',
-    )
+  it('ships the two-screen customer form in the compiled runtime', () => {
+    const entry = readFileSync(resolve(process.cwd(), 'lib/amethyst/v2/trade.jsx'), 'utf8')
+    const sheet = readFileSync(resolve(process.cwd(), 'lib/amethyst/v2/swap-request-sheet.jsx'), 'utf8')
+    const upload = readFileSync(resolve(process.cwd(), 'lib/amethyst/v2/swap-request-photo.js'), 'utf8')
+    expect(entry).toContain('import { RequestSheet } from "./swap-request-sheet.jsx"')
+    for (const copy of ['Add a photo of your reveal','Crop out order and personal details.','Images are kept for 7 days.',
+      'Take a photo','Choose from library','Your details','Your name','Not you? Clear','What type did you reveal?',
+      'Which collection did you reveal?','Ask my rep to review anyway','View request status','Preview your photo',
+      'Change photo','Request another dancer with this photo']) expect(sheet).toContain(copy)
+    for (const removed of ['What did you just reveal?', 'Photo or screenshot of your reveal (optional)', 'Send without a photo',
+      'clickwrapAcknowledged', 'acceptedTerms']) expect(sheet).not.toContain(removed)
+    expect(upload).toContain('new FormData()')
+    expect(upload).toContain('xhr.upload.onprogress')
+    expect(entry).toContain('url.searchParams.set("photoPolicy", "1")')
+    expect(entry).toContain('window.setInterval(refreshIfVisible, TRADE_BOARD_REFRESH_MS)')
+    expect(sheet).toContain('src={preview}')
+    expect(sheet).not.toContain('src={ticket.')
+  })
 
-    expect(jsx).toContain('function RequestSheet')
-    expect(jsx).toContain('<label htmlFor="tp-customer-name">Your name</label>')
-    expect(jsx).toContain('<label htmlFor="tp-customer-reveal">What did you just reveal?</label>')
-    expect(jsx).toContain('placeholder="Example: July Birthday 2026 necklace"')
-    expect(jsx).toContain('Collection family you revealed')
-    expect(jsx).toContain('Jewelry type you revealed')
-    expect(jsx).toContain('screenTradeOfferRequest')
-    expect(jsx).toContain('Ask my rep to review anyway')
-    expect(jsx).toContain('Available dancers that may fit your reveal')
-    expect(jsx).toContain('Photo or screenshot of your reveal (optional)')
-    expect(jsx).toContain('Crop out personal and order information before uploading.')
-    expect(jsx).toContain('success?.warning')
-    expect(jsx).toContain('View request status')
-    expect(jsx).toContain('const uploadBody = new FormData()')
-    expect(jsx).not.toContain('form.append("revealScreenshot"')
-    expect(jsx).toContain('uploadId: payload.uploadId || null')
-    expect(jsx).toContain('offeredFamily: payload.offeredFamily')
-    expect(jsx).toContain('manualReviewRequested: payload.manualReviewRequested')
-    expect(jsx).toContain('Send without a photo')
-    expect(jsx).toContain('Attached and ready to send with your request.')
-    expect(jsx).toContain(
-      'const TRADE_REQUEST_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests")',
-    )
-    expect(jsx).toContain(
-      'const TRADE_BOARD_ENDPOINT = withCurrentSearch("/api/amethyst/trade-board")',
-    )
-    expect(jsx).toContain('function fetchTradeBoardListings')
-    expect(jsx).toContain('void refreshTradeBoardListings().catch(() => {})')
-    expect(jsx).toContain('TRADE_BOARD_REFRESH_MS')
-    expect(jsx).toContain('window.setInterval(refreshIfVisible')
-    expect(jsx).toContain('window.clearInterval')
-    expect(jsx).not.toContain('clickwrapAcknowledged')
-    expect(jsx).not.toContain('acceptedTerms')
-    expect(jsx).not.toContain('tp-sheet-consent')
-    expect(jsx).toContain('setSubmittedListingIds')
-    expect(jsx).toContain('type="file"')
+  it('allows a valid upload despite a failed local preview; photo-less eligibility never silently drops a selected upload', async () => {
+    const picture = new File([new Uint8Array(25)], 'camera.heic', {type:'image/heic'})
+    const raw = await preparePhoto(picture)
+    expect(raw.file).toBe(picture)
+    expect(raw.previewBlob).toBeNull()
+    const spy = vi.spyOn(URL, 'createObjectURL').mockImplementation(() => { throw Error('blocked preview') })
+    try { expect(safePreview(picture)).toBeNull() } finally { spy.mockRestore() }
+    const state = {name:'Alex',file:raw.file,ready:true,optional:false,pending:false,checking:false}
+    expect(canSend(state)).toBe(true)
+    expect(canSend({...state,optional:true,ready:false})).toBe(false)
+    expect(canSend({...state,file:null,optional:true,ready:false})).toBe(true)
+  })
+
+  it('keeps edited offer and explicit review choice when sending from screen one after Back', () => {
+    const state = {name:'Alex',family:'',type:'',listingId:'A',submissionId:'attempt',uploadId:'ready',manualReviewRequested:false}
+    expect(freezeSend(state)).toMatchObject({customerName:'Alex',offeredFamily:null,offeredType:null})
+    const edited = {...state,name:'  Alexis ',family:'Woodland Wishes',type:'ER',manualReviewRequested:true}
+    expect(freezeSend(edited)).toMatchObject({customerName:'Alexis',offeredType:'ER',offeredFamily:'Woodland Wishes',manualReviewRequested:true})
+  })
+
+  it('recognizes a durably closed retry only on an explicit server confirmation', async () => {
+    for (const flag of [undefined, false, 'true', true]) {
+      const response = Response.json({code:'PHOTO_REQUIRED',error:'Add a photo',attemptClosed:flag}, {status:400})
+      await expect(readJson(response,'Retry')).rejects.toMatchObject({code:'PHOTO_REQUIRED',attemptClosed:flag === true})
+    }
+  })
+
+  it('unlocks after 30 seconds and accepts only the current same-attempt transport and receipt', async () => {
+    vi.useFakeTimers()
+    try {
+      const lock = {current:null}
+      const pending = vi.fn()
+      const first = openTransport(lock,pending,() => true)!
+      expect(openTransport(lock,pending,() => true)).toBeNull()
+      let arrive!: (v: unknown) => void
+      const result = first.run(() => new Promise(resolve => {arrive = resolve}))
+      const timedOut = expect(result).rejects.toMatchObject({code:'TIMEOUT'})
+      await vi.advanceTimersByTimeAsync(30_000)
+      await timedOut
+      expect(first.finish()).toBe(true)
+      expect(pending).toHaveBeenLastCalledWith(false)
+      const lookup = openTransport(lock,pending,() => true)!
+      expect(await lookup.run(async () => ({outcome:'absent'}))).toEqual({outcome:'absent'})
+      lookup.finish()
+      const retry = openTransport(lock,pending,() => true)!
+      const receipt = {listingId:'A',requestId:'ace11111-1111-4111-8111-111111111111',receiptUrl:'/trade-request/status/'+'b'.repeat(64)}
+      arrive(receipt)
+      expect(first.current()).toBe(false)
+      expect(first.finish()).toBe(false)
+      expect(pending).toHaveBeenLastCalledWith(true)
+      const published = vi.fn()
+      publishReceipt(await retry.run(async () => receipt),{listingId:'A',customerName:'Alex'},published,null)
+      expect(published).toHaveBeenCalledTimes(1)
+      expect(published).toHaveBeenCalledWith(receipt)
+      expect(retry.finish()).toBe(true)
+    } finally { vi.useRealTimers() }
   })
 
   it('keeps public dancer cards free of price fields and repeated rep disclosures', () => {
@@ -810,16 +841,10 @@ describe('Amethyst trade page template wiring', () => {
     expect(tip).toContain('color: var(--hp-tip-ink);')
   })
 
-  it('keeps trade request success and error sheets visible after board refreshes', () => {
-    const jsx = readFileSync(
-      resolve(process.cwd(), 'public/amethyst/trade.jsx'),
-      'utf8',
-    )
-
-    expect(jsx).toContain('setSuccess(true)')
-    expect(jsx).toContain('<h3 id="trade-request-title" className="tp-sheet-success-title">Request sent.</h3>')
-    expect(jsx).toContain('setRequestError(error?.message || DEFAULT_TRADE_REQUEST_ERROR)')
-    expect(jsx).not.toContain('}, [availableSamples, t.demoSheet]);')
-    expect(jsx).toContain('}, [t.demoSheet]);')
+  it('keeps the active request sheet mounted across board refreshes', () => {
+    const entry = readFileSync(resolve(process.cwd(), 'lib/amethyst/v2/trade.jsx'), 'utf8')
+    expect(entry).toContain('<RequestSheet key={requesting.id}')
+    expect(entry).toContain('}, [t.demoSheet]);')
+    expect(entry).not.toContain('}, [availableSamples, t.demoSheet]);')
   })
 })

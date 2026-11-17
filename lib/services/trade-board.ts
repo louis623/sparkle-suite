@@ -209,6 +209,28 @@ function isManagedRepListingPhotoUrl(repId: string, photoUrl: string): boolean {
   }
 }
 
+/** Rep-route-only whole-board attention; deliberately not part of getMyBoard. */
+export async function getDanceFloorAttention(supabase: SupabaseClient, repId: string) {
+  let photosToFix = 0
+  // Page explicitly so PostgREST's row cap cannot turn this into a first-page count.
+  const pageSize = 500
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase.from('trade_listings')
+      .select(LISTING_SELECT).eq('rep_id', repId).eq('status', 'available')
+      .order('id', { ascending: true }).range(offset, offset + pageSize - 1)
+    if (error) throw error
+    const rows = (data ?? []) as unknown as Array<Omit<TradeListingWithDesign, 'design'> & {
+      design: TradeListingWithDesign['design'] | TradeListingWithDesign['design'][]
+    }>
+    for (const row of rows) {
+      const listing = { ...row, design: Array.isArray(row.design) ? row.design[0] : row.design } as TradeListingWithDesign
+      if (!getTradeListingDisplayFields(listing).photoUrl) photosToFix++
+    }
+    if (rows.length < pageSize) break
+  }
+  return { photosToFix }
+}
+
 export async function getMyBoard(
   supabase: SupabaseClient,
   repId: string,

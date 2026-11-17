@@ -1,4 +1,18 @@
+## November 15, 2026 — Dance Floor Phase 1 bounded Smoke draft
+
+Louis's Phase 1 build request explicitly authorizes the minimal Smoke-only registration of `codex/suite-dance-floor-phase1-page-frame`, stacked on `codex/suite-swap-request-redesign-rebased` at `1989251c66ddde7cfc3906d517a12a1eb08b54c1`. This disposable Sandbox branch is limited to project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`), environment `preview`. No guard change, production/default branch change, Live release, or change to another branch's rules is authorized. PR #193 and PR #199 stay untouched. All candidate commits carry `[skip ci]`.
+
+## November 14, 2026 — Dance Floor Phase 0 bounded Smoke draft
+
+Louis explicitly approved registration of `codex/suite-swap-request-redesign-rebased` for Smoke project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` / `preview`. Disposable remote checkout: `/vercel/suite`. Rebase-only candidate from PR #193 head `eb5d892f1e599f6b491652cf5e41e0e1eef0c991` onto production `a4a7d5fbd688b615e34ec3cd179254eba3c0220b`; PR #193 remains untouched.
+
+Every candidate commit includes `[skip ci]`. One new draft PR, five named Phase 0 test files, and at most two Smoke document loads are authorized. Required checks remain required; skipped or pending is not passing. No merge, Live deployment, Live alias, GitHub default-branch or Vercel production-branch change is authorized. Live requires Louis's own typed approval.
+
 # Sparkle Suite Branch Register
+
+## November 13 — Dance Floor swap-request v9 Smoke review
+
+Louis authorized codex/suite-swap-request-redesign from 0a763690 in the suite-swap-request-redesign disposable worktree, only for Suite Smoke project prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ, Preview deployment with explicit alias assignment on that Smoke project, database pukemqiwlyqmyytxkdmo. The exclusive review window covers the stable Smoke alias, reviewer persona and global policy. Restore the prior deployment after fixture teardown. Draft commits use [skip ci]. This exception expires with draft review; remove before release. No Live deployment or merge.
 
 ## November 10 — TikTok Link Queue, Smoke only
 

@@ -65,6 +65,7 @@ export async function GET(request: Request) {
     const { repId, supabase } = await getPaidNicNacContext()
     const requests = await getTradeRequests(supabase, repId, {
       statusFilter,
+      ...(summary || requestId || url.searchParams.get('order') === 'dancer' ? { pendingDancerOrder: true } : {}),
       limit: summary ? 8 : limit ?? undefined,
       offset,
       requestId,

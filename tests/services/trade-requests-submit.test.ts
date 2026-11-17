@@ -1,3 +1,4 @@
+import { screenTradeOffer } from '@/lib/services/trade-request-matcher'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -68,7 +69,7 @@ describe('submitTradeRequest', () => {
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-only-receipt-secret')
   })
 
-  it('calls v4 and returns a private receipt without checkbox acknowledgement', async () => {
+  it('calls v5 and returns a private receipt without checkbox acknowledgement', async () => {
     rpc.mockResolvedValueOnce({
       data: { request_id: 'request-1', listing_id: 'listing-1' },
       error: null,
@@ -86,7 +87,7 @@ describe('submitTradeRequest', () => {
       receiptUrl: expect.stringMatching(/^\/trade-request\/status\/[a-f0-9]{64}$/),
     })
 
-    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v4', expect.objectContaining({
+    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v5', expect.objectContaining({
       p_listing_id: 'listing-1',
       p_customer_name: 'Jamie',
       p_customer_description: 'Birthday ring, size 8',
@@ -119,7 +120,7 @@ describe('submitTradeRequest', () => {
       mutationReplayed: true,
     })
     expect(replay.receiptUrl).toBe(first.receiptUrl)
-    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v4', expect.objectContaining({
+    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v5', expect.objectContaining({
       p_listing_id: 'listing-1',
       p_customer_name: 'Jamie',
       p_customer_description: 'Birthday ring, size 8',
@@ -127,7 +128,7 @@ describe('submitTradeRequest', () => {
     }))
   })
 
-  it('passes the confirmed image ticket through v4 on submit and replay', async () => {
+  it('passes the confirmed image ticket through v5 on submit and replay', async () => {
     rpc.mockResolvedValue({
       data: { request_id: 'request-1', listing_id: 'listing-1', mutation_replayed: true },
       error: null,
@@ -141,10 +142,20 @@ describe('submitTradeRequest', () => {
     const replay = await submitTradeRequest(supabase as never, input)
     expect(replay.receiptUrl).toBe(first.receiptUrl)
     expect(rpc).toHaveBeenCalledTimes(2)
-    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v4', expect.objectContaining({
+    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v5', expect.objectContaining({
       p_submission_id: input.submissionId,
       p_upload_id: input.uploadId,
     }))
+  })
+
+  it('preserves raw named family, empty description provenance, and receipt identity',async()=>{
+    const input = {listingId:'listing-1',customerName:' Jamie ',customerDescription:'',offeredFamily:'Woodland Wishes',offeredType:'RG' as const,submissionId:'00000000-0000-4000-8000-000000000001'}
+    expect(screenTradeOffer(input.offeredFamily,input.offeredType,'Woodland Wishes','RG').status).toBe('likely_match')
+    rpc.mockResolvedValueOnce({data:{request_id:'request-1',listing_id:'listing-1'},error:null})
+    await submitTradeRequest(supabase as never,input)
+    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v5',expect.objectContaining({p_customer_description:'',p_offered_family:'Woodland Wishes'}))
+    rpc.mockResolvedValueOnce({data:{request_id:'wrong',listing_id:'listing-2'},error:null})
+    await expect(submitTradeRequest(supabase as never,input)).rejects.toMatchObject({code:'INVALID_INPUT'})
   })
 
   it('maps a non-ready image ticket to a customer-actionable failure', async () => {
