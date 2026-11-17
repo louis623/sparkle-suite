@@ -21,11 +21,11 @@
     const ownControls = !controls;
     if (!controls) {
       controls = document.createElement('div'); controls.className = 'sb-controls'; controls.setAttribute('role', 'group'); controls.setAttribute('aria-label', 'Christmas scene controls');
-      controls.innerHTML = '<div class="sb-actions">'+(video?'<button type="button" class="sb-toggle" data-hero-motion-toggle>Pause animation</button>':'')+'<button type="button" class="sb-music-toggle">Play music</button><button type="button" class="sb-mute-toggle">Mute</button></div>'+credit;
+      controls.innerHTML = '<div class="sb-actions">'+(video?'<button type="button" class="sb-toggle" data-hero-motion-toggle>Pause animation</button>':'')+'<button type="button" class="sb-music-toggle">Play music</button></div>'+credit;
       const danceFloor = hero.querySelector('.hp-hero-trade-board-cta');
       if (danceFloor) danceFloor.after(controls); else hero.append(controls);
     }
-    const motion = controls.querySelector('[data-hero-motion-toggle]'), musicButton = controls.querySelector('.sb-music-toggle'), muteButton = controls.querySelector('.sb-mute-toggle'), status = controls.querySelector('.sb-status');
+    const motion = controls.querySelector('[data-hero-motion-toggle]'), musicButton = controls.querySelector('.sb-music-toggle'), status = controls.querySelector('.sb-status');
     // Audio is outside React's tree and never shares the eleven-second video timeline.
     const audio = document.createElement('audio'); audio.preload = 'none'; audio.loop = true; audio.volume = .18; audio.dataset.silverBellsAudio = 'true'; document.body.append(audio);
     const connection = navigator.connection;
@@ -39,7 +39,6 @@
     function label() {
       if (motion) { motion.textContent = wanted ? 'Pause animation' : 'Play animation'; motion.setAttribute('aria-pressed', String(wanted)); motion.disabled = videoFailed; }
       musicButton.textContent = musicWanted ? 'Pause music' : 'Play music'; musicButton.setAttribute('aria-pressed', String(musicWanted)); musicButton.disabled = audioFailed;
-      muteButton.textContent = audio.muted ? 'Unmute' : 'Mute'; muteButton.setAttribute('aria-pressed', String(audio.muted));
     }
     function update() {
       if (disposed) return;
@@ -67,7 +66,6 @@
     }
     on(motion,'click',() => { wanted = !wanted; ready = true; update(); });
     on(musicButton,'click',() => { musicWanted = !musicWanted; status.textContent = ''; update(); });
-    on(muteButton,'click',() => { audio.muted = !audio.muted; label(); });
     on(video,'playing',() => { if (!wanted || !visible || document.hidden) video.pause(); else media.setAttribute('data-sb-has-frame','true'); });
     on(video,'error',() => { videoFailed = true; wanted = false; media.removeAttribute('data-sb-has-frame'); status.textContent = 'Animation unavailable; showing the still scene.'; update(); });
     on(audio,'error',() => { audioFailed = true; musicWanted = false; status.textContent = 'Music unavailable.'; update(); });

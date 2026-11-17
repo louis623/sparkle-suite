@@ -30,6 +30,40 @@ for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
       const html = await renderHomepageFirstPaint(source, { homepage: saved, join, trade, appearancePreset: preset }, new URL('https://sparkle-suite-smoke.vercel.app/dudesfizzfest'), bootstrap)
       const kitchenBespoke = layout === 'bling_kitchen' && preset !== 'halloween_pumpkin_cat'
       // Christmas scenes have a dedicated idle/visibility-aware controller.
+      if (preset === 'silver_bells') {
+        expect(html).toContain('data-customer-theme="silver_bells"')
+        expect(html).toContain('data-server-rendered="true"')
+        expect(html.match(/<h1\b/g)).toHaveLength(1)
+        expect(html).toContain('data-ssr-style="silver-bells.css"')
+        expect(html).toContain('/ssr-motion/silver-bells.js')
+        expect(html).not.toContain('sb-mute-toggle')
+        expect(html).not.toContain('>Mute</button>')
+        expect(html).not.toContain('>Enable music</button>')
+        if (layout === 'standard') {
+          expect(html).toContain('data-ssr-hero="silver_bells"')
+          expect(html).toContain('class="sb-controls"')
+          expect(html).toContain('>Pause animation</button>')
+          expect(html).toContain('>Play music</button>')
+          expect(html).toContain('Kevin MacLeod')
+          expect(html).toContain('CC BY 4.0')
+          expect(html.match(/data-hero-motion-toggle=""/g)).toHaveLength(1)
+          expect(html).toContain('hero-poster-phone.webp')
+          expect(html).not.toMatch(/<video[^>]*\ssrc="/)
+        } else if (layout === 'mile_high_fizz') {
+          expect(html).toContain('class="mhf-hero"')
+          expect(html).not.toContain('class="mhf-hero-video"')
+          expect(html).not.toContain('>Play music</button>')
+        } else if (layout === 'britt_with_bling') {
+          expect(html).toContain('class="bwb-hero"')
+          expect(html).not.toContain('class="bwb-hero-image"')
+          expect(html).not.toContain('>Play music</button>')
+        } else {
+          expect(html).toContain('class="bk-home-hero"')
+          expect(html).not.toContain('data-hero-motion-toggle=""')
+          expect(html).not.toContain('>Play music</button>')
+        }
+        return
+      }
       if (preset === 'starlight_christmas_hollow' || preset === 'macies_christmas_globe') {
         expect(html).toContain(`data-customer-theme="${preset}"`)
         expect(html).toContain('data-server-rendered="true"')

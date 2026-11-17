@@ -106,7 +106,7 @@ export function SparkleFx({ level, motion, className = "hp-fx-layer hp-hero-fx-l
 }
 
 export function SilverBellsControls({ motion = <button type="button" className="sb-toggle" data-hero-motion-toggle="" aria-pressed="true" suppressHydrationWarning>Pause animation</button> }) { return <div className="sb-controls" role="group" aria-label="Christmas scene controls">
-    <div className="sb-actions">{motion}<button type="button" className="sb-music-toggle" aria-pressed="false" suppressHydrationWarning>Play music</button><button type="button" className="sb-mute-toggle" aria-pressed="false" suppressHydrationWarning>Mute</button></div>
+    <div className="sb-actions">{motion}<button type="button" className="sb-music-toggle" aria-pressed="false" suppressHydrationWarning>Play music</button></div>
     <small className="sb-credit">“Jingle Bells (Calm)” · <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100188" target="_blank" rel="noopener">Kevin MacLeod</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></small>
     <span className="sb-status" role="status" />
   </div>; }
