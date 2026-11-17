@@ -56,13 +56,14 @@
       ? (current.liveQueueAgeSeconds == null ? Infinity : current.liveQueueAgeSeconds + Math.max(0, elapsedSeconds))
       : (now - time(current?.liveQueueLastUpdated)) / 1000;
     const retain = Number.isFinite(age) && age >= 0 && age <= retentionLimit(current);
+    const entries = retain ? (current?.liveQueueEntries || []).map((entry) => ({ ...entry, label: 'Position at last update', highlight: false })) : [];
     return {
       ...current,
       liveQueueFlare: null,
       ...(grouped(current) ? { liveQueueEvents: [], ...(!retain ? { liveQueueOrderCount: 0, liveQueueGroupCount: 0, liveQueueCurrent: null, liveQueueOnDeck: null } : {}) } : {}),
       liveQueueState: retain ? 'delayed' : 'offline',
-      liveQueueEntries: retain ? (current?.liveQueueEntries || []).map((entry) => ({ ...entry, label: 'Position at last update', highlight: false })) : [],
-      liveQueueSummary: retain ? 'Working on live lineup issue. We will have it back up and running soon' : 'Check the calendar for the next show.',
+      liveQueueEntries: entries,
+      liveQueueSummary: entries.length ? 'Live Lineup is updating automatically.' : 'Check the calendar for the next show.',
     };
   }
   function fresh(current) {
@@ -211,10 +212,9 @@
   // Shared by every skin and customer-page variant. Calendar never gates names.
   function renderEmpty(React, calendarHref, state) {
     const h = React.createElement;
-    if (state === 'empty' || state === 'delayed') {
-      const message = state === 'empty' ? 'Live lineup connected. No one is waiting.' : 'Working on live lineup issue. We will have it back up and running soon';
-      return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':state, 'aria-label':'Live lineup'},
-        h('div', {className:'hp-lineup-idle-inner'}, h('span', {className:'hp-lineup-idle-prompt'}, message)));
+    if (state === 'empty') {
+      return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':'empty', 'aria-label':'Live lineup'},
+        h('div', {className:'hp-lineup-idle-inner'}, h('span', {className:'hp-lineup-idle-prompt'}, 'Live lineup connected. No one is waiting.')));
     }
     const href = typeof calendarHref === 'string' && (calendarHref === '#events' || calendarHref.startsWith('/')) &&
       !calendarHref.startsWith('//') && !/[\\\s]/u.test(calendarHref) ? calendarHref : null;

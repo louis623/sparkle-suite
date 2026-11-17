@@ -14,10 +14,10 @@ Louis selected option 1 on October 2, 2026 and asked to implement it. An unavail
 | Public entries | Source state | Display |
 | --- | --- | --- |
 | None | Fresh and empty | Compact status row: “Live lineup connected. No one is waiting.” |
-| None | Delayed | Compact status row: “Working on live lineup issue. We will have it back up and running soon” |
+| None | Delayed | Same compact calendar row as offline: “Check the calendar for the next show.” No trouble or issue text. |
 | None | Offline or loading | Compact calendar row |
 | One or more | Fresh | Existing customer pills and full-lineup drawer action |
-| One or more retained | Delayed | Keep names and drawer action; discreet updating/last-update text |
+| One or more retained | Delayed | Keep names and drawer action; last-update time only. No trouble or issue text. |
 
 Never infer zero orders from lack of connection. Never use calendar/showtime as a queue gate. Existing freshness/retention rules decide which entries are usable. Keep order grouping, public privacy projection, manual order, party selection, Hold/Return, reveal removal, and polling unchanged.
 
