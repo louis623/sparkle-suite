@@ -160,7 +160,13 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
       stopDrag()
       setNotice('Move not saved. The view changed size; drag the order again.')
     }
-    const observer = new ResizeObserver(onResize)
+    const observer = new ResizeObserver(() => {
+      const drag = pointerDrag.current
+      const scroller = scrollRef.current
+      // Drag feedback changes the viewport's height. Frozen row coordinates
+      // remain valid; only a width change can reflow them and invalidate a drop.
+      if (drag && scroller && drag.width !== scroller.clientWidth) onResize()
+    })
     if (scrollRef.current) observer.observe(scrollRef.current)
     window.addEventListener('pagehide', onVisible)
     window.addEventListener('pageshow', onVisible)

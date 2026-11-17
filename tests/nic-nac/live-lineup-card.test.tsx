@@ -194,3 +194,54 @@ describe('Concept C Live Lineup', () => {
   })
 
 })
+
+describe('Live Lineup drag resize regression', () => {
+  it.each(['height', 'width'] as const)('handles a %s change during an active pointer drag', async (dimension) => {
+    let resized = () => {}
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(callback: () => void) { resized = callback }
+      observe() {} disconnect() {}
+    })
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1))
+    vi.stubGlobal('cancelAnimationFrame', vi.fn())
+    await mount()
+    const scroller = host.querySelector<HTMLElement>('[aria-label="Scrollable live lineup"]')!
+    let width = 300, height = 400
+    Object.defineProperty(scroller, 'clientWidth', { configurable: true, get: () => width })
+    scroller.getBoundingClientRect = () => ({ left: 0, right: width, top: 0, bottom: height, width, height } as DOMRect)
+    host.querySelectorAll<HTMLElement>('[data-lineup-active]').forEach((row, index) => {
+      row.getBoundingClientRect = () => ({ left: 0, right: 300, top: index * 70, bottom: (index + 1) * 70, width: 300, height: 70 } as DOMRect)
+    })
+    host.querySelector<HTMLElement>('[aria-label="Customers waiting"]')!.getBoundingClientRect = () => ({ bottom: 210 } as DOMRect)
+    const handle = button('Move Dinelle, position 1')
+    let captured = false
+    handle.setPointerCapture = () => { captured = true }
+    handle.hasPointerCapture = () => captured
+    handle.releasePointerCapture = () => { captured = false }
+    const pointer = async (type: string, y: number) => act(async () => {
+      const event = new MouseEvent(type, { bubbles: true, cancelable: true, button: 0, clientX: 100, clientY: y })
+      Object.defineProperties(event, { isPrimary: { value: true }, pointerId: { value: 1 } })
+      handle.dispatchEvent(event)
+    })
+    await pointer('pointerdown', 20)
+    await pointer('pointermove', 45)
+    expect(document.querySelector('[data-lineup-drag-preview]')).not.toBeNull()
+    if (dimension === 'height') height -= 46
+    else width -= 20
+    await act(async () => resized())
+    if (dimension === 'height') {
+      expect(captured).toBe(true)
+      expect(document.querySelector('[data-lineup-drag-preview]')).not.toBeNull()
+      await pointer('pointermove', 200)
+      await pointer('pointerup', 200)
+      expect(writes).toEqual([{ type: 'move', entryId: 'order-1', beforeEntryId: null }])
+      expect(current.entries.at(-1)?.id).toBe('order-1')
+    } else {
+      expect(captured).toBe(false)
+      expect(document.querySelector('[data-lineup-drag-preview]')).toBeNull()
+      await pointer('pointerup', 200)
+      expect(writes).toEqual([])
+      expect(host.textContent).toContain('The view changed size')
+    }
+  })
+})
