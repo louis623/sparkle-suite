@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { readLineupState } from './service'
 import { LIVE_LINEUP_RELEASE } from './release'
+import { isFizzFestivalDemoState } from './demo'
 import { advanceMonitor, applyExpectedShow, type MonitorShowWindow, groupChangedStructures, adoptionDue, classifyAdoption, incidentStillSendable, monitorFacts, type MonitorState } from './monitor'
 import { currentParserFailure, deliverMonitorJob, incidentPayload, monitorConfiguration, type MonitorDelivery } from './monitor-delivery'
 import { verifyPublicFeed } from './monitor-public'
@@ -31,6 +32,8 @@ async function sampleRep(db: SupabaseClient, rep: Rep, now: number) {
   for (let attempt = 0; attempt < 2; attempt++) {
     const previous = await monitorRow(db, rep.id)
     const source = await readLineupState(db, rep.id)
+    // Fictional demo activity is not real extension health or adoption evidence.
+    if (isFizzFestivalDemoState(rep.id, source)) return null
     let facts = monitorFacts(rep.id, rep.public_site_slug ?? rep.id, source, now)
     if (facts.health === 'unknown' && facts.reason === 'feed_unverified') facts = applyExpectedShow(facts,await scheduledWindows(db,rep.id,now),now)
     facts.lastGoodStructureHash = previous?.data.lastGoodStructureHash ?? null
@@ -124,7 +127,7 @@ async function sampleRoster(db: SupabaseClient, now: number) {
   for (let index = 0; index < data.length; index += 10) {
     const samples = await Promise.allSettled((data as Rep[]).slice(index,index+10).map(rep => sampleRep(db, rep, now)))
     for (const result of samples) {
-      if (result.status === 'fulfilled') facts.push(result.value)
+      if (result.status === 'fulfilled') { if (result.value) facts.push(result.value) }
       else failures++
     }
   }

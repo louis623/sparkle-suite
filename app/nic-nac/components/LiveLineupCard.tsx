@@ -18,6 +18,7 @@ import { archiveRecoveryRequest, isArchiveRecoveryAcknowledgement, type ArchiveD
 import { canConfirmShow } from './live-lineup-client'
 import { groupLineupEntries } from '@/lib/live-lineup/grouping'
 import { workspaceLineupStatus } from '@/lib/live-lineup/status-copy'
+import { isDemoLineupSnapshot } from '@/lib/live-lineup/demo'
 
 const ENDPOINT = '/api/workspace/live-lineup'
 
@@ -462,7 +463,8 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
   const groups = groupLineupEntries(entries)
   const entryIndex = new Map(entries.map((entry, index) => [entry.id, index]))
   const entryById = new Map(entries.map(entry => [entry.id, entry]))
-  const statusLabel = signal.tone === 'updating' ? 'Live' : signal.label
+  const demoConnection = isDemoLineupSnapshot(snapshot)
+  const statusLabel = demoConnection ? (signal.tone === 'updating' ? 'Demo connection' : 'Demo · ' + signal.label) : signal.tone === 'updating' ? 'Live' : signal.label
   const waitingForSource = Boolean(snapshot && !viewOnly && !saving && (!fresh || !snapshot.canManage || !snapshot.authorized))
   const receivedTime = snapshot?.lastReceivedAt && Number.isFinite(Date.parse(snapshot.lastReceivedAt))
     ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }).format(new Date(snapshot.lastReceivedAt)) + ' ET'
@@ -585,6 +587,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
         </div> : <div className={styles.statusBody}>
           <span className={styles.statusChip} data-connection={signal.tone}><span className={styles.dot} aria-hidden="true" />{statusLabel}</span>
           {waitingForSource && <p>Waiting for a fresh source update. The last received order is preserved.</p>}
+          {demoConnection && <p>Fictional orders for Fizz Festival. The demo stays connected while this workspace is open.</p>}
           <dl className={styles.metaList}>
             <div><dt>Last received</dt><dd>{receivedTime}</dd></div>
             <div><dt>Connection</dt><dd>{snapshot?.connection ? snapshot.connection[0].toUpperCase() + snapshot.connection.slice(1) : 'Connecting'}</dd></div>

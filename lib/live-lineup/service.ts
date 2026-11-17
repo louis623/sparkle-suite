@@ -6,6 +6,7 @@ import type { LiveQueueSnapshot } from '@/lib/services/types'
 import { LIVE_LINEUP_CONNECTION_CODE_TABLE } from '@/lib/services/live-queue'
 import { projectPublicLineup } from '@/lib/amethyst/public-live-lineup'
 import { liveLineupOwnerMutationsAvailable } from './runtime-mode'
+import { refreshFizzFestivalDemo } from './demo-server'
 import { applyLineupCommand, applySourcePacket, buildWorkspaceLineupSnapshot, canonicalizeLineupTimestamps, claimPublisher, createLineupState, healLineupStateTimestamps, isClaimId, isLineupState, lineupFreshness, parseLineupCommand, parsePublisherDiagnostics } from './model'
 import type { LineupState, SourceDescriptor, WorkspaceLineupSnapshot } from './types'
 
@@ -40,6 +41,7 @@ function noLineupYet(repId: string, now: number, authorized: boolean, revision =
 }
 
 export async function getWorkspaceLineup(db: SupabaseClient, repId: string, now = Date.now(), authorized = false): Promise<WorkspaceLineupSnapshot> {
+  await refreshFizzFestivalDemo(db, repId, now, authorized)
   const state = await readLineupState(db, repId)
   if (state?.lastReadyAt) {
     const snapshot = buildWorkspaceLineupSnapshot(state, now, authorized), runtimeWritable = liveLineupOwnerMutationsAvailable()
