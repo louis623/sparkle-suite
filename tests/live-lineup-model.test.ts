@@ -373,12 +373,14 @@ describe('2.0.9 diagnostic contract', () => {
     expect(parsePublisherDiagnostics({...d,structure:{...structure,customer:'Secret'}})).toBeNull()
     expect(parseSourcePacket({...packet({sourceVersion:'2.0.9'}),diagnostics:{...d,readerVersion:'2.0.7'}})).toBeNull()
   })
-  it('publishes only the disabled known-release descriptor, never the candidate or a download URL', async () => {
+  it('publishes only the announced release descriptor, never a download URL', async () => {
     const response=await releaseGET()
     expect(response.status).toBe(200)
     expect(response.headers.get('cache-control')).toBe('no-store')
     expect(await response.json()).toEqual(LIVE_LINEUP_RELEASE)
-    expect(LIVE_LINEUP_RELEASE).toEqual({protocol:1,version:'2.0.7',publishedAt:null,rolloutEnabled:false})
+    expect(LIVE_LINEUP_RELEASE).toEqual({protocol:1,version:'2.0.11',publishedAt:'2026-11-18T15:17:45.084Z',rolloutEnabled:true})
+    expect(Date.parse(LIVE_LINEUP_RELEASE.publishedAt!)).toBeLessThanOrEqual(Date.now())
+    expect(response.headers.get('x-content-type-options')).toBe('nosniff')
     expect(Object.keys(LIVE_LINEUP_RELEASE).sort()).toEqual(['protocol','publishedAt','rolloutEnabled','version'])
   })
 })
@@ -492,8 +494,8 @@ describe('2.0.11 ingest', () => {
     }
   })
 
-  it('leaves the published 2.0.10 release config unchanged', () => {
-    expect(LIVE_LINEUP_RELEASE.version).toBe('2.0.10')
+  it('announces the published 2.0.11 release', () => {
+    expect(LIVE_LINEUP_RELEASE.version).toBe('2.0.11')
     expect(LIVE_LINEUP_RELEASE.rolloutEnabled).toBe(true)
   })
 })

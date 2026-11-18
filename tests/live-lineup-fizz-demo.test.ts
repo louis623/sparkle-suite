@@ -45,10 +45,11 @@ describe('authorized Fizz Festival demo connection', () => {
     await refreshFizzFestivalDemo(db,'another-rep',now,true)
     expect(from).not.toHaveBeenCalled()
   })
-  it('activates 2.0.10 and waits until the conservative 24-hour boundary', () => {
-    expect(LIVE_LINEUP_RELEASE.version).toBe('2.0.10')
+  it('activates 2.0.11 and waits until the conservative 24-hour boundary', () => {
+    expect(LIVE_LINEUP_RELEASE.version).toBe('2.0.11')
     expect(LIVE_LINEUP_RELEASE.rolloutEnabled).toBe(true)
-    expect(adoptionDue(LIVE_LINEUP_RELEASE,Date.parse('2026-11-18T12:29:59.999Z'))).toBe(false)
-    expect(adoptionDue(LIVE_LINEUP_RELEASE,Date.parse('2026-11-18T12:30:00.000Z'))).toBe(true)
+    const dueAt=Date.parse(LIVE_LINEUP_RELEASE.publishedAt!)+24*60*60*1000
+    expect(adoptionDue(LIVE_LINEUP_RELEASE,dueAt-1)).toBe(false)
+    expect(adoptionDue(LIVE_LINEUP_RELEASE,dueAt)).toBe(true)
   })
 })
