@@ -467,7 +467,7 @@ describe('Britt With Bling hybrid public site contract', () => {
     })
 
     expect(enriched.liveQueueState).toBe('delayed')
-    expect(enriched.liveQueueSummary).toBe('Check the calendar for the next show.')
+    expect(enriched.liveQueueSummary).toBe('Live Lineup is updating automatically.')
     expect(enriched.liveQueueSummary).not.toMatch(/issue|difficult/i)
     expect(enriched.tickerTopText).not.toContain('stale')
   })

@@ -14,7 +14,7 @@ Louis selected option 1 on October 2, 2026 and asked to implement it. An unavail
 | Public entries | Source state | Display |
 | --- | --- | --- |
 | None | Fresh and empty | Compact status row: “I have an open lineup.” |
-| None | Delayed | Same compact calendar row as offline: “Check the calendar for the next show.” No trouble or issue text. |
+| None | Delayed | “Live Lineup is updating automatically.” Same in-show prompt whether or not names are retained. Not the calendar or “check back” line. |
 | None | Offline or loading | Compact calendar row |
 | One or more | Fresh | Existing customer pills and full-lineup drawer action |
 | One or more retained | Delayed | Keep names and drawer action; last-update time only. No trouble or issue text. |

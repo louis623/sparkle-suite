@@ -36,11 +36,13 @@ describe('public customer lineup follows entries, independently of showtime and 
       expect(html).not.toContain('href="/smokecodex#events"')
       expect(html).not.toContain('Working on live lineup issue')
     })
-    it(page+': delayed without names uses the offline calendar prompt',async()=>{
+    it(page+': delayed without names keeps an in-show updating prompt',async()=>{
       const html=(await prepared)('delayed')
-      expect(html).toContain('data-lineup-surface="calendar"')
-      expect(html).toContain('Check the calendar for the next show')
-      expect(html).toContain('href="/smokecodex#events"')
+      expect(html).toContain('data-lineup-surface="delayed"')
+      expect(html).toContain('Live Lineup is updating automatically.')
+      expect(html).not.toContain('Check the calendar for the next show')
+      expect(html).not.toContain('Check back for upcoming shows')
+      expect(html).not.toContain('href="/smokecodex#events"')
       expect(html).not.toContain('Working on live lineup issue')
       expect(html).not.toContain('back up and running soon')
       expect(html.slice(html.indexOf('<section'))).not.toMatch(/View (full )?lineup|Waiting for update|Updated|live-dot/)

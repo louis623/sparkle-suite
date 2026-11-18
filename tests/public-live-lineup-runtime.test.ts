@@ -48,7 +48,7 @@ describe('public lineup refresh without reloading or writing', () => {
     expect(retained.liveQueueSummary).not.toMatch(/issue|difficult/i)
     const emptyDelayed = api.unavailable(payload(60, []), now)
     expect(emptyDelayed.liveQueueState).toBe('delayed')
-    expect(emptyDelayed.liveQueueSummary).toBe('Check the calendar for the next show.')
+    expect(emptyDelayed.liveQueueSummary).toBe('Live Lineup is updating automatically.')
     const expired = api.unavailable(payload(3601), now)
     expect(expired.liveQueueEntries).toEqual([])
     expect(expired.liveQueueSummary).toBe('Check the calendar for the next show.')
