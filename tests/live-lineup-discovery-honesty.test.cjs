@@ -75,12 +75,13 @@ test('discovery ignores only proven exclusions while ambiguous or included bad r
   const good={id:'one',party:'P9'},excluded={id:'old',party:'P10',name:''};
   assert.equal(parser.parseDiscovery(table([good,excluded]),['P10']).parserState,'ready');
   assert.deepEqual(parser.parseDiscovery(table([good,excluded]),['P10']).entries.map(row=>row.id),['P9:one']);
-  // An unreadable included or new-party row is skipped; the good row still publishes.
-  for(const bad of [{...excluded,party:'P11'},{...excluded,party:'P9'}]){
-    const result=parser.parseDiscovery(table([good,bad]),['P10']);
-    assert.equal(result.parserState,'ready');assert.deepEqual(result.entries.map(row=>row.id),['P9:one']);
-    assert.equal(result.rowReport.skippedByReason.invalid_first_name,1);
-  }
+  // A wholly unreadable new party must not look absent; discovery stays non-ready.
+  const newParty=parser.parseDiscovery(table([good,{...excluded,party:'P11'}]),['P10']);
+  assert.equal(newParty.parserState,'partial');assert.equal(newParty.rowReport.skippedByReason.invalid_first_name,1);
+  // A skipped row in a party that still has a kept row leaves discovery ready.
+  const mixed=parser.parseDiscovery(table([good,{...excluded,party:'P9'}]),['P10']);
+  assert.equal(mixed.parserState,'ready');assert.deepEqual(mixed.entries.map(row=>row.id),['P9:one']);
+  assert.equal(mixed.rowReport.skippedByReason.invalid_first_name,1);
   const preferred=parser.parseDiscovery(table([good,{...excluded,orderText:'different'}]),['P10']);
   assert.equal(preferred.parserState,'ready');assert.deepEqual(preferred.entries.map(row=>row.id),['P9:one']);
   assert.equal(parser.parseDiscovery(table([good]),['P10','P10']).reason,'invalid_scope');
@@ -101,9 +102,8 @@ test('fresh discovery configures new parties before healthy scoped packets and p
 test('an invalid new-party row after the claim cannot reuse a healthy earlier inspect',async()=>{
   const w=worker([{id:'old',party:'P9'}],{afterClaim:[{id:'old',party:'P9'},{id:'new',party:'P11',name:''}]});await w.settle();
   const packets=w.requests.filter(r=>r.packet).map(r=>r.packet);assert.ok(packets.length);
-  // The unreadable new party is skipped; the earlier healthy party still publishes.
-  assert.ok(packets.some(packet=>packet.parserState==='ready'&&packet.entries.map(row=>row.id).join()==='P9:old'));
-  assert.equal((await w.run('status()')).connected,true);
+  // A wholly unreadable new party keeps the snapshot non-ready so that party is not parked.
+  assert.ok(packets.every(packet=>packet.parserState!=='ready'));
   w.setRows([{id:'old',party:'P9'},{id:'new',party:'P11'}]);w.advance(121000);await w.run('exclusive(pull)');
   assert.equal((await w.run('status()')).connected,true);
   assert.deepEqual(w.requests.filter(r=>r.packet).at(-1).packet.entries.map(row=>row.id).sort(),['P11:new','P9:old']);
@@ -123,7 +123,7 @@ test('reader returns same-turn discovery alongside scoped data and never touches
   const selection={partyIds:['P9'],excludedPartyIds:[],carryEntryIds:[],startedAt:new Date(0).toISOString()};
   let fresh;handler({action:'sparkle-v2-read',generation:1,selection,excludedPartyIds:[]},{id:'fixture'},value=>{fresh=value;});clock+=600;
   handler({action:'sparkle-v2-read',generation:1,selection,excludedPartyIds:[]},{id:'fixture'},value=>{fresh=value;});
-  assert.equal(fresh.snapshot.parserState,'ready');assert.equal(fresh.discovery.parserState,'ready');assert.deepEqual(fresh.discovery.entries.map(row=>row.id),['P9:old']);assert.equal(fresh.discovery.rowReport.skippedByReason.invalid_first_name,1);
+  assert.equal(fresh.snapshot.parserState,'ready');assert.equal(fresh.discovery.parserState,'partial');assert.equal(fresh.discovery.rowReport.skippedByReason.invalid_first_name,1);
 });
 
 test('all validated parties intentionally excluded remain healthy empty without hiding ambiguous identities',async()=>{

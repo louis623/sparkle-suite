@@ -16,20 +16,18 @@
   function visibleText(value) {
     return String(value || '').replace(/\u00a0/g,' ').trim();
   }
-  // Copy the visible token as-is. A simple "Order 00017" / "Party ID:P9" label is
-  // stripped so the shown identifier can match a customer card. No format regex.
-  function usableIdentity(value) {
+  // Copy the visible value as shown, after trimming whitespace only. No label stripping.
+  // A row is kept only if party:order already matches Live validId.
+  const LIVE_ID = /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/;
+  const LIVE_PART = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
+  function liveToken(value) {
     const text = visibleText(value);
-    return text && text.length <= IDENTITY_MAX && !/[\s\x00-\x1f\x7f]/.test(text) ? text : '';
+    return text && text.length <= IDENTITY_MAX && LIVE_PART.test(text) ? text : '';
   }
-  function identityText(value, kind) {
-    const text = visibleText(value);
-    const labelled = text.match(new RegExp('^' + kind + '(?:\\s+ID)?(?:\\s*[:#]\\s*|\\s+)(\\S{1,128})$', 'i'));
-    if (labelled) {
-      const extracted = usableIdentity(labelled[1]);
-      if (extracted) return extracted;
-    }
-    return usableIdentity(text);
+  function liveEntryId(partyId, orderId) {
+    if (!liveToken(partyId) || !liveToken(orderId)) return '';
+    const id = partyId + ':' + orderId;
+    return id.length <= 128 && LIVE_ID.test(id) ? id : '';
   }
   function readIdentity(row, cells, attribute, column, kind) {
     const cell = Number.isInteger(column) ? cells[column] : null;
@@ -37,8 +35,8 @@
     const rawLink = visibleText(cell?.querySelector?.('a')?.textContent);
     // Prefer the visible cell, then the link. Attributes are a fallback only when
     // both visible sources are empty, including when those attributes differ or look odd.
-    if (rawCell || rawLink) return identityText(rawCell, kind) || identityText(rawLink, kind);
-    return identityText(row.getAttribute(attribute), kind);
+    if (rawCell || rawLink) return rawCell || rawLink;
+    return visibleText(row.getAttribute(attribute));
   }
   // Diagnostic shapes never contain the underlying text or a reversible identifier.
   function valueShape(raw, parsed) {
@@ -65,7 +63,7 @@
     const cellRaw = String(cell?.textContent || '');
     const linkRaw = String(cell?.querySelector?.('a')?.textContent || '');
     const attributeText = attributeRaw.trim(), cellText = cellRaw.replace(/\u00a0/g,' ').trim(), linkText = linkRaw.replace(/\u00a0/g,' ').trim();
-    const a = identityText(attributeText,kind), c = identityText(cellText,kind), l = identityText(linkText,kind);
+    const a = liveToken(attributeText), c = liveToken(cellText), l = liveToken(linkText);
     const compare = (left,right) => !left || !right ? 'unavailable' : left === right ? 'match' : 'mismatch';
     const comparisons = {attributeCell:compare(a,c),attributeLink:compare(a,l),cellLink:compare(c,l)};
     const visibleUnreadable = Boolean(cellText && !c || linkText && !l);
@@ -160,13 +158,16 @@
 
     const entries = [], revealedIds = [], revealedEntries = [], seen = new Set();
     const rowSamples = [], skippedByReason = Object.create(null);
+    const keptByParty = Object.create(null), skippedByParty = Object.create(null);
     let skippedRowCount = 0, waitingRowCount = 0, revealedRowCount = 0, checkboxUnknownCount = 0, firstSkip = null;
+    let skippedUnreadableParty = 0;
     const checkboxOf = revealCell => {
       const checks = revealCell?.querySelectorAll?.('input[type="checkbox"]');
       if (!checks || checks.length !== 1 || checks[0].indeterminate || checks[0].disabled
         || checks[0].getAttribute?.('aria-busy') === 'true' || typeof checks[0].checked !== "boolean") return 'unknown';
       return checks[0].checked ? 'revealed' : 'waiting';
     };
+    let partyForRow = '';
     const noteRow = (rowIndex, checkbox, disposition, skipReason) => {
       if (checkbox === 'unknown') checkboxUnknownCount += 1;
       if (disposition === 'kept' && checkbox === 'waiting') waitingRowCount += 1;
@@ -174,7 +175,10 @@
       if (disposition === 'skipped') {
         skippedRowCount += 1;
         skippedByReason[skipReason] = (skippedByReason[skipReason] || 0) + 1;
+        if (partyForRow) skippedByParty[partyForRow] = (skippedByParty[partyForRow] || 0) + 1;
+        else skippedUnreadableParty += 1;
       }
+      if (disposition === 'kept' && partyForRow) keptByParty[partyForRow] = (keptByParty[partyForRow] || 0) + 1;
       if (rowSamples.length < 32) rowSamples.push({
         rowIndex, checkbox, disposition,
         ...(skipReason ? {skipReason} : {}),
@@ -188,6 +192,8 @@
       skippedByReason:{...skippedByReason}, rows:[...rowSamples],
     });
     for (const [rowOffset, row] of rows.entries()) {
+      let rowNoted = false;
+      try {
       const cells = row.children ? Array.from(row.children).filter(cell => cell.tagName === 'TD') : row.querySelectorAll("td");
       const rowFailure = reason => failureContext(reason,rowOffset+1,Math.min(cells.length,32));
       const nameCell = Number.isInteger(columns.FirstName) ? cells[columns.FirstName] : null;
@@ -196,21 +202,22 @@
       const skip = (reason, extraFailure) => {
         if (!firstSkip) firstSkip = {reason, failure: extraFailure ? {...rowFailure(reason),...extraFailure} : rowFailure(reason)};
         noteRow(rowOffset+1, checkbox, 'skipped', reason);
+        rowNoted = true;
       };
       const orderId = readIdentity(row,cells,'data-orderid',columns.OrderID,'Order');
       const partyId = readIdentity(row,cells,'data-partyid',columns.PartyID,'Party');
-      // Discovery may ignore excluded row data only after a usable identity is read.
+      partyForRow = liveToken(partyId);
+      // Discovery may ignore excluded row data only after a usable Live identity is read.
       // An unreadable row is skipped; it must never empty the rest of the snapshot.
-      const outside = partyId && (parties && !parties.has(partyId) || excluded.has(partyId));
-      if (outside && discoveryExclusions === null) { noteRow(rowOffset+1, checkbox, 'outside'); continue; }
-      if (!orderId || !partyId) {
+      if (!orderId || !partyId || !liveEntryId(partyId, orderId)) {
         skip('missing_order_identity', {
           order:identityEvidence(row,cells,'data-orderid',columns.OrderID,'Order'),
           party:identityEvidence(row,cells,'data-partyid',columns.PartyID,'Party')});
         continue;
       }
-      if (outside) { noteRow(rowOffset+1, checkbox, 'outside'); continue; }
-      const id = partyId + ":" + orderId;
+      const outside = parties && !parties.has(partyForRow) || excluded.has(partyForRow);
+      if (outside) { noteRow(rowOffset+1, checkbox, 'outside'); rowNoted = true; continue; }
+      const id = liveEntryId(partyId, orderId);
       if (seen.has(id)) { skip('duplicate_order_identity'); continue; }
       seen.add(id);
       const rawDate = cells[columns.OrderDate]?.getAttribute("data-order-utc-ms");
@@ -234,7 +241,15 @@
         entries.push({id, name, orderedAt, ...(lastName ? {lastName} : {})});
       }
       noteRow(rowOffset+1, checkbox, 'kept');
+      rowNoted = true;
       if (entries.length > 2000 || revealedIds.length > 10000) return unavailable("invalid", "capacity_exceeded", rowFailure("capacity_exceeded"));
+      } catch {
+        if (!rowNoted) {
+          partyForRow = partyForRow || '';
+          if (!firstSkip) firstSkip = {reason:'row_incomplete', failure:failureContext('row_incomplete',rowOffset+1,null)};
+          noteRow(rowOffset+1, 'unknown', 'skipped', 'row_incomplete');
+        }
+      }
     }
     const rowReport = rowReportOf();
     if (discoveryExclusions === null && rows.length && !seen.size && skippedRowCount === 0
@@ -245,6 +260,14 @@
       return {...unavailable(firstSkip.reason === 'invalid_first_name' || firstSkip.reason === 'invalid_order_time'
         || firstSkip.reason === 'missing_order_identity' || firstSkip.reason === 'duplicate_order_identity' || firstSkip.reason === 'capacity_exceeded'
         ? 'invalid' : 'partial', firstSkip.reason, firstSkip.failure), rowReport};
+    }
+    const inScopeParty = id => !parties || (parties.has(id) && !excluded.has(id));
+    const partyMissingFromReady = Object.keys(skippedByParty).some(id => inScopeParty(id) && !keptByParty[id])
+      || Boolean(skippedUnreadableParty && (parties ? [...parties].some(id => !excluded.has(id) && !keptByParty[id]) : true));
+    if (partyMissingFromReady) {
+      const reason = firstSkip && ['table_incomplete','row_incomplete','reveal_state_missing','selected_party_not_visible'].includes(firstSkip.reason)
+        ? firstSkip.reason : 'row_incomplete';
+      return {...unavailable('partial', reason, firstSkip && firstSkip.failure), rowReport};
     }
     entries.sort((a, b) => (a.orderedAt ?? Number.MAX_SAFE_INTEGER) - (b.orderedAt ?? Number.MAX_SAFE_INTEGER) || a.id.localeCompare(b.id));
     return {parserState: "ready", reason: null, entries, revealedIds, revealedEntries, rowReport};

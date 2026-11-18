@@ -473,29 +473,23 @@ describe('2.0.10 diagnostics', () => {
 })
 
 describe('2.0.11 ingest', () => {
-  it('accepts ready entry IDs that include slash, dot, or equals and still rejects odd publisher IDs', () => {
-    const id = '1846280:abc/def=ghi.v2'
-    const parsed = parseSourcePacket(packet({ entries: [entry(id)], revealedIds: [] }))
-    expect(parsed).not.toBeNull()
-    expect(parsed!.entries[0].id).toBe(id)
-    expect(parseSourcePacket(packet({ publisherId: 'device/a', entries: [entry(id)] }))).toBeNull()
+  it('keeps Live validId and rejects dotted, slashed or oversize entry IDs', () => {
+    expect(parseSourcePacket(packet({ entries: [entry('1846280:abc/def=ghi.v2')], revealedIds: [] }))).toBeNull()
+    expect(parseSourcePacket(packet({ entries: [entry('P9:order.id')], revealedIds: [] }))).toBeNull()
     expect(parseSourcePacket(packet({ entries: [entry('has a space')], revealedIds: [] }))).toBeNull()
+    expect(parseSourcePacket(packet({ entries: [entry('P9:00017')], revealedIds: [] }))).not.toBeNull()
   })
 
   it('still does not apply partial or invalid packets, even when they carry entries', () => {
     const original = populated()
-    const odd = 'P9:abc/def=ghi.v2'
     for (const parserState of ['partial', 'invalid'] as const) {
       const next = state(applySourcePacket(original, packet({
         sequence: 1, parserState, parserReason: parserState === 'partial' ? 'row_incomplete' : 'missing_order_identity',
-        entries: [entry(odd)], revealedIds: [],
+        entries: [entry('P9:00017')], revealedIds: [],
       }), T + 20))
       expect(next.entries).toEqual(original.entries)
       expect(next.lastReadyAt).toBe(original.lastReadyAt)
     }
-    const ready = state(applySourcePacket(original, packet({ sequence: 1, entries: [entry(odd)], revealedIds: [] }), T + 20))
-    expect(ready.entries.map(item => item.id)).toContain(odd)
-    expect(ready.lastReadyAt).toBe(new Date(T + 20).toISOString())
   })
 
   it('leaves the published 2.0.10 release config unchanged', () => {

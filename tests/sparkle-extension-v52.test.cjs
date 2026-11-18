@@ -11,17 +11,18 @@ const rep='11111111-1111-4111-8111-111111111111';
 function table(rows, columns=['OrderID','OrderDate','FirstName','LastName','PartyID','IsRevealed']) {
   const header={querySelectorAll:()=>columns.map(key=>({getAttribute:n=>n==='data-sort-by'?key:null,querySelector:()=>null}))};
   const body={querySelectorAll:()=>rows.map(r=>({getAttribute:n=>n==='data-orderid'?(r.attributeOrder??r.id??''):n==='data-partyid'?(r.attributeParty??r.party??''):null,
-    querySelectorAll:()=>columns.map(key=>({textContent:key==='OrderID'?(r.orderText??r.id??''):key==='PartyID'?(r.partyText??r.party??''):key==='FirstName'?(r.name??'April'):key==='LastName'?(r.lastName??'Smith'):'',
+    querySelectorAll:()=>{if(r.boom)throw new Error('row boom');return columns.map(key=>({textContent:key==='OrderID'?(r.orderText??r.id??''):key==='PartyID'?(r.partyText??r.party??''):key==='FirstName'?(r.name??'April'):key==='LastName'?(r.lastName??'Smith'):'',
       getAttribute:n=>key==='OrderDate'&&n==='data-order-utc-ms'?String(r.date??100):null,
-      querySelector:()=>{const text=key==='OrderID'?r.orderLink:key==='PartyID'?r.partyLink:undefined;return text===undefined?null:{textContent:text};},querySelectorAll:()=>key==='IsRevealed'?[{checked:r.checked??false,indeterminate:false,disabled:r.busy??false}]:[]}))}))};
+      querySelector:()=>{const text=key==='OrderID'?r.orderLink:key==='PartyID'?r.partyLink:undefined;return text===undefined?null:{textContent:text};},querySelectorAll:()=>key==='IsRevealed'?[{checked:r.checked??false,indeterminate:false,disabled:r.busy??false}]:[]}))}}))};
   return {isConnected:true,getAttribute:()=>null,querySelector:s=>s==='thead'?header:s==='tbody'?body:null};
 }
 test('header-identified cell fallback preserves exact IDs and optional surnames through transport',()=>{
-  const parsed=parseTable(table([{id:'00017',party:'P9',attributeOrder:'',attributeParty:'',orderText:'Order 00017',partyText:'Party P9',lastName:'  Smith  '}],['LastName','PartyID','FirstName','IsRevealed','OrderDate','OrderID']));
+  const parsed=parseTable(table([{id:'',party:'',attributeOrder:'',attributeParty:'',orderText:'00017',partyText:'P9',lastName:'  Smith  '}],['LastName','PartyID','FirstName','IsRevealed','OrderDate','OrderID']));
   assert.equal(parsed.parserState,'ready');assert.equal(parsed.entries[0].id,'P9:00017');
   assert.equal(cleanSnapshot(parsed).entries[0].lastName,'Smith');
-  const restored=parseTable(table([{id:'00017',party:'P9',orderText:'Order 00017'}]));
-  assert.equal(restored.entries[0].id,parsed.entries[0].id);
+  const labelled=parseTable(table([{id:'00017',party:'P9',orderText:'Order 00017'}]));
+  assert.notEqual(labelled.parserState,'ready');
+  assert.equal(labelled.rowReport.skippedByReason.missing_order_identity,1);
 });
 test('conflicts, ambiguous identity, duplicates and pending checkbox states cannot claim ready',()=>{
   // Visible cell "17" wins over a differing attribute and stays ready.
@@ -51,7 +52,7 @@ test('trusted attributes never override ambiguous known identity cells or malfor
     const parsed=parseTable(table([row]));
     assert.equal(parsed.parserState,'ready');assert.equal(parsed.entries[0].id,'P9:00017');
   }
-  assert.equal(parseTable(table([{id:'00017',party:'P9',orderText:'Order 00017',partyText:'Party P9',orderLink:'Order 00017',partyLink:'Party P9'}])).parserState,'ready');
+  assert.notEqual(parseTable(table([{id:'00017',party:'P9',orderText:'Order 00017',partyText:'Party P9',orderLink:'Order 00017',partyLink:'Party P9'}])).parserState,'ready');
   // Blank/missing recognized fields fall back to the attribute.
   assert.equal(parseTable(table([{id:'00017',party:'P9',orderText:'',partyText:''}])).parserState,'ready');
   assert.equal(parseTable(table([{id:'00017',party:'P9'}],['FirstName','IsRevealed'])).parserState,'ready');
@@ -63,9 +64,9 @@ test('documented Revealed label and compact labelled IDs preserve identity and c
     return parseTable(fixture);
   }
   const headers=[['OrderID'],['OrderDate'],['firstName'],['LastName'],['PartyID'],[null,'Revealed']];
-  const row={id:'00017',party:'P9',orderText:'Order #00017',partyText:'Party ID:P9'};
+  const row={id:'00017',party:'P9',orderText:'00017',partyText:'P9'};
   assert.equal(withHeaders(row,headers).entries[0].id,'P9:00017');
-  assert.equal(withHeaders({...row,orderText:'Order #17'},headers).entries[0].id,'P9:17');
+  assert.notEqual(withHeaders({...row,orderText:'Order #17'},headers).parserState,'ready');
   assert.equal(withHeaders({...row,busy:true},headers).parserState,'partial');
   const explicit = [...headers.slice(0,5), ['IsRevealed']];
   assert.equal(withHeaders(row, [...explicit, [null,'Revealed']]).entries[0].id, 'P9:00017');
@@ -346,10 +347,11 @@ test('2.0.9 resilience: mixed or nested markup cannot publish an incomplete heal
 });
 test('2.0.9 resilience: scope and real data validation stay strict across body sections',()=>{
   const selection={partyIds:['P9','P10'],excludedPartyIds:['P10'],carryEntryIds:[],startedAt:new Date(0).toISOString()};
-  const valid=parseTable(resilienceTable([[{id:'00017',party:'P9',orderText:'Order #00017',date:50}],[{id:'excluded',party:'P10',busy:true}]]),selection);
+  const valid=parseTable(resilienceTable([[{id:'00017',party:'P9',orderText:'00017',date:50}],[{id:'excluded',party:'P10',busy:true}]]),selection);
   assert.equal(valid.parserState,'ready');assert.deepEqual(valid.entries.map(row=>row.id),['P9:00017']);
-  const cellWins=parseTable(resilienceTable([[{id:'old',party:'P9'}],[{id:'00017',party:'P9',orderText:'Order #17'}]]),selection);
-  assert.equal(cellWins.parserState,'ready');assert.deepEqual(cellWins.entries.map(row=>row.id).sort(),['P9:17','P9:old']);
+  const labelledSkipped=parseTable(resilienceTable([[{id:'old',party:'P9'}],[{id:'00017',party:'P9',orderText:'Order #17'}]]),selection);
+  assert.equal(labelledSkipped.parserState,'ready');assert.deepEqual(labelledSkipped.entries.map(row=>row.id),['P9:old']);
+  assert.equal(labelledSkipped.rowReport.skippedByReason.missing_order_identity,1);
   for(const [data,reason] of [
     [{id:'date',party:'P9',date:'11/16/2026'},'invalid_order_time'],
     [{id:'name',party:'P9',name:'Bad\nName'},'invalid_first_name'],
@@ -381,8 +383,8 @@ test('2.0.10 diagnostics: identity absence, disagreement and unsupported format 
   const missing=parseTable(table([{party:'P9'}]));
   assert.equal(missing.reason,'missing_order_identity');assert.equal(missing.failure.order.problem,'missing');assert.equal(missing.failure.party.problem,'none');
   const party=parseTable(table([{id:'00017'}]));assert.equal(party.failure.party.problem,'missing');
-  const cellWins=parseTable(table([{id:'00017',party:'P9',orderText:'Order #17'}]));
-  assert.equal(cellWins.parserState,'ready');assert.equal(cellWins.entries[0].id,'P9:17');
+  const labelled=parseTable(table([{id:'00017',party:'P9',orderText:'Order #17'}]));
+  assert.notEqual(labelled.parserState,'ready');assert.equal(labelled.failure.order.problem,'unsupported_format');
   const linkIgnored=parseTable(table([{id:'00017',party:'P9',orderLink:'PRIVATE/Order!'}]));
   assert.equal(linkIgnored.parserState,'ready');assert.equal(linkIgnored.entries[0].id,'P9:00017');
   const unreadable=parseTable(table([{id:'00017',party:'P9',orderText:'PRIVATE/Order! extra'}]));
@@ -499,4 +501,48 @@ test('2.0.11 diagnostics: slash, dot and equals are classified without storing r
   const cleaned=cleanSnapshot({...result,readerVersion:'2.0.11',observation:{documentId,serial:1,serverTime:new Date(1000).toISOString(),settled:false}});
   assert.ok(cleaned.failure.order.cell.characters.includes('other'));
   assert.equal(cleaned.failure.order.cell.characters.includes('slash'),false);
+});
+
+test('same order ID in two parties is kept as two entries',()=>{
+  const result=parseTable(table([
+    {id:'5501',party:'P9',name:'Kelly'},
+    {id:'5501',party:'P10',name:'Kelly'},
+  ]));
+  assert.equal(result.parserState,'ready');
+  assert.deepEqual(result.entries.map(x=>x.id).sort(),['P10:5501','P9:5501']);
+  assert.equal(result.rowReport.skippedRowCount,0);
+});
+
+test('same party, two order IDs kept',()=>{
+  const result=parseTable(table([
+    {id:'5501',party:'P9',name:'Kelly'},
+    {id:'5502',party:'P9',name:'Kelly'},
+  ]));
+  assert.equal(result.parserState,'ready');
+  assert.deepEqual(result.entries.map(x=>x.id),['P9:5501','P9:5502']);
+});
+
+test('two-party table with one party wholly unreadable returns partial, not ready',()=>{
+  const selection={partyIds:['P9','P10'],excludedPartyIds:[],carryEntryIds:[],startedAt:new Date(0).toISOString()};
+  const result=parseTable(table([
+    {id:'1001',party:'P9',name:'April'},
+    {id:'1002',party:'P10',orderText:'Order 12 or 13',name:'June'},
+  ]),selection);
+  assert.equal(result.parserState,'partial');
+  assert.equal(result.reason,'row_incomplete');
+  assert.deepEqual(result.entries,[]);
+  assert.equal(result.rowReport.skippedByReason.missing_order_identity,1);
+  assert.equal(result.rowReport.waitingRowCount,1);
+});
+
+test('a throwing row is skipped and the rest stay ready',()=>{
+  const result=parseTable(table([
+    {id:'1001',party:'P9',name:'April'},
+    {id:'1002',party:'P9',name:'Boom',boom:true},
+    {id:'1003',party:'P9',name:'June'},
+  ]));
+  assert.equal(result.parserState,'ready');
+  assert.deepEqual(result.entries.map(x=>x.id),['P9:1001','P9:1003']);
+  assert.equal(result.rowReport.skippedByReason.row_incomplete,1);
+  assert.equal(result.failure,undefined);
 });

@@ -4,8 +4,6 @@
   const CREDENTIAL = /^(?:sslp_[A-Za-z0-9_-]{43}|[A-Z0-9]{3}-[0-9]{4})$/;
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
   const ID = /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/;
-  const ENTRY_ID = /^[^\s\x00-\x1f\x7f]{1,257}$/;
-  const isEntryId = value => typeof value === 'string' && ENTRY_ID.test(value) && !/(?:^|:)(?:__proto__|constructor)(?::|$)/.test(value);
   const invalidReasons = new Set([
     'invalid_scope', 'columns_changed', 'duplicate_columns', 'missing_order_identity', 'duplicate_order_identity',
     'invalid_order_time', 'invalid_first_name', 'capacity_exceeded', 'scan_capacity_exceeded', 'parser_exception',
@@ -78,7 +76,7 @@
       || input.entries.length > 2000 || input.revealedIds.length > 10000) return null;
     const seen = new Set(), entries = [], revealedIds = [];
     for (const e of input.entries) {
-      if (!e || typeof e.id !== "string" || !isEntryId(e.id) || seen.has(e.id) || typeof e.name !== "string" || !e.name.trim()
+      if (!e || typeof e.id !== "string" || !ID.test(e.id) || seen.has(e.id) || typeof e.name !== "string" || !e.name.trim()
         || e.name.trim().length > 100 || Array.from(e.name).some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)
         || !(e.orderedAt === null || integer(e.orderedAt) && e.orderedAt <= 8640000000000000)) return null;
       const surname = typeof e.lastName === 'string' ? e.lastName.trim() : '';
@@ -86,7 +84,7 @@
       seen.add(e.id); entries.push({id: e.id, name: e.name.trim(), orderedAt: e.orderedAt, ...(lastName ? {lastName} : {})});
     }
     for (const id of input.revealedIds) {
-      if (typeof id !== "string" || !isEntryId(id) || seen.has(id)) return null;
+      if (typeof id !== "string" || !ID.test(id) || seen.has(id)) return null;
       seen.add(id); revealedIds.push(id);
     }
     let revealedEntries;
