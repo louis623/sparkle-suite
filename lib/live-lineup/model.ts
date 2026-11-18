@@ -23,6 +23,8 @@ const parsers: ParserState[] = ['ready', 'loading', 'partial', 'invalid']
 const validParserReason = (value: unknown, state: unknown): value is ParserReason =>
   (state === 'invalid' ? INVALID_PARSER_REASONS : state === 'loading' ? LOADING_PARSER_REASONS : state === 'partial' ? PARTIAL_PARSER_REASONS : []).some(code => code === value)
 const validId = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/.test(value)
+/** Lineup entry/revealed IDs only. Publisher and party IDs stay on validId. Copy-visible tokens may include slash, dot, or equals. */
+const validEntryId = (value: unknown): value is string => typeof value === 'string' && /^[^\s\x00-\x1f\x7f]{1,257}$/.test(value) && !/(?:^|:)(?:__proto__|constructor)(?::|$)/.test(value)
 export const isClaimId = (value: unknown): value is string => typeof value === 'string'
   && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(value)
 const validInteger = (value: unknown): value is number => Number.isSafeInteger(value) && (value as number) >= 0
@@ -230,6 +232,9 @@ const clockRegressed = (state: LineupState, now: number) => [state.lastReceivedA
 function validIds(value: unknown, maximum: number): value is string[] {
   return Array.isArray(value) && value.length <= maximum && value.every(validId) && new Set(value).size === value.length
 }
+function validEntryIds(value: unknown, maximum: number): value is string[] {
+  return Array.isArray(value) && value.length <= maximum && value.every(validEntryId) && new Set(value).size === value.length
+}
 const validParties = (value: unknown): value is string[] => validIds(value, 100)
   && value.every(id => /^[A-Za-z0-9][A-Za-z0-9_-]{0,60}$/.test(id))
 const entryParty = (id: string) => id.split(':')[0]
@@ -263,8 +268,8 @@ export function isLineupState(input: unknown): input is LineupState {
   if (!record(input) || input.schemaVersion !== 2 || !validInteger(input.revision)
     || (input.parserReason != null && !validParserReason(input.parserReason,input.parserState))
     || !parsers.includes(input.parserState as ParserState) || !Array.isArray(input.entries)
-    || input.entries.length > LINEUP_MAX_ENTRIES || !validIds(input.order, LINEUP_MAX_ENTRIES)
-    || !validIds(input.held, LINEUP_MAX_ENTRIES) || !validIds(input.revealedIds, LINEUP_MAX_REVEALED)
+    || input.entries.length > LINEUP_MAX_ENTRIES || !validEntryIds(input.order, LINEUP_MAX_ENTRIES)
+    || !validEntryIds(input.held, LINEUP_MAX_ENTRIES) || !validEntryIds(input.revealedIds, LINEUP_MAX_REVEALED)
     || !nullableTime(input.lastReceivedAt) || !nullableTime(input.lastReadyAt) || !nullableTime(input.lastChangedAt)
     || !(input.sourceVersion === null || typeof input.sourceVersion === 'string' && /^[A-Za-z0-9._+-]{1,64}$/.test(input.sourceVersion))) return false
   if (input.diagnostics != null) {
@@ -275,13 +280,13 @@ export function isLineupState(input: unknown): input is LineupState {
   if (input.diagnosticHistory !== undefined && parseDiagnosticHistory(input.diagnosticHistory) === null) return false
   if (input.show !== null && (!record(input.show) || !validInteger(input.show.generation) || input.show.generation < 1
     || !validParties(input.show.partyIds) || !input.show.partyIds.length || !validParties(input.show.excludedPartyIds)
-    || !validIds(input.show.carryEntryIds, LINEUP_MAX_ENTRIES)
+    || !validEntryIds(input.show.carryEntryIds, LINEUP_MAX_ENTRIES)
     || input.show.carryEntryIds.some(id => !id.includes(':') || !(input.show as {partyIds: string[]}).partyIds.includes(entryParty(id)))
     || input.show.excludedPartyIds.some(id => !(input.show as {partyIds: string[]}).partyIds.includes(id))
     || !canonicalTime(input.show.startedAt) || input.publisher === null || input.lastReadyAt === null)) return false
   const entryIds = new Set<string>()
   for (const entry of input.entries) {
-    if (!record(entry) || !validId(entry.id) || entryIds.has(entry.id) || typeof entry.name !== 'string'
+    if (!record(entry) || !validEntryId(entry.id) || entryIds.has(entry.id) || typeof entry.name !== 'string'
       || !entry.name || entry.name !== entry.name.trim() || entry.name.length > 100 || /[\u0000-\u001f\u007f]/.test(entry.name)
       || !(entry.orderedAt === null || typeof entry.orderedAt === 'number' && validTime(entry.orderedAt))) return false
     if (entry.lastName !== undefined && optionalSurname(entry.lastName) !== entry.lastName
@@ -296,7 +301,7 @@ export function isLineupState(input: unknown): input is LineupState {
     || arranged.some(id => !entryIds.has(id)) || input.revealedIds.some(id => entryIds.has(id))) return false
   if (input.undo !== null) {
     // Undo may reference since-revealed IDs, but a previous arrangement is still a partition with no duplicates.
-    if (!record(input.undo) || !validIds(input.undo.order, LINEUP_MAX_ENTRIES) || !validIds(input.undo.held, LINEUP_MAX_ENTRIES)) return false
+    if (!record(input.undo) || !validEntryIds(input.undo.order, LINEUP_MAX_ENTRIES) || !validEntryIds(input.undo.held, LINEUP_MAX_ENTRIES)) return false
     const previous = [...input.undo.order, ...input.undo.held]
     if (previous.length > LINEUP_MAX_ENTRIES || new Set(previous).size !== previous.length) return false
   }
@@ -339,10 +344,10 @@ export function isLineupState(input: unknown): input is LineupState {
     if (!Array.isArray(input.restorations) || input.restorations.length > LINEUP_MAX_REVEALED) return false
     const restoredIds = new Set<string>()
     for (const item of input.restorations) {
-      if (!record(item) || !record(item.entry) || !validId(item.entry.id) || restoredIds.has(item.entry.id)
+      if (!record(item) || !record(item.entry) || !validEntryId(item.entry.id) || restoredIds.has(item.entry.id)
         || !input.revealedIds.includes(item.entry.id) || !validObservation(item.checked)
         || !['order','held'].includes(item.category as string) || !validInteger(item.position) || item.position >= LINEUP_MAX_ENTRIES
-        || !(item.previousId === null || validId(item.previousId)) || !(item.nextId === null || validId(item.nextId))
+        || !(item.previousId === null || validEntryId(item.previousId)) || !(item.nextId === null || validEntryId(item.nextId))
         || typeof item.entry.name !== 'string' || !item.entry.name || item.entry.name.length > 100
         || item.entry.name !== item.entry.name.trim() || /[\u0000-\u001f\u007f]/.test(item.entry.name)
         || !(item.entry.orderedAt === null || typeof item.entry.orderedAt === 'number' && validTime(item.entry.orderedAt))
@@ -356,8 +361,8 @@ export function isLineupState(input: unknown): input is LineupState {
     let cursor = 0, memberCount = 0
     for (const event of input.revealEvents) {
       if (!record(event) || !validInteger(event.cursor) || event.cursor <= cursor || event.cursor > (input.revealEventCursor as number ?? 0)
-        || !validId(event.entryId) || !input.revealedIds.includes(event.entryId) || !canonicalTime(event.at)
-        || !validIds(event.groupEntryIds, LINEUP_MAX_ENTRIES)) return false
+        || !validEntryId(event.entryId) || !input.revealedIds.includes(event.entryId) || !canonicalTime(event.at)
+        || !validEntryIds(event.groupEntryIds, LINEUP_MAX_ENTRIES)) return false
       cursor = event.cursor
       memberCount += event.groupEntryIds.length
     }
@@ -388,7 +393,7 @@ export function parseSourcePacket(input: unknown): SourcePacket | null {
   for (const raw of p.entries) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
     const e = raw as Record<string, unknown>
-    if (!validId(e.id) || seen.has(e.id) || typeof e.name !== 'string' || !e.name.trim()
+    if (!validEntryId(e.id) || seen.has(e.id) || typeof e.name !== 'string' || !e.name.trim()
       || e.name.trim().length > 100 || /[\u0000-\u001f\u007f]/.test(e.name)
       || !(e.orderedAt === null || (typeof e.orderedAt === 'number' && validTime(e.orderedAt)))) return null
     seen.add(e.id)
@@ -397,7 +402,7 @@ export function parseSourcePacket(input: unknown): SourcePacket | null {
   }
   const revealed = new Set<string>()
   for (const id of p.revealedIds) {
-    if (!validId(id) || seen.has(id) || revealed.has(id)) return null
+    if (!validEntryId(id) || seen.has(id) || revealed.has(id)) return null
     revealed.add(id)
   }
   let revealedEntries: SourcePacket['revealedEntries']
@@ -406,7 +411,7 @@ export function parseSourcePacket(input: unknown): SourcePacket | null {
     const metadataIds = new Set<string>()
     revealedEntries = []
     for (const e of p.revealedEntries) {
-      if (!record(e) || !validId(e.id) || !revealed.has(e.id) || metadataIds.has(e.id)
+      if (!record(e) || !validEntryId(e.id) || !revealed.has(e.id) || metadataIds.has(e.id)
         || !(e.orderedAt === null || typeof e.orderedAt === 'number' && validTime(e.orderedAt))) return null
       metadataIds.add(e.id)
       revealedEntries.push({id: e.id, orderedAt: e.orderedAt as number | null})
@@ -430,12 +435,12 @@ export function parseLineupCommand(input: unknown): LineupCommand | null {
   const c = input as Record<string, unknown>
   if (!validInteger(c.expectedRevision)) return null
   if (c.type === 'undo') return { type: 'undo', expectedRevision: c.expectedRevision }
-  if (c.type === 'start-show' && c.confirmed === true && validParties(c.partyIds) && c.partyIds.length && validIds(c.carryEntryIds ?? [], LINEUP_MAX_ENTRIES))
+  if (c.type === 'start-show' && c.confirmed === true && validParties(c.partyIds) && c.partyIds.length && validEntryIds(c.carryEntryIds ?? [], LINEUP_MAX_ENTRIES))
     return {type: 'start-show', partyIds: [...c.partyIds].sort(), carryEntryIds: [...(c.carryEntryIds as string[] | undefined ?? [])], confirmed: true, expectedRevision: c.expectedRevision}
   if (c.type === 'filter-parties' && validParties(c.excludedPartyIds))
     return {type: 'filter-parties', excludedPartyIds: [...c.excludedPartyIds].sort(), expectedRevision: c.expectedRevision}
-  if (!validId(c.entryId)) return null
-  if ((c.type === 'move' || c.type === 'move-customer') && (c.beforeEntryId === null || validId(c.beforeEntryId)))
+  if (!validEntryId(c.entryId)) return null
+  if ((c.type === 'move' || c.type === 'move-customer') && (c.beforeEntryId === null || validEntryId(c.beforeEntryId)))
     return { type: c.type, entryId: c.entryId, beforeEntryId: c.beforeEntryId as string | null, expectedRevision: c.expectedRevision }
   if (c.type === 'hold' || c.type === 'return' || c.type === 'reveal-next')
     return { type: c.type, entryId: c.entryId, expectedRevision: c.expectedRevision }

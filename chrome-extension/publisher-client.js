@@ -4,6 +4,8 @@
   const CREDENTIAL = /^(?:sslp_[A-Za-z0-9_-]{43}|[A-Z0-9]{3}-[0-9]{4})$/;
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
   const ID = /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/;
+  const ENTRY_ID = /^[^\s\x00-\x1f\x7f]{1,257}$/;
+  const isEntryId = value => typeof value === 'string' && ENTRY_ID.test(value) && !/(?:^|:)(?:__proto__|constructor)(?::|$)/.test(value);
   const invalidReasons = new Set([
     'invalid_scope', 'columns_changed', 'duplicate_columns', 'missing_order_identity', 'duplicate_order_identity',
     'invalid_order_time', 'invalid_first_name', 'capacity_exceeded', 'scan_capacity_exceeded', 'parser_exception',
@@ -30,11 +32,15 @@
     && required.every(key => Object.hasOwn(value,key)) && Object.keys(value).every(key => required.includes(key) || optional.includes(key));
   function cleanValueShape(value) {
     const characters = ['ascii_letters','digits','whitespace','separator','non_ascii','other','control'];
+    const extras = ['slash','dot','equals'];
     if (!exactKeys(value,['format','length','characters']) || !['missing','plain','labelled','unsupported'].includes(value.format)
       || !['0','1-10','11-100','101-1000','1001+'].includes(value.length) || !Array.isArray(value.characters)
-      || value.characters.length > 7 || new Set(value.characters).size !== value.characters.length
-      || value.characters.some(item => !characters.includes(item))) return null;
-    return {format:value.format,length:value.length,characters:[...value.characters]};
+      || value.characters.length > characters.length + extras.length || new Set(value.characters).size !== value.characters.length
+      || value.characters.some(item => !characters.includes(item) && !extras.includes(item))) return null;
+    // Current Live only accepts the original seven classes. Map slash/dot/equals into 'other'.
+    const mapped = characters.filter(item => value.characters.includes(item)
+      || item === 'other' && value.characters.some(flag => extras.includes(flag)));
+    return {format:value.format,length:value.length,characters:mapped};
   }
   function cleanIdentityEvidence(value) {
     if (!exactKeys(value,['problem','attribute','cell','link','comparisons'])
@@ -72,7 +78,7 @@
       || input.entries.length > 2000 || input.revealedIds.length > 10000) return null;
     const seen = new Set(), entries = [], revealedIds = [];
     for (const e of input.entries) {
-      if (!e || typeof e.id !== "string" || !ID.test(e.id) || seen.has(e.id) || typeof e.name !== "string" || !e.name.trim()
+      if (!e || typeof e.id !== "string" || !isEntryId(e.id) || seen.has(e.id) || typeof e.name !== "string" || !e.name.trim()
         || e.name.trim().length > 100 || Array.from(e.name).some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)
         || !(e.orderedAt === null || integer(e.orderedAt) && e.orderedAt <= 8640000000000000)) return null;
       const surname = typeof e.lastName === 'string' ? e.lastName.trim() : '';
@@ -80,7 +86,7 @@
       seen.add(e.id); entries.push({id: e.id, name: e.name.trim(), orderedAt: e.orderedAt, ...(lastName ? {lastName} : {})});
     }
     for (const id of input.revealedIds) {
-      if (typeof id !== "string" || !ID.test(id) || seen.has(id)) return null;
+      if (typeof id !== "string" || !isEntryId(id) || seen.has(id)) return null;
       seen.add(id); revealedIds.push(id);
     }
     let revealedEntries;
