@@ -63,7 +63,7 @@
       ...(grouped(current) ? { liveQueueEvents: [], ...(!retain ? { liveQueueOrderCount: 0, liveQueueGroupCount: 0, liveQueueCurrent: null, liveQueueOnDeck: null } : {}) } : {}),
       liveQueueState: retain ? 'delayed' : 'offline',
       liveQueueEntries: entries,
-      liveQueueSummary: entries.length ? 'Live Lineup is updating automatically.' : 'Check the calendar for the next show.',
+      liveQueueSummary: retain ? 'Live Lineup is updating automatically.' : 'Check the calendar for the next show.',
     };
   }
   function fresh(current) {
@@ -212,9 +212,10 @@
   // Shared by every skin and customer-page variant. Calendar never gates names.
   function renderEmpty(React, calendarHref, state) {
     const h = React.createElement;
-    if (state === 'empty') {
-      return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':'empty', 'aria-label':'Live lineup'},
-        h('div', {className:'hp-lineup-idle-inner'}, h('span', {className:'hp-lineup-idle-prompt'}, 'I have an open lineup.')));
+    if (state === 'empty' || state === 'delayed') {
+      const message = state === 'empty' ? 'I have an open lineup.' : 'Live Lineup is updating automatically.';
+      return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':state, 'aria-label':'Live lineup'},
+        h('div', {className:'hp-lineup-idle-inner'}, h('span', {className:'hp-lineup-idle-prompt'}, message)));
     }
     const href = typeof calendarHref === 'string' && (calendarHref === '#events' || calendarHref.startsWith('/')) &&
       !calendarHref.startsWith('//') && !/[\\\s]/u.test(calendarHref) ? calendarHref : null;
