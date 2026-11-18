@@ -110,7 +110,7 @@ function response(body,status=200){const r=new Response(JSON.stringify(body),{st
     return;
   }
   const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
-  a.equal(manifest.version,'2.0.10');a.deepEqual(manifest.permissions,['storage','alarms','scripting']);
+  a.equal(manifest.version,'2.0.11');a.deepEqual(manifest.permissions,['storage','alarms','scripting']);
   const popup=fs.readFileSync('chrome-extension/popup.html','utf8'),popupJs=fs.readFileSync('chrome-extension/popup.js','utf8');
   for(const phrase of ['Review / select source','First-time setup','computer name','pairing key','party IDs'])a.equal((popup+popupJs).includes(phrase),false,phrase);
   for(const phrase of ['Connect Live Lineup','Live Queue code','Detected parties'])a.equal(popup.includes(phrase),true,phrase);

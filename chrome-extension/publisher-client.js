@@ -30,11 +30,15 @@
     && required.every(key => Object.hasOwn(value,key)) && Object.keys(value).every(key => required.includes(key) || optional.includes(key));
   function cleanValueShape(value) {
     const characters = ['ascii_letters','digits','whitespace','separator','non_ascii','other','control'];
+    const extras = ['slash','dot','equals'];
     if (!exactKeys(value,['format','length','characters']) || !['missing','plain','labelled','unsupported'].includes(value.format)
       || !['0','1-10','11-100','101-1000','1001+'].includes(value.length) || !Array.isArray(value.characters)
-      || value.characters.length > 7 || new Set(value.characters).size !== value.characters.length
-      || value.characters.some(item => !characters.includes(item))) return null;
-    return {format:value.format,length:value.length,characters:[...value.characters]};
+      || value.characters.length > characters.length + extras.length || new Set(value.characters).size !== value.characters.length
+      || value.characters.some(item => !characters.includes(item) && !extras.includes(item))) return null;
+    // Current Live only accepts the original seven classes. Map slash/dot/equals into 'other'.
+    const mapped = characters.filter(item => value.characters.includes(item)
+      || item === 'other' && value.characters.some(flag => extras.includes(flag)));
+    return {format:value.format,length:value.length,characters:mapped};
   }
   function cleanIdentityEvidence(value) {
     if (!exactKeys(value,['problem','attribute','cell','link','comparisons'])

@@ -1,7 +1,8 @@
-// Sparkle Suite Live Queue v2: read-only, fail-closed Bomb Party parser.
+// Sparkle Suite Live Queue v2: read-only Bomb Party parser. Copy visible identity; skip one unreadable row.
 (function (root) {
   "use strict";
   const ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,60}$/;
+  const IDENTITY_MAX = 128;
   const HEADER_ALIASES = {partyid:'PartyID','party id':'PartyID',orderid:'OrderID','order id':'OrderID',firstname:'FirstName','first name':'FirstName',lastname:'LastName','last name':'LastName',orderdate:'OrderDate','order date':'OrderDate',isrevealed:'IsRevealed',revealed:'IsRevealed'};
   function headerKey(cell) {
     const sort = cell.getAttribute('data-sort-by');
@@ -12,26 +13,30 @@
     const label = cell.querySelector?.('.header-content span, .header-content');
     return HEADER_ALIASES[String(label?.textContent || cell.textContent || '').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim().toLowerCase()] || null;
   }
-  function identityText(value, kind) {
-    const text = String(value || '').replace(/\u00a0/g,' ').trim();
-    if (ID.test(text)) return text;
-    const labelled = text.match(new RegExp('^' + kind + '(?:\\s+ID)?(?:\\s*[:#]\\s*|\\s+)([A-Za-z0-9][A-Za-z0-9_-]{0,60})$', 'i'));
-    return labelled ? labelled[1] : '';
+  function visibleText(value) {
+    return String(value || '').replace(/\u00a0/g,' ').trim();
+  }
+  // Copy the visible value as shown, after trimming whitespace only. No label stripping.
+  // A row is kept only if party:order already matches Live validId.
+  const LIVE_ID = /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/;
+  const LIVE_PART = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
+  function liveToken(value) {
+    const text = visibleText(value);
+    return text && text.length <= IDENTITY_MAX && LIVE_PART.test(text) ? text : '';
+  }
+  function liveEntryId(partyId, orderId) {
+    if (!liveToken(partyId) || !liveToken(orderId)) return '';
+    const id = partyId + ':' + orderId;
+    return id.length <= 128 && LIVE_ID.test(id) ? id : '';
   }
   function readIdentity(row, cells, attribute, column, kind) {
-    const rawAttribute = String(row.getAttribute(attribute) || '').trim();
-    const fromAttribute = ID.test(rawAttribute) ? rawAttribute : '';
     const cell = Number.isInteger(column) ? cells[column] : null;
-    const link = cell?.querySelector?.('a');
-    const rawCell = String(cell?.textContent || '').replace(/\u00a0/g, ' ').trim();
-    const rawLink = String(link?.textContent || '').replace(/\u00a0/g, ' ').trim();
-    const fromCell = identityText(rawCell, kind);
-    const fromLink = identityText(rawLink, kind);
-    // A fallback must agree with every available piece of identity evidence.
-    if (rawAttribute && !fromAttribute || rawCell && !fromCell || rawLink && !fromLink
-      || fromAttribute && fromCell && fromAttribute !== fromCell
-      || fromLink && fromCell && fromLink !== fromCell || fromAttribute && fromLink && fromAttribute !== fromLink) return '';
-    return fromAttribute || fromCell || fromLink;
+    const rawCell = visibleText(cell?.textContent);
+    const rawLink = visibleText(cell?.querySelector?.('a')?.textContent);
+    // Prefer the visible cell, then the link. Attributes are a fallback only when
+    // both visible sources are empty, including when those attributes differ or look odd.
+    if (rawCell || rawLink) return rawCell || rawLink;
+    return visibleText(row.getAttribute(attribute));
   }
   // Diagnostic shapes never contain the underlying text or a reversible identifier.
   function valueShape(raw, parsed) {
@@ -42,9 +47,14 @@
     if (/\s/.test(text)) characters.push('whitespace');
     if (/[:#_-]/.test(text)) characters.push('separator');
     if (/[^\x00-\x7f]/.test(text)) characters.push('non_ascii');
-    if (/[^A-Za-z0-9\s:#_\-\x00-\x1f\x7f-\uffff]/.test(text)) characters.push('other');
+    if (/\//.test(text)) characters.push('slash');
+    if (/\./.test(text)) characters.push('dot');
+    if (/=/.test(text)) characters.push('equals');
+    if (/[^A-Za-z0-9\s:#_\-\/\.=\x00-\x1f\x7f-\uffff]/.test(text)) characters.push('other');
     if (/[\x00-\x1f\x7f]/.test(text)) characters.push('control');
-    return {format:!text.trim()?'missing':!parsed?'unsupported':ID.test(text.trim())?'plain':'labelled',
+    const trimmed = text.replace(/\u00a0/g,' ').trim();
+    const labelled = Boolean(parsed && trimmed && trimmed !== parsed);
+    return {format:!trimmed?'missing':!parsed?'unsupported':labelled?'labelled':'plain',
       length:text.length===0?'0':text.length<=10?'1-10':text.length<=100?'11-100':text.length<=1000?'101-1000':'1001+',characters};
   }
   function identityEvidence(row, cells, attribute, column, kind) {
@@ -53,12 +63,13 @@
     const cellRaw = String(cell?.textContent || '');
     const linkRaw = String(cell?.querySelector?.('a')?.textContent || '');
     const attributeText = attributeRaw.trim(), cellText = cellRaw.replace(/\u00a0/g,' ').trim(), linkText = linkRaw.replace(/\u00a0/g,' ').trim();
-    const a = ID.test(attributeText) ? attributeText : '', c = identityText(cellText,kind), l = identityText(linkText,kind);
+    const a = liveToken(attributeText), c = liveToken(cellText), l = liveToken(linkText);
     const compare = (left,right) => !left || !right ? 'unavailable' : left === right ? 'match' : 'mismatch';
     const comparisons = {attributeCell:compare(a,c),attributeLink:compare(a,l),cellLink:compare(c,l)};
-    const unsupported = Boolean(attributeText&&!a || cellText&&!c || linkText&&!l);
-    return {problem:unsupported?'unsupported_format':Object.values(comparisons).includes('mismatch')?'conflict':a||c||l?'none':'missing',
-      attribute:valueShape(attributeRaw,a),cell:valueShape(cellRaw,c),link:valueShape(linkRaw,l),comparisons};
+    const visibleUnreadable = Boolean(cellText && !c || linkText && !l);
+    const chosen = c || l || (!(cellText || linkText) ? a : '');
+    const problem = chosen ? 'none' : visibleUnreadable || (attributeText && !a) ? 'unsupported_format' : 'missing';
+    return {problem,attribute:valueShape(attributeRaw,a),cell:valueShape(cellRaw,c),link:valueShape(linkRaw,l),comparisons};
   }
   const FAILURE_STAGES = {invalid_scope:'scope',columns_changed:'columns',duplicate_columns:'columns',
     missing_order_identity:'identity',duplicate_order_identity:'identity',invalid_order_time:'date',
@@ -146,47 +157,120 @@
     if (rows.length > 50000) return unavailable("invalid", "scan_capacity_exceeded");
 
     const entries = [], revealedIds = [], revealedEntries = [], seen = new Set();
+    const rowSamples = [], skippedByReason = Object.create(null);
+    const keptByParty = Object.create(null), skippedByParty = Object.create(null);
+    let skippedRowCount = 0, waitingRowCount = 0, revealedRowCount = 0, checkboxUnknownCount = 0, firstSkip = null;
+    let skippedUnreadableParty = 0;
+    const checkboxOf = revealCell => {
+      const checks = revealCell?.querySelectorAll?.('input[type="checkbox"]');
+      if (!checks || checks.length !== 1 || checks[0].indeterminate || checks[0].disabled
+        || checks[0].getAttribute?.('aria-busy') === 'true' || typeof checks[0].checked !== "boolean") return 'unknown';
+      return checks[0].checked ? 'revealed' : 'waiting';
+    };
+    let partyForRow = '';
+    const noteRow = (rowIndex, checkbox, disposition, skipReason) => {
+      if (checkbox === 'unknown') checkboxUnknownCount += 1;
+      if (disposition === 'kept' && checkbox === 'waiting') waitingRowCount += 1;
+      if (disposition === 'kept' && checkbox === 'revealed') revealedRowCount += 1;
+      if (disposition === 'skipped') {
+        skippedRowCount += 1;
+        skippedByReason[skipReason] = (skippedByReason[skipReason] || 0) + 1;
+        if (partyForRow) skippedByParty[partyForRow] = (skippedByParty[partyForRow] || 0) + 1;
+        else skippedUnreadableParty += 1;
+      }
+      if (disposition === 'kept' && partyForRow) keptByParty[partyForRow] = (keptByParty[partyForRow] || 0) + 1;
+      if (rowSamples.length < 32) rowSamples.push({
+        rowIndex, checkbox, disposition,
+        ...(skipReason ? {skipReason} : {}),
+        identity: checkbox === 'waiting' ? 'new_waiting' : checkbox === 'revealed' ? 'already_revealed' : 'unknown',
+      });
+    };
+    const rowReportOf = () => ({
+      version:1, exactRowCount:allRows.length, productRowCount:rows.length,
+      keptRowCount:entries.length + revealedIds.length, skippedRowCount,
+      waitingRowCount, revealedRowCount, checkboxUnknownCount,
+      skippedByReason:{...skippedByReason}, rows:[...rowSamples],
+    });
     for (const [rowOffset, row] of rows.entries()) {
+      let rowNoted = false;
+      try {
       const cells = row.children ? Array.from(row.children).filter(cell => cell.tagName === 'TD') : row.querySelectorAll("td");
       const rowFailure = reason => failureContext(reason,rowOffset+1,Math.min(cells.length,32));
+      const nameCell = Number.isInteger(columns.FirstName) ? cells[columns.FirstName] : null;
+      const revealCell = Number.isInteger(columns.IsRevealed) ? cells[columns.IsRevealed] : null;
+      const checkbox = checkboxOf(revealCell);
+      const skip = (reason, extraFailure) => {
+        if (!firstSkip) firstSkip = {reason, failure: extraFailure ? {...rowFailure(reason),...extraFailure} : rowFailure(reason)};
+        noteRow(rowOffset+1, checkbox, 'skipped', reason);
+        rowNoted = true;
+      };
       const orderId = readIdentity(row,cells,'data-orderid',columns.OrderID,'Order');
       const partyId = readIdentity(row,cells,'data-partyid',columns.PartyID,'Party');
-      // Discovery may ignore excluded row data only after both identities agree.
-      // A malformed/ambiguous identity must not hide an unknown new party.
-      const outside = partyId && (parties && !parties.has(partyId) || excluded.has(partyId));
-      if (outside && discoveryExclusions === null) continue;
-      if (!ID.test(orderId) || !ID.test(partyId)) return unavailable("invalid", "missing_order_identity", {
-        ...rowFailure('missing_order_identity'),order:identityEvidence(row,cells,'data-orderid',columns.OrderID,'Order'),
-        party:identityEvidence(row,cells,'data-partyid',columns.PartyID,'Party')});
-      if (outside) continue;
-      const id = partyId + ":" + orderId;
-      if (seen.has(id)) return unavailable("invalid", "duplicate_order_identity", rowFailure("duplicate_order_identity"));
+      partyForRow = liveToken(partyId);
+      // Discovery may ignore excluded row data only after a usable Live identity is read.
+      // An unreadable row is skipped; it must never empty the rest of the snapshot.
+      if (!orderId || !partyId || !liveEntryId(partyId, orderId)) {
+        skip('missing_order_identity', {
+          order:identityEvidence(row,cells,'data-orderid',columns.OrderID,'Order'),
+          party:identityEvidence(row,cells,'data-partyid',columns.PartyID,'Party')});
+        continue;
+      }
+      const outside = parties && !parties.has(partyForRow) || excluded.has(partyForRow);
+      if (outside) { noteRow(rowOffset+1, checkbox, 'outside'); rowNoted = true; continue; }
+      const id = liveEntryId(partyId, orderId);
+      if (seen.has(id)) { skip('duplicate_order_identity'); continue; }
       seen.add(id);
       const rawDate = cells[columns.OrderDate]?.getAttribute("data-order-utc-ms");
       let orderedAt = null;
       if (rawDate !== null && rawDate !== undefined && rawDate !== "") {
-        if (!/^[0-9]+$/.test(rawDate)) return unavailable("invalid", "invalid_order_time", rowFailure("invalid_order_time"));
+        if (!/^[0-9]+$/.test(rawDate)) { seen.delete(id); skip('invalid_order_time'); continue; }
         orderedAt = Number(rawDate);
-        if (!Number.isSafeInteger(orderedAt) || orderedAt > 8640000000000000) return unavailable("invalid", "invalid_order_time", rowFailure("invalid_order_time"));
+        if (!Number.isSafeInteger(orderedAt) || orderedAt > 8640000000000000) { seen.delete(id); skip('invalid_order_time'); continue; }
       }
-      const nameCell = cells[columns.FirstName], revealCell = cells[columns.IsRevealed];
-      if (!nameCell || !revealCell) return unavailable("partial", "row_incomplete", rowFailure("row_incomplete"));
-      const checks = revealCell.querySelectorAll('input[type="checkbox"]');
-      if (checks.length !== 1 || checks[0].indeterminate || checks[0].disabled || checks[0].getAttribute?.('aria-busy') === 'true' || typeof checks[0].checked !== "boolean") return unavailable("partial", "reveal_state_missing", rowFailure("reveal_state_missing"));
-      if (checks[0].checked) {
+      if (!nameCell || !revealCell) { seen.delete(id); skip('row_incomplete'); continue; }
+      if (checkbox === 'unknown') { seen.delete(id); skip('reveal_state_missing'); continue; }
+      if (checkbox === 'revealed') {
         revealedIds.push(id); revealedEntries.push({id, orderedAt});
       } else {
         const name = nameCell.textContent.trim();
-        if (!name || name.length > 100 || Array.from(name).some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)) return unavailable("invalid", "invalid_first_name", rowFailure("invalid_first_name"));
+        if (!name || name.length > 100 || Array.from(name).some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)) {
+          seen.delete(id); skip('invalid_first_name'); continue;
+        }
         const surname = Number.isInteger(columns.LastName) ? String(cells[columns.LastName]?.textContent || '').trim() : '';
         const lastName = surname && surname.length <= 100 && !/[\u0000-\u001f\u007f]/.test(surname) ? surname : null;
         entries.push({id, name, orderedAt, ...(lastName ? {lastName} : {})});
       }
+      noteRow(rowOffset+1, checkbox, 'kept');
+      rowNoted = true;
       if (entries.length > 2000 || revealedIds.length > 10000) return unavailable("invalid", "capacity_exceeded", rowFailure("capacity_exceeded"));
+      } catch {
+        if (!rowNoted) {
+          partyForRow = partyForRow || '';
+          if (!firstSkip) firstSkip = {reason:'row_incomplete', failure:failureContext('row_incomplete',rowOffset+1,null)};
+          noteRow(rowOffset+1, 'unknown', 'skipped', 'row_incomplete');
+        }
+      }
     }
-    if (discoveryExclusions === null && rows.length && !seen.size && (!parties || [...parties].some(id => !excluded.has(id)))) return unavailable("partial", "selected_party_not_visible");
+    const rowReport = rowReportOf();
+    if (discoveryExclusions === null && rows.length && !seen.size && skippedRowCount === 0
+      && (!parties || [...parties].some(id => !excluded.has(id)))) {
+      return {...unavailable("partial", "selected_party_not_visible"), rowReport};
+    }
+    if (!seen.size && skippedRowCount) {
+      return {...unavailable(firstSkip.reason === 'invalid_first_name' || firstSkip.reason === 'invalid_order_time'
+        || firstSkip.reason === 'missing_order_identity' || firstSkip.reason === 'duplicate_order_identity' || firstSkip.reason === 'capacity_exceeded'
+        ? 'invalid' : 'partial', firstSkip.reason, firstSkip.failure), rowReport};
+    }
+    const inScopeParty = id => !parties || (parties.has(id) && !excluded.has(id));
+    const partyMissingFromReady = Object.keys(skippedByParty).some(id => inScopeParty(id) && !keptByParty[id])
+      || Boolean(skippedUnreadableParty && (parties ? [...parties].some(id => !excluded.has(id) && !keptByParty[id]) : true));
+    if (partyMissingFromReady) {
+      const reason = firstSkip && ['table_incomplete','row_incomplete','reveal_state_missing','selected_party_not_visible'].includes(firstSkip.reason)
+        ? firstSkip.reason : 'row_incomplete';
+      return {...unavailable('partial', reason, firstSkip && firstSkip.failure), rowReport};
+    }
     entries.sort((a, b) => (a.orderedAt ?? Number.MAX_SAFE_INTEGER) - (b.orderedAt ?? Number.MAX_SAFE_INTEGER) || a.id.localeCompare(b.id));
-    return {parserState: "ready", reason: null, entries, revealedIds, revealedEntries};
+    return {parserState: "ready", reason: null, entries, revealedIds, revealedEntries, rowReport};
   }
   function parseTable(table, selection = null) {
     const parts = tableParts(table);

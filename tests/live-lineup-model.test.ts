@@ -471,3 +471,29 @@ describe('2.0.10 diagnostics', () => {
     expect(isLineupState(corrupt)).toBe(false)
   })
 })
+
+describe('2.0.11 ingest', () => {
+  it('keeps Live validId and rejects dotted, slashed or oversize entry IDs', () => {
+    expect(parseSourcePacket(packet({ entries: [entry('1846280:abc/def=ghi.v2')], revealedIds: [] }))).toBeNull()
+    expect(parseSourcePacket(packet({ entries: [entry('P9:order.id')], revealedIds: [] }))).toBeNull()
+    expect(parseSourcePacket(packet({ entries: [entry('has a space')], revealedIds: [] }))).toBeNull()
+    expect(parseSourcePacket(packet({ entries: [entry('P9:00017')], revealedIds: [] }))).not.toBeNull()
+  })
+
+  it('still does not apply partial or invalid packets, even when they carry entries', () => {
+    const original = populated()
+    for (const parserState of ['partial', 'invalid'] as const) {
+      const next = state(applySourcePacket(original, packet({
+        sequence: 1, parserState, parserReason: parserState === 'partial' ? 'row_incomplete' : 'missing_order_identity',
+        entries: [entry('P9:00017')], revealedIds: [],
+      }), T + 20))
+      expect(next.entries).toEqual(original.entries)
+      expect(next.lastReadyAt).toBe(original.lastReadyAt)
+    }
+  })
+
+  it('leaves the published 2.0.10 release config unchanged', () => {
+    expect(LIVE_LINEUP_RELEASE.version).toBe('2.0.10')
+    expect(LIVE_LINEUP_RELEASE.rolloutEnabled).toBe(true)
+  })
+})
