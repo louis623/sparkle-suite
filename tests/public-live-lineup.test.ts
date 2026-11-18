@@ -18,6 +18,7 @@ describe('Brittany temporary public Live Lineup continuity', () => {
   it('accepts fresh changes and genuine empty lineups', () => {
     expect(buildPublicLiveLineup(snapshot(60)).liveQueueState).toBe('live')
     expect(buildPublicLiveLineup(snapshot(60, [])).liveQueueState).toBe('empty')
+    expect(buildPublicLiveLineup(snapshot(60, [])).liveQueueSummary).toBe('I have an open lineup.')
   })
   it('does not preserve names indefinitely or manufacture a timestamp', () => {
     expect(buildPublicLiveLineup(snapshot(3601)).liveQueueEntries).toEqual([])

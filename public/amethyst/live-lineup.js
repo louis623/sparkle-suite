@@ -214,7 +214,7 @@
     const h = React.createElement;
     if (state === 'empty') {
       return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':'empty', 'aria-label':'Live lineup'},
-        h('div', {className:'hp-lineup-idle-inner'}, h('span', {className:'hp-lineup-idle-prompt'}, 'Live lineup connected. No one is waiting.')));
+        h('div', {className:'hp-lineup-idle-inner'}, h('span', {className:'hp-lineup-idle-prompt'}, 'I have an open lineup.')));
     }
     const href = typeof calendarHref === 'string' && (calendarHref === '#events' || calendarHref.startsWith('/')) &&
       !calendarHref.startsWith('//') && !/[\\\s]/u.test(calendarHref) ? calendarHref : null;

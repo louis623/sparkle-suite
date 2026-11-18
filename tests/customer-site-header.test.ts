@@ -31,7 +31,7 @@ describe('public customer lineup follows entries, independently of showtime and 
     const prepared=template(page)
     it(page+': empty without names displays its connection status',async()=>{
       const html=(await prepared)('empty')
-      expect(html).toContain('Live lineup connected. No one is waiting.')
+      expect(html).toContain('I have an open lineup.')
       expect(html).not.toContain('Check the calendar for the next show')
       expect(html).not.toContain('href="/smokecodex#events"')
       expect(html).not.toContain('Working on live lineup issue')
@@ -91,7 +91,7 @@ describe('public customer lineup follows entries, independently of showtime and 
     for(const preset of [...AMETHYST_APPEARANCE_PRESET_IDS,'future_inherited_skin']) {
       it(page+': '+preset+' inherits both display states',async()=>{
         const render=await prepared
-        expect(render('empty',[],null,true,preset)).toContain('Live lineup connected. No one is waiting.')
+        expect(render('empty',[],null,true,preset)).toContain('I have an open lineup.')
         expect(render('live',names,null,true,preset)).toContain('Sample Harper')
       })
     }
