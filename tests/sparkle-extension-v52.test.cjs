@@ -137,7 +137,7 @@ function worker({noOp=false,nonready=false,multiple=false,legacyBridge=false,emp
   const area=record=>({setAccessLevel:async()=>{},get:async k=>Array.isArray(k)?Object.fromEntries(k.map(x=>[x,record[x]])):{[k]:structuredClone(record[k])},set:async v=>Object.assign(record,structuredClone(v)),remove:async k=>{delete record[k];}});
   const event=k=>({addListener:f=>{listeners[k]=f;}});
   const full={reason:nonready?'reveal_state_missing':null,parserState:nonready?'partial':'ready',entries:nonready||empty?[]:[{id:'P9:a',name:'April',lastName:'Smith',orderedAt:clock}],revealedIds:[],revealedEntries:[]};
-  const chrome={runtime:{id:'fixture',getURL:p=>'chrome-extension://fixture/'+p,getManifest:()=>({version}),onMessage:event('message')},storage:{local:area(local),session:area(session),sync:area({sync_code:'TST-0001',enabled:true,excluded_party_ids:[]})},alarms:{create:async()=>{},onAlarm:event('alarm')},tabs:{query:async()=>[{id:1,url:'https://myoffice.bombparty.com/live-party-orders'},...(multiple?[{id:2,url:'https://myoffice.bombparty.com/live-party-orders'}]:[])],sendMessage:async(_id,m)=>({protocol:2,readerVersion,generation:m.generation,snapshot:full,...(legacyBridge?{}:{source:{documentId,serial:++observations,settled:!nonready}})}),onRemoved:event('removed'),onUpdated:event('updated'),onActivated:event('activated')}};
+  const chrome={runtime:{id:'fixture',getURL:p=>'chrome-extension://fixture/'+p,getManifest:()=>({version}),onMessage:event('message')},storage:{local:area(local),session:area(session),sync:area({sync_code:'TST-0001',enabled:true,excluded_party_ids:[]})},alarms:{create:async()=>{},onAlarm:event('alarm')},tabs:{query:async()=>[{id:1,url:'https://myoffice.bombparty.com/live-party-orders'},...(multiple?[{id:2,url:'https://myoffice.bombparty.com/live-party-orders'}]:[])],sendMessage:async(_id,m)=>({protocol:2,readerVersion,generation:m.generation,snapshot:full,discovery:full,...(legacyBridge?{}:{source:{documentId,serial:++observations,settled:!nonready}})}),onRemoved:event('removed'),onUpdated:event('updated'),onActivated:event('activated')}};
   class Clock extends Date {static now(){return clock;}}
   const endpoint='https://www.yoursparklesuite.com/api/live-lineup/publish';
   const context=vm.createContext({chrome,importScripts:()=>{},SparkleUpdateClient:{...updateClient,create:args=>updateClient.create({...args,now:()=>clock})},SparklePublisherClient:{createPublisherClient:args=>createPublisherClient({...args,now:()=>clock})},URL,TextEncoder,TextDecoder,AbortController,crypto:webcrypto,Date:Clock,performance:{now:()=>clock},setTimeout:(f,n)=>setTimeout(f,n===550?1:1000),clearTimeout,
@@ -166,11 +166,11 @@ function worker({noOp=false,nonready=false,multiple=false,legacyBridge=false,emp
 }
 test('2.0.6 resumes the next pull after show_changed without a rep reselect',async()=>{
   const w=worker({showChangeOnSnapshot:true});await w.settle();
-  const paused=await w.run('exclusive(pull)');
+  const paused=await w.run('lastRequest=0;requestPull()');
   assert.equal(paused.status,'show_changed');
   assert.equal(w.local.sparklePublisherV2.needsSelection,true);
   w.advance(60000);
-  const resumed=await w.run('exclusive(pull)');
+  const resumed=await w.run('lastRequest=0;requestPull()');
   assert.equal(resumed.status,'confirmed');
   assert.equal(w.local.sparklePublisherV2.needsSelection,false);
   assert.equal(w.local.sparklePublisherV2.generation,2);
@@ -192,7 +192,7 @@ test('missing updated content bridge and ambiguous source never claim or publish
 test('source closes during a read: late reply cannot publish and authority does not switch',async()=>{
   const w=worker();await w.settle();const before=w.requests.length;
   await w.run(`chrome.tabs.sendMessage=async()=>{invalidatePull(1);return{protocol:2,source:{documentId:'${documentId}',serial:99,settled:true},snapshot:{parserState:'ready',entries:[],revealedIds:[],revealedEntries:[]}}}`);
-  assert.equal((await w.run('exclusive(pull)')).status,'source_changed');
+  assert.equal((await w.run('lastRequest=0;requestPull()')).status,'source_changed');
   assert.equal(w.requests.slice(before).some(x=>x.action==='snapshot'),false);
 });
 test('content remains read-only and carries a new table/document observation fence',()=>{
@@ -222,13 +222,13 @@ test('parser reason survives a successful non-ready receipt and is exposed local
 test('closed selected tab recovers with the only replacement tab and a fresh observation',async()=>{
  const w=worker();await w.settle();
  await w.run("chrome.tabs.query=async()=>[{id:2,url:'https://myoffice.bombparty.com/live-party-orders'}]");
- await w.run('exclusive(pull)');assert.equal((await w.run('selected()')).tabId,2);
+ await w.run('lastRequest=0;requestPull()');assert.equal((await w.run('selected()')).tabId,2);
  assert.equal((await w.run('status()')).connected,true);
 });
 test('ordinary Chrome missing-receiver rejection heals by injecting only packaged reader files',async()=>{
  const w=worker();await w.settle();
- await w.run("globalThis.injections=[];const originalSend=chrome.tabs.sendMessage;chrome.tabs.sendMessage=async()=>{throw new Error('Could not establish connection. Receiving end does not exist.')};chrome.scripting={executeScript:async args=>{injections.push(args);if(args.func)return [{result:true}];chrome.tabs.sendMessage=originalSend;}}");
- await w.run('exclusive(pull)');assert.equal((await w.run('status()')).connected,true);
+ await w.run("globalThis.injections=[];const originalSend=chrome.tabs.sendMessage;chrome.tabs.sendMessage=async()=>{throw new Error('Could not establish connection. Receiving end does not exist.')};chrome.scripting={executeScript:async args=>{injections.push(args);if(args.func)return [{result:'inject'}];chrome.tabs.sendMessage=originalSend;}}");
+ await w.run('lastRequest=0;requestPull()');assert.equal((await w.run('status()')).connected,true);
  const injections=JSON.parse(JSON.stringify(await w.run('injections')));assert.equal(injections.length,2);
  assert.deepEqual(injections[0].target,{tabId:1,frameIds:[0]});
  assert.deepEqual(injections[1],{target:{tabId:1,frameIds:[0]},files:['queue-parser.js','content.js']});
@@ -236,7 +236,7 @@ test('ordinary Chrome missing-receiver rejection heals by injecting only package
 test('a changed generation is adopted only with a new claim and a fresh read',async()=>{
  const w=worker();await w.settle();
  await w.run("(async()=>store.update((await store.load()).configVersion,{generation:0}))()");
- const before=w.requests.length;await w.run('exclusive(pull)');
+ const before=w.requests.length;await w.run('lastRequest=0;requestPull()');
  assert.equal((await w.run('status()')).connected,true);
  assert.deepEqual(w.requests.slice(before).filter(x=>x.action!=='describe').map(x=>x.action),['claim','snapshot']);
 });
@@ -255,8 +255,8 @@ test('2.0.8 reporting: worker/reader mismatch never certifies ready and recovers
   assert.ok(packets.length);assert.ok(packets.every(p=>p.parserState==='partial' && p.observation.settled===false));
   assert.equal(packets[0].diagnostics.sourceVersion,'2.0.8');assert.equal(packets[0].diagnostics.readerVersion,'2.0.7');
   assert.equal((await w.run('status()')).connected,false);
-  w.run("chrome.tabs.sendMessage=async(_id,m)=>({protocol:2,readerVersion:'2.0.8',generation:m.generation,source:{documentId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',serial:100,settled:true},snapshot:{parserState:'ready',entries:[],revealedIds:[],revealedEntries:[]}})");
-  w.advance(121000);assert.equal((await w.run('exclusive(pull)')).status,'confirmed');
+  w.run("chrome.tabs.sendMessage=async(_id,m)=>({protocol:2,readerVersion:'2.0.8',generation:m.generation,source:{documentId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',serial:100,settled:true},snapshot:{parserState:'ready',entries:[],revealedIds:[],revealedEntries:[]},discovery:{parserState:'ready',entries:[],revealedIds:[],revealedEntries:[]}})");
+  w.advance(121000);assert.equal((await w.run('lastRequest=0;requestPull()')).status,'confirmed');
   assert.equal((await w.run('status()')).connected,true);
   const content=fs.readFileSync('chrome-extension/content.js','utf8');
   const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
@@ -433,7 +433,7 @@ test('2.0.10 diagnostics: transport strips injected text and binds evidence to t
 test('2.0.10 diagnostics: package identity and read-only reader stay aligned',()=>{
   const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
   const content=fs.readFileSync('chrome-extension/content.js','utf8');
-  assert.equal(manifest.version,'2.0.11');assert.ok(content.includes('const READER_VERSION = "'+manifest.version+'"'));
+  assert.equal(manifest.version,'2.0.12');assert.ok(content.includes('const READER_VERSION = "'+manifest.version+'"'));
   assert.deepEqual(manifest.permissions,['storage','alarms','scripting']);
   assert.deepEqual(manifest.host_permissions,['https://myoffice.bombparty.com/*','https://www.yoursparklesuite.com/*']);
   for(const bad of [/reload|location\.href|location\.replace/,/document\.createElement|appendChild|innerHTML|insertAdjacentHTML/,/alert\(|confirm\(|prompt\(/,/fetch\(|chrome\.storage/]) assert.equal(bad.test(content),false);
