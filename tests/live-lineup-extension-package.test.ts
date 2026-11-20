@@ -196,3 +196,26 @@ describe('deterministic Live Lineup extension ZIP verifier', () => {
     expect(() => inspectZip(prefixed)).toThrow(/undeclared data/)
   })
 })
+
+it('changes only the version field from the approved 2.0.11 production manifest', () => {
+  const current = JSON.parse(readFileSync(resolve('chrome-extension/manifest.json'), 'utf8'))
+  const icons = { '16': 'icons/icon16.png', '48': 'icons/icon48.png', '128': 'icons/icon128.png' }
+  expect(current.version).toBe('2.0.12')
+  expect({ ...current, version: '2.0.11' }).toEqual({
+    manifest_version: 3,
+    name: 'Sparkle Suite Live Queue',
+    version: '2.0.11',
+    description: 'Syncs live party order queue from Bomb Party to Sparkle Suite websites in real time.',
+    permissions: ['storage', 'alarms', 'scripting'],
+    host_permissions: ['https://myoffice.bombparty.com/*', 'https://www.yoursparklesuite.com/*'],
+    background: { service_worker: 'background.js' },
+    content_scripts: [{
+      matches: ['https://myoffice.bombparty.com/live-party-orders*'],
+      js: ['queue-parser.js', 'content.js'],
+      run_at: 'document_idle',
+    }],
+    action: { default_popup: 'popup.html', default_icon: icons },
+    icons,
+    minimum_chrome_version: '120',
+  })
+})

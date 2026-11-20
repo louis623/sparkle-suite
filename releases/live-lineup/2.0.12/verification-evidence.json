@@ -1,0 +1,24 @@
+{
+  "version": "2.0.12",
+  "base": "4324ba7bc86c75532d94ef0586c263eb1deb1d25",
+  "focusedChecks": {
+    "tests/sparkle-extension-worker-v2.test.cjs": {
+      "passed": 10,
+      "failed": 0
+    },
+    "tests/sparkle-extension-v52.test.cjs": {
+      "passed": 42,
+      "failed": 0
+    },
+    "tests/live-lineup-extension-package.test.ts": {
+      "passed": 13,
+      "failed": 0
+    }
+  },
+  "packageVerifier": "passed",
+  "manifestVersion": "2.0.12",
+  "sha256": "645007d6e49ef3a260c2ffc389f048150969a5b92ad3d7196d5df70f3f2338d2",
+  "productPageLoads": 0,
+  "databaseAccesses": 0,
+  "storeSubmitted": false
+}
