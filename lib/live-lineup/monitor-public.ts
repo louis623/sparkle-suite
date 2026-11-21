@@ -1,8 +1,9 @@
 import 'server-only'
+import type { ShowControl } from './show-control'
 import type { LineupState } from './types'
 
 /** Fixed public endpoint; bounded response; only readiness metadata leaves this function. */
-export async function verifyPublicFeed(repId: string, state: LineupState, fetchImpl: typeof fetch = fetch): Promise<'matched' | 'mismatch' | 'unknown'> {
+export async function verifyPublicFeed(repId: string, state: LineupState, fetchImpl: typeof fetch = fetch, control?: ShowControl): Promise<'matched' | 'mismatch' | 'unknown'> {
   if (process.env.VERCEL_ENV !== 'production' || process.env.SPARKLE_ENVIRONMENT === 'smoke'
     || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(repId)) return 'unknown'
   try {
@@ -22,6 +23,14 @@ export async function verifyPublicFeed(repId: string, state: LineupState, fetchI
     const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as Record<string, unknown>
     // A concurrent publish may change revision during the fetch. That is unknown, not a false mismatch.
     if (!Number.isSafeInteger(body.liveQueueRevision) || body.liveQueueRevision !== state.revision) return 'unknown'
+    if (control) {
+      const actual = body.liveQueueShow as {revision?:unknown;phase?:unknown} | null | undefined
+      if (!actual || actual.revision !== control.revision) return 'unknown'
+      if (actual.phase !== control.phase) return 'mismatch'
+      if (control.phase === 'ended') return body.liveQueueState === 'offline'
+        && Array.isArray(body.liveQueueEntries) && body.liveQueueEntries.length === 0 ? 'matched' : 'mismatch'
+    }
+    if (control?.phase === 'active' && body.liveQueueSourceReady === false) return 'unknown'
     if (typeof body.liveQueueSourceReady !== 'boolean' || typeof body.liveQueueLastUpdated !== 'string') return 'unknown'
     return body.liveQueueSourceReady === true && ['live','empty'].includes(String(body.liveQueueState))
       && body.liveQueueLastUpdated === (state.lastReadySourceAt ?? state.lastReadyAt) ? 'matched' : 'mismatch'

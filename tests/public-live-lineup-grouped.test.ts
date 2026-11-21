@@ -94,8 +94,8 @@ describe('one privacy-safe public display projection', () => {
     const result = payload(project([row('private-order-1'), row('private-order-2'), row('p:3', 'April', 'Stevens')]))
     const html = buildAmethystHomepageBootstrapScript({ ...defaultAmethystHomepageTemplateData, ...result })
     expect(html).not.toMatch(/Smith|Stevens|private-order|PRIVATE-CODE|lastName|identityEligible|groupEntryIds/)
-    expect(payload(project(), 3601).liveQueueState).toBe('offline')
-    expect(payload(project(), 3601).liveQueueEntries).toEqual([])
+    expect(payload(project(), 7201).liveQueueState).toBe('offline')
+    expect(payload(project(), 7201).liveQueueEntries).toEqual([])
     expect(payload(project(), 45).liveQueueState).toBe('delayed')
   })
 })
@@ -138,7 +138,7 @@ describe('accepted reveal consumption and conservative client evidence', () => {
     expect(api.merge(current, payload(project([row('p:2'), row('p:3')], [], 3), 1, 4))).toBe(current)
   })
   it('makes returning data after retention expiry a baseline', () => {
-    const { api } = runtime(), value = payload(), expired = api.unavailable(value, now, 3601)
+    const { api } = runtime(), value = payload(), expired = api.unavailable(value, now, 7201)
     const returned = payload(project([row('p:2')], [event()], 1), 1, 2)
     expect(expired.liveQueueState).toBe('offline')
     expect(expired.liveQueueOrderCount).toBe(0)
@@ -180,8 +180,8 @@ describe('accepted reveal consumption and conservative client evidence', () => {
     await vi.advanceTimersByTimeAsync(0)
     expect(update.mock.lastCall?.[0].liveQueueState).toBe('delayed')
     expect(update.mock.lastCall?.[0].liveQueueAgeSeconds).toBe(46)
-    monotonic = 3606001
-    await vi.advanceTimersByTimeAsync(3600000)
+    monotonic = 7206001
+    await vi.advanceTimersByTimeAsync(7200001)
     expect(update.mock.lastCall?.[0].liveQueueState).toBe('offline')
     stop()
   })

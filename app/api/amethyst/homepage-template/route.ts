@@ -5,7 +5,7 @@ import { requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
 
 import { loadAmethystTradeBoardPreviewListings } from '@/lib/amethyst/trade-board-listings'
-import { loadAmethystHomepageUpcomingShows } from '@/lib/amethyst/homepage-upcoming-shows'
+import { loadAmethystHomepageUpcomingShows, loadLineupNextShow } from '@/lib/amethyst/homepage-upcoming-shows'
 import {
   buildAmethystHomepageBootstrapScript,
   enrichAmethystHomepageFeatureData,
@@ -103,7 +103,7 @@ export async function GET(request: Request) {
   const featureRepId = targeted
     ? await resolveHomepageFeatureRepId(lookupTarget)
     : null
-  const [tradeBoardListings, liveQueueSnapshot] = targeted
+  const [tradeBoardListings, liveQueueSnapshot, lineupNextShow] = targeted
     ? await Promise.all([
         loadAmethystTradeBoardPreviewListings({
           ...lookupTarget,
@@ -112,8 +112,9 @@ export async function GET(request: Request) {
           limit: 8,
         }),
         loadHomepageLiveQueueSnapshot(featureRepId),
+        featureRepId ? loadLineupNextShow({repId:featureRepId}) : null,
       ])
-    : [[], null]
+    : [[], null, null]
   const linkedTemplateData = applyPublicSiteSlugToTemplateData(
     templateData,
     publicSiteSlug,

@@ -4,12 +4,13 @@ const ENDPOINT = "https://www.yoursparklesuite.com/api/live-lineup/publish";
 const KEY = ENVIRONMENT === 'smoke' ? 'sparkleSmokePublisherV2' : 'sparklePublisherV2';
 const SOURCE = ENVIRONMENT === 'smoke' ? 'sparkleSmokeSourceV2' : 'sparkleSourceV2';
 const UPDATE_KEY = ENVIRONMENT === 'smoke' ? 'sparkleSmokeUpdaterV1' : 'sparkleUpdaterV1';
+const CONTROL_KEY = UPDATE_KEY + 'ShowControl';
 const RELEASE_ENDPOINT = new URL('/api/live-lineup/release', ENDPOINT).href;
 const POPUP = chrome.runtime.getURL('popup.html');
 const CREDENTIAL = /^(?:sslp_[A-Za-z0-9_-]{43}|[A-Z0-9]{3}-[0-9]{4})$/;
 const CODE = /^[A-Z0-9]{3}-[0-9]{4}$/, PARTY = /^[A-Za-z0-9][A-Za-z0-9_-]{0,60}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-const safeCodes = new Set(['unauthorized','lease_expired','lease_required','publisher_conflict','revision_conflict','stale_sequence','rate_limited','invalid_payload','show_changed','invalid_scope','configuration_changed','source_not_ready','stale_observation','capacity_exceeded','source_unavailable','source_ambiguous','invalid_receipt','server_update_required']);
+const safeCodes = new Set(['unauthorized','lease_expired','lease_required','publisher_conflict','revision_conflict','stale_sequence','rate_limited','invalid_payload','show_changed','invalid_scope','configuration_changed','source_not_ready','stale_observation','capacity_exceeded','source_unavailable','source_ambiguous','invalid_receipt','server_update_required','control_conflict','show_control_unavailable']);
 const fail = code => Object.assign(new Error(code), {code});
 async function withTimeout(promise, ms, code) {
   let timer;
@@ -23,7 +24,7 @@ function checkPull(guard) {
   if (guard?.invalidated) throw fail('configuration_changed');
 }
 const newPullGuard = () => ({tabId:null,invalidated:false,controllers:new Set()});
-let serial = Promise.resolve(), requesting = false, lastRequest = 0, activePull = null, pendingActions = 0, observedDocumentId = null, updaterTask = null;
+let serial = Promise.resolve(), requesting = false, lastRequest = 0, activePull = null, observedDocumentId = null;
 let pullStartedAt = 0, pullToken = 0, queueController = new AbortController();
 const readerHealAt = new Map(), injectPending = new Set();
 // A persisted wall-clock deadline alone cannot prove freshness after worker restart
@@ -54,11 +55,15 @@ async function migrate() {
       readyDeadline:0,lastReadyAckAt:null,parserState:'loading',excludedPartyIds:current.excludedPartyIds || []}});
   }
 }
-const ready = baseReady.then(migrate); ready.catch(()=>{});
+const ready = baseReady
+  .then(() => withTimeout(updater.checkAndInstall({waitMs:4500}),10000,'connection_failed').catch(()=>{}))
+  .then(result => { if (result === 'installing') throw fail('updating'); })
+  .then(migrate);
+ready.catch(()=>{});
 function exclusive(task) {
   const signal = queueController.signal;
   const result = new Promise((resolve, reject) => {
-    // Pending popup and updater work must still run in the new queue.
+    // Pending popup work must still run in the new queue.
     const requeue = () => resolve(Promise.resolve().then(() => exclusive(task)));
     signal.addEventListener('abort', requeue, {once:true});
     serial.then(() => ready).then(() => {
@@ -265,7 +270,7 @@ async function sourceRead(tabId, descriptor, inspectOnly, excludedPartyIds, guar
     || !inspectOnly && descriptor.generation > 0 && response.generation !== descriptor.generation
     || !UUID.test(response.source?.documentId || '') || !Number.isSafeInteger(response.source?.serial) || response.source.serial < 0
     || typeof response.source.settled !== 'boolean') throw fail('source_unavailable');
-  const updateState = await updater.getState();
+  const {updateState} = await updater.getStatus();
   checkPull(guard);
   observedDocumentId=response.source.documentId;
   const readerVersion = typeof response.readerVersion === 'string' && /^\d{1,5}(?:\.\d{1,5}){0,3}$/.test(response.readerVersion) ? response.readerVersion : null;
@@ -284,6 +289,12 @@ async function adopt(state, descriptor, source, parties, guard) {
     allowGenerationAdopt:false,authFailed:false,workflowVersion:4,
     ...(!state.scopePending && descriptor.scope ? {excludedPartyIds:[...descriptor.scope.excludedPartyIds]} : {}),...(changed ? {claimId:null,epoch:null,publisherId:null,nextSequence:0,needsClaim:true,nextAttemptAt:0,readyDeadline:0} : {})},guard)) throw fail('configuration_changed');
   checkPull(guard);
+  if (descriptor.scope) {
+    await changeControlLocal(async current => {
+      if ((await store.load())?.token !== state.token) return {};
+      return {selection:{binding:await credentialBinding(state.token),parties:parties.filter(p=>descriptor.scope.partyIds.includes(p.id))}};
+    });
+  }
   const adopted = await store.load();
   checkPull(guard);
   return adopted;
@@ -296,13 +307,18 @@ async function configure(state, descriptor, parties, guard) {
   if (!await store.update(state.configVersion,{scopePending:true,readyDeadline:0},guard)) throw fail('configuration_changed');
   checkPull(guard);
   const receipt = await post(state.token,{action:'configure',generation:descriptor.generation,partyIds:detected,excludedPartyIds:excluded,
-    claimId:state.claimId,epoch:state.epoch,publisherId:state.publisherId,capabilities:'lineup-2.0.5'},guard);
+    claimId:state.claimId,epoch:state.epoch,publisherId:state.publisherId,capabilities:'lineup-2.0.5',...controlEnvelope(guard)},guard);
   checkPull(guard);
   const next = cleanDescriptor(receipt), proof = receipt.configured;
+  const automatic = proof?.autoExcludedPartyIds ?? [];
+  if (!Array.isArray(automatic) || !automatic.every(id=>detected.includes(id) && !excluded.includes(id))
+    || new Set(automatic).size !== automatic.length || automatic.length && (!guard || !controlEnvelope(guard).control || descriptor.scope)) throw fail('invalid_receipt');
+  const appliedExclusions = [...excluded,...automatic];
   if (!proof || proof.applied !== true || proof.claimId !== state.claimId || proof.epoch !== state.epoch || proof.generation !== next.generation
-    || !Array.isArray(proof.partyIds) || !Array.isArray(proof.excludedPartyIds) || !sameSet(proof.partyIds,detected) || !sameSet(proof.excludedPartyIds,excluded)
+    || !Array.isArray(proof.partyIds) || !Array.isArray(proof.excludedPartyIds) || !sameSet(proof.partyIds,detected) || !sameSet(proof.excludedPartyIds,appliedExclusions)
     || next.generation !== (descriptor.generation || 1) || !next.scope || detected.some(id=>!next.scope.partyIds.includes(id))
-    || !sameSet(next.scope.excludedPartyIds.filter(id=>detected.includes(id)),excluded)) throw fail('invalid_receipt');
+    || !sameSet(next.scope.excludedPartyIds.filter(id=>detected.includes(id)),appliedExclusions)) throw fail('invalid_receipt');
+  if (automatic.length && !await store.update(state.configVersion,{excludedPartyIds:next.scope.excludedPartyIds},guard)) throw fail('configuration_changed');
   return next;
 }
 function needsConfigure(state, descriptor, parties) {
@@ -333,7 +349,7 @@ async function prepare(guard) {
   if (!state?.enabled) return null;
   const descriptor = await describe(state,guard);
   checkPull(guard);
-  const source = await selected();
+  const source = await selected() || await confirmedSelection(state);
   checkPull(guard);
   const choices = await tabs();
   checkPull(guard);
@@ -378,8 +394,15 @@ async function freshSnapshot(prepared, guard) {
   return snapshot;
 }
 async function status() {
-  const state = await store.load(), source = await selected(), now = Date.now();
-  return {ok:true,environment:ENVIRONMENT,configured:Boolean(state && CREDENTIAL.test(state.token)),enabled:Boolean(state?.enabled),
+  const state = await store.load(), source = await selected() || await confirmedSelection(state), now = Date.now();
+  const local = await loadControlLocal();
+  const browserUpdate = await updater.getStatus();
+  const current = controlCache?.token === state?.token ? controlCache.value : null;
+  const unsupported = controlUnavailableFor === state?.token;
+  return {ok:true,environment:ENVIRONMENT,workerVersion:chrome.runtime.getManifest().version,...browserUpdate,
+    showControl:current?.showControl ?? null,extensionStatus:current?.extensionStatus ?? null,showControlsUnavailable:unsupported,controlNotice:local.notice ?? null,
+    startPending:Boolean(local.pending && state && local.pending.binding === await credentialBinding(state.token)),
+    configured:Boolean(state && CREDENTIAL.test(state.token)),enabled:Boolean(state?.enabled),
     code:CODE.test(state?.token || '') ? state.token : '',parties:Array.isArray(source?.parties) ? source.parties : [],excludedPartyIds:state?.excludedPartyIds || [],scopePending:Boolean(state?.scopePending),
     connected:Boolean(state?.enabled && Number.isSafeInteger(state.generation) && source && state.parserState === 'ready' && !state.scopePending && !state.lastError
       && localReadyAck === state.lastAckAt && monotonicNow() < localReadyDeadline
@@ -389,12 +412,18 @@ async function status() {
 async function pull(guard) {
   const pub = SparklePublisherClient.createPublisherClient({
     store: guardedStore(guard),
-    post: (token,body) => post(token,body,guard),
+    post: (token,body) => post(token,body.action === 'snapshot' ? {...body,...controlEnvelope(guard)} : body,guard),
   });
   const publish = prepared => pub.sync(() => freshSnapshot(prepared,guard),chrome.runtime.getManifest().version,{
     readyHint:prepared.readyHint,diagnosticSnapshot:prepared.diagnosticSnapshot,
   });
   try {
+    // Status has its own bounded transport. A stalled tab query or check-in
+    // must not add another deadline to the existing reconnect/watchdog path.
+    void runControlCycle(false);
+    checkPull(guard);
+    const config = await store.load();
+    if (controlCache?.token === config?.token) guard.controlRevision = controlCache?.value.showControl.revision;
     let prepared = await prepare(guard);
     checkPull(guard);
     if (!prepared) return {status:'waiting'};
@@ -411,6 +440,9 @@ async function pull(guard) {
       state = await adopt(state,descriptor,{tabId:prepared.tabId},prepared.parties,guard);
       checkPull(guard);
       prepared = {...prepared,state,descriptor};
+      // Configure can change visibility. Fence the subsequent snapshot with the latest revision.
+      const latest = await refreshControl(state).catch(()=>null);
+      if (latest) guard.controlRevision = latest.showControl.revision;
       // An existing-scope observation is never evidence for the newly configured scope.
       await new Promise(resolve => setTimeout(resolve,550));
       checkPull(guard);
@@ -458,8 +490,206 @@ function requestPull() {
     if (token !== pullToken) return;
     requesting = false;
     if (activePull === guard) activePull = null;
-    scheduleUpdate();
+    scheduleMetadata();
   });
+}
+let controlCache = null, controlUnavailableFor = null, controlUnavailableAt = 0, controlCycle = null, controlWrites = Promise.resolve();
+let pendingStartTask, bindingToken, bindingHash;
+const controlRevision = value => Number.isSafeInteger(value) && value >= 0;
+const dateString = value => typeof value === 'string' && Number.isFinite(Date.parse(value));
+
+function controlEnvelope(guard) {
+  return controlRevision(guard?.controlRevision) ? {control:{revision:guard.controlRevision}} : {};
+}
+async function credentialBinding(token) {
+  if (bindingToken === token && bindingHash) return bindingHash;
+  const fingerprint = await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token));
+  bindingToken = token;
+  bindingHash = Array.from(new Uint8Array(fingerprint),byte=>byte.toString(16).padStart(2,'0')).join('');
+  return bindingHash;
+}
+async function loadControlLocal() {
+  return (await chrome.storage.local.get(CONTROL_KEY))[CONTROL_KEY] || {};
+}
+function changeControlLocal(change) {
+  const task = controlWrites.then(async()=>{
+    const current = await loadControlLocal();
+    const next = {...current,...await change(current)};
+    await chrome.storage.local.set({[CONTROL_KEY]:next});
+    return next;
+  });
+  controlWrites = task.catch(()=>{});
+  return task;
+}
+async function confirmedSelection(state) {
+  if (!CREDENTIAL.test(state?.token || '')) return null;
+  const value = (await loadControlLocal()).selection;
+  return value && value.binding === await credentialBinding(state.token) ? {parties:value.parties} : null;
+}
+async function acceptControl(token, value) {
+  const current = value?.showControl, extension = value?.extensionStatus;
+  if (value?.protocol !== 1 || !dateString(value.serverTime) || !controlRevision(current?.revision)
+      || !['started','auto','stopped'].includes(current.mode)
+      || !['active','ended'].includes(current.phase)
+      || !['none','some','unknown'].includes(current.selection)
+      || !['workspace','extension','auto'].includes(current.actor)
+      || !(current.runId === null || UUID.test(current.runId))
+      || !(current.deadline === null || dateString(current.deadline))
+      || typeof current.waitingForFirstOrder !== 'boolean'
+      || typeof extension?.connected !== 'boolean'
+      || !(extension.ackControlRevision === null || controlRevision(extension.ackControlRevision))) throw fail('invalid_receipt');
+  if ((await store.load())?.token !== token) throw fail('configuration_changed');
+  const prior = controlCache?.token === token ? controlCache.value : null;
+  if (prior && (prior.showControl.revision > current.revision
+      || prior.showControl.revision === current.revision && Date.parse(prior.serverTime) > Date.parse(value.serverTime))) return prior;
+  controlCache = {token,value};
+  controlUnavailableFor = null;
+  return value;
+}
+async function refreshControl(state, ack = null) {
+  if (!CREDENTIAL.test(state?.token || '')) return null;
+  let tabPresent = false, readerVersion = null;
+  try {
+    const choices = await tabs();
+    const active = choices.length > 1 ? await selected() : null;
+    const tab = choices.length === 1 ? choices[0] : choices.find(t=>t.id === active?.tabId);
+    tabPresent = Boolean(tab);
+    if (tab) {
+      const response = await messageTab(tab.id,{action:'sparkle-v2-probe'});
+      if (SparkleUpdateClient.compare(response?.readerVersion,'2.0.13') !== null) readerVersion = response.readerVersion;
+    }
+  } catch {
+    // A missing reader is connection evidence only. It never closes a party.
+  }
+  const workerVersion = chrome.runtime.getManifest().version;
+  const sourceStatus = readerVersion === null ? 'unavailable' : ['ready','loading','partial','invalid'].includes(state.parserState) ? state.parserState : 'unknown';
+  try {
+    const value = await post(state.token,{action:'control-checkin',checkin:{workerVersion,readerVersion,sourceStatus,
+      tabPresent,readerResponding:readerVersion !== null,ackControlRevision:ack}});
+    return await acceptControl(state.token,value);
+  } catch (error) {
+    if (['invalid_payload','show_control_unavailable'].includes(error?.code)) {
+      controlUnavailableFor = state.token;
+      controlUnavailableAt = Date.now();
+    }
+    if (error?.code === 'unauthorized') await changeControlLocal(async current => ({
+      ...(current.pending?.binding === await credentialBinding(state.token) ? {pending:null} : {}),
+    }));
+    throw error;
+  }
+}
+async function completePending(pending, notice = null) {
+  return changeControlLocal(current=>current.pending?.requestId === pending.requestId ? {pending:null,notice} : {});
+}
+async function sendShowCommand(state, action, requestId, expectedControlRevision) {
+  const value = await post(state.token,{action,requestId,expectedControlRevision});
+  const receipt = value?.receipt;
+  if (receipt?.action !== action || receipt.requestId !== requestId || receipt.revision !== expectedControlRevision + 1
+      || receipt.revision > value.showControl?.revision
+      || !(receipt.runId === null && action === 'show-stop' || UUID.test(receipt.runId || ''))) throw fail('invalid_receipt');
+  return acceptControl(state.token,value);
+}
+async function resumePendingStart(state, value) {
+  const local = await loadControlLocal(), pending = local.pending, show = value?.showControl;
+  if (!pending || !show) return;
+  const age = Date.now() - pending.requestedAt;
+  if (pending.binding !== await credentialBinding(state.token) || age < 0 || age >= 7200000) {
+    await completePending(pending);
+    return;
+  }
+  if (pending.phase === 'ack' && (show.revision !== pending.expectedControlRevision || show.mode !== 'started')
+    || pending.phase === 'start' && show.revision > pending.expectedControlRevision
+      && (show.mode !== 'started' || show.revision !== pending.expectedControlRevision + 1 || show.actor !== 'extension')) {
+    await completePending(pending,'control_conflict');
+    return;
+  }
+  const update = await updater.checkAndInstall();
+  if (update === 'installing') return;
+  const stillPending = (await loadControlLocal()).pending;
+  if (stillPending?.requestId !== pending.requestId || (await store.load())?.token !== state.token) return;
+  try {
+    const confirmed = pending.phase === 'ack' ? await refreshControl(state,show.revision)
+      : await sendShowCommand(state,'show-start',pending.requestId,pending.expectedControlRevision);
+    if (confirmed) {
+      if (pending.phase === 'start' && confirmed.showControl.mode === 'started') {
+        await refreshControl(state,confirmed.showControl.revision).catch(()=>{});
+      }
+      const revision = pending.expectedControlRevision + (pending.phase === 'start' ? 1 : 0);
+      await completePending(pending,confirmed.showControl.revision > revision ? 'control_conflict' : null);
+    }
+  } catch (error) {
+    if (error?.code === 'control_conflict' || error?.code === 'unauthorized') await completePending(pending,error.code);
+    throw error;
+  }
+}
+function continuePendingStart(state, result) {
+  if (!pendingStartTask) {
+    pendingStartTask = resumePendingStart(state,result).finally(()=>{pendingStartTask = null;});
+  }
+  return pendingStartTask;
+}
+function runControlCycle(force) {
+  if (!controlCycle || force) {
+    const work = baseReady.then(async()=>{
+      const state = await store.load();
+      const sinceUnavailable = Date.now() - controlUnavailableAt;
+      if (!force && state?.token && controlUnavailableFor === state.token && sinceUnavailable >= 0 && sinceUnavailable < 30000) return;
+      const prior = controlCache?.token === state?.token ? controlCache?.value : null;
+      const recent = prior ? Date.now() - Date.parse(prior.serverTime) : Infinity;
+      const value = !force && recent >= 0 && recent < 5000 ? prior : await refreshControl(state);
+      if (!value) return;
+      const show = value.showControl;
+      if (show.mode === 'started' && show.actor === 'workspace' && value.extensionStatus.ackControlRevision !== show.revision) {
+        const binding = await credentialBinding(state.token);
+        await changeControlLocal(current=>{
+          if (current.pending) return {};
+          invalidatePull();
+          return {pending:{binding,requestId:crypto.randomUUID(),
+            requestedAt:Date.now(),expectedControlRevision:show.revision,phase:'ack'}};
+        });
+      }
+      void ready.then(()=>continuePendingStart(state,value)).catch(()=>{});
+    }).catch(()=>{});
+    controlCycle = work;
+    void work.finally(()=>{if (controlCycle === work) controlCycle = null;});
+  }
+  return controlCycle;
+}
+async function startShow(expected) {
+  const state = await store.load();
+  const value = controlCache?.token === state?.token ? controlCache?.value : await refreshControl(state);
+  if (!value) throw fail('show_control_unavailable');
+  if (!controlRevision(expected) || value.showControl.revision !== expected) {
+    await refreshControl(state).catch(()=>{});
+    throw fail('control_conflict');
+  }
+  const binding = await credentialBinding(state.token);
+  await changeControlLocal(current=>{
+    if (current.pending?.phase === 'start' && current.pending.binding === binding
+      && current.pending.expectedControlRevision === expected) return {};
+    return {notice:null,pending:{binding,requestId:crypto.randomUUID(),requestedAt:Date.now(),expectedControlRevision:expected,phase:'start'}};
+  });
+  invalidatePull();
+  if (pendingStartTask) await pendingStartTask.catch(()=>{});
+  await continuePendingStart(state,value);
+  return status();
+}
+async function stopShow(expected) {
+  const state = await store.load();
+  if (!CREDENTIAL.test(state?.token || '')) throw fail('unauthorized');
+  const binding = await credentialBinding(state.token);
+  await changeControlLocal(current=>({notice:null,...(current.pending?.binding === binding ? {pending:null} : {})}));
+  if (!controlRevision(expected)) {
+    await refreshControl(state).catch(()=>{});
+    throw fail('control_conflict');
+  }
+  try {
+    await sendShowCommand(state,'show-stop',crypto.randomUUID(),expected);
+  } catch (error) {
+    if (error?.code === 'control_conflict') await refreshControl(state).catch(()=>{});
+    throw error;
+  }
+  return status();
 }
 async function popupMessage(message) {
   if (message.action === 'sparkle-v2-status') return status();
@@ -470,7 +700,13 @@ async function popupMessage(message) {
     await chrome.storage.local.set({[KEY]:candidate});
     try { await describe(candidate); }
     catch (error) { if (previous) await chrome.storage.local.set({[KEY]:previous}); else await chrome.storage.local.remove(KEY); return {ok:false,error:error?.code || 'connection_failed'}; }
-    await clearSource(); return status();
+    await clearSource();
+    if (previous?.token !== credential) {
+      controlCache = null;
+      await changeControlLocal(() => ({pending:null,selection:null,notice:null}));
+    }
+    void runControlCycle(false);
+    return status();
   }
   if (message.action === 'sparkle-v2-toggle') {
     const state = await store.load(); if (!state || typeof message.enabled !== 'boolean') return {ok:false,error:'invalid_action'};
@@ -479,7 +715,7 @@ async function popupMessage(message) {
     return status();
   }
   if (message.action === 'sparkle-v2-filter') {
-    const state = await store.load(), source = await selected();
+    const state = await store.load(), source = await selected() || await confirmedSelection(state);
     if (!state || !source || !PARTY.test(message.partyId) || typeof message.included !== 'boolean' || !source.parties?.some(x=>x.id === message.partyId)) return {ok:false,error:'invalid_action'};
     const excluded = new Set(state.excludedPartyIds || []); message.included ? excluded.delete(message.partyId) : excluded.add(message.partyId);
     if (!await store.update(state.configVersion,{excludedPartyIds:[...excluded].sort(),nextAttemptAt:0,scopePending:true,readyDeadline:0})) throw fail('configuration_changed');
@@ -507,39 +743,55 @@ async function boundedUpdateCheck(){
   finally {clearTimeout(timer);}
 }
 const updater=SparkleUpdateClient.create({storage:chrome.storage.local,key:UPDATE_KEY,version:chrome.runtime.getManifest().version,
-  fetchRelease,requestCheck:boundedUpdateCheck,reload:()=>chrome.runtime.reload()});
-function scheduleUpdate(){
-  if(updaterTask)return updaterTask;
-  // Release discovery must never hold up a publish/claim. Only the final installation guard joins that queue.
-  updaterTask=updater.check().then(()=>exclusive(()=>updater.consider(updaterContext))).catch(()=>{}).finally(()=>{updaterTask=null;});
-  return updaterTask;
-}
-async function updaterContext(){
-  const choices=await tabs(),state=await store.load(),health=await status(),source=await selected();
-  const scopeKey=JSON.stringify([source?.selection?.partyIds || [],source?.selection?.excludedPartyIds || []]);
-  return {tabCount:choices.length,enabled:Boolean(state?.enabled),healthy:health.connected,lastReadyAckAt:state?.lastReadyAckAt,
-    busy:Boolean(activePull),pendingActions,
-    sourceIdentity:choices.length===1 ? choices[0].id+':'+(state?.generation ?? 'unknown')+':'+(observedDocumentId ?? 'unknown')+':'+scopeKey : null};
+  fetchRelease,requestCheck:boundedUpdateCheck,reload:()=>{invalidatePull();chrome.runtime.reload();}});
+function scheduleMetadata() {
+  void updater.refreshMetadata().catch(()=>{});
 }
 chrome.runtime.onUpdateAvailable?.addListener(details=>{
-  void exclusive(()=>updater.noteDownload(details?.version)).then(()=>{lastRequest=0;return requestPull();}).catch(()=>{});
+  void baseReady.then(()=>updater.onUpdateAvailable(details?.version)).catch(()=>{});
 });
-chrome.runtime.onStartup?.addListener(()=>{lastRequest=0;void requestPull().catch(()=>{});});
-chrome.runtime.onInstalled?.addListener(()=>{lastRequest=0;void requestPull().catch(()=>{});});
+chrome.runtime.onStartup?.addListener(()=>{
+  void baseReady.then(()=>updater.resetSession()).catch(()=>{});
+  wake();
+});
+chrome.runtime.onInstalled?.addListener(wake);
+function wake() {
+  void runControlCycle(false);
+  lastRequest=0;
+  void requestPull().catch(()=>{});
+}
 chrome.runtime.onMessage.addListener((message,sender,respond)=>{
   if (sender.id !== chrome.runtime.id || !message || typeof message !== 'object') return false;
   if (sender.url === POPUP) {
-    const mutation=['sparkle-v2-connect','sparkle-v2-toggle','sparkle-v2-filter'].includes(message.action);
-    if (mutation) {pendingActions++;invalidatePull();}
-    exclusive(()=>popupMessage(message)).then(result=>{respond(result);if(result.ok && ['sparkle-v2-connect','sparkle-v2-toggle','sparkle-v2-filter'].includes(message.action)){lastRequest=0;void requestPull().catch(()=>{});}},()=>respond({ok:false,error:'operation_failed'})).finally(()=>{if(mutation)pendingActions--;}); return true;
+    const action = message.action;
+    const mutation = ['sparkle-v2-connect','sparkle-v2-toggle','sparkle-v2-filter'].includes(action);
+    if (mutation || action === 'sparkle-v2-stop') invalidatePull();
+    const task = action === 'sparkle-v2-status' ? baseReady.then(status)
+      : action === 'sparkle-v2-stop' ? baseReady.then(()=>stopShow(message.expectedControlRevision))
+      : action === 'sparkle-v2-start' ? ready.then(()=>startShow(message.expectedControlRevision))
+      : action === 'sparkle-v2-check-update' ? ready.then(async()=>{
+          const result = await updater.checkAndInstall();
+          return {...await status(), updateState:result};
+        })
+      : exclusive(()=>popupMessage(message));
+    task.then(result=>{
+      respond(result);
+      if (result.ok && mutation) wake();
+    },error=>respond({ok:false,error:safeCodes.has(error?.code) ? error.code : 'operation_failed'}));
+    return true;
   }
   if (message.action === 'sparkle-v2-changed' && sender.frameId === 0 && sender.tab && bpUrl(sender.url)) {
+    void runControlCycle(false);
     ready.then(()=>requestPull()).then(()=>respond({ok:true}),()=>respond({ok:false})); return true;
   }
   return false;
 });
-chrome.alarms.onAlarm.addListener(a=>{if(a.name === 'sparkle-sync') void requestPull().catch(()=>{});});
+chrome.alarms.onAlarm.addListener(a=>{if(a.name === 'sparkle-sync') wake();});
 chrome.tabs.onRemoved.addListener(tabId=>{readerHealAt.delete(tabId);injectPending.delete(tabId);invalidatePull(tabId);void requestPull().catch(()=>{});});
 chrome.tabs.onUpdated.addListener((tabId,change)=>{if(change.status === 'loading' || change.url){injectPending.delete(tabId);invalidatePull(tabId);}if(change.status === 'complete' || change.url){lastRequest=0;void requestPull().catch(()=>{});}});
 chrome.tabs.onActivated?.addListener(()=>{lastRequest=0;void requestPull().catch(()=>{});});
-ready.then(()=>{scheduleUpdate();return chrome.alarms.create('sparkle-sync',{periodInMinutes:.5});}).then(()=>requestPull()).catch(()=>{});
+baseReady.then(()=>runControlCycle(false)).catch(()=>{});
+ready.then(()=>{
+  scheduleMetadata();
+  return chrome.alarms.create('sparkle-sync',{periodInMinutes:.5});
+}).then(wake).catch(()=>{});

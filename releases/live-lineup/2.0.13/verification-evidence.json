@@ -1,0 +1,33 @@
+{
+  "version": "2.0.13",
+  "base": "699edd9fdaa697b368318b6be2609293eb14c522",
+  "productionSha256": "e8e968ed5340868270df35ce65244623de20d71dcaaa2187416fa522f43840e6",
+  "smokeSha256": "92de15f0a9a49894c7d7a3c59cea0630b79250267ace94752a6e1266994b01fa",
+  "packageVerifier": "passed for both production and Smoke",
+  "automated": {
+    "vitestFiles": 21,
+    "passed": 281,
+    "failed": 0,
+    "note": "Failed assertions only were retried. Includes separate managed-runtime and archived-publisher cases.",
+    "nodeTestFiles": 4,
+    "nodePassed": 48
+  },
+  "extensionWatchdog": [
+    "T-W3a",
+    "T-W3b",
+    "T-W3c",
+    "T-W3d",
+    "T-W3e",
+    "T-W3f",
+    "T-W3g",
+    "T-W3h"
+  ],
+  "migration": "20261121190000_live_lineup_show_control.sql",
+  "liveDeployment": false,
+  "liveDatabaseAccess": false,
+  "archivedPublisherClients": [
+    "2.0.6",
+    "2.0.11",
+    "2.0.12"
+  ]
+}

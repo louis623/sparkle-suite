@@ -11,6 +11,15 @@
     <div class="status-row"><div><div class="status-title"><span id="status-dot" class="dot"></span><span id="status-text" role="status">Connecting</span></div><p id="status-detail" class="note"></p></div>
       <label class="switch"><input id="enabled" type="checkbox"><span class="slider"></span><span class="sr-only">Turn Live Lineup on or off</span></label></div>
     <div class="saved-code"><span>Live Queue code</span><strong id="saved-code">—</strong></div>
+    <div class="show-actions">
+      <p id="running-version" class="note"></p>
+      <button id="check-update" class="secondary" type="button">Check for updates</button>
+      <p id="update-status" class="note" role="status" hidden></p>
+      <button id="show-action" type="button" hidden>Start Show</button>
+      <p id="show-deadline" class="note" hidden></p>
+      <p id="show-waiting" class="note" role="status" hidden></p>
+      <p id="show-warning" class="show-warning" role="alert" hidden></p>
+    </div>
     <div id="parties-wrap"><h2>Detected parties</h2><p class="note">Uncheck a party if you do not want it to appear in Live Lineup.</p><div id="parties"></div></div>
     <p class="footer-note">Keep your Bomb Party Party Orders page open. If it reloads, Live Lineup reconnects automatically.</p>
   </section>

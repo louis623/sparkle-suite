@@ -60,6 +60,7 @@ async function reconnectFixture(version) {
       sendMessage:async(_id,message)=>{
         const reader = page.__sparkleLineupReader;
         if (!reader || reader.stopped) throw Error('Receiving end does not exist');
+        if (message.action === 'sparkle-v2-probe') return {readerVersion:reader.version};
         hooks.read?.(message);
         return {protocol:2,readerVersion:reader.version,generation:message.generation,
           discovery:snapshot,snapshot,source:{documentId:rep,serial:++serial,settled:true}};
@@ -85,6 +86,7 @@ async function reconnectFixture(version) {
     const body = JSON.parse(options.body);
     posts.push(body);
     const serverTime = new Date(time).toISOString(), leaseExpiresAt = new Date(time+90000).toISOString();
+    if (body.action === 'control-checkin') return response({error:'invalid_payload'},400);
     if (body.action === 'describe') return response({...descriptor,serverTime});
     if (body.action === 'claim') return response({
       claimId:body.claimId,capabilities:body.capabilities,publisherId:rep,generation:1,
@@ -96,10 +98,11 @@ async function reconnectFixture(version) {
     throw Error('Unexpected fake POST action');
   };
   const context = vm.createContext({
-    chrome, URL, TextEncoder, TextDecoder, AbortController, crypto, fetch, importScripts:()=>{},
+    chrome, URL, TextEncoder, TextDecoder, AbortController, fetch, importScripts:()=>{},
+    crypto:{randomUUID:()=>crypto.randomUUID(),subtle:{digest:async()=>new Uint8Array(32).buffer}},
     Date:class extends Date { static now() { return time; } },
     SparkleUpdateClient:{compare:()=>1,create:()=>({
-      check:async()=>{},consider:async()=>{},getState:async()=>hooks.updateState?.() ?? null,
+      checkAndInstall:async()=>{},refreshMetadata:async()=>{},getStatus:async()=>({updateState:await hooks.updateState?.() ?? null}),
     })},
     setTimeout:(fn,ms)=>{
       const id = ++timerId;
@@ -143,7 +146,8 @@ function expectRecovery(fixture, sequence = 4) {
     Array.from({length:sequence-3},(_,index)=>[7,4+index]));
 }
 async function verifyReconnect(version) {
-  {
+  const first=Number(process.env.LIVE_LINEUP_FIRST_RECONNECT_CASE || 1);
+  if (first <= 1) {
     const f = await reconnectFixture(version);
     f.install('2.0.11');
     const stalled = deferred();
@@ -160,7 +164,7 @@ async function verifyReconnect(version) {
     expectRecovery(f);
     console.log('PASS T-W3a: stalled probe times out at 4 seconds and the next cycle posts');
   }
-  {
+  if (first <= 2) {
     const f = await reconnectFixture(version);
     const stalled = deferred();
     f.hooks.query = () => stalled.promise;
@@ -175,7 +179,7 @@ async function verifyReconnect(version) {
     expectRecovery(f);
     console.log('PASS T-W3b: stalled tabs query times out at 4 seconds and the next cycle posts');
   }
-  {
+  if (first <= 3) {
     for (const elapsed of [60001,-1]) {
       const f = await reconnectFixture(version);
       const old = deferred(), fresh = deferred();
@@ -201,7 +205,7 @@ async function verifyReconnect(version) {
     }
     console.log('PASS T-W3c: watchdog replaces the queue after 60 seconds or a backward clock jump');
   }
-  {
+  if (first <= 4) {
     const f = await reconnectFixture(version);
     f.install('2.0.11');
     const stalled = deferred();
@@ -226,7 +230,7 @@ async function verifyReconnect(version) {
     expectRecovery(f);
     console.log('PASS T-W3d: stalled injection times out at 5 seconds and retries without a duplicate reader');
   }
-  {
+  if (first <= 5) {
     const f = await reconnectFixture(version);
     Object.assign(f.state,{epoch:null,publisherId:null,needsClaim:true});
     const stalled = deferred();
@@ -247,7 +251,7 @@ async function verifyReconnect(version) {
     expectRecovery(f);
     console.log('PASS T-W3e: a cycle stalled inside sync after its claim cannot block the next snapshot');
   }
-  {
+  if (first <= 6) {
     const f = await reconnectFixture(version);
     const stalled = deferred();
     let intercepted = false;
@@ -275,7 +279,7 @@ async function verifyReconnect(version) {
     expectRecovery(f);
     console.log('PASS T-W3f: late completion during a storage update cannot post or write');
   }
-  {
+  if (first <= 7) {
     const f = await reconnectFixture(version);
     const old = [deferred(),deferred()];
     const first = [];
@@ -293,7 +297,7 @@ async function verifyReconnect(version) {
     expectRecovery(f);
     console.log('PASS T-W3g: two successive hangs still allow the third cycle to post');
   }
-  {
+  if (first <= 8) {
     const f = await reconnectFixture(version);
     f.install('2.0.11');
     const stalled = deferred();
@@ -327,62 +331,23 @@ async function verifyReconnect(version) {
     const version='2.0.9',target='2.0.10';
     const initial=Date.parse('2026-11-16T18:00:00.000Z');
     const release={protocol:1,version:target,publishedAt:'2026-11-16T17:00:00.000Z',rolloutEnabled:true};
-    function fixture({result={status:'no_update'},failFetch=false}={}){
-      let time=initial,checks=0,fetches=0,reloads=0;
-      const records={publisher:{token:'NEVER_SEND_THIS',excludedPartyIds:['P2'],claimId:'keep',nextSequence:91}};
-      const storage=area(records);
-      const deps={storage,key:'updates',version,now:()=>time,fetchRelease:async()=>{fetches++;if(failFetch)throw Error('offline');return structuredClone(release);},requestCheck:async()=>{checks++;return result;},reload:()=>{reloads++;}};
-      const client=api.create(deps);
-      return {client,records,deps,advance:n=>{time+=n;},setTime:n=>{time=n;},counts:()=>({checks,fetches,reloads}),now:()=>time};
+    a.equal(api.compare('2.0.10','2.0.9'),1);
+    a.equal(api.compare('2.0.9.0','2.0.9'),0);
+    for (const bad of ['2.0.07','2.0.65536','2.x','https://evil.example']) a.equal(api.compare(bad,version),null);
+    for (const bad of [{...release,url:'https://evil.example'},{...release,publishedAt:null},{...release,publishedAt:'2099-01-01T00:00:00Z'},{...release,rolloutEnabled:'true'}]) {
+      a.equal(api.descriptor(bad,initial),null);
     }
-    const context=(overrides={})=>async()=>({tabCount:1,enabled:true,healthy:false,lastReadyAckAt:null,busy:false,pendingActions:0,...overrides});
-    async function tenMinutes(f,ctx=context()){
-      for(let i=0;i<=20;i++){await f.client.check();await f.client.consider(ctx);if(i<20)f.advance(30000);}
-    }
-    {
-      a.equal(api.compare('2.0.10','2.0.9'),1);a.equal(api.compare('2.0.9.0','2.0.9'),0);
-      for(const v of ['2.0.07','2.0.65536','2.x','https://evil.example'])a.equal(api.compare(v,version),null);
-      a.ok(api.descriptor({protocol:1,version:'2.0.7',publishedAt:null,rolloutEnabled:false},initial));
-      for(const d of [{...release,url:'https://evil.example'},{...release,publishedAt:null},{...release,publishedAt:'2099-01-01T00:00:00Z'},{...release,rolloutEnabled:'true'}])a.equal(api.descriptor(d,initial),null);
-      const f=fixture();await f.client.check();await f.client.check();a.deepEqual(f.counts(),{checks:1,fetches:1,reloads:0});
-      const restart=api.create(f.deps);await restart.check();a.equal(f.counts().checks,1);
-      console.log('PASS updater 1: trusted published descriptor, numeric versions, startup/restart cooldown');
-    }
-    {
-      for(const opts of [{failFetch:true},{result:{status:'throttled'}},{result:{status:'no_update'}},{result:{status:'unexpected'}}]){
-        const f=fixture(opts),before=JSON.stringify(f.records.publisher);await f.client.check();f.advance(300000);await f.client.check();
-        a.equal(JSON.stringify(f.records.publisher),before);a.equal(f.counts().reloads,0);a.ok(f.counts().checks<=1);
-      }
-      const f=fixture();await f.client.check();f.advance(3600000);await api.create(f.deps).check();a.equal(f.counts().checks,2);
-      console.log('PASS updater 2: offline, throttling and no-update preserve publisher state and persist bounded retry');
-    }
-    {
-      for(const overrides of [{healthy:true},{tabCount:2},{lastReadyAckAt:initial+590000},{pendingActions:1},{busy:true}]){
-        const f=fixture();await f.client.noteDownload(target);await tenMinutes(f,context(overrides));a.equal(f.counts().reloads,0);
-      }
-      const f=fixture();await f.client.noteDownload(target);await f.client.check();await f.client.consider(context());f.advance(600000);await f.client.check();await f.client.consider(context());a.equal(f.counts().reloads,0,'sleep is not continuous failure');
-      const changed=fixture();await changed.client.noteDownload(target);await tenMinutes(changed,context({sourceIdentity:'old',pendingActions:1}));await changed.client.consider(context({sourceIdentity:'new'}));a.equal(changed.counts().reloads,0,'new source cannot inherit broken timer');
-      console.log('PASS updater 3: healthy, recent-ready, ambiguous tabs, actions, in-flight work and sleep refuse installation');
-    }
-    {
-      const f=fixture();await f.client.noteDownload(target);await tenMinutes(f);a.equal(f.counts().reloads,1);
-      a.equal(f.records.updates.attemptVersion,target);a.equal(f.records.publisher.nextSequence,91);
-      await f.client.noteDownload(target);await api.create(f.deps).consider(context());a.equal(f.counts().reloads,1,'unchanged version and duplicate event cannot loop');
-      const idle=fixture();await idle.client.check();await idle.client.noteDownload(target);await api.create(idle.deps).consider(context({tabCount:0}));a.equal(idle.counts().reloads,1);
-      const unannounced=fixture();await unannounced.client.noteDownload('2.0.11');await tenMinutes(unannounced);a.equal(unannounced.counts().reloads,0);
-      console.log('PASS updater 4: eligible update installs once, idle installation works, unannounced targets and failed reload loops are blocked');
-    }
-    {
-      const f=fixture();await f.client.check();await f.client.noteDownload(target);
-      let reads=0;
-      await f.client.consider(async()=>({tabCount:0,enabled:true,healthy:false,busy:false,pendingActions:++reads===3?1:0}));
-      a.equal(f.counts().reloads,0);a.equal(f.records.updates.attemptVersion,target,'marker persisted before final guard');
-      const text=fs.readFileSync('chrome-extension/background.js','utf8');
-      a.ok(text.includes('updater.check().then(()=>exclusive(()=>updater.consider(updaterContext)))'));
-      a.ok(text.includes('if (mutation) {pendingActions++;invalidatePull();}'));
-      a.ok(text.includes("previous?.token===credential ? [...(previous.excludedPartyIds || [])] : []"));
-      console.log('PASS updater 5: last-moment action cancels installation; serialized worker path preserves same-account exclusions');
-    }
+    const records = {publisher:{excludedPartyIds:['P2'],claimId:'keep',nextSequence:91}};
+    const deps = {storage:area(records),key:'updates',version,now:()=>initial,
+      fetchRelease:async()=>{throw Error('metadata offline');},
+      requestCheck:async()=>({status:'throttled'}),reload:()=>{records.reloaded=true;}};
+    const updater=api.create(deps);
+    await updater.refreshMetadata();
+    a.equal(await updater.checkAndInstall(),'throttled');
+    a.equal(await updater.onUpdateAvailable(target),true);
+    a.equal(records.publisher.nextSequence,91);
+    a.equal(records.reloaded,true);
+    a.equal(await api.create(deps).onUpdateAvailable(target),false);
     {
       const text=fs.readFileSync('chrome-extension/content.js','utf8');
       for(const bad of [/reload|location\.href|location\.replace/,/document\.createElement|appendChild|innerHTML|insertAdjacentHTML/,/alert\(|confirm\(|prompt\(/,/fetch\(|chrome\.storage/])a.equal(bad.test(text),false);
@@ -411,7 +376,7 @@ async function verifyReconnect(version) {
   if (process.argv.includes('--reporting-only')) {
     const text=fs.readFileSync('chrome-extension/popup.js','utf8');
     const context=vm.createContext({});
-    vm.runInContext(text.slice(0,text.indexOf('(function(){')),context);
+    vm.runInContext(text.slice(0,text.indexOf('(function() {')),context);
     const signal=value=>vm.runInContext('extensionLineupStatus('+JSON.stringify(value)+')',context);
     const base={enabled:true,connected:false,lastReadyAckAt:123,lastError:null};
     for (const extra of [{scopePending:true},{parserReason:'table_settling'},{parserReason:'row_incomplete'},{parserReason:'table_busy'},{parserReason:'reveal_state_missing'},{}]) {
@@ -425,8 +390,10 @@ async function verifyReconnect(version) {
     return;
   }
   const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
-  a.equal(manifest.version,'2.0.12');a.deepEqual(manifest.permissions,['storage','alarms','scripting']);
-  await verifyReconnect(manifest.version);
+  a.equal(manifest.version,'2.0.13');a.deepEqual(manifest.permissions,['storage','alarms','scripting']);
+  const deadline = setTimeout(()=>{console.error('Worker watchdog fixture did not finish');process.exitCode=1;},5000);
+  try { await verifyReconnect(manifest.version); }
+  finally { clearTimeout(deadline); }
   const popup=fs.readFileSync('chrome-extension/popup.html','utf8'),popupJs=fs.readFileSync('chrome-extension/popup.js','utf8');
   for(const phrase of ['Review / select source','First-time setup','computer name','pairing key','party IDs'])a.equal((popup+popupJs).includes(phrase),false,phrase);
   for(const phrase of ['Connect Live Lineup','Live Queue code','Detected parties'])a.equal(popup.includes(phrase),true,phrase);

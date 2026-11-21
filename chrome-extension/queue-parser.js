@@ -109,6 +109,16 @@
       hasPartyIdAttribute:allRows.some(row => row.getAttribute?.('data-partyid') != null),
       hasOrderTimeAttribute:allRows.some(row => Array.from(row.querySelectorAll?.('td') || []).some(cell => cell.getAttribute?.('data-order-utc-ms') != null))};
   }
+  function isEmptyMessage(row, width) {
+    const cells = Array.from(row.cells || row.children || []);
+    const cell = cells[0];
+    if (cells.length !== 1 || cell?.tagName !== 'TD' || Number(cell.getAttribute('colspan')) !== width) return false;
+    const identity = '[data-orderid], [data-partyid], [data-order-utc-ms], [data-order-id], [data-party-id]';
+    const unavailable = 'a, button, input, select, form, table, progress, [aria-busy="true"], [role="progressbar"], [class*="spinner" i], [class*="loading" i]';
+    if (row.matches?.(identity) || row.querySelector?.(identity + ', ' + unavailable) || row.getAttribute('aria-busy') === 'true') return false;
+    const label = String(cell.textContent || '').trim().replace(/\s+/g, ' ');
+    return /^(?:no (?:party )?orders(?: (?:found|available|to display|yet))?|no (?:data|records)(?: available| to display| found)?)\.?$/i.test(label);
+  }
   function parseRows(table, selection, parts, discoveryExclusions = null) {
     let parties = null, excluded = new Set(discoveryExclusions || []);
     if (typeof selection === "string") {
@@ -152,7 +162,10 @@
     if (!Number.isInteger(columns.FirstName) || !Number.isInteger(columns.IsRevealed)) return unavailable("invalid", "columns_changed");
     // A renamed row anywhere in any body must never disappear from a healthy
     // snapshot. No partial row list is exposed; the server keeps its last good list.
-    if (rows.length !== allRows.length) return unavailable("partial", "table_incomplete");
+    if (rows.length !== allRows.length
+      && !(bodies.length === 1 && rows.length === 0 && allRows.length === 1 && isEmptyMessage(allRows[0], headers.length))) {
+      return unavailable("partial", "table_incomplete");
+    }
     // Bound scanning separately from the selected parties' capacity.
     if (rows.length > 50000) return unavailable("invalid", "scan_capacity_exceeded");
 

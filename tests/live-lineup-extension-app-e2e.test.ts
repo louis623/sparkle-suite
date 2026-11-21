@@ -55,6 +55,7 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     expect(extensionSourceDir).toBe(resolve('chrome-extension'))
   }
   const extensionManifest = JSON.parse(readFileSync(extensionManifestPath, 'utf8')) as {
+    version: string
     background?: { service_worker?: string }
     content_scripts?: Array<{ js?: string[] }>
     host_permissions?: string[]
@@ -73,6 +74,8 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     await sql.query(`insert into live_lineup_connection_codes(rep_id, sync_code) values($1, 'MHF-9446')`, [rep])
     await sql.exec(readFileSync(new URL('../supabase/migrations/20260910000100_live_lineup_v2.sql', import.meta.url), 'utf8'))
     await sql.exec(readFileSync(new URL('../supabase/migrations/20260926000100_live_lineup_atomic_observations.sql', import.meta.url), 'utf8'))
+    await sql.exec(readFileSync(new URL('../supabase/migrations/20261113180000_live_lineup_invalid_heartbeat.sql',import.meta.url),'utf8'))
+    await sql.exec(readFileSync(new URL('../supabase/migrations/20261121190000_live_lineup_show_control.sql',import.meta.url),'utf8'))
     await sql.exec('set role service_role')
     const fixtureClock = Date.now()
     let elapsed = 0
@@ -112,7 +115,8 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
       runtime: {
         id: 'kmodgfffflplfdlkkhadgimmobplhoih',
         getURL: (path: string) => `${extensionOrigin}/${path}`,
-        getManifest: () => ({ version: '2.0.5' }),
+        getManifest: () => ({ version:extensionManifest.version }),
+        requestUpdateCheck: async () => ({status:'no_update'}),
         onMessage: { addListener: (listener: (...args: unknown[]) => unknown) => { workerListeners.message = listener } },
       },
       storage: { local: storageArea(localStorage), session: storageArea(sessionStorage), sync: storageArea({}) },
@@ -122,11 +126,12 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
           { id: 9, active: true, url: 'https://myoffice.bombparty.com/live-party-orders' },
         ],
         sendMessage: async (_id: number, message: { action: string; generation?: number; selection?: { partyIds: string[] } }) => {
+          if (message.action === 'sparkle-v2-probe') return {readerVersion:extensionManifest.version}
           const source = {documentId, serial: ++observationSerial, settled: sourceSnapshot.parserState === 'ready'}
-          if (message.action === 'sparkle-v2-inspect') return { protocol: 2, source, snapshot: sourceSnapshot }
+          if (message.action === 'sparkle-v2-inspect') return {protocol:2,source,snapshot:sourceSnapshot,discovery:sourceSnapshot,readerVersion:extensionManifest.version}
           expect(message.action).toBe('sparkle-v2-read')
           expect(message.selection?.partyIds).toEqual(['p1'])
-          return { protocol: 2, generation: message.generation, source, snapshot: sourceSnapshot }
+          return {protocol:2,generation:message.generation,source,snapshot:sourceSnapshot,discovery:sourceSnapshot,readerVersion:extensionManifest.version}
         },
         onRemoved: { addListener: (listener: (...args: unknown[]) => unknown) => { workerListeners.removed = listener } },
         onUpdated: { addListener: (listener: (...args: unknown[]) => unknown) => { workerListeners.updated = listener } },
@@ -143,7 +148,9 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
       Date,
       setTimeout,
       clearTimeout,
-      fetch: async (_url: string, options: RequestInit) => {
+      fetch: async (url: string, options?: RequestInit) => {
+        if (url.endsWith('/release')) throw new Error('synthetic offline metadata')
+        if (!options) throw new Error('Missing publish request')
         elapsed += 600 // Keep real SQL rate limiting while advancing synthetic network time.
         const headers = new Headers(options.headers)
         headers.set('origin', extensionOrigin)
@@ -167,21 +174,23 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
       const context = createContext({
         ...workerContext,
         importScripts: (...scripts: string[]) => {
-          expect(scripts).toEqual(['publisher-client.js'])
+          expect(scripts).toEqual(['publisher-client.js','update-client.js'])
           importedScripts.push(...scripts)
-          runInContext(readFileSync(extensionClientPath, 'utf8'), context)
+          for (const script of scripts) runInContext(readFileSync(resolve(extensionSourceDir,script),'utf8'),context)
         },
       })
       runInContext(workerSource, context)
-      expect(importedScripts).toEqual(['publisher-client.js'])
+      expect(importedScripts).toEqual(['publisher-client.js','update-client.js'])
       expect(runInContext('typeof SparklePublisherClient', context)).toBe('object')
       return context
     }
     let activeWorkerContext = createWorkerContext()
     const runWorker = (source: string) => runInContext(source, activeWorkerContext)
     await runWorker('ready')
+    await new Promise<void>(resolve=>setImmediate(resolve))
+    await runWorker('serial')
     expect((await runWorker('exclusive(()=>popupMessage({action:"sparkle-v2-connect",credential:"MHF-9446"}))')).configured).toBe(true)
-    expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
+    expect((await runWorker('lastRequest=0;requestPull()')).status).toBe('confirmed')
 
     // The server commits one snapshot but its acknowledgment is lost. A fresh
     // service-worker context reclaims authority from durable state and
@@ -189,12 +198,14 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     // dropping the lineup.
     elapsed += 1_000
     dropNextSnapshotAcknowledgement = true
-    expect((await runWorker('exclusive(pull)')).status).toBe('connection_failed')
+    expect((await runWorker('lastRequest=0;requestPull()')).status).toBe('connection_failed')
     expect((await runWorker('store.load()')).lastError).toBe('connection_failed')
-    elapsed += 60_000
+    elapsed += 20_000
     activeWorkerContext = createWorkerContext()
     await runWorker('ready')
-    expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
+    await new Promise<void>(resolve=>setImmediate(resolve))
+    await runWorker('serial')
+    expect((await runWorker('lastRequest=0;requestPull()')).status).toBe('confirmed')
 
     // A normal reload keeps the explicitly established source tab.
     expect((await runWorker('selected()')).tabId).toBe(9)
@@ -212,13 +223,13 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     owner = await command({ type: 'hold', entryId: 'p1:a' })
     owner = await command({ type: 'move', entryId: 'p1:c', beforeEntryId: 'p1:b' })
 
-    elapsed += 60_000
+    elapsed += 20_000
     const second = {
       ...first,
       entries: [first.entries[0], first.entries[2], { id: 'p1:d', name: 'New customer', orderedAt: Date.now() }],
     }
     sourceSnapshot = second
-    expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
+    expect((await runWorker('lastRequest=0;requestPull()')).status).toBe('confirmed')
     owner = await json(await workspace.GET())
     expect(owner.entries.map((entry: { id: string }) => entry.id)).toEqual(['p1:c', 'p1:b', 'p1:d'])
     expect(owner.heldEntries.map((entry: { id: string }) => entry.id)).toEqual(['p1:a'])
@@ -239,13 +250,13 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     // delayed. A later ready snapshot must restore live status.
     elapsed += 1_000
     sourceSnapshot = { parserState: 'loading', entries: [], revealedIds: [], revealedEntries: [] }
-    expect((await runWorker('exclusive(pull)')).status).toBe('source_not_ready')
+    expect((await runWorker('lastRequest=0;requestPull()')).status).toBe('source_not_ready')
     let publicPayload = await json(await publicRoute.GET(new Request(`${origin}/api/amethyst/live-lineup?publicSiteSlug=synthetic`)))
     expect(publicPayload.liveQueueState).toBe('delayed')
     expect(publicPayload.liveQueueEntries.map((entry: { name: string }) => entry.name)).toEqual(['Jessica', 'Casey', 'Morgan', 'New customer'])
     elapsed += 1_000
     sourceSnapshot = second
-    expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
+    expect((await runWorker('lastRequest=0;requestPull()')).status).toBe('confirmed')
     publicPayload = await json(await publicRoute.GET(new Request(`${origin}/api/amethyst/live-lineup?publicSiteSlug=synthetic`)))
     expect(publicPayload.liveQueueState).toBe('live')
     expect(publicPayload.liveQueueEntries.map((entry: { name: string }) => entry.name)).toEqual(['Jessica', 'Casey', 'Morgan', 'New customer'])
@@ -279,7 +290,7 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     owner = await command({ type: 'start-show', confirmed: true, partyIds: ['p1'], carryEntryIds: [] })
     elapsed += 1_000
     sourceSnapshot = { parserState: 'ready', entries: [], revealedIds: [], revealedEntries: [] }
-    expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
+    expect((await runWorker('lastRequest=0;requestPull()')).status).toBe('confirmed')
     const empty = await json(await publicRoute.GET(new Request(`${origin}/api/amethyst/live-lineup?publicSiteSlug=synthetic`)))
     expect(empty.liveQueueState).toBe('empty')
     expect(empty.liveQueueEntries).toEqual([])
@@ -288,7 +299,7 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
       ...second,
       entries: second.entries.map((entry, index) => ({ ...entry, orderedAt: Date.now() + index })),
     }
-    expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
+    expect((await runWorker('lastRequest=0;requestPull()')).status).toBe('confirmed')
     const currentPublisher = await runWorker('store.load()') as {
       claimId: string
       publisherId: string
@@ -314,13 +325,13 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     expect(staleSource.status).toBe(409)
     expect(await staleSource.json()).toEqual({ error: 'stale_sequence' })
     await json(await publishers.DELETE(request('/api/workspace/live-lineup/publishers', { publisherId: issued.publisher.id }, {}, 'DELETE')))
-    expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
+    expect((await runWorker('lastRequest=0;requestPull()')).status).toBe('confirmed')
     expect((await runWorker('exclusive(status)')).needsConnection).toBe(false)
     elapsed += 46_000
     const delayed = await json(await publicRoute.GET(new Request(`${origin}/api/amethyst/live-lineup?publicSiteSlug=synthetic`)))
     expect(delayed.liveQueueState).toBe('delayed')
     expect(delayed.liveQueueEntries.length).toBeGreaterThan(0)
-    elapsed += 3_601_000
+    elapsed += 7_201_000
     const offline = await json(await publicRoute.GET(new Request(`${origin}/api/amethyst/live-lineup?publicSiteSlug=synthetic`)))
     expect(offline.liveQueueState).toBe('offline')
     expect(offline.liveQueueEntries).toEqual([])

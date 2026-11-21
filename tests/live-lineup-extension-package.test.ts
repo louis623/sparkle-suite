@@ -1,3 +1,4 @@
+import { LIVE_LINEUP_RELEASE } from '@/lib/live-lineup/release'
 import { deflateRawSync } from 'node:zlib'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -200,7 +201,7 @@ describe('deterministic Live Lineup extension ZIP verifier', () => {
 it('changes only the version field from the approved 2.0.11 production manifest', () => {
   const current = JSON.parse(readFileSync(resolve('chrome-extension/manifest.json'), 'utf8'))
   const icons = { '16': 'icons/icon16.png', '48': 'icons/icon48.png', '128': 'icons/icon128.png' }
-  expect(current.version).toBe('2.0.12')
+  expect(current.version).toBe('2.0.13')
   expect({ ...current, version: '2.0.11' }).toEqual({
     manifest_version: 3,
     name: 'Sparkle Suite Live Queue',
@@ -218,4 +219,8 @@ it('changes only the version field from the approved 2.0.11 production manifest'
     icons,
     minimum_chrome_version: '120',
   })
+})
+
+it('preserves the strict release descriptor key set used by older workers', () => {
+  expect(Object.keys(LIVE_LINEUP_RELEASE).sort()).toEqual(['protocol','publishedAt','rolloutEnabled','version'])
 })

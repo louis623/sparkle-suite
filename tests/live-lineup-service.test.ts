@@ -13,7 +13,7 @@ const otherClaimId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 type Row = Record<string, any>
 /** Isolated query/RPC adapter. No URLs, credentials, Supabase client, or network. */
 function database() {
-  const rows: Record<string, Row[]> = { live_lineup_states: [], live_queue: [], live_lineup_connection_codes: [], live_lineup_publisher_tokens: [] }
+  const rows: Record<string, Row[]> = { live_lineup_states: [], live_lineup_show_controls: [], live_queue: [], live_lineup_connection_codes: [], live_lineup_publisher_tokens: [] }
   let schemaMissing = false, failRead = false, revokeAtCommit = false
   class Query implements PromiseLike<any> {
     filters: [string, unknown][] = []; max = Infinity; single = false; mode = 'select'; values: Row = {}
@@ -605,7 +605,7 @@ describe('automatic show ending', () => {
 
   it('keeps the old party and its orders when a new party is detected', async () => {
     const d = database()
-    d.rows.live_queue.push({ rep_id: repA, sync_code: 'MHF-9446', queue: [], last_updated: null })
+    d.rows.live_lineup_connection_codes.push({rep_id:repA,sync_code:'MHF-9446',created_at:new Date(now).toISOString()})
     const firstClaim = await claimSource(d.db, 'MHF-9446', claimId, now, 0)
     await receiveSource(d.db, 'MHF-9446', {
       publisherId: repA, epoch: firstClaim.epoch, sequence: 0, sourceVersion: '2.0.5', generation: 0,
@@ -631,7 +631,7 @@ describe('automatic show ending', () => {
 
   it('keeps the same generation and drops nothing when a party is added', async () => {
     const d = database()
-    d.rows.live_queue.push({ rep_id: repA, sync_code: 'MHF-9446', queue: [], last_updated: null })
+    d.rows.live_lineup_connection_codes.push({rep_id:repA,sync_code:'MHF-9446',created_at:new Date(now).toISOString()})
     const orders = [
       { id: 'old:brooke', name: 'Brooke', orderedAt: now },
       { id: 'old:casey', name: 'Casey', orderedAt: now + 1 },

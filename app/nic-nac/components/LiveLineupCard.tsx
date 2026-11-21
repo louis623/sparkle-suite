@@ -4,20 +4,21 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import type { PointerEvent, KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import type { WorkspaceLineupEntry, WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
-import { canAcceptWorkspaceRefresh, canRecoverLineup, workspaceFreshnessDeadline, workspaceWriteEligible, canRebaseDrag, dragScrollDelta, edgeScrollSpeed, isLineupCommandAcknowledgement, isWorkspaceLineupSnapshot, pointerDropAnchor } from './live-lineup-client'
+import { canAcceptWorkspaceRefresh, canRecoverLineup, workspaceFreshnessDeadline, workspaceWriteEligible, canRebaseDrag, dragScrollDelta, edgeScrollSpeed, isLineupCommandAcknowledgement, isShowCommandAcknowledgement, isWorkspaceLineupSnapshot, pointerDropAnchor } from './live-lineup-client'
 import type { WorkspaceLineupCommand } from './live-lineup-client'
 import styles from './LiveLineupCard.module.css'
 import palette from './RepDashboard.module.css'
 import { LineupCustomerEditor } from './LineupCustomerEditor'
 import { useLineupAudience } from './use-lineup-audience'
 import { ControlTip } from './ControlTip'
-import { LiveLineupShowControls } from './LiveLineupShowControls'
+import { LiveLineupExtensionDetails, LiveLineupShowControls, ShowActionButton } from './LiveLineupShowControls'
 import { LiveLineupArchiveControls } from './LiveLineupArchiveControls'
 import { LiveLineupPublisherControls } from './LiveLineupPublisherControls'
 import { archiveRecoveryRequest, isArchiveRecoveryAcknowledgement, type ArchiveDetail } from './live-lineup-archive-client'
 import { canConfirmShow } from './live-lineup-client'
 import { groupLineupEntries, moveLineupCustomer } from '@/lib/live-lineup/grouping'
 import { workspaceLineupStatus } from '@/lib/live-lineup/status-copy'
+import { SHOW_CHANGED_ELSEWHERE, type ShowAction, type ShowCommand } from '@/lib/live-lineup/show-control'
 import { isDemoLineupSnapshot } from '@/lib/live-lineup/demo'
 
 const ENDPOINT = '/api/workspace/live-lineup'
@@ -89,6 +90,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     if (!isWorkspaceLineupSnapshot(next)) throw new Error('Invalid lineup response')
     const tenantChanged = !!snapshotRef.current?.tenantContext && snapshotRef.current.tenantContext !== next.tenantContext
     if (!active.current || (snapshotRef.current && !tenantChanged && !canAcceptWorkspaceRefresh(snapshotRef.current, next))) return false
+    if (snapshotRef.current?.showControl?.runId !== next.showControl?.runId) stopDrag()
     if (tenantChanged) { stopDrag(); setExpanded(new Set()); setPopup(null); setCustomerSelection(null) }
     const now = performance.now()
     freshnessDeadline.current = requestEpoch === lifecycleEpoch.current ? workspaceFreshnessDeadline(next, requestStarted, now) : 0
@@ -448,6 +450,56 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
 
   const publisherChangeDisabled = saving || uncertainChange.current
   const baseDisabled = publisherChangeDisabled || !fresh || !snapshot?.canManage || !snapshot?.authorized
+  async function submitShowAction(action: ShowAction) {
+    const current = snapshotRef.current
+    if (readOnly || !current?.showControl || !current.authorized || current.runtimeWritable === false || mutation.current) return
+    const command: ShowCommand = {type:action,requestId:crypto.randomUUID(),expectedControlRevision:current.showControl.revision}
+    mutation.current = true
+    const generation = ++requestGeneration.current
+    readController.current?.abort()
+    readController.current = null
+    stopDrag()
+    setSaving(true)
+    setNotice('')
+    const controller = new AbortController()
+    writeController.current = controller
+    const requestStarted = performance.now()
+    const requestEpoch = lifecycleEpoch.current
+    const timer = window.setTimeout(() => controller.abort(), 8000)
+    let reload = false
+    try {
+      const response = await fetch(ENDPOINT, {method:'POST',headers:{'Content-Type':'application/json'},
+        signal:controller.signal,body:JSON.stringify({command})})
+      if (!active.current || generation !== requestGeneration.current) return
+      if (response.status === 409 && (await response.json()).error === 'control_conflict') {
+        setNotice(SHOW_CHANGED_ELSEWHERE)
+        reload = true
+        return
+      }
+      if (!response.ok) throw new Error('Show change unconfirmed')
+      const next: unknown = await response.json()
+      if (!isWorkspaceLineupSnapshot(next) || !isShowCommandAcknowledgement(current,next,command)
+        || !accept(next,requestStarted,requestEpoch)) throw new Error('Show change unconfirmed')
+      setError(null)
+      setNotice(action === 'show-start' ? 'Show started.' : 'Show stopped.')
+    } catch {
+      if (active.current && generation === requestGeneration.current) {
+        setNotice('The show change could not be confirmed. Review its status before trying again.')
+        reload = true
+      }
+    } finally {
+      window.clearTimeout(timer)
+      if (writeController.current === controller) writeController.current = null
+      if (generation === requestGeneration.current) {
+        mutation.current = false
+        if (active.current) {
+          setSaving(false)
+          if (reload) void refresh()
+        }
+      }
+    }
+  }
+
   const viewOnly = readOnly || snapshot?.authorized === false || snapshot?.runtimeWritable === false
   const disabled = viewOnly || baseDisabled
   const recoveryDisabled = readOnly || publisherChangeDisabled || suspended.current || !snapshot || !canRecoverLineup(snapshot)
@@ -544,13 +596,18 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
   return (
     <section className={`${palette.palette} ${styles.card} ${compact ? styles.compact : ''}`} aria-labelledby={headingId} aria-busy={saving}>
       <header className={styles.header}>
-        <div className={styles.titleRow}><h2 id={headingId}>Live Lineup</h2><span className={styles.count}>{groups.length}</span></div>
-        <button type="button" className={styles.statusButton} data-connection={signal.tone} aria-haspopup="dialog" onClick={() => { stopDrag(); setPopup('status') }}>
-          <span className={styles.statusLine}><span className={styles.dot} aria-hidden="true" />{statusLabel}</span>
-          {signal.tone === 'attention' && <span className={styles.statusHint}>Tap for status</span>}
-        </button>
-        <button type="button" className={styles.fullButton} aria-haspopup="dialog" onClick={() => { stopDrag(); setPopup('full') }}>↗ Full lineup</button>
+        <div className={styles.titleRow}><h2 id={headingId}>Live Lineup</h2>
+          <span className={styles.queuePill}><span className={styles.count} data-empty={groups.length === 0}>{groups.length}</span> In Queue</span>
+        </div>
+        <div className={styles.headerActions}>
+          <span className={styles.showChip} data-live={snapshot?.showControl?.phase === 'active'}>
+            <span aria-hidden="true" />{snapshot?.showControl?.phase === 'active' ? 'Live' : 'Off'}
+          </span>
+          <ShowActionButton snapshot={snapshot} disabled={viewOnly || saving || !snapshot?.authorized} onAction={action => void submitShowAction(action)} />
+          <button type="button" className={styles.fullButton} aria-haspopup="dialog" onClick={() => { stopDrag(); setPopup('full') }}>↗ Full lineup</button>
+        </div>
       </header>
+      <LiveLineupExtensionDetails snapshot={snapshot} label={statusLabel} tone={signal.tone} onStatus={() => { stopDrag(); setPopup('status') }} />
       <p id={keyboardInstructionsId} className={styles.srOnly}>Keyboard: focus a customer, then use Up or Down to move all their orders one place, Home for first, or End for last. Press Escape to cancel a drag.</p>
       {(dragging || saving || error || notice || viewOnly) && <div className={styles.feedback} aria-live="polite" aria-atomic="true">
         {dragging ? (dropValid ? `Release to place at position ${dropPosition}` : 'Move back into the lineup to drop') : saving ? 'Saving…' : error ? 'We can’t update your lineup right now. We’ll keep trying.' : notice || 'Lineup changes are temporarily unavailable. Customer updates will continue.'}

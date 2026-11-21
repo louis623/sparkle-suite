@@ -1,10 +1,27 @@
 (function (root) {
-  const RETAIN_SECONDS = 3600;
+  const RETAIN_SECONDS = 7200;
   const PRESENTATION = 'grouped-v1';
   const grouped = (value) => value?.liveQueuePresentation === PRESENTATION;
   const shape = (value) => JSON.stringify((value.liveQueueEntries || []).map(e => [e.name, e.token, e.remainingOrders]));
   const isRevision = (value) => Number.isSafeInteger(value) && value >= 0;
   const time = (value) => typeof value === 'string' ? Date.parse(value) : NaN;
+  const OPEN = 'I have an open lineup.';
+  const CALENDAR = 'Check the calendar for the next show.';
+  function validShow(show) {
+    return show && ['active','ended'].includes(show.phase) && isRevision(show.revision)
+      && Number.isFinite(time(show.serverTime))
+      && (show.deadline === null || Number.isFinite(time(show.deadline)))
+      && (show.phase !== 'active' || Number.isFinite(time(show.deadline)))
+      && (show.runToken === null || /^[A-Za-z0-9_-]{32}$/.test(show.runToken));
+  }
+  const timeLeft = (show, elapsed) => time(show?.deadline) - time(show?.serverTime) - Math.max(0,elapsed) * 1000;
+  function openAt(show, elapsed) {
+    return show?.phase === 'active' && timeLeft(show,elapsed) > 0;
+  }
+  function validNextShow(next) {
+    return typeof next?.title === 'string' && next.title.length > 0 && next.title.length <= 160
+      && typeof next.time === 'string' && next.time.length > 0 && next.time.length <= 160;
+  }
   function valid(next) {
     if (!next || !['live', 'empty', 'delayed', 'offline'].includes(next.liveQueueState) ||
         !Array.isArray(next.liveQueueEntries) || next.liveQueueEntries.length > 2000 ||
@@ -23,6 +40,12 @@
         typeof next.liveQueueSourceReady !== 'boolean' || !Number.isFinite(time(next.liveQueueServerTime)))) return false;
     if (!isRevision(next.liveQueueRevision) && time(next.liveQueueLastUpdated) > Date.now() + 60000) return false;
     if (next.liveQueueAgeSeconds != null && (!Number.isFinite(next.liveQueueAgeSeconds) || next.liveQueueAgeSeconds < 0)) return false;
+    if (next.liveQueueNextShow !== undefined && !validNextShow(next.liveQueueNextShow)) return false;
+    if (next.liveQueueShow !== undefined) {
+      const show = next.liveQueueShow;
+      if (!validShow(show) || (show.phase === 'ended' && next.liveQueueState !== 'offline')) return false;
+      if (show.phase === 'active' && next.liveQueueState === 'empty') return true;
+    }
     return Number.isFinite(time(next.liveQueueLastUpdated)) ||
       (next.liveQueueState === 'offline' && next.liveQueueLastUpdated === null && !next.liveQueueEntries.length);
   }
@@ -30,11 +53,15 @@
     if (!valid(next)) return current;
     if (!valid(current)) return next;
     if (grouped(current) !== grouped(next)) return current;
+    const before = current.liveQueueShow, after = next.liveQueueShow;
+    if (before && (!after || after.revision < before.revision
+      || after.revision === before.revision && after.runToken !== before.runToken)) return current;
+    const sameControl = before?.revision === after?.revision && before?.phase === after?.phase;
     if (grouped(current) && current.liveQueueScope === next.liveQueueScope && next.liveQueueEventCursor < current.liveQueueEventCursor) return current;
     if (isRevision(current?.liveQueueRevision)) {
       if (!isRevision(next.liveQueueRevision) || next.liveQueueRevision < current.liveQueueRevision) return current;
       // Equal revisions may refresh health, never replace names. Offline expiry may clear them.
-      if (next.liveQueueRevision === current.liveQueueRevision &&
+      if (sameControl && next.liveQueueRevision === current.liveQueueRevision &&
           next.liveQueueState !== 'offline' && current.liveQueueState !== 'offline' &&
           shape(next) !== shape(current)) return current;
       if (time(next.liveQueueServerTime) < time(current.liveQueueServerTime)) return current;
@@ -42,6 +69,9 @@
       if (time(next.liveQueueLastUpdated) < time(current?.liveQueueLastUpdated)) return current;
       if (time(next.liveQueueLastUpdated) === time(current?.liveQueueLastUpdated) &&
           JSON.stringify(next.liveQueueEntries.map(e => e.name)) !== JSON.stringify((current.liveQueueEntries || []).map(e => e.name))) return current;
+    }
+    if (!next.liveQueueNextShow && after?.phase === 'active' && current.liveQueueNextShow) {
+      return {...next,liveQueueNextShow:current.liveQueueNextShow};
     }
     return next;
   }
@@ -55,15 +85,18 @@
     const age = Number.isFinite(current?.liveQueueAgeSeconds) || isRevision(current?.liveQueueRevision)
       ? (current.liveQueueAgeSeconds == null ? Infinity : current.liveQueueAgeSeconds + Math.max(0, elapsedSeconds))
       : (now - time(current?.liveQueueLastUpdated)) / 1000;
-    const retain = Number.isFinite(age) && age >= 0 && age <= retentionLimit(current);
+    const active = openAt(current?.liveQueueShow, elapsedSeconds);
+    const retain = (!current?.liveQueueShow || active) && Number.isFinite(age) && age >= 0 && age <= retentionLimit(current);
     const entries = retain ? (current?.liveQueueEntries || []).map((entry) => ({ ...entry, label: 'Position at last update', highlight: false })) : [];
     return {
       ...current,
       liveQueueFlare: null,
       ...(grouped(current) ? { liveQueueEvents: [], ...(!retain ? { liveQueueOrderCount: 0, liveQueueGroupCount: 0, liveQueueCurrent: null, liveQueueOnDeck: null } : {}) } : {}),
-      liveQueueState: retain ? 'delayed' : 'offline',
+      ...(current?.liveQueueShow && !active ? {liveQueueShow:{...current.liveQueueShow,phase:'ended'}} : {}),
+      liveQueueState: active ? retain && (current.liveQueueEntries || []).length ? 'delayed' : 'empty' : retain ? 'delayed' : 'offline',
+      liveQueueSourceReady: isRevision(current?.liveQueueRevision) ? false : current?.liveQueueSourceReady,
       liveQueueEntries: entries,
-      liveQueueSummary: retain ? 'Live Lineup is updating automatically.' : 'Check the calendar for the next show.',
+      liveQueueSummary: active || retain ? OPEN : CALENDAR,
     };
   }
   function fresh(current) {
@@ -71,8 +104,12 @@
       Number.isFinite(current.liveQueueAgeSeconds) && current.liveQueueAgeSeconds < (current.liveQueueStaleAfterSeconds || 45);
   }
   function afterTransit(next, seconds) {
-    if (!Number.isFinite(next?.liveQueueAgeSeconds)) return next;
-    const adjusted = { ...next,
+    const elapsed = Math.max(0,seconds);
+    const show = next?.liveQueueShow;
+    if (show?.phase === 'active' && !openAt(show,elapsed)) return unavailable(next,Date.now(),elapsed);
+    const base = show && elapsed > 0 ? {...next,liveQueueShow:{...show,serverTime:new Date(time(show.serverTime) + elapsed * 1000).toISOString()}} : next;
+    if (!Number.isFinite(next?.liveQueueAgeSeconds)) return base;
+    const adjusted = { ...base,
       ...(Number.isFinite(next.liveQueueRetainForSeconds) ? {liveQueueRetainForSeconds: Math.max(0, next.liveQueueRetainForSeconds - Math.max(0, seconds))} : {}),
       liveQueueAgeSeconds: next.liveQueueAgeSeconds + Math.max(0, seconds),
       ...(grouped(next) ? { liveQueueEvents: next.liveQueueEvents.map(e => ({ ...e, ageSeconds: e.ageSeconds + Math.max(0, seconds) })) } : {}) };
@@ -82,6 +119,7 @@
   function revealUpdate(current, next, baseline) {
     if (!grouped(next)) return next;
     const eligible = !baseline && grouped(current) && current.liveQueueScope === next.liveQueueScope &&
+      current.liveQueueShow?.runToken === next.liveQueueShow?.runToken &&
       current.liveQueueState !== 'offline' && next.liveQueueEventCursor >= current.liveQueueEventCursor && fresh(next);
     const events = eligible ? next.liveQueueEvents.filter(e => e.cursor > current.liveQueueEventCursor && e.ageSeconds < 45) : [];
     const event = events.at(-1);
@@ -96,17 +134,25 @@
     });
     if (contract === PRESENTATION) query.push('lineupPresentation=' + PRESENTATION);
     const pollUrl = path + (query.length ? '?' + query.join('&') : '');
-    let current = grouped(initial) ? unavailable(initial) : initial, stopped = false, timer, healthTimer, controller, busy = false, failures = 0, baseline = true, context = 0;
-    let lastAcceptedAt = monotonicNow();
+    let current = initialState(initial), stopped = false, timer, healthTimer, controller, busy = false, failures = 0, baseline = true, context = 0;
+    let lastAcceptedAt = monotonicNow(), lastWallAt = Date.now();
+    const elapsedSinceAccept = () => Math.max(0,monotonicNow() - lastAcceptedAt,
+      current?.liveQueueShow ? Date.now() - lastWallAt : 0) / 1000;
     function scheduleHealth() {
       clearTimeout(healthTimer);
-      if (!Number.isFinite(current?.liveQueueAgeSeconds) || current.liveQueueState === 'offline') return;
-      const elapsed = Math.max(0, (monotonicNow() - lastAcceptedAt) / 1000);
+      if (current?.liveQueueState === 'offline') return;
+      const elapsed = elapsedSinceAccept();
+      const show = current?.liveQueueShow;
+      const age = current?.liveQueueAgeSeconds;
       const limit = fresh(current) ? (current.liveQueueStaleAfterSeconds || 45) : retentionLimit(current);
-      const delay = Math.max(1, (limit - current.liveQueueAgeSeconds - elapsed) * 1000 + 1);
+      const healthDelay = Number.isFinite(age) && (fresh(current) || current.liveQueueEntries.length)
+        ? Math.max(1,(limit - age - elapsed) * 1000 + 1) : Infinity;
+      const showDelay = show?.phase === 'active' ? Math.max(1,timeLeft(show,elapsed)) : Infinity;
+      const delay = Math.min(healthDelay,showDelay);
+      if (!Number.isFinite(delay)) return;
       healthTimer = setTimeout(() => {
         if (stopped) return;
-        current = unavailable(current, Date.now(), Math.max(0, (monotonicNow() - lastAcceptedAt) / 1000));
+        current = unavailable(current, Date.now(), elapsedSinceAccept());
         if (current.liveQueueState === 'offline') baseline = true;
         onUpdate(current);
         if (current.liveQueueState !== 'offline') scheduleHealth();
@@ -132,11 +178,12 @@
         current = revealUpdate(current, merged, baseline);
         baseline = current.liveQueueState === 'offline';
         lastAcceptedAt = monotonicNow();
+        lastWallAt = Date.now();
         failures = 0;
       } catch {
         if (requestContext !== context || stopped) return;
         failures += 1;
-        current = unavailable(current, Date.now(), Math.max(0, (monotonicNow() - lastAcceptedAt) / 1000));
+        current = unavailable(current, Date.now(), elapsedSinceAccept());
         if (current.liveQueueState === 'offline') baseline = true;
       } finally {
         clearTimeout(deadline);
@@ -150,7 +197,7 @@
     }
     function suspend() {
       context += 1; baseline = true; controller?.abort(); clearTimeout(timer); clearTimeout(healthTimer);
-      current = unavailable(current, Date.now(), Math.max(0, (monotonicNow() - lastAcceptedAt) / 1000));
+      current = unavailable(current, Date.now(), elapsedSinceAccept());
       onUpdate(current);
     }
     function visibility() { suspend(); if (document.visibilityState !== 'hidden') void poll(); }
@@ -209,24 +256,29 @@
     }, [open]);
     return ref;
   }
+  function initialState(value) {
+    return grouped(value) || value?.liveQueueShow ? unavailable(value) : value;
+  }
   // Shared by every skin and customer-page variant. Calendar never gates names.
-  function renderEmpty(React, calendarHref, state) {
+  function renderEmpty(React, calendarHref, lineup) {
+    const state = typeof lineup === 'string' ? lineup : lineup?.liveQueueState;
     const h = React.createElement;
     if (state === 'empty' || state === 'delayed') {
-      const message = state === 'empty' ? 'I have an open lineup.' : 'Live Lineup is updating automatically.';
       return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':state, 'aria-label':'Live lineup'},
-        h('div', {className:'hp-lineup-idle-inner'}, h('span', {className:'hp-lineup-idle-prompt'}, message)));
+        h('div', {className:'hp-lineup-idle-inner'}, h('span', {className:'hp-lineup-idle-prompt'}, OPEN)));
     }
     const href = typeof calendarHref === 'string' && (calendarHref === '#events' || calendarHref.startsWith('/')) &&
       !calendarHref.startsWith('//') && !/[\\\s]/u.test(calendarHref) ? calendarHref : null;
     const icon = h('svg', {width:18, height:18, viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.7, 'aria-hidden':true},
       h('rect', {x:3, y:5, width:18, height:16, rx:2}),
       h('path', {d:'M16 3v4M8 3v4M3 11h18'}));
+    const show = validNextShow(lineup?.liveQueueNextShow) ? lineup.liveQueueNextShow : null;
+    const prompt = h(href ? 'a' : 'span', {className:'hp-lineup-idle-prompt', ...(href ? {href} : {})}, icon,
+      h('span', null, CALENDAR), href ? h('span', {'aria-hidden':true}, '→') : null);
     return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':'calendar', 'aria-label':'Upcoming shows'},
-      h('div', {className:'hp-lineup-idle-inner'},
-        h(href ? 'a' : 'span', {className:'hp-lineup-idle-prompt', ...(href ? {href} : {})}, icon,
-          h('span', null, href ? 'Check the calendar for the next show' : 'Check back for upcoming shows'),
-          href ? h('span', {'aria-hidden':true}, '→') : null)));
+      h('div', {className:'hp-lineup-idle-inner'}, show
+        ? h('div', null, prompt, h('p', {style:{margin:'4px 0 0',fontSize:'.8rem'}}, show.title, ' · ', show.time))
+        : prompt));
   }
-  root.SparkleLiveLineup = { renderEmpty, merge, unavailable, afterTransit, revealUpdate, initialState: value => grouped(value) ? unavailable(value) : value, start, useDialog, useRevealFlare };
+  root.SparkleLiveLineup = { renderEmpty, merge, unavailable, afterTransit, revealUpdate, initialState, start, useDialog, useRevealFlare };
 })(typeof window === 'undefined' ? globalThis : window);

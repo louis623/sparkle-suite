@@ -152,6 +152,9 @@ export type LineupError = 'invalid_payload' | 'invalid_time' | 'revision_conflic
 export type LineupResult = { ok: true; state: LineupState } | { ok: false; code: LineupError }
 export interface WorkspaceLineupEntry { id: string; name: string; position: number; held: boolean; lastName?: string; identityEligible?: boolean; sourceIdentityVersion?: string }
 export interface WorkspaceLineupSnapshot {
+  showControl?: import('./show-control').ShowControl
+  extensionStatus?: import('./show-control').LineupExtensionStatus
+  showReceipt?: import('./show-control').ShowCommandReceipt
   tenantContext?: string
   management?: {generation: number; partyIds: string[]; excludedPartyIds: string[]; candidates: WorkspaceLineupEntry[]}
   revision: number

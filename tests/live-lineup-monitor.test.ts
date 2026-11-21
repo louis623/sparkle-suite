@@ -113,7 +113,7 @@ describe('Live Lineup monitor', () => {
     const optionalJobs = Array.from({length:4},(_,index) => ({...job,id:incident.slice(0,-1)+String(index+1),channel:'webhook'}))
     const releaseFinish: Array<() => void> = []
     const db = {from:vi.fn(() => roster),rpc:vi.fn(async (name:string,_args:unknown) => name === 'live_lineup_monitor_claim'
-      ? {data:optionalJobs,error:null} : await new Promise<{data:boolean;error:null}>(resolve => releaseFinish.push(() => resolve({data:true,error:null}))))}
+      ? {data:optionalJobs,error:null} : name === 'live_lineup_control_expire' ? {data:0,error:null} : await new Promise<{data:boolean;error:null}>(resolve => releaseFinish.push(() => resolve({data:true,error:null}))))}
     const {runLineupMonitor} = await import('@/lib/live-lineup/monitor-service')
     const monitorRun = runLineupMonitor(db as never,at)
     await Promise.resolve(); await Promise.resolve()
@@ -155,11 +155,12 @@ describe('Live Lineup monitor', () => {
     vi.stubEnv('VERCEL_ENV','production'); vi.stubEnv('SPARKLE_ENVIRONMENT','live')
     let releaseDelivery!: () => void
     const rosterFailure = {select(){return this},eq(){return this},order(){return this},async limit(){throw new Error('synthetic_roster_failure')}}
-    const db = {from:vi.fn(() => rosterFailure),rpc:vi.fn(async () => await new Promise(resolve => {releaseDelivery = () => resolve({data:[],error:null})}))}
+    const db = {from:vi.fn(() => rosterFailure),rpc:vi.fn(async (name:string) => name === 'live_lineup_control_expire' ? {data:0,error:null} : await new Promise(resolve => {releaseDelivery = () => resolve({data:[],error:null})}))}
     const {runLineupMonitor} = await import('@/lib/live-lineup/monitor-service')
     let settled = false
     const outcome = runLineupMonitor(db as never,at).then(() => 'unexpected_success', error => String(error.message)).then(result => {settled = true; return result})
     expect(db.rpc).toHaveBeenCalledWith('live_lineup_monitor_claim',expect.objectContaining({p_limit:4}))
+    expect(db.rpc).toHaveBeenCalledWith('live_lineup_control_expire',{p_limit:64})
     await Promise.resolve(); await Promise.resolve()
     expect(settled).toBe(false) // Roster failure must not abandon an in-flight delivery pump.
     releaseDelivery()

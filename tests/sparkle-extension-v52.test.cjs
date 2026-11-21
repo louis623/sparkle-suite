@@ -147,6 +147,10 @@ function worker({noOp=false,nonready=false,multiple=false,legacyBridge=false,emp
         Object.defineProperty(response,'url',{value:_url});return response;
       }
       clock+=600;const b=JSON.parse(o.body);requests.push(b);let body;const stamp=new Date(clock).toISOString(),lease=new Date(clock+90000).toISOString();
+      if(b.action==='control-checkin'){
+        const result=new Response(JSON.stringify({error:'invalid_payload'}),{status:400,headers:{'content-type':'application/json'}});
+        Object.defineProperty(result,'url',{value:endpoint}); return result;
+      }
       if(b.action==='describe')body={...descriptor,serverTime:stamp};
       else if(b.action==='claim'){epoch++;seq=-1;body={claimId:b.claimId,capabilities:b.capabilities,generation:descriptor.generation,publisherId:rep,epoch,revision:requests.length,acceptedSequence:seq,serverTime:stamp,leaseExpiresAt:lease};}
       else if(b.action==='snapshot'){
@@ -178,7 +182,7 @@ test('2.0.6 resumes the next pull after show_changed without a rep reselect',asy
 });
 test('worker bootstrap claims and publishes before configure, then reclaims/rereads final scope',async()=>{
   const w=worker();await w.settle();
-  const actions=w.requests.map(x=>x.action).filter(x=>x!=='describe');
+  const actions=w.requests.map(x=>x.action).filter(action=>!['describe','control-checkin'].includes(action));
   assert.deepEqual(actions,['claim','snapshot','configure','claim','snapshot']);
   assert.equal((await w.run('status()')).connected,true);
   const cfg=w.requests.find(x=>x.action==='configure');assert.equal(cfg.capabilities,'lineup-2.0.5');assert.ok(cfg.claimId);assert.equal(cfg.epoch,1);
@@ -269,7 +273,7 @@ test('2.0.8 reporting: bounded diagnostics use existing packets and cannot earn 
   assert.ok(claim && snapshot);
   for(const d of [claim.diagnostics,snapshot.packet.diagnostics]) {
     assert.deepEqual(Object.keys(d).sort(),['parserReason','parserState','readerVersion','sourceVersion','updateState']);
-    assert.equal(d.parserReason,'reveal_state_missing');assert.equal(d.updateState,'unknown');
+    assert.equal(d.parserReason,'reveal_state_missing');assert.equal(d.updateState,'failed');
     assert.equal(d.readerVersion,'2.0.8');assert.equal(d.sourceVersion,'2.0.8');
     assert.equal(JSON.stringify(d).includes('TST-0001'),false);
   }
@@ -280,11 +284,9 @@ test('2.0.8 reporting: bounded diagnostics use existing packets and cannot earn 
   assert.equal((await healthy.run('status()')).connected,true);
   healthy.run('localReadyAck=null;localReadyDeadline=0');
   assert.equal((await healthy.run('status()')).connected,false);
-  // Even if local health is lost, a recent good receipt refuses a mid-show update.
-  await healthy.run("(async()=>{const c=await updaterContext();await chrome.storage.local.set({sparkleUpdaterV1:{release:{protocol:1,version:'2.0.9',publishedAt:new Date(0).toISOString(),rolloutEnabled:true},descriptorCheckedAt:Date.now(),downloadedVersion:'2.0.9',brokenAt:Date.now()-700000,lastObservedAt:Date.now(),sourceIdentity:c.sourceIdentity}});})()");
-  healthy.run('globalThis.reloads=0;chrome.runtime.reload=()=>{reloads++};localReadyAck=null;localReadyDeadline=0');
-  assert.equal(await healthy.run('updater.consider(updaterContext)'),false);
-  assert.equal(await healthy.run('reloads'),0);
+  healthy.run('globalThis.reloads=0;chrome.runtime.reload=()=>{reloads++}');
+  assert.equal(await healthy.run("updater.onUpdateAvailable('2.0.9')"),true);
+  assert.equal(await healthy.run('reloads'),1);
   let state={token:'TST-0001',enabled:true,configVersion:'x',generation:0,claimId:documentId,needsClaim:true,nextSequence:0};
   const outgoing=[];const stamp=new Date().toISOString();
   const client=createPublisherClient({store:{load:async()=>state,update:async(_v,p)=>{state={...state,...p};return true}},post:async(_token,b)=>{
@@ -433,7 +435,7 @@ test('2.0.10 diagnostics: transport strips injected text and binds evidence to t
 test('2.0.10 diagnostics: package identity and read-only reader stay aligned',()=>{
   const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
   const content=fs.readFileSync('chrome-extension/content.js','utf8');
-  assert.equal(manifest.version,'2.0.12');assert.ok(content.includes('const READER_VERSION = "'+manifest.version+'"'));
+  assert.equal(manifest.version,'2.0.13');assert.ok(content.includes('const READER_VERSION = "'+manifest.version+'"'));
   assert.deepEqual(manifest.permissions,['storage','alarms','scripting']);
   assert.deepEqual(manifest.host_permissions,['https://myoffice.bombparty.com/*','https://www.yoursparklesuite.com/*']);
   for(const bad of [/reload|location\.href|location\.replace/,/document\.createElement|appendChild|innerHTML|insertAdjacentHTML/,/alert\(|confirm\(|prompt\(/,/fetch\(|chrome\.storage/]) assert.equal(bad.test(content),false);
@@ -545,4 +547,29 @@ test('a throwing row is skipped and the rest stay ready',()=>{
   assert.deepEqual(result.entries.map(x=>x.id),['P9:1001','P9:1003']);
   assert.equal(result.rowReport.skippedByReason.row_incomplete,1);
   assert.equal(result.failure,undefined);
+});
+
+test('one full-width empty message is ready; mixed, busy, nested and identity-bearing rows are partial', () => {
+  const make = (label, width=6, matches=false, descendant=false) => {
+    const cell={tagName:'TD',textContent:label,getAttribute:name=>name==='colspan'?String(width):null};
+    return {tagName:'TR',cells:[cell],getAttribute:()=>null,matches:()=>matches,querySelector:()=>descendant?{}:null};
+  };
+  const source = (rows,busy=false,nested=false) => {
+    const headers=['OrderID','OrderDate','FirstName','LastName','PartyID','IsRevealed'].map(key=>({getAttribute:()=>key}));
+    const body={children:rows,querySelector:()=>nested?{}:null,querySelectorAll:()=>[]};
+    const head={rows:[{}],querySelectorAll:()=>headers};
+    return {isConnected:true,tHead:head,tBodies:[body],querySelector:()=>nested?{}:null,getAttribute:name=>name==='aria-busy'&&busy?'true':null};
+  };
+  const good=parseTable(source([make('No orders found.')]));
+  assert.equal(good.parserState,'ready');
+  assert.equal(good.rowReport.exactRowCount,1);
+  assert.equal(good.rowReport.productRowCount,0);
+  assert.deepEqual(good.entries,[]);
+  assert.equal(parseTable(source([])).parserState,'ready');
+  assert.notEqual(parseTable(source([make('Loading orders...')])).parserState,'ready');
+  assert.notEqual(parseTable(source([make('No orders',2)])).parserState,'ready');
+  assert.notEqual(parseTable(source([make('No orders',6,true)])).parserState,'ready');
+  assert.notEqual(parseTable(source([make('No orders',6,false,true)])).parserState,'ready');
+  assert.notEqual(parseTable(source([make('No orders'),make('Order row')])).parserState,'ready');
+  assert.notEqual(parseTable(source([make('No orders')],true)).parserState,'ready');
 });
