@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
 import { act, createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
-import { moveLineupCustomer } from '@/lib/live-lineup/grouping'
+import { groupLineupEntries, moveLineupCustomer } from '@/lib/live-lineup/grouping'
 import { projectPublicLineup } from '@/lib/amethyst/public-live-lineup'
 
 const audience = vi.hoisted(() => ({ matches: {} as Record<string, unknown>, finishGesture: vi.fn() }))
@@ -19,7 +20,7 @@ vi.mock('@/app/nic-nac/components/LiveLineupShowControls', async () => {
 })
 vi.mock('@/app/nic-nac/components/LiveLineupArchiveControls', () => ({ LiveLineupArchiveControls: () => null }))
 vi.mock('@/app/nic-nac/components/LiveLineupPublisherControls', () => ({ LiveLineupPublisherControls: () => null }))
-import { LiveLineupCard } from '@/app/nic-nac/components/LiveLineupCard'
+import { LiveLineupCard, lineupGroupKeys } from '@/app/nic-nac/components/LiveLineupCard'
 
 let root: Root
 let host: HTMLDivElement
@@ -327,5 +328,192 @@ describe('Live Lineup whole-customer pointer moves', () => {
     expect(current.entries.map(entry => entry.id)).toEqual(['order-1', 'order-4', 'order-2', 'order-3'])
     expect(scope.textContent).toContain('Danielle')
     expect(document.querySelector('[data-lineup-drag-preview]')).toBeNull()
+  })
+})
+
+describe('Live Lineup group identity', () => {
+  const order = (id: string, name: string, lastName: string, identityEligible = true) =>
+    ({ id, name, lastName, identityEligible })
+
+  function applyRows(rows: ReturnType<typeof order>[], revision: number) {
+    const entries = rows.map((entry, index) => ({
+      ...entry,
+      position: index + 1,
+      held: false as const,
+      sourceIdentityVersion: 'v1',
+    }))
+    current = {
+      ...current,
+      revision,
+      entries,
+      heldEntries: [],
+      management: { generation: 1, partyIds: [], excludedPartyIds: [], candidates: entries },
+    }
+  }
+
+  async function refreshLineup() {
+    for (let pass = 0; pass < 3; pass++) await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+  }
+
+  function coarseBlocks(css: string) {
+    const blocks: string[] = []
+    const marker = '@media (pointer: coarse)'
+    let from = 0
+    while (from < css.length) {
+      const start = css.indexOf(marker, from)
+      if (start < 0) break
+      const open = css.indexOf('{', start)
+      let depth = 0
+      let end = open
+      for (; end < css.length; end += 1) {
+        if (css[end] === '{') depth += 1
+        else if (css[end] === '}') {
+          depth -= 1
+          if (depth === 0) { end += 1; break }
+        }
+      }
+      blocks.push(css.slice(open + 1, end - 1))
+      from = end
+    }
+    return blocks
+  }
+
+  it('puts the 44px Customer card rule in the later coarse-pointer block', () => {
+    const css = readFileSync('app/nic-nac/components/LiveLineupCard.module.css', 'utf8')
+    const blocks = coarseBlocks(css)
+    const fineRule = '.fullDialog .row > .rowSide .customerButton { margin: 0; font-size: 11px; min-height: 28px; }'
+    const coarseRule = '.fullDialog .row > .rowSide .customerButton { min-height: 44px; }'
+    const later = blocks.at(-1) ?? ''
+    expect(blocks.length).toBeGreaterThan(1)
+    expect(blocks.slice(0, -1).join('\n')).not.toContain('.fullDialog .row > .rowSide .customerButton')
+    expect(later).toContain(coarseRule)
+    expect(later).toContain('.card .orderToggle, .dialog .orderToggle { min-height: 44px; }')
+    expect(blocks.join('\n')).not.toContain('min-height: 28px')
+    expect(css).toContain(fineRule)
+    expect(css.indexOf(coarseRule)).toBeGreaterThan(css.indexOf(fineRule))
+  })
+
+  it('keeps an open group mounted and focused when an earlier order joins it', async () => {
+    vi.useFakeTimers()
+    applyRows([
+      order('20', 'Pat', 'Jones'),
+      order('30', 'Pat', 'Jones'),
+      order('40', 'Kelly', 'Brown'),
+      order('50', 'Kelly', 'Brown'),
+    ], 1)
+    await mount()
+    const pat = button('2 orders for Pat')
+    const kelly = button('2 orders for Kelly')
+    expect(kelly.getAttribute('aria-expanded')).toBe('false')
+    await click(pat)
+    pat.focus()
+    expect(document.activeElement).toBe(pat)
+    expect(pat.getAttribute('aria-expanded')).toBe('true')
+    const row = pat.closest('li')!
+    applyRows([
+      order('10', 'Pat', 'Jones'),
+      order('20', 'Pat', 'Jones'),
+      order('30', 'Pat', 'Jones'),
+      order('40', 'Kelly', 'Brown'),
+      order('50', 'Kelly', 'Brown'),
+    ], 2)
+    await refreshLineup()
+    expect(row.isConnected).toBe(true)
+    expect(pat.isConnected).toBe(true)
+    expect(document.activeElement).toBe(pat)
+    expect(pat.getAttribute('aria-expanded')).toBe('true')
+    expect(pat.getAttribute('aria-label')).toBe('3 orders for Pat')
+    expect(row.getAttribute('data-lineup-entry')).toBe('10')
+    expect(kelly.isConnected).toBe(true)
+    expect(kelly.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('keeps a closed group closed when the lineup re-renders', async () => {
+    vi.useFakeTimers()
+    applyRows([
+      order('20', 'Pat', 'Jones'),
+      order('30', 'Pat', 'Jones'),
+      order('40', 'Kelly', 'Brown'),
+      order('50', 'Kelly', 'Brown'),
+    ], 1)
+    await mount()
+    const pat = button('2 orders for Pat')
+    const kelly = button('2 orders for Kelly')
+    expect(pat.getAttribute('aria-expanded')).toBe('false')
+    expect(kelly.getAttribute('aria-expanded')).toBe('false')
+    applyRows([
+      order('10', 'Pat', 'Jones'),
+      order('20', 'Pat', 'Jones'),
+      order('30', 'Pat', 'Jones'),
+      order('40', 'Kelly', 'Brown'),
+      order('50', 'Kelly', 'Brown'),
+    ], 2)
+    await refreshLineup()
+    expect(pat.isConnected).toBe(true)
+    expect(pat.getAttribute('aria-expanded')).toBe('false')
+    expect(pat.getAttribute('aria-label')).toBe('3 orders for Pat')
+    expect(kelly.isConnected).toBe(true)
+    expect(kelly.getAttribute('aria-expanded')).toBe('false')
+    expect(host.querySelector('[data-lineup-order-detail]')).toBeNull()
+  })
+
+  it('gives one customer distinct keys and ids for two non-adjacent groups', async () => {
+    const surname = 'Quillworth Lane'
+    applyRows([
+      order('d1', 'Danielle', surname),
+      order('d2', 'Danielle', surname),
+      order('k1', 'Kelly', 'Brown'),
+      order('d3', 'Danielle', surname),
+      order('d4', 'Danielle', surname),
+    ], 1)
+    const groups = groupLineupEntries(current.entries)
+    const keys = lineupGroupKeys(groups)
+    expect(groups.map(group => group.members)).toEqual([['d1', 'd2'], ['k1'], ['d3', 'd4']])
+    expect(keys).toEqual([`c:${groups[0].tuple}#0`, `c:${groups[1].tuple}#0`, `c:${groups[2].tuple}#1`])
+    expect(new Set(keys).size).toBe(keys.length)
+    expect(keys[0]).not.toBe(keys[2])
+    expect(lineupGroupKeys(groupLineupEntries([{ id: 'order-9', name: 'Riley', identityEligible: false }]))).toEqual(['o:order-9'])
+    await mount()
+    for (const key of keys) expect(host.innerHTML).not.toContain(key)
+    expect(host.innerHTML).not.toContain(surname)
+    const pills = Array.from(host.querySelectorAll<HTMLButtonElement>('button[aria-expanded]'))
+    expect(pills.map(pill => pill.getAttribute('aria-label'))).toEqual(['2 orders for Danielle', '2 orders for Danielle'])
+    const ids = pills.map(pill => pill.getAttribute('aria-controls')!)
+    expect(new Set(ids).size).toBe(2)
+    for (const id of ids) {
+      expect(id).not.toMatch(/\s/)
+      expect(id).not.toContain('Danielle')
+      expect(id).not.toContain('Quillworth')
+      expect(id).not.toContain('#')
+      expect(document.getElementById(id)?.getAttribute('hidden')).not.toBeNull()
+    }
+    await click(pills[0])
+    expect(pills[0].getAttribute('aria-expanded')).toBe('true')
+    expect(pills[1].getAttribute('aria-expanded')).toBe('false')
+    expect(pills[0].closest('li')?.querySelectorAll('[data-lineup-order-detail]')).toHaveLength(2)
+    expect(pills[1].closest('li')?.querySelector('[data-lineup-order-detail]')).toBeNull()
+    expect(document.getElementById(ids[1])?.getAttribute('hidden')).not.toBeNull()
+  })
+
+  it('does not start a drag from the orders pill, and a tap still toggles it', async () => {
+    await mount()
+    const pill = button('2 orders for Danielle')
+    const row = pill.closest<HTMLElement>('[data-lineup-active]')!
+    const pointer = async (type: string, y: number) => act(async () => {
+      const event = new MouseEvent(type, { bubbles: true, cancelable: true, button: 0, clientX: 40, clientY: y })
+      Object.defineProperties(event, { isPrimary: { value: true }, pointerId: { value: 7 } })
+      pill.dispatchEvent(event)
+    })
+    await pointer('pointerdown', 30)
+    await pointer('pointermove', 90)
+    expect(document.querySelector('[data-lineup-drag-preview]')).toBeNull()
+    expect(row.style.height).toBe('')
+    expect(pill.getAttribute('aria-expanded')).toBe('false')
+    await pointer('pointerup', 90)
+    await click(pill)
+    expect(pill.getAttribute('aria-expanded')).toBe('true')
+    expect(row.querySelectorAll('[data-lineup-order-detail]')).toHaveLength(2)
+    await click(pill)
+    expect(pill.getAttribute('aria-expanded')).toBe('false')
   })
 })
