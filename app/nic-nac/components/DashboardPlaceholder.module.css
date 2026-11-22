@@ -7071,6 +7071,10 @@
     grid-template-columns: minmax(240px, 280px) minmax(360px, 1fr);
   }
 
+  .signatureHome .lineupRail {
+    min-block-size: 360px;
+  }
+
   .conceptRail:last-child {
     grid-column: 1 / -1;
     display: grid;

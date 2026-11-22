@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { expect, it } from 'vitest'
@@ -38,4 +39,15 @@ it('rejects stale lifecycle state even if its row revision increased and proves 
   expect(isShowCommandAcknowledgement(current,{...started,showReceipt:undefined},command)).toBe(false)
   expect(canAcceptWorkspaceRefresh(started,{...current,revision:1})).toBe(false)
   expect(canAcceptWorkspaceRefresh(current,started)).toBe(true)
+})
+
+it('reserves a readable Workspace rail and keeps the calendar message during deferred data', () => {
+  const shell = readFileSync('app/nic-nac/components/DashboardPlaceholder.module.css','utf8')
+  const card = readFileSync('app/nic-nac/components/LiveLineupCard.module.css','utf8')
+  const home = readFileSync('lib/amethyst/v2/homepage.jsx','utf8')
+  expect(shell).toMatch(/\.signatureHome \.lineupRail\s*\{\s*min-block-size: 360px;/)
+  expect(card).toMatch(/\.card \.extensionRow \.statusButton\s*\{[^}]*color: #34234a;/)
+  const strip = home.slice(home.indexOf('function LiveQueueStrip('),home.indexOf('function LiveQueueModal('))
+  expect(strip).toContain('Check the calendar for the next show.')
+  expect(strip).not.toContain('data-page-placeholder="calendar-strip"')
 })
