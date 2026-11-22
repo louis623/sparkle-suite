@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   admin: vi.fn(),
   events: vi.fn(),
   listings: vi.fn(),
+  nextShow: vi.fn(),
   preview: vi.fn(),
   resolveRep: vi.fn(),
   snapshot: vi.fn(),
@@ -12,6 +13,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: mocks.admin }))
 vi.mock('@/lib/amethyst/homepage-upcoming-shows', () => ({
   loadAmethystHomepageUpcomingShows: mocks.events,
+  loadLineupNextShow: mocks.nextShow,
 }))
 vi.mock('@/lib/amethyst/trade-board-listings', () => ({
   loadAmethystTradeBoardPreviewListings: mocks.listings,
@@ -39,6 +41,7 @@ describe('homepage Live Lineup bootstrap identity', () => {
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'synthetic-test-key')
     mocks.admin.mockReset().mockReturnValue({ marker: 'admin' })
     mocks.events.mockReset().mockResolvedValue([])
+    mocks.nextShow.mockReset().mockResolvedValue(null)
     mocks.listings.mockReset().mockResolvedValue([])
     mocks.preview.mockReset().mockResolvedValue({
       appearancePreset: 'amethyst',
@@ -69,6 +72,7 @@ describe('homepage Live Lineup bootstrap identity', () => {
       expect.objectContaining({ repId: 'rep-a', publicSiteSlug: 'slugtwo' }),
     )
     expect(mocks.snapshot).not.toHaveBeenCalled()
+    expect(mocks.nextShow).not.toHaveBeenCalled()
     expect(mocks.listings).toHaveBeenCalledWith(expect.objectContaining({
       repId: null,
       publicSiteSlug: 'slugtwo',
@@ -94,6 +98,7 @@ describe('homepage Live Lineup bootstrap identity', () => {
     const script = await response.text()
 
     expect(mocks.snapshot).toHaveBeenCalledWith({ marker: 'admin' }, 'rep-a')
+    expect(mocks.nextShow).toHaveBeenCalledWith({ repId: 'rep-a' })
     expect(mocks.listings).toHaveBeenCalledWith(expect.objectContaining({ repId: 'rep-a' }))
     expect(script).toContain('Verified customer')
   })
