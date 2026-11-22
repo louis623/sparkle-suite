@@ -13,7 +13,7 @@ function adapter(sql:PGlite):SupabaseClient {
   const normalize=(value:unknown)=>JSON.parse(JSON.stringify(value))
   class Query {
     fields='*'; filters:[string,string,unknown][]=[]; maximum=1000; single=false; descending=false
-    constructor(public table:string){if(!['live_lineup_states','live_lineup_show_archives','live_lineup_publisher_tokens'].includes(table))throw Error('Unexpected table')}
+    constructor(public table:string){if(!['live_lineup_states','live_lineup_show_archives','live_lineup_publisher_tokens','live_lineup_show_controls'].includes(table))throw Error('Unexpected table')}
     select(fields:string){this.fields=fields.split(',').map(id).join(',');return this}
     eq(key:string,value:unknown){this.filters.push([id(key),'=',value]);return this}
     lt(key:string,value:unknown){this.filters.push([id(key),'<',value]);return this}
@@ -54,6 +54,13 @@ it('recovers through actual services and exact additive SQL, preserving archives
     await sql.query('insert into reps values($1),($2)',[rep,other])
     await sql.exec(readFileSync(new URL('../supabase/migrations/20260910000100_live_lineup_v2.sql',import.meta.url),'utf8'))
     await sql.exec(readFileSync(new URL('../supabase/migrations/20260926000100_live_lineup_atomic_observations.sql',import.meta.url),'utf8'))
+    await sql.exec(`create table public.live_lineup_show_controls (
+      rep_id uuid primary key references public.reps(id), revision bigint, mode text, run_id uuid,
+      idle_deadline_at timestamptz, run_ready_since timestamptz, run_generation bigint, run_lineup_revision bigint,
+      seen_order_ids text[], changed_by text, auto_check_new_parties boolean, last_extension_seen_at timestamptz,
+      worker_version text, reader_version text, tab_present boolean, reader_responding boolean, source_status text,
+      ack_control_revision bigint);
+      grant select on public.live_lineup_show_controls to service_role;`)
     // Lease age starts after embedded-database initialization, not before it.
     T=Date.now()-10000
     const current=state(2),archived=state(1)

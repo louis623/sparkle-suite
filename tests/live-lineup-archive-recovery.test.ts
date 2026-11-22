@@ -30,7 +30,8 @@ type Row = Record<string, any>
 function database() {
   const f=fixture()
   const rows:Record<string,Row[]>={live_lineup_states:[{rep_id:'owner',revision:f.current.revision,state:structuredClone(f.current)}],
-    live_lineup_show_archives:[{rep_id:'owner',generation:f.archive.generation,revision:f.archive.revision,archived_at:f.archive.archivedAt,state:structuredClone(f.archive.state)}]}
+    live_lineup_show_archives:[{rep_id:'owner',generation:f.archive.generation,revision:f.archive.revision,archived_at:f.archive.archivedAt,state:structuredClone(f.archive.state)}],
+    live_lineup_show_controls:[]}
   const calls:{table:string;filters:[string,string,unknown][];maximum:number}[]=[]
   let readError=false, conflict=false, writes=0
   class Query {
