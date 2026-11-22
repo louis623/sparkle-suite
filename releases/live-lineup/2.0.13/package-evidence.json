@@ -1,7 +1,7 @@
 {
   "archive": "sparkle-suite-live-lineup-2.0.13-cws.zip",
-  "sha256": "e8e968ed5340868270df35ce65244623de20d71dcaaa2187416fa522f43840e6",
-  "bytes": 120082,
+  "sha256": "221abd7673a2d97e43f8f2df320a27f3f70d12c276afe2ea9545a69c8bc3a4e1",
+  "bytes": 120097,
   "manifestVersion": "2.0.13",
   "inventory": [
     "background.js",
@@ -28,7 +28,7 @@
     "queue-parser.js"
   ],
   "sourceSha256": {
-    "background.js": "a3a4f6909243b23beaf616a9b0b1909b095d08bb533c73e22876fd3817d94866",
+    "background.js": "75583992a3de58d7dcd44ecb3a6f555337d53d23d4dbbb7a28580e4640067d95",
     "content.js": "d84ab81a4e320f861b60833b5b1b29402168336a82b04caa1d806100912ee371",
     "icons/icon128.png": "488ac0f9e5923677946bf0b33493339fd267d854c1764fcfae962c90b74cf495",
     "icons/icon16.png": "840e3dd93686dfa915050361fdad0dde044396db03f34032f4e8ad1fd8dc1439",
