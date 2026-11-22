@@ -397,7 +397,7 @@ async function status() {
   const state = await store.load(), source = await selected() || await confirmedSelection(state), now = Date.now();
   const local = await loadControlLocal();
   const browserUpdate = await updater.getStatus();
-  const current = controlCache?.token === state?.token ? controlCache.value : null;
+  const current = controlCache && controlCache.token === state?.token ? controlCache.value : null;
   const unsupported = controlUnavailableFor === state?.token;
   return {ok:true,environment:ENVIRONMENT,workerVersion:chrome.runtime.getManifest().version,...browserUpdate,
     showControl:current?.showControl ?? null,extensionStatus:current?.extensionStatus ?? null,showControlsUnavailable:unsupported,controlNotice:local.notice ?? null,
