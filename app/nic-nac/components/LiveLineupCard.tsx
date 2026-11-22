@@ -23,10 +23,24 @@ import { isDemoLineupSnapshot } from '@/lib/live-lineup/demo'
 
 const ENDPOINT = '/api/workspace/live-lineup'
 
+type LineupGroupKeyInput = { tuple: string | null; members: readonly string[] }
+
+/** Keys for one displayed group list. The same customer can occupy two non-adjacent groups. */
+export function lineupGroupKeys(groups: readonly LineupGroupKeyInput[]): string[] {
+  const seen = new Map<string, number>()
+  return groups.map(group => {
+    if (group.tuple === null) return `o:${group.members[0]}`
+    const earlier = seen.get(group.tuple) ?? 0
+    seen.set(group.tuple, earlier + 1)
+    return `c:${group.tuple}#${earlier}`
+  })
+}
+
 export function LiveLineupCard({ compact = false, readOnly = false, onAskCustomer }: { compact?: boolean; readOnly?: boolean; onAskCustomer?:(prompt:string)=>void }) {
   const [customerSelection,setCustomerSelection] = useState<{entry:WorkspaceLineupEntry;generation:number}|null>(null)
   const headingId = useId()
   const popupTitleId = useId()
+  const orderDetailsId = useId()
   const [popup, setPopup] = useState<'status' | 'full' | null>(null)
   const popupRef = useRef<HTMLDialogElement>(null)
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
@@ -204,8 +218,10 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
     const id = focusAfterSave.current
     const scroller = scrollRef.current
     if (saving || !id || !scroller) return
-    const group = snapshot ? groupLineupEntries(snapshot.entries).find(group => group.members.includes(id)) : undefined
-    const groupKey = group ? [...group.members].sort()[0] : undefined
+    const lineupGroups = snapshot ? groupLineupEntries(snapshot.entries) : []
+    const groupIndex = lineupGroups.findIndex(group => group.members.includes(id))
+    const group = groupIndex >= 0 ? lineupGroups[groupIndex] : undefined
+    const groupKey = groupIndex >= 0 ? lineupGroupKeys(lineupGroups)[groupIndex] : undefined
     if (group && id !== group.members[0] && group.members.length > 1 && groupKey && !expanded.has(groupKey)) {
       setExpanded(current => new Set([...current, groupKey]))
       return
@@ -511,6 +527,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
   const originalEntries = snapshot?.entries ?? []
   const entries = pendingMove ? moveLineupCustomer(originalEntries, pendingMove.entryId, pendingMove.beforeEntryId) ?? originalEntries : originalEntries
   const groups = groupLineupEntries(entries)
+  const groupKeys = lineupGroupKeys(groups)
   const draggedGroup = groups.find(group => group.members[0] === dragging)
   const draggedEntry = entries.find(entry => entry.id === dragging)
   const remainingGroups = groups.filter(group => group.members[0] !== dragging)
@@ -552,18 +569,19 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
   function renderEntries(full = false) {
     return <ol className={styles.list} aria-label="Customers waiting">
       {groups.map((group, groupIndex) => {
-        const key = [...group.members].sort()[0]
+        const key = groupKeys[groupIndex]
         const entry = entryById.get(group.members[0])!
         const multiple = group.members.length > 1
         const open = multiple && expanded.has(key)
-        const detailsId = `${headingId}-${full ? 'full' : 'card'}-${key}`
+        const detailsId = `${orderDetailsId}-${full ? 'full' : 'card'}-${groupIndex}`
         const cardAction = customerButton(group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'matched') ?? group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'needs_clarification') ?? entry)
         return <li key={key} data-lineup-entry={entry.id} data-lineup-active tabIndex={-1}
           onPointerDown={(event) => {
             const target = event.target instanceof Element ? event.target : null
             // The orders pill and Customer card live in the right-hand actions.
-            // A press there must not start a drag or the row freezes its height
-            // and the disclosure looks like it is opening and closing by itself.
+            // A press there bubbles to this row and must not start a drag, or the
+            // row freezes its height and the disclosure looks like it is opening
+            // and closing by itself. The controls do not stop the event.
             if (!target || target.closest('[data-lineup-order-detail], [data-lineup-row-actions], button:not([data-lineup-grab]), a, input')) return
             startDrag(event, entry)
           }}
@@ -574,9 +592,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
           {(multiple || cardAction) && <div className={styles.rowSide} data-lineup-row-actions>
             {multiple && <button type="button" className={styles.orderToggle} aria-expanded={open} aria-controls={detailsId}
               aria-label={`${group.members.length} orders for ${group.name}`} disabled={!!dragging || saving}
-              onPointerDown={event => event.stopPropagation()} onPointerUp={event => event.stopPropagation()}
-              onClick={event => {
-                event.stopPropagation()
+              onClick={() => {
                 setExpanded(current => {
                   const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next
                 })
