@@ -557,24 +557,34 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
         const multiple = group.members.length > 1
         const open = multiple && expanded.has(key)
         const detailsId = `${headingId}-${full ? 'full' : 'card'}-${key}`
+        const cardAction = customerButton(group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'matched') ?? group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'needs_clarification') ?? entry)
         return <li key={key} data-lineup-entry={entry.id} data-lineup-active tabIndex={-1}
           onPointerDown={(event) => {
-            const target = event.target as HTMLElement
-            if (target.closest('[data-lineup-order-detail]') || target.closest('button:not([data-lineup-grab]), a, input')) return
+            const target = event.target instanceof Element ? event.target : null
+            // The orders pill and Customer card live in the right-hand actions.
+            // A press there must not start a drag or the row freezes its height
+            // and the disclosure looks like it is opening and closing by itself.
+            if (!target || target.closest('[data-lineup-order-detail], [data-lineup-row-actions], button:not([data-lineup-grab]), a, input')) return
             startDrag(event, entry)
           }}
           onPointerMove={moveDrag} onPointerUp={finishDrag} onPointerCancel={stopDrag} onLostPointerCapture={stopDrag}
           aria-label={`${group.name}, position ${groupIndex + 1}`}
           className={`${styles.row} ${fresh && snapshot?.connection === 'connected' && groupIndex === 0 ? styles.now : ''} ${dragging === entry.id ? styles.dragging : ''}`}>
           {orderControls(entry, entryIndex.get(entry.id)!, groupIndex + 1, group.name, !multiple && (!compact || full))}
-          {multiple && <button type="button" className={styles.orderToggle} aria-expanded={open} aria-controls={detailsId}
-            aria-label={`${group.members.length} orders for ${group.name}`} disabled={!!dragging || saving}
-            onClick={() => setExpanded(current => {
-              const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next
-            })}>
-            {group.members.length} orders <span aria-hidden="true">{open ? '⌄' : '›'}</span>
-          </button>}
-          {customerButton(group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'matched') ?? group.members.map(id => entryById.get(id)!).find(item => audienceMatches[item.id]?.status === 'needs_clarification') ?? entry)}
+          {(multiple || cardAction) && <div className={styles.rowSide} data-lineup-row-actions>
+            {multiple && <button type="button" className={styles.orderToggle} aria-expanded={open} aria-controls={detailsId}
+              aria-label={`${group.members.length} orders for ${group.name}`} disabled={!!dragging || saving}
+              onPointerDown={event => event.stopPropagation()} onPointerUp={event => event.stopPropagation()}
+              onClick={event => {
+                event.stopPropagation()
+                setExpanded(current => {
+                  const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next
+                })
+              }}>
+              {group.members.length} orders <span aria-hidden="true">{open ? '⌄' : '›'}</span>
+            </button>}
+            {cardAction}
+          </div>}
           {multiple && <ol id={detailsId} className={styles.orderList} hidden={!open} aria-label={`Individual orders for ${group.name}`}>
             {open && group.members.map((id, orderIndex) => {
               const order = entryById.get(id)!
