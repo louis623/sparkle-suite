@@ -8,7 +8,15 @@ import { projectPublicLineup } from '@/lib/amethyst/public-live-lineup'
 
 const audience = vi.hoisted(() => ({ matches: {} as Record<string, unknown>, finishGesture: vi.fn() }))
 vi.mock('@/app/nic-nac/components/use-lineup-audience', () => ({ useLineupAudience: () => audience }))
-vi.mock('@/app/nic-nac/components/LiveLineupShowControls', () => ({ LiveLineupShowControls: () => null }))
+vi.mock('@/app/nic-nac/components/LiveLineupShowControls', async () => {
+  const { createElement } = await import('react')
+  return {
+    LiveLineupShowControls: () => null,
+    ShowActionButton: () => null,
+    LiveLineupExtensionDetails: ({ label, tone, onStatus }: { label: string; tone: string; onStatus: () => void }) =>
+      createElement('button', { type: 'button', onClick: onStatus }, label, tone === 'attention' ? 'Tap for status' : null),
+  }
+})
 vi.mock('@/app/nic-nac/components/LiveLineupArchiveControls', () => ({ LiveLineupArchiveControls: () => null }))
 vi.mock('@/app/nic-nac/components/LiveLineupPublisherControls', () => ({ LiveLineupPublisherControls: () => null }))
 import { LiveLineupCard } from '@/app/nic-nac/components/LiveLineupCard'
