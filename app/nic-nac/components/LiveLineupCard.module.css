@@ -234,47 +234,55 @@
 
 .card .fullDialog .row { padding: 14px 8px; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; }
 .fullDialog .row > .handle, .fullDialog .row > .expand { grid-column: 1; grid-row: 1; }
-.fullDialog .row > [data-control-tip='customer-card'] { grid-column: 2; grid-row: 1; align-self: center; }
-.fullDialog .row > [data-control-tip='customer-card'] .customerButton { margin: 0; font-size: 11px; min-height: 28px; }
-.fullDialog .row > .actions, .fullDialog .orderList { grid-column: 1 / -1; }
-@media (max-width: 380px) {
-  .card .fullDialog .row { grid-template-columns: minmax(0, 1fr); }
-  .fullDialog .row > [data-control-tip='customer-card'] { grid-column: 1; grid-row: auto; margin: 6px 0 0 24px; }
-}
+.fullDialog .row > .rowSide .customerButton { margin: 0; font-size: 11px; min-height: 28px; }
+.fullDialog .row > .actions, .fullDialog .orderList { grid-column: 1 / -1; grid-row: 2; }
 
-/* Stretch the rail card; use wider desktop rows without changing stacked layouts. */
-@media (min-width: 841px) {
-  .compact > .scroll > .list > .row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px 8px;
-  }
-  .compact > .scroll > .list > .row > .person {
-    flex: 1 1 120px;
-    width: auto;
-    grid-template-columns: 14px 24px minmax(0, 1fr) auto;
-    column-gap: 6px;
-  }
-  .compact > .scroll > .list > .row > .expand { flex-basis: 180px; }
-  .compact > .scroll > .list > .row > .person .orders {
-    grid-column: 4;
-    grid-row: 1;
-    white-space: nowrap;
-  }
-  .compact > .scroll > .list > .row > [data-control-tip='customer-card'] {
-    flex: 0 0 auto;
-    max-width: 100%;
-  }
-  .compact > .scroll > .list > .row > [data-control-tip='customer-card'] .customerButton {
-    margin: 0;
-    padding-inline: 8px;
-  }
-  .compact > .scroll > .list > .row > .orderList {
-    flex: 1 0 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
+/* Name on the left. Orders pill and Customer card stay in the right column at every width. */
+.card .list > .row,
+.dialog .list > .row,
+.card.compact > .scroll > .list > .row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+}
+.card .list > .row > .handle,
+.dialog .list > .row > .handle,
+.card.compact > .scroll > .list > .row > .person {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.rowSide {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+.card .rowSide .orderToggle,
+.dialog .rowSide .orderToggle,
+.card .rowSide .customerButton,
+.dialog .rowSide .customerButton {
+  margin: 0;
+  max-width: 100%;
+  touch-action: manipulation;
+}
+.card .list > .row > .actions,
+.card .list > .row > .orderList,
+.dialog .list > .row > .actions,
+.dialog .list > .row > .orderList {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Customer moves as one block; only the count opens individual order details. */
@@ -287,10 +295,7 @@
 }
 .orderToggle span { font-size: 17px; line-height: 1; }
 .orderName { display: block; padding: 2px 0 2px 22px; font-size: 13px; }
-.fullDialog .row > .orderToggle { grid-column: 1; grid-row: 2; justify-self: start; }
-@media (min-width: 841px) {
-  .compact > .scroll > .list > .row > .orderToggle { flex: 0 0 auto; margin: 0; }
-}
+.fullDialog .row > .rowSide { justify-self: end; }
 @media (pointer: coarse) {
   .card .orderToggle, .dialog .orderToggle { min-height: 44px; }
 }

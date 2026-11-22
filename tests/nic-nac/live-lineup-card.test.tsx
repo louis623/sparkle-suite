@@ -250,6 +250,47 @@ describe('Live Lineup drag resize regression', () => {
   })
 })
 
+describe('Live Lineup grouped row stability', () => {
+  it('keeps a grouped order list open across a re-render and a refresh of the same lineup', async () => {
+    vi.useFakeTimers()
+    await mount()
+    const expander = () => host.querySelector<HTMLButtonElement>('button[aria-expanded]')!
+    await click(expander())
+    expect(expander().getAttribute('aria-expanded')).toBe('true')
+    expect(host.querySelectorAll('[data-lineup-order-detail]')).toHaveLength(2)
+    await act(async () => { root.render(createElement(LiveLineupCard, { compact: true })); await Promise.resolve() })
+    for (let pass = 0; pass < 3; pass++) await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(expander().getAttribute('aria-expanded')).toBe('true')
+    expect(host.querySelectorAll('[data-lineup-order-detail]')).toHaveLength(2)
+    await click(expander())
+    expect(expander().getAttribute('aria-expanded')).toBe('false')
+    expect(host.querySelector('[data-lineup-order-detail]')).toBeNull()
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(expander().getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('puts Customer card in the right-side actions for single and multi-order rows', async () => {
+    audience.matches = {
+      'order-1': { id: 'order-1', status: 'matched', audienceId: 'customer-1', birthday: null, preferences: [] },
+      'order-2': { id: 'order-2', status: 'matched', audienceId: 'customer-2', birthday: null, preferences: [] },
+    }
+    await mount()
+    for (const label of ['Dinelle, position 1', 'Danielle, position 2']) {
+      const row = host.querySelector<HTMLElement>(`[aria-label="${label}"]`)!
+      const actions = row.querySelector<HTMLElement>('[data-lineup-row-actions]')!
+      const handle = row.querySelector('[data-lineup-grab]')!
+      const card = Array.from(actions.querySelectorAll('button')).find(node => node.textContent === 'Customer card')
+      expect(card).toBeTruthy()
+      expect(handle.contains(card!)).toBe(false)
+      expect(handle.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+    const multi = host.querySelector<HTMLElement>('[aria-label="Danielle, position 2"] [data-lineup-row-actions]')!
+    const buttons = Array.from(multi.querySelectorAll('button'))
+    expect(buttons.map(node => node.getAttribute('aria-expanded') === null ? node.textContent : 'orders')).toEqual(['orders', 'Customer card'])
+    expect(multi.querySelector('button[aria-expanded]')!.compareDocumentPosition(buttons[1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+})
+
 describe('Live Lineup whole-customer pointer moves', () => {
   it.each([false, true])('drags an expanded customer as one block in full=%s', async (full) => {
     await mount()
