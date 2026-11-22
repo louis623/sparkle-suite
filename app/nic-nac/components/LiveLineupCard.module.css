@@ -317,7 +317,21 @@
 .extensionDetails { padding: 6px 14px; flex: 0 0 auto; }
 .extensionRow { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; font-size: .77rem; }
 .extensionRow > span + button::before { content: '·'; margin-right: 5px; }
-.extensionRow .statusButton { margin: 0; display: inline-flex; align-items: center; width: auto; }
+.card .extensionRow .statusButton {
+  margin: 0;
+  align-items: center;
+  flex-flow: row wrap;
+  gap: 5px;
+  width: auto;
+  border-color: transparent;
+  background: transparent;
+  color: #34234a;
+}
+.card .extensionRow .statusButton:hover { background: #f3ecf9; }
+.extensionRow .statusButton .dot { background: #776a83; box-shadow: 0 0 0 3px #776a8324; }
+.extensionRow .statusButton[data-connection='updating'] .dot { background: #177748; box-shadow: 0 0 0 3px #17774826; }
+.extensionRow .statusButton[data-connection='reconnecting'] .dot { background: #9a570e; box-shadow: 0 0 0 3px #9a570e26; }
+.extensionRow .statusButton[data-connection='attention'] .dot { background: #b8284c; box-shadow: 0 0 0 3px #b8284c26; }
 .showWarning, .showWaiting { margin: 6px 0 0; padding: 6px 8px; border-radius: 6px; font-size: .76rem; }
 .showWarning { background: #fff1d2; color: #6e3909; }
 .showWarning p { margin: 0; }

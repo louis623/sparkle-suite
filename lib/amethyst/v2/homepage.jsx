@@ -1698,11 +1698,6 @@ function LiveQueueStrip({ state, onOpen }) {
   const lineup = React.useContext(LiveLineupContext);
   const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
   if (entries.length === 0) {
-    if (window.SPARKLE_PENDING_PAGE_DATA?.events && !["empty", "delayed"].includes(lineup?.liveQueueState)) return (
-      <section className="hp-trade-preview hp-lineup-idle" data-page-placeholder="calendar-strip" aria-label="Upcoming shows" aria-busy="true">
-        <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt" aria-hidden="true">&nbsp;</span></div>
-      </section>
-    );
     return window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref, lineup) || (
       <section className="hp-trade-preview hp-lineup-idle" data-lineup-surface="calendar" aria-label="Upcoming shows">
         <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt">Check the calendar for the next show.</span></div>
