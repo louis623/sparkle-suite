@@ -1,3 +1,4 @@
+import { isLineupExtensionStatus, isShowControl, showAction, showRevision, showUuid, type ShowCommand } from '@/lib/live-lineup/show-control'
 import { moveLineupCustomer } from '@/lib/live-lineup/grouping'
 import type { WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
 
@@ -45,6 +46,11 @@ export function isIssuedPublisher(value: unknown): value is { publisher: LineupP
 export function isWorkspaceLineupSnapshot(value: unknown): value is WorkspaceLineupSnapshot {
   if (!value || typeof value !== 'object') return false
   const v = value as WorkspaceLineupSnapshot
+  if (v.showControl !== undefined && !isShowControl(v.showControl)
+    || v.extensionStatus !== undefined && !isLineupExtensionStatus(v.extensionStatus)) return false
+  const receipt = v.showReceipt
+  if (receipt !== undefined && (!receipt || !showAction(receipt.action) || !showUuid(receipt.requestId)
+    || !showRevision(receipt.revision) || !(receipt.runId === null && receipt.action === 'show-stop' || showUuid(receipt.runId)))) return false
   if (v.management !== undefined) {
     const m = v.management
     const parties = (x: unknown): x is string[] => Array.isArray(x) && x.length <= 100 && new Set(x).size === x.length && x.every(id => typeof id === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,60}$/.test(id))
@@ -103,7 +109,10 @@ export function canRebaseDrag(before: WorkspaceLineupSnapshot, next: WorkspaceLi
   const same = (a: WorkspaceLineupSnapshot['entries'], b: WorkspaceLineupSnapshot['entries']) => a.length === b.length
     && a.every((entry, index) => entry.id === b[index].id && entry.name === b[index].name
       && entry.lastName === b[index].lastName && entry.sourceIdentityVersion === b[index].sourceIdentityVersion && entry.identityEligible === b[index].identityEligible)
-  return before.tenantContext === next.tenantContext && JSON.stringify(before.management) === JSON.stringify(next.management)
+  return before.tenantContext === next.tenantContext
+    && before.showControl?.runId === next.showControl?.runId
+    && before.showControl?.revision === next.showControl?.revision
+    && JSON.stringify(before.management) === JSON.stringify(next.management)
     && before.canManage && next.canManage && next.revision > before.revision
     && before.sourceVersion === next.sourceVersion && before.lastChangedAt === next.lastChangedAt
     && before.undoAvailable === next.undoAvailable && same(before.entries, next.entries) && same(before.heldEntries, next.heldEntries)
@@ -174,7 +183,10 @@ export function canAcceptWorkspaceRefresh(
   before: WorkspaceLineupSnapshot,
   next: WorkspaceLineupSnapshot,
 ): boolean {
-  if (before.tenantContext !== next.tenantContext || next.revision < before.revision) return false
+  if (before.tenantContext !== next.tenantContext || next.revision < before.revision
+    || (next.showControl?.revision ?? 0) < (before.showControl?.revision ?? 0)) return false
+  if (before.showControl && next.showControl && before.showControl.revision === next.showControl.revision
+    && before.showControl.runId !== next.showControl.runId) return false
   if (next.revision > before.revision) return true
   return before.tenantContext === next.tenantContext
     && before.lastReceivedAt === next.lastReceivedAt
@@ -323,4 +335,13 @@ export function workspaceFreshnessDeadline(snapshot: WorkspaceLineupSnapshot, re
 export function workspaceWriteEligible(snapshot: WorkspaceLineupSnapshot | null, deadline: number, now: number, suspended: boolean): boolean {
   return !!snapshot && snapshot.authorized === true && snapshot.runtimeWritable !== false && snapshot.canManage && snapshot.connection === 'connected'
     && !suspended && Number.isFinite(deadline) && now < deadline
+}
+
+export function isShowCommandAcknowledgement(before: WorkspaceLineupSnapshot, next: WorkspaceLineupSnapshot, command: ShowCommand): boolean {
+  const control = next.showControl
+  const receipt = next.showReceipt
+  return before.tenantContext === next.tenantContext && before.showControl?.revision === command.expectedControlRevision
+    && !!control && !!receipt && receipt.requestId === command.requestId && receipt.action === command.type
+    && receipt.revision === command.expectedControlRevision + 1 && receipt.revision === control.revision
+    && receipt.runId === control.runId && control.mode === (command.type === 'show-start' ? 'started' : 'stopped')
 }

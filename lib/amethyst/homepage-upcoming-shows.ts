@@ -378,6 +378,7 @@ export function mapCalendarEventToHomepageEvent(
 
 interface LoadAmethystHomepageUpcomingShowsOptions {
   limit?: number
+  scheduledOnly?: boolean
   repId?: string | null
   publicSiteSlug?: string | null
   targeted?: boolean
@@ -387,6 +388,7 @@ export async function loadAmethystHomepageUpcomingShows(
   options: LoadAmethystHomepageUpcomingShowsOptions | number = {},
 ): Promise<AmethystHomepageEventCard[]> {
   const limit = typeof options === 'number' ? options : options.limit ?? 2
+  const scheduledOnly = typeof options !== 'number' && options.scheduledOnly === true
   const repId = typeof options === 'number' ? null : options.repId?.trim() ?? null
   const publicSiteSlug =
     typeof options === 'number'
@@ -401,6 +403,7 @@ export async function loadAmethystHomepageUpcomingShows(
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.SUPABASE_SERVICE_ROLE_KEY
   ) {
+    if (scheduledOnly) return []
     if (targeted && isBlingKitchenTarget(publicSiteSlug)) {
       return buildBlingKitchenFallbackEvents(limit)
     }
@@ -414,12 +417,13 @@ export async function loadAmethystHomepageUpcomingShows(
       publicSiteSlug,
       repId,
       select: 'id, email, social_handles',
+      ...(scheduledOnly ? {strict: true} : {}),
     })
 
     const isBlingKitchen = isBlingKitchenTarget(publicSiteSlug, rep?.email)
 
     if (!rep?.id) {
-      if (isBlingKitchen) return buildBlingKitchenFallbackEvents(limit)
+      if (isBlingKitchen && !scheduledOnly) return buildBlingKitchenFallbackEvents(limit)
       return targeted ? [] : defaultAmethystHomepageEvents
     }
 
@@ -427,7 +431,7 @@ export async function loadAmethystHomepageUpcomingShows(
     // ended, ahead of future `scheduled` rows. Read the two statuses apart
     // so a past show left on live cannot hide the next scheduled show.
     const [liveResult, scheduledResult] = await Promise.all([
-      listMyShows(admin as never, rep.id as string, {
+      scheduledOnly ? Promise.resolve({events: [] as CalendarEvent[]}) : listMyShows(admin as never, rep.id as string, {
         upcoming: false,
         status: 'live',
         limit: 12,
@@ -454,7 +458,7 @@ export async function loadAmethystHomepageUpcomingShows(
 
     if (!currentEvents.length) {
       if (targeted) return []
-      if (isBlingKitchen) return buildBlingKitchenFallbackEvents(limit)
+      if (isBlingKitchen && !scheduledOnly) return buildBlingKitchenFallbackEvents(limit)
       return defaultAmethystHomepageEvents
     }
 
@@ -466,4 +470,10 @@ export async function loadAmethystHomepageUpcomingShows(
   } catch {
     return targeted ? [] : defaultAmethystHomepageEvents
   }
+}
+
+/** Only real, targeted scheduled shows are used in the lineup calendar state. */
+export async function loadLineupNextShow(target: {repId?: string | null; publicSiteSlug?: string | null}) {
+  const [show] = await loadAmethystHomepageUpcomingShows({...target,targeted:true,scheduledOnly:true,limit:1})
+  return show ? {title:show.title.slice(0,160),time:formatPublicShowTime(show.eventTime,show.timeZone)} : null
 }

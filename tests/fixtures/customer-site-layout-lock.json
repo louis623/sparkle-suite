@@ -23,7 +23,7 @@
     {
       "path": "public/amethyst/homepage.jsx",
       "function": "LiveQueueStrip",
-      "sha256": "0ab64131bbe2e3a303f6eebfaf7af0dfa4d8e077b923f73a5b588403a325262f"
+      "sha256": "ab7be94ec2980cd02c6018dda70c12c27663ef0bb7545013401548238b71a391"
     },
     {
       "path": "public/amethyst/trade.jsx",
@@ -38,7 +38,7 @@
     {
       "path": "public/amethyst/trade.jsx",
       "function": "LiveQueueStrip",
-      "sha256": "3be3e9ff8935763fdb1fb3ff4eb2321f3c17df6fc295708dd3cd1c121c0d3cc2"
+      "sha256": "bf40018bc4f8d9007e9d3693579b9458a1104eab74ac4ea126efd93c1a4640ef"
     },
     {
       "path": "public/amethyst/join.jsx",
@@ -53,7 +53,7 @@
     {
       "path": "public/amethyst/join.jsx",
       "function": "LiveQueueStrip",
-      "sha256": "d94aa42af4f7d7e8199581d66baeaa429ef86dff0bd3bd93c8a18b073c3044a4"
+      "sha256": "d18d13e368ed5f112ee4702886f096a8458f4b288c63b4b3850a50d9a9437ff9"
     }
   ],
   "approvedSharedChange": {

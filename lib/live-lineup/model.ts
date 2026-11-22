@@ -487,7 +487,7 @@ function absenceMature(streak: PartyAbsence, now: number) {
 }
 
 /** Every accepted packet is a heartbeat, even if unchanged. Clock comes exclusively from the receiving server. */
-export function applySourcePacket(state: LineupState, input: unknown, now: number): LineupResult {
+export function applySourcePacket(state: LineupState, input: unknown, now: number, managedShow = false): LineupResult {
   if (!validTime(now) || now + LINEUP_LEASE_MS > 8_640_000_000_000_000) return fail('invalid_time')
   const packet = parseSourcePacket(input)
   if (!packet) return fail('invalid_payload')
@@ -510,7 +510,7 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   // takes this path: 18 hours only counts once the lineup has been idle, and a party
   // has to be gone across ready packets for 10 minutes.
   const autoStart = !!detectedParties && packet.parserState === 'ready'
-    && (showExpired && showIdle || mature && scopeAbsent)
+    && ((!managedShow && showExpired && showIdle) || mature && scopeAbsent)
   const foreign = !!state.show && [...packet.entries.map(e => e.id), ...packet.revealedIds]
     .some(id => !id.includes(':') || !state.show!.partyIds.includes(entryParty(id)))
   if (foreign && !autoStart && !(packet.parserState === 'ready' && scopeAbsent)) return fail('invalid_scope')

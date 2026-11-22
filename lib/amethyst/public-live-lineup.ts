@@ -1,19 +1,25 @@
 import { createHmac, randomBytes } from 'node:crypto'
 import { groupLineupEntries, type LineupGroupingEntry } from '@/lib/live-lineup/grouping'
+import { OPEN_LINEUP_HOLD_MS } from '@/lib/live-lineup/show-control'
 import type { LiveQueueSnapshot, PublicLineupPresentation } from '@/lib/services/types'
 
-export const LIVE_LINEUP_RETAIN_SECONDS = 3600
+export const LIVE_LINEUP_RETAIN_SECONDS = OPEN_LINEUP_HOLD_MS / 1000
 export const LIVE_LINEUP_PRESENTATION = 'grouped-v1'
 const processKey = randomBytes(32)
 export { publicSurnameInitial } from '@/lib/live-lineup/grouping'
+function opaqueLineupId(scope: string, kind: string, value: string) {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || processKey
+  return createHmac('sha256',key).update(JSON.stringify(['live-lineup-grouped-v1',scope,kind,value])).digest('base64url').slice(0,32)
+}
+export const projectPublicRunToken = (repId: string, runId: string) => opaqueLineupId(repId,'run',runId)
+
 type PrivateEntry = LineupGroupingEntry
 
 type PrivateReveal = { cursor: number; entryId: string; at: string; groupEntryIds: string[] }
 
 /** Input is already filtered to public waiting orders; output is an explicit privacy allowlist. */
 export function projectPublicLineup(input: { scope: string; entries: PrivateEntry[]; events: PrivateReveal[]; cursor: number; now: number }): PublicLineupPresentation {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || processKey
-  const opaque = (kind: string, value: string) => createHmac('sha256', key).update(JSON.stringify(['live-lineup-grouped-v1', input.scope, kind, value])).digest('base64url').slice(0, 32)
+  const opaque = (kind: string,value: string) => opaqueLineupId(input.scope,kind,value)
   const groups = groupLineupEntries(input.entries)
   // A private order anchor gives each contiguous group its own token, independent of label/count/position.
   for (const group of groups) group.token = opaque('group', [...group.members].sort()[0])
@@ -37,12 +43,18 @@ export function requestedLineupPresentation(request: Request): 'grouped-v1' | 'l
   return new URL(request.url).searchParams.get('lineupPresentation') === LIVE_LINEUP_PRESENTATION ? LIVE_LINEUP_PRESENTATION : 'legacy'
 }
 
-export function buildPublicLiveLineup(snapshot: LiveQueueSnapshot | null | undefined, contract: 'grouped-v1' | 'legacy' = 'legacy') {
-  const retained = Boolean(snapshot?.lastUpdated && Number.isFinite(Date.parse(snapshot.lastUpdated))) && snapshot?.ageSeconds !== null && snapshot?.ageSeconds !== undefined && snapshot.ageSeconds >= 0 && (snapshot.ageSeconds <= LIVE_LINEUP_RETAIN_SECONDS || (snapshot.invalidHeartbeatRemainingSeconds ?? 0) > 0)
+export type LineupNextShow = {title:string; time:string}
+
+export function buildPublicLiveLineup(snapshot: LiveQueueSnapshot | null | undefined,
+  contract: 'grouped-v1' | 'legacy' = 'legacy', nextShow?: LineupNextShow | null) {
+  const active = snapshot?.show?.phase === 'active'
+  const retained = (!snapshot?.show || active) && Boolean(snapshot?.lastUpdated && Number.isFinite(Date.parse(snapshot.lastUpdated))) && snapshot?.ageSeconds !== null && snapshot?.ageSeconds !== undefined && snapshot.ageSeconds >= 0 && (snapshot.ageSeconds <= LIVE_LINEUP_RETAIN_SECONDS || (snapshot.invalidHeartbeatRemainingSeconds ?? 0) > 0)
   const fresh = Boolean(retained && snapshot?.isFresh && snapshot?.sourceReady !== false && snapshot.ageSeconds! < snapshot.staleAfterSeconds)
   const presentation = contract === LIVE_LINEUP_PRESENTATION ? snapshot?.presentation : undefined
   const rows: { name: string; token?: string; remainingOrders?: number }[] = retained ? presentation?.entries ?? (snapshot?.queue ?? []).map(name => ({ name })) : []
-  const state = !snapshot || !retained ? 'offline' : !fresh ? 'delayed' : rows.length ? 'live' : 'empty'
+  const state = snapshot?.show
+    ? !active ? 'offline' : !rows.length ? 'empty' : fresh ? 'live' : 'delayed'
+    : !snapshot || !retained ? 'offline' : !fresh ? 'delayed' : rows.length ? 'live' : 'empty'
   const entries = rows.map((entry, index) => ({
     position: index + 1, name: entry.name,
     label: !fresh ? 'Position at last update' : index === 0 ? 'Currently Unboxing' : index === 1 ? 'On Deck' : 'In Lineup',
@@ -50,6 +62,8 @@ export function buildPublicLiveLineup(snapshot: LiveQueueSnapshot | null | undef
     ...(contract === LIVE_LINEUP_PRESENTATION ? { token: entry.token ?? `legacy-${index}`, remainingOrders: entry.remainingOrders ?? 1 } : {}),
   }))
   return {
+    ...(snapshot?.show ? {liveQueueShow:snapshot.show} : {}),
+    ...(nextShow ? {liveQueueNextShow:{title:nextShow.title,time:nextShow.time}} : {}),
     liveQueueState: state as 'offline' | 'delayed' | 'live' | 'empty',
     liveQueueLastUpdated: snapshot?.lastUpdated ?? null,
     liveQueueRevision: snapshot?.revision,
@@ -58,7 +72,7 @@ export function buildPublicLiveLineup(snapshot: LiveQueueSnapshot | null | undef
     liveQueueServerTime: snapshot?.serverTime,
     liveQueueAgeSeconds: snapshot?.ageSeconds ?? null,
     liveQueueStaleAfterSeconds: snapshot?.staleAfterSeconds ?? 180,
-    liveQueueSummary: state === 'empty' ? 'I have an open lineup.'
+    liveQueueSummary: active || state === 'empty' ? 'I have an open lineup.'
       : state === 'delayed' || entries.length ? 'Live Lineup is updating automatically.'
       : 'Check the calendar for the next show.',
     liveQueueEntries: entries,

@@ -3,6 +3,7 @@
 import { useId, useMemo } from 'react'
 import type { WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
 import { partyVisibilityCommand, type WorkspaceLineupCommand } from './live-lineup-client'
+import { NO_SHARED_PARTY, STARTED_DISCONNECTED, STARTED_WAITING, type ShowAction } from '@/lib/live-lineup/show-control'
 import { ControlTip } from './ControlTip'
 import styles from './LiveLineupCard.module.css'
 
@@ -41,4 +42,51 @@ export function LiveLineupShowControls({snapshot, disabled, submit}: {snapshot: 
       <p>Each change appears after the server confirms it. Restore visibility here; Undo below applies to ordering and holds.</p>
     </fieldset> : <p>Parties appear automatically when the connected extension reads the Live Party Orders page. No scheduled show is needed.</p>}
   </details></ControlTip>
+}
+
+export function ShowActionButton({snapshot, disabled, onAction}: {
+  snapshot: WorkspaceLineupSnapshot | null
+  disabled: boolean
+  onAction: (action: ShowAction) => void
+}) {
+  const control = snapshot?.showControl
+  if (!control) return null
+  const on = control.phase === 'active' || control.mode === 'started'
+  return <button type="button" className={on ? styles.stopShow : styles.startShow} disabled={disabled}
+    onClick={() => onAction(on ? 'show-stop' : 'show-start')}>
+    {on ? 'Stop Show' : 'Start Show'}
+  </button>
+}
+
+export function LiveLineupExtensionDetails({snapshot, label, tone, onStatus}: {
+  snapshot: WorkspaceLineupSnapshot | null
+  label: string
+  tone: string
+  onStatus: () => void
+}) {
+  const control = snapshot?.showControl
+  const extension = snapshot?.extensionStatus
+  const isStarted = control?.mode === 'started'
+  let version = 'Extension version not reported.'
+  if (extension?.workerVersion) {
+    if (extension.updateNeeded) version = 'Extension update needed — running ' + extension.workerVersion
+      + '; latest ' + extension.latestPublishedVersion + '.'
+    else version = extension.connected ? 'Extension ' + extension.workerVersion : 'Last reported version ' + extension.workerVersion
+  }
+  const warnings = []
+  if (control?.selection === 'none') warnings.push(NO_SHARED_PARTY)
+  if (isStarted && !extension?.connected) warnings.push(STARTED_DISCONNECTED)
+  const readerMismatch = extension?.connected && extension.readerVersion && extension.readerVersion !== extension.workerVersion
+  return <div className={styles.extensionDetails}>
+    <div className={styles.extensionRow}>
+      {snapshot && <span>{version}</span>}
+      <button type="button" className={styles.statusButton} data-connection={tone} aria-haspopup="dialog" onClick={onStatus}>
+        <span className={styles.statusLine}><span className={styles.dot} aria-hidden="true" />{extension?.connected && tone === 'updating' ? 'Connected' : label}</span>
+        {tone === 'attention' && <span className={styles.statusHint}>Tap for status</span>}
+      </button>
+    </div>
+    {warnings.length > 0 && <div className={styles.showWarning} role="alert">{warnings.map(warning => <p key={warning}>{warning}</p>)}</div>}
+    {control?.waitingForFirstOrder && <p className={styles.showWaiting} role="status">{STARTED_WAITING}</p>}
+    {readerMismatch && <p className={styles.showWarning} role="status">The Party Orders page is still using reader {extension.readerVersion}.</p>}
+  </div>
 }

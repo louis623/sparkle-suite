@@ -1655,9 +1655,9 @@ function LiveQueueStrip({ state, onOpen }) {
   const lineup = React.useContext(LiveLineupContext);
   const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
   if (entries.length === 0) {
-    return window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref) || (
+    return window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref, lineup) || (
       <section className="hp-trade-preview hp-lineup-idle" data-lineup-surface="calendar" aria-label="Upcoming shows">
-        <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt">Check back for upcoming shows</span></div>
+        <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt">Check the calendar for the next show.</span></div>
       </section>
     );
   }
@@ -1669,6 +1669,7 @@ function LiveQueueStrip({ state, onOpen }) {
           <span className="live-dot" style={state === "delayed" ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
           <span>Live Lineup</span>
         </div>
+        <p className="hp-lineup-summary">I have an open lineup.</p>
         <div className="hp-trade-preview-items">
           {entries.map((entry) => (
             <button key={entry.token || entry.position} data-lineup-token={entry.token} type="button" onClick={onOpen} className="hp-trade-preview-pill">
@@ -1709,13 +1710,14 @@ function LiveQueueModal({ open, onClose, state }) {
           <button type="button" className="hp-queue-modal-close" onClick={onClose} aria-label="Close Live Lineup">×</button>
         </div>
 
+        {entries.length > 0 && <p className="hp-lineup-summary">I have an open lineup.</p>}
         {entries.length > 0 && <LiveLineupStatus />}
         {state === "offline" ? (
-          <div className="hp-queue-modal-empty">{lineup?.liveQueueSummary || getLiveQueueSummary("No show is running right now. Check the calendar for the next scheduled reveal.")}</div>
+          <div className="hp-queue-modal-empty">{window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref, lineup) || "Check the calendar for the next show."}</div>
         ) : state === "loading" ? (
           <div className="hp-queue-modal-empty">Loading lineup…</div>
         ) : state === "empty" || entries.length === 0 ? (
-          <div className="hp-queue-modal-empty">{lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup is ready. Customer names appear here when a live show is connected.")}</div>
+          <div className="hp-queue-modal-empty">{"I have an open lineup."}</div>
         ) : (
           <div className="hp-queue-modal-list" data-lineup-surface="list">
             {entries.map((entry) => (

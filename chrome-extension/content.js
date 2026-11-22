@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   // Captured package identity, never the updated worker manifest of an older reader.
-  const READER_VERSION = "2.0.12";
+  const READER_VERSION = "2.0.13";
   const prior=globalThis.__sparkleLineupReader;
   if(prior?.version===READER_VERSION && !prior.stopped)return;
   if(prior && typeof prior.stop==='function')prior.stop();
@@ -40,7 +40,12 @@
     if (table?.contains(event.target) && event.target?.matches('input[type="checkbox"]')) changed();
   }
   function read(message, sender, respond) {
-    if (stopped || sender.id !== chrome.runtime.id || !message || !['sparkle-v2-read', 'sparkle-v2-inspect'].includes(message.action)) return false;
+    if (stopped || sender.id !== chrome.runtime.id || !message) return false;
+    if (message.action === 'sparkle-v2-probe') {
+      respond({readerVersion:READER_VERSION});
+      return false;
+    }
+    if (!['sparkle-v2-read', 'sparkle-v2-inspect'].includes(message.action)) return false;
     if (message.action === 'sparkle-v2-read' && (!Number.isSafeInteger(message.generation) || message.generation < 1 || !message.selection || Array.isArray(message.selection) || typeof message.selection !== 'object')) return false;
     discover();
     let snapshot, discovery;

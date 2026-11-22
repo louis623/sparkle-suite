@@ -831,9 +831,9 @@ function LiveQueueStrip({ onOpen }) {
   const lineupState = lineup?.liveQueueState;
   const current = lineupState === "live" || lineupState === "empty";
   if (entries.length === 0) {
-    return window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref, lineup?.liveQueueState) || (
+    return window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref, lineup) || (
       <section className="hp-trade-preview hp-lineup-idle" data-lineup-surface="calendar" aria-label="Upcoming shows">
-        <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt">Check back for upcoming shows</span></div>
+        <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt">Check the calendar for the next show.</span></div>
       </section>
     );
   }
@@ -845,6 +845,7 @@ function LiveQueueStrip({ onOpen }) {
           <span className="live-dot" style={!current ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
           <span>Live Lineup</span>
         </div>
+        <p className="hp-lineup-summary">I have an open lineup.</p>
         <div className="hp-trade-preview-items">
           {entries.map((entry) => (
             <button key={entry.token || entry.position} data-lineup-token={entry.token} type="button" onClick={onOpen} className="hp-trade-preview-pill">

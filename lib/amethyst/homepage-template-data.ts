@@ -11,8 +11,8 @@ import {
 import { getPublicRepName, redactPublicRepFullName } from './public-rep-name'
 import { withFinalPunctuation } from '@/lib/public-site/final-punctuation'
 import type { AmethystTradeBoardListing } from './trade-board-listings'
-import type { LiveQueueSnapshot } from '@/lib/services/types'
-import { buildPublicLiveLineup } from './public-live-lineup'
+import type { LiveQueueSnapshot, PublicLineupShow } from '@/lib/services/types'
+import { buildPublicLiveLineup, type LineupNextShow } from './public-live-lineup'
 
 export interface AmethystHomepageMediaSlot {
   hostedVideo?: { src: string; poster?: string; width?: number; height?: number }
@@ -127,6 +127,8 @@ export interface AmethystHomepageTemplateData {
   promoTickerText?: string
   shopCtaLabel?: string
   pantryPageUrl?: string
+  liveQueueShow?: PublicLineupShow
+  liveQueueNextShow?: LineupNextShow
   liveQueueState?: AmethystHomepageLiveQueueState
   liveQueueSummary?: string
   liveQueueLastUpdated?: string | null
@@ -356,6 +358,7 @@ export function enrichAmethystHomepageFeatureData(
   homepage: AmethystHomepageTemplateData,
   options: {
     liveQueueSnapshot?: LiveQueueSnapshot | null
+    lineupNextShow?: LineupNextShow | null
     lineupPresentation?: 'legacy' | 'grouped-v1'
     tradeBoardListings?: AmethystTradeBoardListing[]
   } = {},
@@ -370,7 +373,7 @@ export function enrichAmethystHomepageFeatureData(
     tradeBoardTickerItems: tradeBoardListings
       .slice(0, 8)
       .map(formatTradeBoardTickerItem),
-    ...buildPublicLiveLineup(liveQueueSnapshot, options.lineupPresentation),
+    ...buildPublicLiveLineup(liveQueueSnapshot, options.lineupPresentation, options.lineupNextShow),
   }
 }
 

@@ -1,7 +1,9 @@
+import { getEffectiveLiveQueueSnapshot } from '@/lib/live-lineup/service'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import type { AmethystPreviewTemplateData } from './preview-template-data'
 import { loadAmethystTradeBoardPreviewListings } from './trade-board-listings'
-import { loadAmethystHomepageUpcomingShows } from './homepage-upcoming-shows'
+import { loadAmethystHomepageUpcomingShows, loadLineupNextShow } from './homepage-upcoming-shows'
 import { buildLineupCalendar } from './lineup-calendar'
 import { buildPublicLiveLineup, requestedLineupPresentation } from './public-live-lineup'
 import { buildAmethystTradeBootstrapScript } from './trade-template-data'
@@ -16,17 +18,19 @@ export async function buildCustomerPageBootstrapResponse(page: 'trade' | 'join',
   templateData: Promise<AmethystPreviewTemplateData>; repId: string; publicSiteSlug: string;
 }) {
   const target = { repId: loaded.repId, publicSiteSlug: loaded.publicSiteSlug, targeted: true }
-  const [template, listings, events] = await Promise.all([
+  const [template, listings, events, lineupSnapshot, nextShow] = await Promise.all([
     loaded.templateData,
     loadAmethystTradeBoardPreviewListings({ ...target, ...(page === 'join' ? { limit: 8 } : {}) }),
     loadAmethystHomepageUpcomingShows(target),
+    Promise.resolve().then(()=>getEffectiveLiveQueueSnapshot(createAdminClient(),loaded.repId)).catch(()=>null),
+    loadLineupNextShow({repId:loaded.repId}),
   ])
   const customDomain = resolveAmethystRequestCustomDomainHost(request)
   const data = restrictPantryTemplateData(applyCustomDomainToTemplateData(
     applyPublicSiteSlugToTemplateData(template, loaded.publicSiteSlug), customDomain,
   ), { repId: loaded.repId, publicSiteSlug: loaded.publicSiteSlug, customDomain, requestHost: pantryRequestHost(request) })
   const calendar = buildLineupCalendar(data.homepage, events)
-  const lineup = buildPublicLiveLineup(null, requestedLineupPresentation(request))
+  const lineup = buildPublicLiveLineup(lineupSnapshot, requestedLineupPresentation(request),nextShow)
   const bootstrap = page === 'trade'
     ? buildAmethystTradeBootstrapScript({ ...data.trade, ...calendar, ...lineup }, listings, data.appearancePreset, target)
     : buildAmethystJoinBootstrapScript({ ...data.join, ...calendar, ...lineup }, data.appearancePreset, target, listings)

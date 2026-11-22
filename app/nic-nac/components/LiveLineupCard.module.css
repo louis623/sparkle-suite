@@ -296,3 +296,30 @@
 }
 
 .fullDialog .row > .actions { grid-row: 2; }
+
+.header { background: linear-gradient(130deg, #211242, #18102f 55%, #5f255e); color: #fff; }
+.titleRow { justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.queuePill { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #765a7a; padding: 2px 7px 2px 3px; border-radius: 30px; font-size: .72rem; }
+.queuePill .count { color: #fff; background: linear-gradient(135deg, #ba236f, #8f367a); padding: 2px 6px; border-radius: 30px; font-weight: 750; }
+.queuePill .count[data-empty='true'] { background: #625465; }
+.headerActions { display: grid; justify-items: stretch; gap: 7px; margin-top: 10px; }
+.headerActions .showChip { justify-self: start; min-height: 31px; }
+.card .headerActions > button { width: 100%; min-height: 44px; border-radius: 24px; }
+.showChip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 24px; background: #544555; font-weight: 750; }
+.showChip span { width: 7px; height: 7px; border-radius: 50%; background: #d5c6d4; }
+.showChip[data-live='true'] { background: #184c38; }
+.showChip[data-live='true'] span { background: #85e6aa; }
+.card .startShow { background: #bc226b; color: #fff; border-color: #f180b8; font-weight: 750; }
+.card .startShow:hover:not(:disabled) { background: #a71958; border-color: #fff; }
+.card .stopShow { color: #fff; border-color: #e0c9df; font-weight: 750; }
+.card .header .fullButton { margin: 0; color: #f9e6f6; background: #ffffff20; }
+.card .header button:focus-visible { outline-color: #ffb6e4; }
+.extensionDetails { padding: 6px 14px; flex: 0 0 auto; }
+.extensionRow { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; font-size: .77rem; }
+.extensionRow > span + button::before { content: '·'; margin-right: 5px; }
+.extensionRow .statusButton { margin: 0; display: inline-flex; align-items: center; width: auto; }
+.showWarning, .showWaiting { margin: 6px 0 0; padding: 6px 8px; border-radius: 6px; font-size: .76rem; }
+.showWarning { background: #fff1d2; color: #6e3909; }
+.showWarning p { margin: 0; }
+.showWarning p + p { margin-top: 4px; }
+.showWaiting { background: #e6f7eb; color: #20573e; }

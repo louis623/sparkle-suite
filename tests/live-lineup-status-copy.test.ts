@@ -10,7 +10,7 @@ import {
 const root = process.cwd()
 const popupSource = readFileSync(resolve(root, 'chrome-extension/popup.js'), 'utf8')
 const extensionLineupStatus = new Function(
-  `${popupSource.slice(0, popupSource.indexOf('(function(){'))}\nreturn extensionLineupStatus;`,
+  `${popupSource.slice(0, popupSource.indexOf('(function() {'))}\nreturn extensionLineupStatus;`,
 )() as (value: Record<string, unknown>) => { title: string; detail: string; tone: string }
 
 function popup(overrides: Record<string, unknown> = {}) {

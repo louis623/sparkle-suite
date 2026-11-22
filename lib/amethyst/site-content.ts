@@ -1,9 +1,11 @@
+import type { PublicLineupShow } from '@/lib/services/types'
+import type { LineupNextShow } from './public-live-lineup'
 import { getPublicRepName, redactPublicRepFullName } from './public-rep-name'
 import { withFinalPunctuation } from '@/lib/public-site/final-punctuation'
 
 export type AmethystTier = 'everyday' | 'diamond' | 'unicorn'
 export type AmethystEventPlatform = 'tiktok' | 'facebook' | 'shop'
-export type AmethystQueueState = 'live' | 'offline' | 'loading' | 'empty'
+export type AmethystQueueState = 'live' | 'offline' | 'loading' | 'empty' | 'delayed'
 
 export interface AmethystNavLink {
   label: string
@@ -80,6 +82,8 @@ export interface AmethystSiteContent {
   joinTeamUrl: string
   streamLinks: AmethystStreamLink[]
   liveQueueState: AmethystQueueState
+  liveQueueShow?: PublicLineupShow
+  liveQueueNextShow?: LineupNextShow
   liveQueueLabel: string
   liveQueueSummary: string
   liveQueueEntries: AmethystLiveQueueEntry[]

@@ -1080,7 +1080,15 @@ export interface PublicLineupPresentation {
   events: { cursor: number; ageSeconds: number; target: string | null }[]
 }
 
+export interface PublicLineupShow {
+  phase: 'active' | 'ended'
+  revision: number
+  runToken: string | null
+  deadline: string | null
+  serverTime: string
+}
 export interface LiveQueueSnapshot {
+  show?: PublicLineupShow
   invalidHeartbeatRemainingSeconds?: number
   presentation?: PublicLineupPresentation
   revision?: number

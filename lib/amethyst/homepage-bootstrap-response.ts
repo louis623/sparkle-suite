@@ -5,7 +5,7 @@ import { requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
 
 import { loadAmethystTradeBoardPreviewListings } from '@/lib/amethyst/trade-board-listings'
-import { loadAmethystHomepageUpcomingShows } from '@/lib/amethyst/homepage-upcoming-shows'
+import { loadAmethystHomepageUpcomingShows, loadLineupNextShow } from '@/lib/amethyst/homepage-upcoming-shows'
 import {
   buildAmethystHomepageBootstrapScript,
   enrichAmethystHomepageFeatureData,
@@ -73,11 +73,13 @@ export async function buildHomepageBootstrapResponse(request: Request, loaded: {
   let events: Awaited<ReturnType<typeof loadAmethystHomepageUpcomingShows>> = []
   let tradeBoardListings: Awaited<ReturnType<typeof loadAmethystTradeBoardPreviewListings>> = []
   let liveQueueSnapshot: LiveQueueSnapshot | null = null
+  let lineupNextShow: Awaited<ReturnType<typeof loadLineupNextShow>> = null
   let eventsReady = false
   let tradesReady = false
   const delay = delayPreviewHomepageData(publicSiteSlug)
   const readAfterDelay = <T>(read: () => Promise<T>) => delay ? delay.then(read) : read()
   const pageData = Promise.all([
+    readAfterDelay(() => loadLineupNextShow({repId:loaded.repId})).then(value => { lineupNextShow = value }),
     readAfterDelay(() => loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted })).then(value => { events = value; eventsReady = true }),
     readAfterDelay(() => loadAmethystTradeBoardPreviewListings({ ...lookupTarget, repId: loaded.repId, targeted: true, limit: 8 })).then(value => { tradeBoardListings = value; tradesReady = true }),
     readAfterDelay(() => loadHomepageLiveQueueSnapshot(loaded.repId)).then(value => { liveQueueSnapshot = value }),
@@ -119,6 +121,7 @@ export async function buildHomepageBootstrapResponse(request: Request, loaded: {
       {
         ...enrichAmethystHomepageFeatureData(customerTemplateData.homepage, {
           liveQueueSnapshot,
+          lineupNextShow,
           lineupPresentation: requestedLineupPresentation(request),
           tradeBoardListings,
         }),

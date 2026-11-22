@@ -1,3 +1,4 @@
+import { loadLineupNextShow } from '@/lib/amethyst/homepage-upcoming-shows'
 import { NextResponse } from 'next/server'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
@@ -26,7 +27,8 @@ export async function GET(request: Request) {
     }
     const snapshot = await getEffectiveLiveQueueSnapshot(admin, rep.id)
     if (!snapshot) return lineupJson({ error: 'temporarily_unavailable' }, 503)
-    return lineupJson(buildPublicLiveLineup(snapshot, requestedLineupPresentation(request)))
+    const nextShow = snapshot.show?.phase === 'active' ? null : await loadLineupNextShow({repId:rep.id})
+    return lineupJson(buildPublicLiveLineup(snapshot, requestedLineupPresentation(request),nextShow))
   } catch {
     return lineupJson({ error: 'temporarily_unavailable' }, 503)
   }

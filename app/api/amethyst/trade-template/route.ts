@@ -1,5 +1,8 @@
+import { getEffectiveLiveQueueSnapshot } from '@/lib/live-lineup/service'
+import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { homepageSmokeReview } from '@/lib/amethyst/homepage-smoke-review'
-import { loadAmethystHomepageUpcomingShows } from '@/lib/amethyst/homepage-upcoming-shows'
+import { loadAmethystHomepageUpcomingShows, loadLineupNextShow } from '@/lib/amethyst/homepage-upcoming-shows'
 import { buildLineupCalendar } from '@/lib/amethyst/lineup-calendar'
 import { buildPublicLiveLineup, requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
@@ -30,10 +33,16 @@ export async function GET(request: Request) {
     ...(publicSiteSlug ? { publicSiteSlug } : {}),
     repId,
   }
-  const [listings, templateData, events] = await Promise.all([
+  const [listings, templateData, events, lineupSnapshot, nextShow] = await Promise.all([
     loadAmethystTradeBoardPreviewListings({ ...lookupTarget, targeted }),
     loadAmethystPreviewTemplateData(lookupTarget),
     loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }),
+    targeted ? Promise.resolve().then(async()=>{
+      const admin = createAdminClient()
+      const rep = await resolveAmethystPreviewRep(admin,{...lookupTarget,select:'id, email, public_site_slug',strict:true})
+      return rep ? getEffectiveLiveQueueSnapshot(admin,rep.id) : null
+    }).catch(()=>null) : null,
+    targeted ? loadLineupNextShow(lookupTarget) : null,
   ])
   const linkedTemplateData = applyPublicSiteSlugToTemplateData(
     homepageSmokeReview(templateData, new URL(request.url), publicSiteSlug),
@@ -54,7 +63,7 @@ export async function GET(request: Request) {
       {
         ...customerTemplateData.trade,
         ...buildLineupCalendar(customerTemplateData.homepage, events),
-        ...buildPublicLiveLineup(null, requestedLineupPresentation(request)),
+        ...buildPublicLiveLineup(lineupSnapshot, requestedLineupPresentation(request),nextShow),
       },
       listings,
       customerTemplateData.appearancePreset,

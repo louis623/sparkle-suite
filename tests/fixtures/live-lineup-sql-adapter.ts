@@ -12,7 +12,7 @@ export function lineupSqlAdapter(sql: PGlite): SupabaseClient {
     fields = '*'; filters: [string, unknown][] = []; maximum = 1000; single = false
     values: Record<string, unknown> | null = null; sort: string | null = null; ascending = true
     constructor(readonly table: string) {
-      if (!['live_lineup_states', 'live_lineup_publisher_tokens', 'live_lineup_connection_codes', 'live_queue'].includes(table)) throw new Error('Unexpected table')
+      if (!['live_lineup_states', 'live_lineup_publisher_tokens', 'live_lineup_connection_codes', 'live_lineup_show_controls', 'live_queue'].includes(table)) throw new Error('Unexpected table')
     }
     select(fields: string) { this.fields = fields.split(',').map(identifier).join(','); return this }
     eq(key: string, value: unknown) { this.filters.push([identifier(key), value]); return this }
@@ -38,6 +38,8 @@ export function lineupSqlAdapter(sql: PGlite): SupabaseClient {
     from: (table: string) => new Query(table),
     rpc: async (name: string, args: Record<string, unknown>) => {
       const contracts: Record<string, string[]> = {
+        live_lineup_control_checkin:['p_rep_id','p_worker_version','p_reader_version','p_source_status','p_tab_present','p_reader_responding','p_ack_revision','p_token_id'],
+        live_lineup_control_command:['p_rep_id','p_action','p_request_id','p_expected_revision','p_actor','p_token_id'],
         live_lineup_compare_swap: ['p_rep_id','p_expected_revision','p_state','p_token_id'],
         live_lineup_commit: ['p_rep_id','p_expected_revision','p_state','p_token_id','p_guard'],
         live_lineup_claim_receipt: ['p_rep_id','p_token_id','p_claim_id'],
@@ -49,7 +51,7 @@ export function lineupSqlAdapter(sql: PGlite): SupabaseClient {
       if (!keys || Object.keys(args).length !== keys.length) throw new Error('Unexpected RPC contract')
       try {
         const result = await sql.query(`select * from ${identifier(name)}(${keys.map((_, i) => `$${i + 1}`).join(',')})`, keys.map(key => key === 'p_state' || key === 'p_guard' ? JSON.stringify(args[key]) : args[key]))
-        return {data: normalize(result.rows), error: null}
+        return {data: normalize(name.startsWith('live_lineup_control_') ? (result.rows[0] as Record<string,unknown>)[name] : result.rows), error: null}
       } catch (error) { return {data: null, error} }
     },
   } as unknown as SupabaseClient

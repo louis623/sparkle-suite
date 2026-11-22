@@ -1,7 +1,8 @@
 import 'server-only'
 import { randomUUID } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { readLineupState } from './service'
+import { projectShowControl } from './show-control'
+import { readLineupControl, readLineupState } from './service'
 import { LIVE_LINEUP_RELEASE } from './release'
 import { isFizzFestivalDemoState } from './demo'
 import { advanceMonitor, applyExpectedShow, type MonitorShowWindow, groupChangedStructures, adoptionDue, classifyAdoption, incidentStillSendable, monitorFacts, type MonitorState } from './monitor'
@@ -27,21 +28,32 @@ async function scheduledWindows(db: SupabaseClient, repId: string, now: number):
   return result.data as MonitorShowWindow[]
 }
 
+async function currentMonitorFacts(db: SupabaseClient, repId: string, slug: string, source: Awaited<ReturnType<typeof readLineupState>>, now: number) {
+  const control = await readLineupControl(db,repId)
+  const show = projectShowControl(control,source,now).showControl
+  let facts = monitorFacts(repId,slug,source,now)
+  const intentionalIdle = show.phase === 'ended' && Boolean(control?.mode === 'stopped'
+    || control?.idle_deadline_at && Date.parse(control.idle_deadline_at) <= now)
+  if (intentionalIdle) return {...facts,health:'unknown' as const,reason:'expected_idle'}
+  if (facts.health === 'unknown' && facts.reason === 'feed_unverified') {
+    facts = applyExpectedShow(facts,await scheduledWindows(db,repId,now),now)
+  }
+  if (facts.health === 'healthy') {
+    facts.publicVerification = source ? await verifyPublicFeed(repId,source,fetch,control ? show : undefined) : 'unknown'
+    if (facts.publicVerification === 'mismatch') { facts.health = 'unhealthy'; facts.reason = 'public_feed_mismatch' }
+    else if (facts.publicVerification !== 'matched') { facts.health = 'unknown'; facts.reason = 'public_feed_unverified' }
+  }
+  return facts
+}
+
 async function sampleRep(db: SupabaseClient, rep: Rep, now: number) {
   // A CAS conflict means another worker sampled first; one bounded reread is enough.
   for (let attempt = 0; attempt < 2; attempt++) {
     const previous = await monitorRow(db, rep.id)
-    const source = await readLineupState(db, rep.id)
-    // Fictional demo activity is not real extension health or adoption evidence.
-    if (isFizzFestivalDemoState(rep.id, source)) return null
-    let facts = monitorFacts(rep.id, rep.public_site_slug ?? rep.id, source, now)
-    if (facts.health === 'unknown' && facts.reason === 'feed_unverified') facts = applyExpectedShow(facts,await scheduledWindows(db,rep.id,now),now)
+    const source = await readLineupState(db,rep.id)
+    if (isFizzFestivalDemoState(rep.id,source)) return null
+    const facts = await currentMonitorFacts(db,rep.id,rep.public_site_slug ?? rep.id,source,now)
     facts.lastGoodStructureHash = previous?.data.lastGoodStructureHash ?? null
-    if (facts.health === 'healthy') {
-      facts.publicVerification = source ? await verifyPublicFeed(rep.id, source) : 'unknown'
-      if (facts.publicVerification === 'mismatch') {facts.health = 'unhealthy'; facts.reason = 'public_feed_mismatch'}
-      else if (facts.publicVerification !== 'matched') {facts.health = 'unknown'; facts.reason = 'public_feed_unverified'}
-    }
     const next = advanceMonitor(previous?.data ?? null, facts, now, randomUUID())
     const payload = next.event ? incidentPayload(next.event.kind, facts,
       previous?.data.unhealthySince ?? next.state.unhealthySince, new Date(now).toISOString(), currentParserFailure(source, now)) : null
@@ -85,15 +97,9 @@ async function sendJobs(db: SupabaseClient, now: number) {
           .select('status').eq('id', job.incident_id).eq('rep_id', job.rep_id).maybeSingle()
         if (incidentError || !incident) throw new Error('incident_unavailable')
         const source = await readLineupState(db, job.rep_id)
-        let facts = monitorFacts(job.rep_id, job.rep_id, source, Date.now())
-        if (facts.health === 'unknown' && facts.reason === 'feed_unverified') facts = applyExpectedShow(facts,await scheduledWindows(db,job.rep_id,Date.now()),Date.now())
-        if (facts.health === 'healthy') {
-          facts.publicVerification = source ? await verifyPublicFeed(job.rep_id, source) : 'unknown'
-          if (facts.publicVerification === 'mismatch') {facts.health = 'unhealthy'; facts.reason = 'public_feed_mismatch'}
-          else if (facts.publicVerification !== 'matched') {facts.health = 'unknown'; facts.reason = 'public_feed_unverified'}
-        }
+        const facts = await currentMonitorFacts(db,job.rep_id,job.rep_id,source,Date.now())
         const current = await monitorRow(db, job.rep_id)
-        if (job.kind === 'incident' && (incident.status === 'recovered' || facts.health === 'healthy'
+        if (job.kind === 'incident' && (incident.status === 'recovered' || facts.health === 'healthy' || facts.reason === 'expected_idle'
           || job.payload.event.reason === 'feed_stopped_show_unverified' && facts.reason !== 'feed_stopped_show_unverified')) {
           await finish(db, job, worker, 'canceled'); return
         }
@@ -152,8 +158,10 @@ async function sampleRoster(db: SupabaseClient, now: number) {
 export async function runLineupMonitor(db: SupabaseClient, now = Date.now()) {
   const configuration = monitorConfiguration()
   if (!configuration.monitoring) return {configuration, sampled: 0, delivery: null}
-  const [sampling, delivery] = await Promise.allSettled([sampleRoster(db, now), sendJobs(db, now)])
+  const [sampling, delivery, expiry] = await Promise.allSettled([
+    sampleRoster(db,now),sendJobs(db,now),db.rpc('live_lineup_control_expire',{p_limit:64}),
+  ])
   if (sampling.status === 'rejected') throw sampling.reason
   if (delivery.status === 'rejected') throw delivery.reason
-  return {configuration, ...sampling.value, delivery: delivery.value}
+  return {configuration, ...sampling.value, delivery: delivery.value, expiredShows:expiry.status === 'fulfilled' && !expiry.value.error ? expiry.value.data : null}
 }

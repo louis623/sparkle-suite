@@ -31,7 +31,7 @@ describe('server-ordered public lineup', () => {
     const { api } = runtime(), current = payload()
     expect(api.merge(current, { ...payload(), liveQueueRevision: undefined })).toBe(current)
     expect(api.unavailable(current, now + 864000000, 20).liveQueueState).toBe('delayed')
-    expect(api.unavailable(current, now - 864000000, 3600).liveQueueState).toBe('offline')
+    expect(api.unavailable(current, now - 864000000, 7200).liveQueueState).toBe('offline')
   })
   it('rejects malformed payloads and supports 2000 genuine orders without truncation', () => {
     const { api } = runtime(), current = payload()
@@ -105,7 +105,7 @@ describe('server-ordered public lineup', () => {
       expect(jsx).not.toContain('const previousOverflow = document.body.style.overflow')
       expect(jsx).not.toContain('if (queueOpen) body.classList.add("modal-open")')
       const html = readFileSync(`public/amethyst/${page === 'homepage' ? 'Homepage' : page === 'join' ? 'Join' : 'Trade'}.html`, 'utf8')
-      expect(html).toContain('/amethyst/live-lineup.js?v=20260928-lineup-always-on')
+      expect(html).toContain('/amethyst/live-lineup.js?v=20261121-show-control')
     }
   })
   it('serves the shared runtime through the explicit public-asset allowlist', async () => {

@@ -1,6 +1,7 @@
-import { changeLineup, getWorkspaceLineup } from '@/lib/live-lineup/service'
+import { changeLineup, getWorkspaceLineup, submitShowControl } from '@/lib/live-lineup/service'
 import { lineupFailure, lineupJson, readLineupJson, workspaceLineupContext, workspaceLineupReadContext } from '@/lib/live-lineup/http'
 import { liveLineupOwnerMutationsAvailable } from '@/lib/live-lineup/runtime-mode'
+import { showAction } from '@/lib/live-lineup/show-control'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export async function GET() {
@@ -14,6 +15,10 @@ export async function POST(request: Request) {
     const body = await readLineupJson(request, 524_288) as { expectedRevision?: unknown; command?: unknown } | null
     const command = body?.command
     if (!command || typeof command !== 'object' || Array.isArray(command)) return lineupJson({ error: 'invalid_payload' }, 400)
+    if (showAction((command as {type?:unknown}).type)) {
+      const {receipt} = await submitShowControl(db,repId,command,'workspace')
+      return lineupJson({...await getWorkspaceLineup(db,repId,Date.now(),true),showReceipt:receipt})
+    }
     return lineupJson(await changeLineup(db, repId, { ...command, expectedRevision: body?.expectedRevision }))
   } catch (error) { return lineupFailure(error) }
 }
