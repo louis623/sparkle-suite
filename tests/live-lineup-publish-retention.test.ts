@@ -8,14 +8,14 @@ import { runInNewContext } from 'node:vm'
 import { expect, it } from 'vitest'
 import { buildPublicLiveLineup } from '@/lib/amethyst/public-live-lineup'
 
-it('projects an active invalid publisher lease as delayed past one hour and expires it after transit', () => {
+it('projects an active invalid publisher lease as delayed past the two-hour retain window and expires it after transit', () => {
   const snapshot = {
     syncCode: '', queue: ['Fixture'], queueLength: 1, currentCustomer: 'Fixture', onDeckCustomer: null,
-    lastUpdated: '2026-11-13T16:00:00.000Z', ageSeconds: 7200, staleAfterSeconds: 45,
+    lastUpdated: '2026-11-13T16:00:00.000Z', ageSeconds: 7201, staleAfterSeconds: 45,
     isFresh: false, sourceReady: false, invalidHeartbeatRemainingSeconds: 80, revision: 9,
   }
   const delayed = buildPublicLiveLineup(snapshot)
-  expect(delayed).toMatchObject({liveQueueState: 'delayed', liveQueueAgeSeconds: 7200,
+  expect(delayed).toMatchObject({liveQueueState: 'delayed', liveQueueAgeSeconds: 7201,
     liveQueueLastUpdated: snapshot.lastUpdated, liveQueueSourceReady: false,
     liveQueueEntries: [{name: 'Fixture', highlight: false}]})
   const client = runInNewContext(readFileSync('public/amethyst/live-lineup.js', 'utf8') + '\nSparkleLiveLineup')
@@ -48,7 +48,13 @@ it('2.0.9 integration preserves retained orders through reader replacement, new 
     async maybeSingle() { return {data:{rep_id:rep,revision:server.revision,state:server},error:null} },
   }
   const fixtureDb = {
-    from(name: string) { expect(name).toBe('live_lineup_states'); return fixtureQuery },
+    from(name: string) {
+      expect(['live_lineup_states', 'live_lineup_show_controls']).toContain(name)
+      if (name === 'live_lineup_show_controls') {
+        return { select() { return this }, eq(_field: string, id: string) { expect(id).toBe(rep); return this }, async maybeSingle() { return { data: null, error: null } } }
+      }
+      return fixtureQuery
+    },
   } as unknown as SupabaseClient
   const publicFeed=async()=>buildPublicLiveLineup(await getEffectiveLiveQueueSnapshot(fixtureDb,rep,now))
   expect((await publicFeed()).liveQueueSourceReady).toBe(true)

@@ -10,11 +10,6 @@
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
-    "file": "tests/amethyst-static-assets-route.test.ts",
-    "fullName": "Amethyst static asset route forwards preview rep targets through the Join.html template loader",
-    "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
-  },
-  {
     "file": "tests/bling-kitchen-pantry-bytes.test.ts",
     "fullName": "BlingKitchen pantry bytes versus the pre-allowlist base keeps the custom-domain pantry document byte-for-byte",
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
@@ -150,16 +145,6 @@
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
-    "file": "tests/live-lineup-service.test.ts",
-    "fullName": "automatic show ending keeps the old party and its orders when a new party is detected",
-    "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
-  },
-  {
-    "file": "tests/live-lineup-service.test.ts",
-    "fullName": "automatic show ending keeps the same generation and drops nothing when a party is added",
-    "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
-  },
-  {
     "file": "tests/login-client-google-oauth.test.ts",
     "fullName": "login Google OAuth source explains when Google authenticated an email without a provisioned account",
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
@@ -200,33 +185,8 @@
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
-    "file": "tests/photo-enhancement-queue-route.test.ts",
-    "fullName": "GET /api/internal/photo-enhancement/queue runs the queue with the authenticated secret and requested limit",
-    "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
-  },
-  {
-    "file": "tests/photo-enhancement-queue-route.test.ts",
-    "fullName": "GET /api/internal/photo-enhancement/queue removes expired trade request reveal screenshots during daily maintenance",
-    "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
-  },
-  {
-    "file": "tests/public-live-lineup-v2.test.ts",
-    "fullName": "server-ordered public lineup wires all targeted pages to the shared runtime and accessible dialogs, with no floating status",
-    "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
-  },
-  {
     "file": "tests/required-setup-look-picker-preview.test.tsx",
     "fullName": "skin browsing preview keeps only community preview metadata in the unauthenticated catalog view",
-    "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
-  },
-  {
-    "file": "tests/reviewer-smoke-ui.test.ts",
-    "fullName": "reviewer smoke UI wiring uses search and filters to browse board inventory without a default full grid",
-    "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
-  },
-  {
-    "file": "tests/reviewer-smoke-ui.test.ts",
-    "fullName": "reviewer smoke UI wiring keeps customer board previewing inside the workspace with only primary preview actions",
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
@@ -296,37 +256,37 @@
   },
   {
     "file": "tests/audits/live-lineup-2026-09-08.test.ts",
-    "fullName": "Live Lineup audit \u2014 reproducible current behavior unchanged alarm does not send a heartbeat",
+    "fullName": "Live Lineup audit — reproducible current behavior unchanged alarm does not send a heartbeat",
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
     "file": "tests/audits/live-lineup-2026-09-08.test.ts",
-    "fullName": "Live Lineup audit \u2014 reproducible current behavior present table without tbody publishes a fresh empty queue",
+    "fullName": "Live Lineup audit — reproducible current behavior present table without tbody publishes a fresh empty queue",
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
     "file": "tests/audits/live-lineup-2026-09-08.test.ts",
-    "fullName": "Live Lineup audit \u2014 reproducible current behavior tbody observer does not observe descendant checkbox attributes or changes",
+    "fullName": "Live Lineup audit — reproducible current behavior tbody observer does not observe descendant checkbox attributes or changes",
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
     "file": "tests/audits/live-lineup-2026-09-08.test.ts",
-    "fullName": "Live Lineup audit \u2014 reproducible current behavior changing only the sync code neither publishes nor invalidates dedupe",
+    "fullName": "Live Lineup audit — reproducible current behavior changing only the sync code neither publishes nor invalidates dedupe",
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
     "file": "tests/audits/live-lineup-2026-09-08.test.ts",
-    "fullName": "Live Lineup audit \u2014 reproducible current behavior 401 leaves alarm retries latched off",
+    "fullName": "Live Lineup audit — reproducible current behavior 401 leaves alarm retries latched off",
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
     "file": "tests/audits/live-lineup-2026-09-08.test.ts",
-    "fullName": "Live Lineup audit \u2014 reproducible current behavior missing required columns stop discovery before successful validation",
+    "fullName": "Live Lineup audit — reproducible current behavior missing required columns stop discovery before successful validation",
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
     "file": "tests/audits/live-lineup-2026-09-08.test.ts",
-    "fullName": "Live Lineup audit \u2014 reproducible current behavior each independent tab publishes without source coordination",
+    "fullName": "Live Lineup audit — reproducible current behavior each independent tab publishes without source coordination",
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
@@ -360,18 +320,1313 @@
     "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
   },
   {
-    "file": "tests/nic-nac/trade-request-notifications.test.ts",
-    "fullName": "notifyRepOfTradeRequest writes a complete assistant message into the rep's latest conversation",
-    "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
+    "file": "tests/amethyst-appearance-presets.test.ts",
+    "fullName": "Amethyst appearance presets keeps only the approved customer-site skin IDs selectable",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
   },
   {
-    "file": "tests/sparkle-suite/jewelry-preferences.test.ts",
-    "fullName": "signup copy and migration parity keeps the database checks aligned with the shared lists",
-    "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
+    "file": "tests/amethyst-appearance-presets.test.ts",
+    "fullName": "Amethyst appearance presets uses surface-aware semantic colors for the signup card in every skin",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
   },
   {
-    "file": "tests/sparkle-suite/jewelry-preferences.test.ts",
-    "fullName": "signup copy and migration parity rejects comma-joined favorite values and duplicates in a forward migration",
-    "reason": "pre-existing at 968f7425272f8d2f9420623e7598343dfe7a0e1f"
+    "file": "tests/amethyst-dance-floor-card-polish.test.ts",
+    "fullName": "renders card polish and URL-keyed failed images in lib/amethyst/v2/trade.jsx",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-dance-floor-card-polish.test.ts",
+    "fullName": "renders card polish and URL-keyed failed images in public/amethyst/trade.jsx",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-dance-floor-photo-fallback.test.ts",
+    "fullName": "Dance Floor photo fallback swaps a broken expanded photo for the same placeholder and keeps the dancer name on the image",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-data-budget.test.ts",
+    "fullName": "starts parallel reads immediately, then caps extra data wait after a fresh template becomes ready",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-gnome-garden-registry.test.ts",
+    "fullName": "Gnome Forest registry and data contract resolves its browse code, complete name, and natural short name to the same saved preset",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-pass2-regressions.test.ts",
+    "fullName": "keeps public JSX at frozen Live, without a proxy/route substitution",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / alpine_opal / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / alpine_opal / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / amber / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / amber / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / amethyst / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / amethyst / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / black_diamond / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / black_diamond / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / emerald_garden / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / emerald_garden / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / fall_owl_harvest_moon / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / fall_owl_harvest_moon / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / garnet / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / garnet / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / gilded_autumn / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / gilded_autumn / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / gnome_garden / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / gnome_garden / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / gobble_and_fizz / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / gobble_and_fizz / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / halloween_pumpkin_cat / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / halloween_pumpkin_cat / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / halloween_pumpkin_witch / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / halloween_pumpkin_witch / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / macies_christmas_globe / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / macies_christmas_globe / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / macies_christmas_globe / mile_high_fizz with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / macies_christmas_globe / standard with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / midnight_rose / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / midnight_rose / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / moonstone / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / moonstone / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / neon_butterfly / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / neon_butterfly / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / pearl_rose / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / pearl_rose / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / pie_please / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / pie_please / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / rose_champagne / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / rose_champagne / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / rose_gold / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / rose_gold / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / rose_quartz / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / rose_quartz / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / silver_bells / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / silver_bells / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / silver_bells / standard with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / sparkle_suite_morganite / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / sparkle_suite_morganite / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / starlight_christmas_hollow / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / starlight_christmas_hollow / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / sunset_beach / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / sunset_beach / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / velvet / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR join / velvet / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / alpine_opal / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / alpine_opal / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / amber / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / amber / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / amethyst / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / amethyst / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / black_diamond / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / black_diamond / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / emerald_garden / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / emerald_garden / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / fall_owl_harvest_moon / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / fall_owl_harvest_moon / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / garnet / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / garnet / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / gilded_autumn / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / gilded_autumn / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / gnome_garden / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / gnome_garden / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / gobble_and_fizz / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / gobble_and_fizz / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / halloween_pumpkin_cat / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / halloween_pumpkin_cat / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / halloween_pumpkin_witch / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / halloween_pumpkin_witch / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / macies_christmas_globe / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / macies_christmas_globe / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / macies_christmas_globe / mile_high_fizz with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / macies_christmas_globe / standard with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / midnight_rose / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / midnight_rose / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / moonstone / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / moonstone / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / neon_butterfly / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / neon_butterfly / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / pearl_rose / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / pearl_rose / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / pie_please / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / pie_please / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / rose_champagne / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / rose_champagne / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / rose_gold / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / rose_gold / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / rose_quartz / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / rose_quartz / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / silver_bells / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / silver_bells / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / silver_bells / standard with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / sparkle_suite_morganite / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / sparkle_suite_morganite / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / starlight_christmas_hollow / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / starlight_christmas_hollow / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / sunset_beach / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / sunset_beach / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / velvet / bling_kitchen with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-customer-pages.test.ts",
+    "fullName": "SSR trade / velvet / britt_with_bling with saved Still and first-paint content",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for alpine_opal / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for alpine_opal / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for alpine_opal / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for amber / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for amber / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for amber / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for amethyst / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for amethyst / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for amethyst / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for black_diamond / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for black_diamond / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for black_diamond / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for emerald_garden / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for emerald_garden / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for emerald_garden / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for fall_owl_harvest_moon / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for fall_owl_harvest_moon / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for fall_owl_harvest_moon / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for garnet / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for garnet / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for garnet / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for gilded_autumn / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for gilded_autumn / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for gilded_autumn / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for gnome_garden / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for gnome_garden / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for gnome_garden / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for gobble_and_fizz / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for gobble_and_fizz / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for gobble_and_fizz / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for halloween_pumpkin_cat / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for halloween_pumpkin_cat / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for halloween_pumpkin_cat / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for halloween_pumpkin_witch / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for halloween_pumpkin_witch / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for halloween_pumpkin_witch / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for macies_christmas_globe / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for macies_christmas_globe / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for macies_christmas_globe / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for midnight_rose / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for midnight_rose / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for midnight_rose / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for moonstone / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for moonstone / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for moonstone / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for neon_butterfly / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for neon_butterfly / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for neon_butterfly / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for pearl_rose / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for pearl_rose / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for pearl_rose / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for pie_please / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for pie_please / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for pie_please / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for rose_champagne / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for rose_champagne / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for rose_champagne / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for rose_gold / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for rose_gold / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for rose_gold / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for rose_quartz / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for rose_quartz / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for rose_quartz / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for silver_bells / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for silver_bells / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for silver_bells / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for sparkle_suite_morganite / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for sparkle_suite_morganite / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for sparkle_suite_morganite / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for starlight_christmas_hollow / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for starlight_christmas_hollow / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for starlight_christmas_hollow / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for sunset_beach / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for sunset_beach / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for sunset_beach / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for velvet / bling_kitchen",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for velvet / britt_with_bling",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-ssr-layout-parity.test.ts",
+    "fullName": "preserves CR-normalized full SSR HTML for velvet / standard",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-static-assets-route.test.ts",
+    "fullName": "Amethyst static asset route serves locked public Amethyst exports under the app/amethyst namespace",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/amethyst-trade-upload-routes.test.ts",
+    "fullName": "customer direct trade image routes prepares a signed upload scoped to the customer site rep",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/control-center-operator-support-access-ui.test.tsx",
+    "fullName": "Control Center transparent operator support access UI renders the rep Workspace home and header tools during support access",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/customer-site-skin-contrast-contract.test.ts",
+    "fullName": "customer-site skin contrast contract gives every selectable skin a semantic foreground contract for its card surface",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/customer-site-skin-contrast-contract.test.ts",
+    "fullName": "customer-site skin contrast contract uses a skin-aware foreground token for all customer action controls and active Trade filters",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/live-lineup-compatibility-mode.test.tsx",
+    "fullName": "Live Lineup read-only Workspace UI contract visibly explains safety mode and receives it through a server-provided prop",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/live-lineup-smoke-boundary.test.ts",
+    "fullName": "packages deterministic Smoke identity, endpoint, isolated storage, warning and exact inventory",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/loc-reviewer-smoke.test.ts",
+    "fullName": "dedicated LOC browser route does not issue cookies if the resulting auth identity differs",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/loc-reviewer-smoke.test.ts",
+    "fullName": "dedicated LOC browser route does not replace a current personal/customer browser session",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/loc-reviewer-smoke.test.ts",
+    "fullName": "dedicated LOC browser route exchanges the OTP server-side, sets the normal session, and returns no credentials",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/loc-reviewer-smoke.test.ts",
+    "fullName": "dedicated LOC reviewer identity and fixture safety requires a separate sufficiently long exact key",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/mile-high-fizz-public-site.test.ts",
+    "fullName": "Mile High Fizz hybrid public site contract maps Lindsey to a Mile High Fizz homepage instead of a generic Sparkle shell",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac-photo-rarity-hardening.test.ts",
+    "fullName": "Nic-Nac photo and rarity hardening uses the selected workflow asset instead of a stale prior URL and rejects declared label photos",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac-required-setup-client.test.ts",
+    "fullName": "Nic-Nac required setup client surfaces a local setup-state load blocker instead of spinning forever",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac-trade-request-screenshot-route.test.ts",
+    "fullName": "GET /api/nic-nac/trade-requests/[requestId]/reveal-screenshot redirects the owning rep to a fresh signed screenshot URL",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac-workspace-shell.test.tsx",
+    "fullName": "Nic-Nac workspace shell reset renders workspace sections inside a top tablist instead of a sidebar rail",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/dance-floor-attention-count.test.ts",
+    "fullName": "rep-only whole-board attention public loader returns the same full fixture with no attention query or field",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/dance-floor-board-get.test.ts",
+    "fullName": "rep-only Floor read public 30-dancer loader keeps all 30 with no extra query or new fields",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/dance-floor-chat-remove-restore.test.ts",
+    "fullName": "chat compatibility and approval error mapping U15 preserves both existing approval paths: mapped direct error and untouched swap propagation",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/nic-nac-calendar-route-routing-smoke.test.ts",
+    "fullName": "Nic-Nac agent route integration does not replay an old approval response on a later user turn",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/site-customization-tools.test.ts",
+    "fullName": "site customization tools update_site_setting saves SB-01 as the supported customer-facing skin code",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/trade-board-intake-route-context.test.ts",
+    "fullName": "Dance Floor intake route context extracts rep-typed ER13229 product truth before asking for more intake details",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/trade-board-intake-route-context.test.ts",
+    "fullName": "Dance Floor intake route context leaves both same-turn photos unknown after a jewelry ask when visuals are uncertain",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/trade-board-intake-route-context.test.ts",
+    "fullName": "Dance Floor intake route context parses rep confirmation of trailing Birthday collection without capturing ection",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/trade-board-intake-route-context.test.ts",
+    "fullName": "Dance Floor intake route context persists catalog truth from search_jewelry_database output before the jewelry-only photo turn",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/trade-board-intake-route-context.test.ts",
+    "fullName": "Dance Floor intake route context promotes the latest unknown photo when Nic-Nac identified it as a boxed display before confirming collection",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/trade-board-intake-route-context.test.ts",
+    "fullName": "Dance Floor intake route context promotes the latest unknown photo when the rep asks Nic-Nac to push through a visually accepted front photo",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/trade-board-intake-route-context.test.ts",
+    "fullName": "Dance Floor intake route context promotes the latest unknown photo when the rep confirms Nic-Nac identified it as jewelry-front",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/nic-nac/workspace-control-tips.test.ts",
+    "fullName": "workspace control hover tips attaches lineup tips to the live controls and the home-rail customer card",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/operator-support-route-classification.test.ts",
+    "fullName": "operator support route classification manifest keeps file, URL pattern, and exported methods synchronized",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/public-site-slug-route.test.ts",
+    "fullName": "public site slug route renders the homepage with slug canonicals and rep-targeted template data",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/public-site/hosted-video-render.test.ts",
+    "fullName": "tiktok artifacts: legacy manifest and page runtimes match served files",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/public-site/signup-discount-bootstrap.test.ts",
+    "fullName": "does not carry Lindsey’s discount into another rep request",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/public-site/signup-discount-bootstrap.test.ts",
+    "fullName": "includes the resolved rep discount in the initial v2 bootstrap",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/rep-render-version.test.ts",
+    "fullName": "preserves every frozen Live asset byte for byte",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-config.test.ts",
+    "fullName": "reviewer smoke config can be enabled in production with an explicit long reviewer token",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-config.test.ts",
+    "fullName": "reviewer smoke config does not depend on NODE_ENV when the reviewer flag and token are explicit",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-config.test.ts",
+    "fullName": "reviewer smoke config requires a long matching token in local or preview environments",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-config.test.ts",
+    "fullName": "reviewer smoke config shows preview reviewer controls only with the explicit matching token",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-config.test.ts",
+    "fullName": "reviewer smoke config shows production reviewer controls only when the review token is valid",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session does not expose raw or structurally spoofed failures 0",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session does not expose raw or structurally spoofed failures 1",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session does not expose raw or structurally spoofed failures 2",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session does not expose raw or structurally spoofed failures 3",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session does not expose raw or structurally spoofed failures 4",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session resets the reusable reviewer session for a valid preview token",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session resets the reusable reviewer session in production when the token matches",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session returns only allowlisted safe action guidance for REVIEWER_SMOKE_IDENTITY_MIGRATION_REQUIRED",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session returns only allowlisted safe action guidance for REVIEWER_SMOKE_IDENTITY_MISMATCH",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session returns only allowlisted safe action guidance for REVIEWER_SMOKE_INVALID_RESET_RECEIPT",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session returns only allowlisted safe action guidance for REVIEWER_SMOKE_LINEUP_RESET_UNAVAILABLE",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session returns only allowlisted safe action guidance for REVIEWER_SMOKE_UNSAFE_ENTITLEMENT",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/reviewer-smoke-session-route.test.ts",
+    "fullName": "POST /api/reviewer-smoke/session returns only allowlisted safe action guidance for REVIEWER_SMOKE_UNSUPPORTED_IDENTITY",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/rose-gold-original-restoration.test.ts",
+    "fullName": "Original RG-01 and approved RG-04 coexist without a redesign restores exact original source blocks from 2e20ab44 and leaves the shared stylesheet intact",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/services/non-item-number-trade-listings.test.ts",
+    "fullName": "non-item-number trade listings service creates a rep-owned listing without touching the shared jewelry database",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/services/trade-listing-recovery.test.ts",
+    "fullName": "trade listing recovery service blocks restore after the 7-day window but allows the same listing with the 30-day switch",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/services/trade-listing-recovery.test.ts",
+    "fullName": "trade listing recovery service purges expired removed listings using the same configured cutoff",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/services/trade-listing-recovery.test.ts",
+    "fullName": "trade listing recovery service restores a removed listing inside the configured 7-day window",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/services/trade-listing-recovery.test.ts",
+    "fullName": "trade listing recovery service stamps deleted_at when a listing is removed",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/starlight-christmas-theme.test.ts",
+    "fullName": "Starlight Christmas Hollow preserves every frozen asset and existing render selection source",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/sunset-beach-theme.test.ts",
+    "fullName": "Sunset Beach Community package recognizes the independent preset, public name and stable code",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/video-queue/one-video-queue.test.ts",
+    "fullName": "T17 classic, compiled and SSR parity, decoration and targeted Workspace copy",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/workspace-card-qr-design-theme.test.ts",
+    "fullName": "Design theme picker every tile has a thumbnail file and color dots",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/workspace-card-qr-flyer.test.ts",
+    "fullName": "flyer render builds flyer copy from the show title and tagline, not email or the ticker",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/workspace-card-qr-flyer.test.ts",
+    "fullName": "flyer render renders silver_bells inside the safe zones and the QR decodes",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
+  },
+  {
+    "file": "tests/workspace-card-qr-flyer.test.ts",
+    "fullName": "flyer theme designs has one record for every theme, and every shared theme has a plate file",
+    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
   }
 ]

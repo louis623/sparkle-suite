@@ -36,10 +36,11 @@ describe('public customer lineup follows entries, independently of showtime and 
       expect(html).not.toContain('href="/smokecodex#events"')
       expect(html).not.toContain('Working on live lineup issue')
     })
-    it(page+': delayed without names keeps an in-show updating prompt',async()=>{
+    it(page+': delayed without names keeps the open lineup prompt and no calendar link',async()=>{
       const html=(await prepared)('delayed')
       expect(html).toContain('data-lineup-surface="delayed"')
-      expect(html).toContain('Live Lineup is updating automatically.')
+      expect(html).toContain('I have an open lineup.')
+      expect(html).not.toContain('Live Lineup is updating automatically.')
       expect(html).not.toContain('Check the calendar for the next show')
       expect(html).not.toContain('Check back for upcoming shows')
       expect(html).not.toContain('href="/smokecodex#events"')
@@ -72,13 +73,16 @@ describe('public customer lineup follows entries, independently of showtime and 
     }
     it(page+': unavailable calendar has no dead link',async()=>{
       const html=(await prepared)('offline',[],null)
-      expect(html).toContain('Check back for upcoming shows')
+      expect(html).toContain('Check the calendar for the next show.')
+      expect(html).not.toContain('Check back for upcoming shows')
       expect(html).not.toContain('href="/smokecodex#events"')
       expect(html).not.toContain('View lineup')
     })
     it(page+': optional runtime failure keeps the page and compact fallback usable',async()=>{
       const html=(await prepared)('offline',[],null,false)
-      expect(html).toContain('Check back for upcoming shows')
+      expect(html).toContain('Check the calendar for the next show.')
+      expect(html).not.toContain('Check back for upcoming shows')
+      expect(html).not.toContain('href="/smokecodex#events"')
       expect(html).not.toMatch(/View (full )?lineup/)
     })
     it(page+': preserves original announcement/Dance Floor order and one strip',async()=>{
