@@ -378,7 +378,7 @@ describe('2.0.9 diagnostic contract', () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('cache-control')).toBe('no-store')
     expect(await response.json()).toEqual(LIVE_LINEUP_RELEASE)
-    expect(LIVE_LINEUP_RELEASE).toEqual({protocol:1,version:'2.0.12',publishedAt:'2026-11-20T12:19:46.296Z',rolloutEnabled:true})
+    expect(LIVE_LINEUP_RELEASE).toEqual({protocol:1,version:'2.0.13',publishedAt:'2026-11-22T13:13:00.000Z',rolloutEnabled:true})
     expect(Date.parse(LIVE_LINEUP_RELEASE.publishedAt!)).toBeLessThanOrEqual(Date.now())
     expect(response.headers.get('x-content-type-options')).toBe('nosniff')
     expect(Object.keys(LIVE_LINEUP_RELEASE).sort()).toEqual(['protocol','publishedAt','rolloutEnabled','version'])
@@ -494,8 +494,8 @@ describe('2.0.11 ingest', () => {
     }
   })
 
-  it('announces the published 2.0.12 release', () => {
-    expect(LIVE_LINEUP_RELEASE.version).toBe('2.0.12')
+  it('announces the published 2.0.13 release', () => {
+    expect(LIVE_LINEUP_RELEASE.version).toBe('2.0.13')
     expect(LIVE_LINEUP_RELEASE.rolloutEnabled).toBe(true)
   })
 })
