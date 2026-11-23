@@ -343,3 +343,44 @@
 .showWarning p { margin: 0; }
 .showWarning p + p { margin-top: 4px; }
 .showWaiting { background: #e6f7eb; color: #20573e; }
+.updateNotice {
+  margin-block: 4px 0;
+  margin-inline: 0;
+  padding-block: 4px;
+  padding-inline: 8px;
+  border-radius: 6px;
+  background: #fff1d2;
+  color: #6e3909;
+  font-size: .76rem;
+  line-height: 1.3;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  animation: none;
+  transition: none;
+}
+.updateNotice p { margin: 0; }
+.updateNotice p + p { margin-block-start: 2px; }
+.versionNowrap { white-space: nowrap; }
+.card .updateNotice a,
+.card .updateNotice a:visited {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  margin-inline-start: 4px;
+  padding-inline: 2px;
+  color: inherit;
+  font-weight: 750;
+  line-height: 1.3;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+.card .updateNotice a:focus-visible {
+  outline: 3px solid #8052a7;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .updateNotice { animation: none; transition: none; }
+}

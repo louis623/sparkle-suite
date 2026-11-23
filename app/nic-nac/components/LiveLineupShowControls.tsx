@@ -58,20 +58,23 @@ export function ShowActionButton({snapshot, disabled, onAction}: {
   </button>
 }
 
-export function LiveLineupExtensionDetails({snapshot, label, tone, onStatus}: {
+const LIVE_LINEUP_UPDATE_HREF = '/nic-nac?section=help-resources&guide=live-lineup&part=update'
+
+export function LiveLineupExtensionDetails({snapshot, label, tone, onStatus, readOnly = false}: {
   snapshot: WorkspaceLineupSnapshot | null
   label: string
   tone: string
   onStatus: () => void
+  readOnly?: boolean
 }) {
   const control = snapshot?.showControl
   const extension = snapshot?.extensionStatus
   const isStarted = control?.mode === 'started'
+  const outdated = (snapshot?.authorized === true || readOnly) && extension?.updateNeeded === true && extension.workerVersion && extension.latestPublishedVersion
+    ? {worker: extension.workerVersion, latest: extension.latestPublishedVersion} : null
   let version = 'Extension version not reported.'
   if (extension?.workerVersion) {
-    if (extension.updateNeeded) version = 'Extension update needed — running ' + extension.workerVersion
-      + '; latest ' + extension.latestPublishedVersion + '.'
-    else version = extension.connected ? 'Extension ' + extension.workerVersion : 'Last reported version ' + extension.workerVersion
+    version = extension.connected ? 'Extension ' + extension.workerVersion : 'Last reported version ' + extension.workerVersion
   }
   const warnings = []
   if (control?.selection === 'none') warnings.push(NO_SHARED_PARTY)
@@ -85,6 +88,10 @@ export function LiveLineupExtensionDetails({snapshot, label, tone, onStatus}: {
         {tone === 'attention' && <span className={styles.statusHint}>Tap for status</span>}
       </button>
     </div>
+    {outdated && <div className={styles.updateNotice} role="status">
+      <p><strong>Your Live Lineup extension is out of date</strong></p>
+      <p>You have <span className={styles.versionNowrap}>{outdated.worker}</span>. The newest is <span className={styles.versionNowrap}>{outdated.latest}</span>.{readOnly ? null : <> <a href={LIVE_LINEUP_UPDATE_HREF}>How to update</a></>}</p>
+    </div>}
     {warnings.length > 0 && <div className={styles.showWarning} role="alert">{warnings.map(warning => <p key={warning}>{warning}</p>)}</div>}
     {control?.waitingForFirstOrder && <p className={styles.showWaiting} role="status">{STARTED_WAITING}</p>}
     {readerMismatch && <p className={styles.showWarning} role="status">The Party Orders page is still using reader {extension.readerVersion}.</p>}
