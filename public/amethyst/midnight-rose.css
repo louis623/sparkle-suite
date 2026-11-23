@@ -60,7 +60,7 @@ body.bg-midnight-rose .hp-ticker-row.reverse { background: #30202a; }
 body.bg-midnight-rose :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #fff0e8; }
 body.bg-midnight-rose .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #fff0e8; }
 body.bg-midnight-rose .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #efb5a3; }
-body.bg-midnight-rose .hp-ticker-row .hp-ticker-label {
+body.bg-midnight-rose .hp-ticker-row .hp-ticker-label, body.bg-midnight-rose .hp-lineup-label {
   background: #25151f;
   color: #fff0e8;
 }

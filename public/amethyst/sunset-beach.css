@@ -54,7 +54,7 @@ body.bg-sunset-beach .hp-ticker-row.reverse { background: #f8e6de; }
 body.bg-sunset-beach :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #482d40; }
 body.bg-sunset-beach .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #482d40; }
 body.bg-sunset-beach .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #9a455f; }
-body.bg-sunset-beach .hp-ticker-row .hp-ticker-label {
+body.bg-sunset-beach .hp-ticker-row .hp-ticker-label, body.bg-sunset-beach .hp-lineup-label {
   background: #f3d7d0;
   color: #482d40;
 }
@@ -296,7 +296,7 @@ body.bg-sunset-beach .hp-header-link::after{background:#ffcc78}
 body.bg-sunset-beach :is(.hp-shop-btn,.hp-signup-submit,.tp-card-expand-cta,.tp-sheet-submit,.jp-spot-btn,.jp-final-btn,.hp-event-platform,.event-platform-btn){background:linear-gradient(105deg,#ff7192,#ff9678 55%,#ffc32c);color:#572333;border-color:#ef9daf;box-shadow:0 8px 22px #b72e5920}
 body.bg-sunset-beach :is(.hp-event-platform,.event-platform-btn) .glyph{background:#fff5eb;color:#8e304e}
 body.bg-sunset-beach :is(.hp-ticker,.hp-ticker-row){background:linear-gradient(105deg,#ffd5e2,#ffe4b2);color:#642d43;border-color:#f1c4cf}
-body.bg-sunset-beach .hp-ticker-row .hp-ticker-label{background:#ffd5e2;color:#642d43}
+body.bg-sunset-beach .hp-ticker-row .hp-ticker-label, body.bg-sunset-beach .hp-lineup-label{background:#ffd5e2;color:#642d43}
 body.bg-sunset-beach .hp-ticker-row.reverse{background:#fff0f5}
 body.bg-sunset-beach .hp-ticker-row.reverse :is(.hp-ticker-trade,.hp-ticker-empty){color:#7d3551}
 body.bg-sunset-beach .hp-ticker-row.reverse .hp-ticker-label{background:#fff0f5;color:#7d3551}

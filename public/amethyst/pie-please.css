@@ -77,7 +77,7 @@ body.bg-pie-please .hp-ticker-row.reverse { background: #fce4cf; }
 body.bg-pie-please :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #502d24; }
 body.bg-pie-please .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #502d24; }
 body.bg-pie-please .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #a54813; }
-body.bg-pie-please .hp-ticker-row .hp-ticker-label {
+body.bg-pie-please .hp-ticker-row .hp-ticker-label, body.bg-pie-please .hp-lineup-label {
   background: #f7d2ac;
   color: #502d24;
 }

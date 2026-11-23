@@ -4,7 +4,7 @@
   "locks": [
     {
       "path": "public/amethyst/homepage.css",
-      "sha256": "b5e58af6ab58012efa6a7c26241847bc60f75ea00d7a558fad919cd2dc889286"
+      "sha256": "6add19aa311b7ae96ac5333f02879cccb073bb6e808092d562b95fd78e963f62"
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
@@ -23,7 +23,7 @@
     {
       "path": "public/amethyst/homepage.jsx",
       "function": "LiveQueueStrip",
-      "sha256": "ab7be94ec2980cd02c6018dda70c12c27663ef0bb7545013401548238b71a391"
+      "sha256": "0d93b54048242f387790c53b7d637f7042c25cb1fc626b8d50572549bef6e136"
     },
     {
       "path": "public/amethyst/trade.jsx",
@@ -38,7 +38,7 @@
     {
       "path": "public/amethyst/trade.jsx",
       "function": "LiveQueueStrip",
-      "sha256": "bf40018bc4f8d9007e9d3693579b9458a1104eab74ac4ea126efd93c1a4640ef"
+      "sha256": "93fa53f7b1e67ca6882c2c22e59425c9810040765060b82f3deec2992663dd85"
     },
     {
       "path": "public/amethyst/join.jsx",
@@ -53,7 +53,7 @@
     {
       "path": "public/amethyst/join.jsx",
       "function": "LiveQueueStrip",
-      "sha256": "d18d13e368ed5f112ee4702886f096a8458f4b288c63b4b3850a50d9a9437ff9"
+      "sha256": "12cd510da93dd4cd59fbcbb33cdbdd60d8c7e13bb96258c329317f90dd2a2b23"
     }
   ],
   "approvedSharedChange": {
@@ -98,5 +98,35 @@
     "approval": "Louis authorized existing embeds to stay playing while queued on Nov 12 2026 at 7:24 and 7:25 PM ET.",
     "previousSha256": "9fb3cfd9b92bf045e344d815b2e5fa5e20a36165dec3cc52472b562a44e538bf",
     "sha256": "a10607714752e47e4433e94afbfb3739c3218d51d6320440ee34e63153d8a140"
+  },
+  "approvedLiveLineupLabelChange": {
+    "date": "2026-11-23",
+    "base": "dbc57ddd21c40f645d8b3aacccbe6729788be456",
+    "approval": "Louis, 2026-11-23 10:37 AM ET: restore the LIVE LINEUP left label on the public lineup bar (plan section 2C); 11:12 AM ET: fast pages only; 1:32-1:34 PM ET: open-lineup text only when running with zero entries, and the bar never grows taller",
+    "locks": [
+      {
+        "path": "public/amethyst/homepage.css",
+        "previousSha256": "b5e58af6ab58012efa6a7c26241847bc60f75ea00d7a558fad919cd2dc889286",
+        "sha256": "6add19aa311b7ae96ac5333f02879cccb073bb6e808092d562b95fd78e963f62"
+      },
+      {
+        "path": "public/amethyst/homepage.jsx",
+        "function": "LiveQueueStrip",
+        "previousSha256": "ab7be94ec2980cd02c6018dda70c12c27663ef0bb7545013401548238b71a391",
+        "sha256": "0d93b54048242f387790c53b7d637f7042c25cb1fc626b8d50572549bef6e136"
+      },
+      {
+        "path": "public/amethyst/trade.jsx",
+        "function": "LiveQueueStrip",
+        "previousSha256": "bf40018bc4f8d9007e9d3693579b9458a1104eab74ac4ea126efd93c1a4640ef",
+        "sha256": "93fa53f7b1e67ca6882c2c22e59425c9810040765060b82f3deec2992663dd85"
+      },
+      {
+        "path": "public/amethyst/join.jsx",
+        "function": "LiveQueueStrip",
+        "previousSha256": "d18d13e368ed5f112ee4702886f096a8458f4b288c63b4b3850a50d9a9437ff9",
+        "sha256": "12cd510da93dd4cd59fbcbb33cdbdd60d8c7e13bb96258c329317f90dd2a2b23"
+      }
+    ]
   }
 }

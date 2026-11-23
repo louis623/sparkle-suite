@@ -68,7 +68,7 @@ body.bg-gobble-and-fizz .hp-ticker-row.reverse { background: #392437; }
 body.bg-gobble-and-fizz :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #fff2df; }
 body.bg-gobble-and-fizz .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #fff2df; }
 body.bg-gobble-and-fizz .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #efb36c; }
-body.bg-gobble-and-fizz .hp-ticker-row .hp-ticker-label {
+body.bg-gobble-and-fizz .hp-ticker-row .hp-ticker-label, body.bg-gobble-and-fizz .hp-lineup-label {
   background: #291a29;
   color: #fff2df;
 }

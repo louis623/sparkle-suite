@@ -1715,13 +1715,15 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   font-weight: 700;
   white-space: nowrap;
 }
-.hp-trade-preview-head .live-dot {
+.hp-trade-preview-head .live-dot,
+.hp-lineup-label .live-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: #FF3366;
   box-shadow: 0 0 0 4px rgba(255,51,102,0.2);
   animation: hp-pulse 1.6s var(--ease) infinite;
+  flex: none;
 }
 .hp-trade-preview-items {
   grid-area: items;
@@ -3985,7 +3987,7 @@ body.bg-black-velvet .hp-ticker-track {
   padding-left: 120px;
 }
 
-body.bg-black-velvet .hp-ticker-row:not(.reverse) .hp-ticker-label {
+body.bg-black-velvet .hp-ticker-row:not(.reverse) .hp-ticker-label, body.bg-black-velvet .hp-lineup-label {
   color: #22180a;
   background: #d4af37;
 }
@@ -4330,7 +4332,7 @@ body.bg-moonstone-charcoal .hp-ticker-track {
   padding-left: 120px;
 }
 
-body.bg-moonstone-charcoal .hp-ticker-row:not(.reverse) .hp-ticker-label {
+body.bg-moonstone-charcoal .hp-ticker-row:not(.reverse) .hp-ticker-label, body.bg-moonstone-charcoal .hp-lineup-label {
   color: #ffffff;
   background: #7c3aed;
 }
@@ -5583,6 +5585,7 @@ body.surface-midnight-glass {
   .hp-hero-side-label .live-pip,
   .hp-btn-outline .live-pip,
   .hp-trade-preview-head .live-dot,
+  .hp-lineup-label .live-dot,
   body.tex-sparkle::before,
   body.holo-unicorn .hp-trade-card:has(.hp-trade-tier.unicorn),
   body.btn-bouncy .hp-btn-primary:hover,
@@ -6867,18 +6870,140 @@ body.surface-pumpkin-cat-glass {
 @keyframes hp-lineup-reveal-sparkle { 0%, 100% { opacity: 0; } 25% { opacity: .9; } 75% { opacity: .2; transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { [data-lineup-flare="true"] { animation: none; background-color: color-mix(in srgb, currentColor 12%, transparent); } [data-lineup-token][data-lineup-flare="true"] .hp-lineup-sparkle { display: none; animation: none; } }
 
-/* Empty lineup: one useful row, shared across all current and future skins. */
-.hp-lineup-idle-inner { max-width:1280px; margin:0 auto; padding:0 24px; }
+/* Live Lineup bar: full-bleed row with the same left label as Announcements. */
+.hp-lineup-row {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  min-height: 64px;
+  height: 64px;
+  max-height: 64px;
+  overflow: hidden;
+  container-type: inline-size;
+}
+.hp-lineup-label {
+  position: static;
+  flex: none;
+  align-self: stretch;
+  white-space: nowrap;
+  gap: 6px;
+}
+.hp-lineup-row .hp-lineup-idle-prompt {
+  min-height: 0;
+  min-block-size: 0;
+}
+/* Rose Champagne's own stylesheet is hash-frozen, so its label colors live here. */
+body.bg-rose-champagne .hp-lineup-label {
+  background: #f1dfd8;
+  color: #45252e;
+}
+/* Silver Bells fades its ticker label; the lineup label stays a solid block. */
+html[data-customer-theme="silver_bells"] body .hp-lineup-label {
+  background: #0a1b36;
+  color: #f4f7fc;
+}
+.hp-lineup-idle-inner,
+.hp-lineup-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0 16px;
+}
+.hp-lineup-row .hp-trade-preview-items {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  white-space: nowrap;
+  overscroll-behavior-inline: contain;
+}
+.hp-lineup-row .hp-trade-preview-pill:focus-visible {
+  outline-offset: -2px;
+}
+.hp-lineup-meta {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
 .hp-lineup-idle-prompt {
   display:flex; align-items:center; gap:10px; min-height:48px;
-  padding:10px 0; box-sizing:border-box; width:fit-content; max-width:100%;
+  padding:10px 0; box-sizing:border-box; width:auto; max-width:100%; min-width:0; flex:1 1 auto;
   font-size:13px; line-height:1.5; font-weight:600;
   color:var(--hp-preview-fg, var(--fg)); text-decoration:none; overflow-wrap:anywhere;
 }
+.hp-lineup-idle-copy { min-width: 0; max-width: 100%; flex: 1 1 auto; }
+.hp-lineup-next {
+  margin: 2px 0 0;
+  font-size: .75rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hp-lineup-row .hp-lineup-idle-prompt > span { min-width: 0; }
 .hp-lineup-idle-prompt svg { flex:none; opacity:.8; }
 a.hp-lineup-idle-prompt:hover { text-decoration:underline; text-underline-offset:3px; }
 a.hp-lineup-idle-prompt:focus-visible { outline:2px solid currentColor; outline-offset:2px; border-radius:4px; }
-@media (max-width:640px) { .hp-lineup-idle-inner { padding:0 16px; } }
+@media (max-width: 640px) {
+  .hp-lineup-row {
+    min-height: 56px;
+    height: 56px;
+    max-height: 56px;
+    overflow: hidden;
+  }
+  .hp-lineup-idle-inner,
+  .hp-lineup-body {
+    min-height: 0;
+  }
+  .hp-lineup-label {
+    width: 124px;
+    min-width: 124px;
+    max-width: 124px;
+  }
+  .hp-lineup-idle-inner,
+  .hp-lineup-body {
+    padding: 0 8px;
+    gap: 8px;
+  }
+  .hp-lineup-row .hp-lineup-idle-prompt {
+    min-height: 0;
+    min-block-size: 0;
+    padding-block: 0;
+    line-height: 1.25;
+  }
+  .hp-lineup-row .hp-trade-preview-link,
+  .hp-lineup-row .hp-trade-preview-pill {
+    touch-action: manipulation;
+  }
+}
+/* Phones keep pills on line 1 and the link plus time on line 2, inside the fixed row. */
+@container (max-width: 520px) {
+  .hp-lineup-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-content: center;
+    align-items: center;
+    gap: 0;
+  }
+  .hp-lineup-row .hp-trade-preview-items { grid-row: 1; }
+  .hp-lineup-meta { grid-row: 2; min-height: 0; }
+  .hp-lineup-row .hp-trade-preview-link,
+  .hp-lineup-row .hp-trade-preview-pill {
+    min-height: 0;
+    min-block-size: 0;
+    padding-block: 1px;
+  }
+}
 #events { scroll-margin-top:180px; }
 
 /* Hosted customer TikToks keep the existing media frames. */
