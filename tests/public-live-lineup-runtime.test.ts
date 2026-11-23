@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
+import React from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 
 const source = readFileSync('public/amethyst/live-lineup.js', 'utf8')
 const now = Date.parse('2026-09-06T01:30:00Z')
@@ -44,7 +46,8 @@ describe('public lineup refresh without reloading or writing', () => {
     const retained = api.unavailable(payload(), now)
     expect(retained.liveQueueEntries[0].highlight).toBe(false)
     expect(retained.liveQueueState).toBe('delayed')
-    expect(retained.liveQueueSummary).toBe('I have an open lineup.')
+    expect(retained.liveQueueSummary).toBe('Live Lineup is updating automatically.')
+    expect(retained.liveQueueSummary).not.toContain('I have an open lineup.')
     expect(retained.liveQueueSummary).not.toMatch(/issue|difficult/i)
     const emptyDelayed = api.unavailable(payload(60, []), now)
     expect(emptyDelayed.liveQueueState).toBe('delayed')
@@ -52,6 +55,30 @@ describe('public lineup refresh without reloading or writing', () => {
     const expired = api.unavailable(payload(7201), now)
     expect(expired.liveQueueEntries).toEqual([])
     expect(expired.liveQueueSummary).toBe('Check the calendar for the next show.')
+  })
+  it('puts the Live Lineup label first in calendar, open, and delayed rows', () => {
+    const { api } = runtime()
+    const rows = {
+      calendar: api.renderEmpty(React, '/shows#events', { liveQueueState: 'offline' }),
+      empty: api.renderEmpty(React, null, { liveQueueState: 'empty' }),
+      delayed: api.renderEmpty(React, null, { liveQueueState: 'delayed' }),
+    }
+    for (const html of Object.values(rows).map((row) => renderToStaticMarkup(row))) {
+      expect(html).toMatch(/^<section[^>]*>\s*<span class="hp-ticker-label hp-lineup-label">/)
+      expect(html).toContain('>Live Lineup<')
+      expect(html).not.toContain('hp-trade-preview-head')
+    }
+    const calendar = renderToStaticMarkup(rows.calendar)
+    const empty = renderToStaticMarkup(rows.empty)
+    const delayed = renderToStaticMarkup(rows.delayed)
+    expect(calendar).toContain('Check the calendar for the next show.')
+    expect(calendar).toContain('href="/shows#events"')
+    expect(calendar).not.toContain('live-dot')
+    expect(empty).toContain('I have an open lineup.')
+    expect(empty).toContain('class="live-dot"')
+    expect(delayed).toContain('I have an open lineup.')
+    expect(delayed).not.toContain('live-dot')
+    expect(delayed).not.toContain('href=')
   })
   it('backs off failures then returns to five-second polling, and cleans up', async () => {
     vi.useFakeTimers(); vi.setSystemTime(now)

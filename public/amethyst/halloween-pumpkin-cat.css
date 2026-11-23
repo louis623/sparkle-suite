@@ -20,7 +20,7 @@ body.bg-halloween-pumpkin-cat .hp-header-link.active{color:#ffab66}
 body.bg-halloween-pumpkin-cat .hp-brand-name{font-family:Georgia,serif;color:#fff0db}
 body.bg-halloween-pumpkin-cat :is(.hp-ticker,.tp-ticker,.jp-ticker){background:#231309;color:#fff3e5;border-color:#50311f}
 body.bg-halloween-pumpkin-cat .hp-ticker-row.reverse{background:#110d0a}
-body.bg-halloween-pumpkin-cat .hp-ticker-row:not(.reverse) .hp-ticker-label{background:#231309;color:#ffba82}
+body.bg-halloween-pumpkin-cat .hp-ticker-row:not(.reverse) .hp-ticker-label, body.bg-halloween-pumpkin-cat .hp-lineup-label{background:#231309;color:#ffba82}
 body.bg-halloween-pumpkin-cat :is(.hp-ticker a,.hp-live-rail a,.hp-trade-preview-link){color:#ffb776}
 body.bg-halloween-pumpkin-cat .hp-hero{display:block;position:relative;isolation:isolate;min-height:56.28vw;overflow:hidden;background:#050403;color:#fff7ed}
 body.bg-halloween-pumpkin-cat .hp-hero::before,body.bg-halloween-pumpkin-cat .hp-hero::after,

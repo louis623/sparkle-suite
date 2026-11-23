@@ -96,7 +96,8 @@
       liveQueueState: active ? retain && (current.liveQueueEntries || []).length ? 'delayed' : 'empty' : retain ? 'delayed' : 'offline',
       liveQueueSourceReady: isRevision(current?.liveQueueRevision) ? false : current?.liveQueueSourceReady,
       liveQueueEntries: entries,
-      liveQueueSummary: active || retain ? OPEN : CALENDAR,
+      // Open copy is only for a running or retained show that still has zero names.
+      liveQueueSummary: entries.length ? 'Live Lineup is updating automatically.' : (active || retain ? OPEN : CALENDAR),
     };
   }
   function fresh(current) {
@@ -260,11 +261,16 @@
     return grouped(value) || value?.liveQueueShow ? unavailable(value) : value;
   }
   // Shared by every skin and customer-page variant. Calendar never gates names.
+  function lineupLabel(h, dot) {
+    return h('span', {className:'hp-ticker-label hp-lineup-label'},
+      dot ? h('span', {className:'live-dot'}) : null, 'Live Lineup');
+  }
   function renderEmpty(React, calendarHref, lineup) {
     const state = typeof lineup === 'string' ? lineup : lineup?.liveQueueState;
     const h = React.createElement;
     if (state === 'empty' || state === 'delayed') {
-      return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':state, 'aria-label':'Live lineup'},
+      return h('section', {className:'hp-trade-preview hp-lineup-row hp-lineup-idle', 'data-lineup-surface':state, 'aria-label':'Live lineup'},
+        lineupLabel(h, state === 'empty'),
         h('div', {className:'hp-lineup-idle-inner'}, h('span', {className:'hp-lineup-idle-prompt'}, OPEN)));
     }
     const href = typeof calendarHref === 'string' && (calendarHref === '#events' || calendarHref.startsWith('/')) &&
@@ -275,7 +281,8 @@
     const show = validNextShow(lineup?.liveQueueNextShow) ? lineup.liveQueueNextShow : null;
     const prompt = h(href ? 'a' : 'span', {className:'hp-lineup-idle-prompt', ...(href ? {href} : {})}, icon,
       h('span', null, CALENDAR), href ? h('span', {'aria-hidden':true}, '→') : null);
-    return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':'calendar', 'aria-label':'Upcoming shows'},
+    return h('section', {className:'hp-trade-preview hp-lineup-row hp-lineup-idle', 'data-lineup-surface':'calendar', 'aria-label':'Upcoming shows'},
+      lineupLabel(h, false),
       h('div', {className:'hp-lineup-idle-inner'}, show
         ? h('div', null, prompt, h('p', {style:{margin:'4px 0 0',fontSize:'.8rem'}}, show.title, ' · ', show.time))
         : prompt));

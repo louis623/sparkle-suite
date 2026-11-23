@@ -28,4 +28,18 @@ describe('Brittany temporary public Live Lineup continuity', () => {
     expect(buildPublicLiveLineup(snapshot(7201)).liveQueueEntries).toEqual([])
     expect(buildPublicLiveLineup(null).liveQueueLastUpdated).toBeNull()
   })
+  it('says the lineup is open only while a show is running and nobody is waiting', () => {
+    const show = { phase: 'active' as const, revision: 1, runToken: 'a'.repeat(32), deadline: new Date(+now + 3_600_000).toISOString(), serverTime: now.toISOString() }
+    const running = buildPublicLiveLineup({ ...snapshot(60, []), show })
+    expect(running.liveQueueState).toBe('empty')
+    expect(running.liveQueueEntries).toEqual([])
+    expect(running.liveQueueSummary).toBe('I have an open lineup.')
+    for (const count of [1, 12]) {
+      const names = Array.from({ length: count }, (_, index) => `Example ${index + 1}`)
+      const populated = buildPublicLiveLineup({ ...snapshot(30, names), show })
+      expect(populated.liveQueueEntries).toHaveLength(count)
+      expect(populated.liveQueueSummary).toBe('Live Lineup is updating automatically.')
+      expect(populated.liveQueueSummary).not.toContain('I have an open lineup.')
+    }
+  })
 })

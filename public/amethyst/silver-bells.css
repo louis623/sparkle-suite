@@ -66,7 +66,7 @@ html[data-customer-theme="silver_bells"] body .hp-ticker-row.reverse { backgroun
 html[data-customer-theme="silver_bells"] body :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #f4f7fc; }
 html[data-customer-theme="silver_bells"] body .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #f4f7fc; }
 html[data-customer-theme="silver_bells"] body .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #dce8f5; }
-html[data-customer-theme="silver_bells"] body .hp-ticker-row .hp-ticker-label {
+html[data-customer-theme="silver_bells"] body .hp-ticker-row .hp-ticker-label, html[data-customer-theme="silver_bells"] body .hp-lineup-label {
   background: linear-gradient(90deg, #0a1b36 0%, #0a1b36 70%, transparent 100%);
   color: #f4f7fc;
 }
