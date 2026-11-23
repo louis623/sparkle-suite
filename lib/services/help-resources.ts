@@ -1,3 +1,10 @@
+import {
+  LIVE_LINEUP_HELP_RESOURCE_ID,
+  LIVE_LINEUP_HELP_TITLE,
+  LIVE_LINEUP_UPDATE_WARNING,
+  liveLineupHelpBeforeYouStart,
+  liveLineupHelpSteps,
+} from '@/lib/live-lineup/how-to-guide'
 import type { HelpResource } from '@/lib/services/types'
 
 type HelpResourceInput = Omit<
@@ -195,37 +202,23 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     quickActions: ['Open Calendar', 'Open Dance Floor', 'Check Live Lineup'],
   }),
   helpResource({
-    id: 'use-live-queue-during-show',
+    id: LIVE_LINEUP_HELP_RESOURCE_ID,
     type: 'workflow',
     group: 'Live Shows',
     category: 'Live Lineup',
-    title: 'Use Live Lineup during a show',
-    summary: 'Understand what the lineup is doing and what to check when it looks wrong.',
+    title: LIVE_LINEUP_HELP_TITLE,
+    summary: 'Start your show, run Live Lineup, stop when you are done, and update the extension.',
     body:
-      'Live Lineup shows customers the reveal order during a show. It uses the assigned code in your Workspace, the Bomb Party Party Orders tab for that show, and a recent update from the extension. If Live Lineup is not ready for this account yet, the Workspace says so. Ask support when the lineup looks stale, unexpectedly empty, or is missing customers. Saving the code is not enough on its own. Install the extension from the Chrome Web Store and confirm it shows as connected before the show.',
-    goal: 'Keep the public lineup understandable during a live show.',
-    useWhen: 'Use this when checking Live Lineup before or during a live show.',
-    beforeYouStart: [
-      'The extension from the Chrome Web Store and the assigned Live Lineup code shown in your Workspace',
-      'Bomb Party Party Orders tab',
-      'Current party or show context',
-    ],
-    steps: [
-      'Confirm Live Lineup is connected for this account.',
-      'Open the Sparkle Suite extension and enter the assigned code from your Workspace.',
-      'Keep the Bomb Party Party Orders tab open in that same Chrome window.',
-      'Confirm the show and parties you want customers to see. Hiding a party keeps that order private and can be turned back on.',
-      'Drag to reorder, Hold customers who step away, and Return them deliberately. These controls do not change Bomb Party orders.',
-      'Check whether the lineup looks stale, empty, or is missing expected names.',
-      'Ask Nic-Nac for help if the lineup still looks wrong.',
-    ],
+      'Use Chrome and the Sparkle Suite extension from the Chrome Web Store. The first time, enter the assigned code shown at the top of your Workspace. Press Start Show and your site says "I have an open lineup." Press Stop Show and it goes back to "Check the calendar for the next show." If the lineup looks empty, check that today\'s party is checked and the Live Party Orders page is open. If your Workspace says your extension is out of date, update it from chrome://extensions. Don\'t remove the extension.',
+    goal: 'Run your show with Live Lineup, from Start Show through Stop Show.',
+    useWhen:
+      'Use this before you go live, during a show, or when your Workspace says your extension is out of date.',
     goodResult:
-      'The lineup matches the current show, or support has the details needed to help.',
-    nicNacPrompt: 'Help me check my Live Lineup.',
-    stillStuck:
-      'Tell support the extension status, the show and parties you selected, and whether Chrome and Party Orders are open. Never include customer order details.',
+      'Your site says "I have an open lineup." during the show and "Check the calendar for the next show." after you stop.',
+    nicNacPrompt: 'Help me run my show with Live Lineup.',
+    stillStuck: `${LIVE_LINEUP_UPDATE_WARNING} Tell support what the Workspace card says and whether Chrome and the Live Party Orders page are open. Never include customer order details.`,
     relatedFeatureIds: ['live-queue'],
-    quickActions: ['Check extension status', 'Review a stale lineup', 'Ask Nic-Nac for help'],
+    quickActions: ['Start Show', 'Update the extension', 'Ask Nic-Nac for help'],
   }),
   helpResource({
     id: 'use-live-lineup-on-a-mac',
@@ -565,12 +558,23 @@ const HELP_RESOURCES: HelpResource[] = [
   DOMAIN_FORWARDING_RESOURCE,
 ]
 
-export function getHelpResources(query = ''): HelpResource[] {
+function withLiveLineupGuide(resources: HelpResource[], now: number): HelpResource[] {
+  const steps = liveLineupHelpSteps(now)
+  const beforeYouStart = [...liveLineupHelpBeforeYouStart]
+  return resources.map((resource) =>
+    resource.id === LIVE_LINEUP_HELP_RESOURCE_ID
+      ? { ...resource, beforeYouStart, steps }
+      : resource,
+  )
+}
+
+export function getHelpResources(query = '', now = Date.now()): HelpResource[] {
+  const resources = withLiveLineupGuide(HELP_RESOURCES, now)
   const normalized = query.trim().toLowerCase()
-  if (!normalized) return HELP_RESOURCES
+  if (!normalized) return resources
   const queryWords = normalized.split(/\s+/).filter(Boolean)
 
-  return HELP_RESOURCES.filter((resource) => {
+  return resources.filter((resource) => {
     const searchableText = [
       resource.type,
       resource.group,

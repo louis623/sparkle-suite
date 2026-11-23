@@ -1,0 +1,116 @@
+.guide {
+  container-type: inline-size;
+  container-name: live-lineup-guide;
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+  max-width: 100%;
+  color: inherit;
+  font-family: var(--font-prelaunch-sans), "DM Sans", system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.section {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: inherit;
+  font-family: var(--font-prelaunch-sans), "DM Sans", system-ui, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  scroll-margin-block: 1rem 6rem;
+}
+
+.sectionTitle:focus-visible {
+  outline: 3px solid rgba(238, 44, 155, 0.45);
+  outline-offset: 3px;
+}
+
+.list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.list li {
+  padding-inline-start: 0.15rem;
+}
+
+.copy,
+.warning,
+.caption,
+.list {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.warning {
+  font-weight: 700;
+}
+
+.url {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1em;
+  overflow-wrap: anywhere;
+}
+
+.figure {
+  margin: 0;
+  min-width: 0;
+  max-width: min(100%, 560px);
+}
+
+.shot {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  background: rgba(255, 246, 250, 0.9);
+}
+
+.caption {
+  margin-top: 0.5rem;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  min-width: 0;
+}
+
+@container live-lineup-guide (min-width: 45rem) {
+  .pair {
+    grid-template-columns: repeat(2, minmax(0, 560px));
+    justify-content: start;
+  }
+}
+
+.supportButton {
+  composes: actionButton from './WorkspaceSurface.module.css';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  max-width: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 12px 18px;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.supportButton:focus-visible {
+  outline: 3px solid rgba(238, 44, 155, 0.45);
+  outline-offset: 3px;
+}
