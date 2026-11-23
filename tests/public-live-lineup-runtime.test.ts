@@ -74,6 +74,14 @@ describe('public lineup refresh without reloading or writing', () => {
     expect(calendar).toContain('Check the calendar for the next show.')
     expect(calendar).toContain('href="/shows#events"')
     expect(calendar).not.toContain('live-dot')
+    const upcoming = renderToStaticMarkup(api.renderEmpty(React, '/shows#events', {
+      liveQueueState: 'offline',
+      liveQueueNextShow: { title: 'A very long holiday reveal that should not wrap the bar', time: 'Sun, Nov 30, 8:00 PM EST' },
+    }))
+    expect(upcoming).toContain('class="hp-lineup-next"')
+    expect(upcoming).not.toMatch(/hp-lineup-next"[^>]*style=/)
+    expect(upcoming.indexOf('Sun, Nov 30, 8:00 PM EST')).toBeLessThan(upcoming.indexOf('A very long holiday reveal'))
+    expect(readFileSync('public/amethyst/homepage.css', 'utf8')).toMatch(/\.hp-lineup-next\s*\{[^}]*white-space:\s*nowrap;[^}]*overflow:\s*hidden;[^}]*text-overflow:\s*ellipsis/)
     expect(empty).toContain('I have an open lineup.')
     expect(empty).toContain('class="live-dot"')
     expect(delayed).toContain('I have an open lineup.')

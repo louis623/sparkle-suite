@@ -6877,6 +6877,11 @@ body.surface-pumpkin-cat-glass {
   width: 100%;
   max-width: none;
   margin: 0;
+  min-height: 64px;
+  height: 64px;
+  max-height: 64px;
+  overflow: hidden;
+  container-type: inline-size;
 }
 .hp-lineup-label {
   position: static;
@@ -6888,6 +6893,11 @@ body.surface-pumpkin-cat-glass {
 body.bg-rose-champagne .hp-lineup-label {
   background: #f1dfd8;
   color: #45252e;
+}
+/* Silver Bells fades its ticker label; the lineup label stays a solid block. */
+html[data-customer-theme="silver_bells"] body .hp-lineup-label {
+  background: #0a1b36;
+  color: #f4f7fc;
 }
 .hp-lineup-idle-inner,
 .hp-lineup-body {
@@ -6925,6 +6935,15 @@ body.bg-rose-champagne .hp-lineup-label {
   font-size:13px; line-height:1.5; font-weight:600;
   color:var(--hp-preview-fg, var(--fg)); text-decoration:none; overflow-wrap:anywhere;
 }
+.hp-lineup-idle-copy { min-width: 0; max-width: 100%; flex: 1 1 auto; }
+.hp-lineup-next {
+  margin: 2px 0 0;
+  font-size: .75rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .hp-lineup-row .hp-lineup-idle-prompt > span { min-width: 0; }
 .hp-lineup-idle-prompt svg { flex:none; opacity:.8; }
 a.hp-lineup-idle-prompt:hover { text-decoration:underline; text-underline-offset:3px; }
@@ -6950,28 +6969,28 @@ a.hp-lineup-idle-prompt:focus-visible { outline:2px solid currentColor; outline-
     padding: 0 8px;
     gap: 8px;
   }
-  .hp-lineup-idle-prompt {
-    min-height: 44px;
-    min-block-size: 44px;
-    padding-block: 4px;
+  .hp-lineup-row .hp-lineup-idle-prompt {
+    min-height: 0;
+    min-block-size: 0;
+    padding-block: 0;
     line-height: 1.25;
-    touch-action: manipulation;
   }
   .hp-lineup-row .hp-trade-preview-link,
   .hp-lineup-row .hp-trade-preview-pill {
     touch-action: manipulation;
   }
 }
-/* Fold-width content cannot keep the link beside a scrolling pill. The second line stays inside the fixed row. */
-.hp-lineup-body { container-type: inline-size; }
-@container (max-width: 230px) {
+/* Phones keep pills on line 1 and the link plus time on line 2, inside the fixed row. */
+@container (max-width: 520px) {
   .hp-lineup-body {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
     align-content: center;
+    align-items: center;
     gap: 0;
   }
+  .hp-lineup-row .hp-trade-preview-items { grid-row: 1; }
   .hp-lineup-meta { grid-row: 2; min-height: 0; }
   .hp-lineup-row .hp-trade-preview-link,
   .hp-lineup-row .hp-trade-preview-pill {

@@ -284,7 +284,7 @@
     return h('section', {className:'hp-trade-preview hp-lineup-row hp-lineup-idle', 'data-lineup-surface':'calendar', 'aria-label':'Upcoming shows'},
       lineupLabel(h, false),
       h('div', {className:'hp-lineup-idle-inner'}, show
-        ? h('div', null, prompt, h('p', {style:{margin:'4px 0 0',fontSize:'.8rem'}}, show.title, ' · ', show.time))
+        ? h('div', {className:'hp-lineup-idle-copy'}, prompt, h('p', {className:'hp-lineup-next'}, show.time, ' · ', show.title))
         : prompt));
   }
   root.SparkleLiveLineup = { renderEmpty, merge, unavailable, afterTransit, revealUpdate, initialState, start, useDialog, useRevealFlare };

@@ -70,6 +70,9 @@ html[data-customer-theme="silver_bells"] body .hp-ticker-row .hp-ticker-label, h
   background: linear-gradient(90deg, #0a1b36 0%, #0a1b36 70%, transparent 100%);
   color: #f4f7fc;
 }
+html[data-customer-theme="silver_bells"] body .hp-lineup-label {
+  background: #0a1b36;
+}
 html[data-customer-theme="silver_bells"] body .hp-ticker-row.reverse .hp-ticker-label {
   background: linear-gradient(90deg, #163256 0%, #163256 70%, transparent 100%);
   color: #f4f7fc;
