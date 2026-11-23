@@ -633,7 +633,7 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
           <button type="button" className={styles.fullButton} aria-haspopup="dialog" onClick={() => { stopDrag(); setPopup('full') }}>↗ Full lineup</button>
         </div>
       </header>
-      <LiveLineupExtensionDetails snapshot={snapshot} label={statusLabel} tone={signal.tone} onStatus={() => { stopDrag(); setPopup('status') }} />
+      <LiveLineupExtensionDetails snapshot={snapshot} readOnly={readOnly} label={statusLabel} tone={signal.tone} onStatus={() => { stopDrag(); setPopup('status') }} />
       <p id={keyboardInstructionsId} className={styles.srOnly}>Keyboard: focus a customer, then use Up or Down to move all their orders one place, Home for first, or End for last. Press Escape to cancel a drag.</p>
       {(dragging || saving || error || notice || viewOnly) && <div className={styles.feedback} aria-live="polite" aria-atomic="true">
         {dragging ? (dropValid ? `Release to place at position ${dropPosition}` : 'Move back into the lineup to drop') : saving ? 'Saving…' : error ? 'We can’t update your lineup right now. We’ll keep trying.' : notice || 'Lineup changes are temporarily unavailable. Customer updates will continue.'}
