@@ -1,5 +1,11 @@
 'use client'
 
+import {
+  LIVE_LINEUP_HELP_RESOURCE_ID,
+  parseLiveLineupHelpDeepLink,
+  type LiveLineupHelpDeepLink,
+} from '@/lib/live-lineup/how-to-guide'
+import { LiveLineupHowToGuide } from './LiveLineupHowToGuide'
 import { isQueuedVideoUrl } from '@/lib/public-site/queue-video-link'
 import { isTikTokCardUrl } from '@/lib/public-site/tiktok-video-id'
 
@@ -18,6 +24,7 @@ import type {
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -441,6 +448,12 @@ export function syncWorkspaceSectionSearch(
   if (section !== 'messages') {
     for (const key of WORKSPACE_MESSAGE_QUERY_KEYS) params.delete(key)
     if (options.clearMessageConversation) params.delete('conversationId')
+  }
+
+  if (section !== 'help-resources') {
+    params.delete('guide')
+    params.delete('part')
+    params.delete('src')
   }
 
   return params.toString()
@@ -7197,6 +7210,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
                 source: 'help',
               })
             }
+            supportView={operatorSupportMode}
+            skipGuideScroll={workspaceHistoryNavRef.current === 'pop'}
           />
         </div>
       )
@@ -9291,16 +9306,59 @@ export function HelpResourcesCard({
   initialTab = 'help',
   learningContent,
   onContactSupport,
+  supportView = false,
+  skipGuideScroll = false,
 }: {
   state: ResourcesState
   hasPaidWorkspace: boolean
   initialTab?: 'learn' | 'help'
   learningContent?: ReactNode
   onContactSupport?: () => void
+  supportView?: boolean
+  skipGuideScroll?: boolean
 }) {
   const [activeResourceTab, setActiveResourceTab] = useState<'learn' | 'help'>(
     learningContent && initialTab === 'learn' ? 'learn' : 'help',
   )
+  const [guideDeepLink, setGuideDeepLink] = useState<LiveLineupHelpDeepLink | null>(null)
+  const [liveLineupGuideOpen, setLiveLineupGuideOpen] = useState(false)
+  const skipGuideScrollRef = useRef(skipGuideScroll)
+  const didOpenGuideRef = useRef(false)
+  const didScrollGuideRef = useRef(false)
+  const liveShowsGroupRef = useRef<HTMLDetailsElement>(null)
+  const liveLineupGuideRef = useRef<HTMLDetailsElement>(null)
+  const updateHeadingRef = useRef<HTMLHeadingElement>(null)
+
+  useLayoutEffect(() => {
+    const link = guideDeepLink ?? parseLiveLineupHelpDeepLink(window.location.search)
+    if (link && !guideDeepLink) setGuideDeepLink(link)
+    if (!link || didOpenGuideRef.current) return
+    const group = liveShowsGroupRef.current
+    const guide = liveLineupGuideRef.current
+    if (!group || !guide) return
+    didOpenGuideRef.current = true
+    group.open = true
+    guide.open = true
+    setLiveLineupGuideOpen(true)
+  }, [activeResourceTab, guideDeepLink, state.status])
+
+  useEffect(() => {
+    if (!guideDeepLink || !liveLineupGuideOpen || skipGuideScrollRef.current) return
+    let cancelled = false
+    const frame = window.requestAnimationFrame(() => {
+      if (cancelled || didScrollGuideRef.current) return
+      const summary = liveLineupGuideRef.current?.querySelector('summary')
+      const target = guideDeepLink.part === 'update' ? updateHeadingRef.current : summary
+      if (!(target instanceof HTMLElement)) return
+      didScrollGuideRef.current = true
+      target.scrollIntoView({ block: 'start', inline: 'nearest' })
+      target.focus({ preventScroll: true })
+    })
+    return () => {
+      cancelled = true
+      window.cancelAnimationFrame(frame)
+    }
+  }, [guideDeepLink, liveLineupGuideOpen])
   const hasLearningContent = Boolean(learningContent)
   const workflowGroups = getWorkflowResourcesByGroup(state.resources)
   const featureReferences = getResourcesByType(state.resources, 'feature_reference')
@@ -9441,7 +9499,11 @@ export function HelpResourcesCard({
               </details>
 
               {workflowGroups.map((section) => (
-                <details key={section.group} className={styles.playbookGroup}>
+                <details
+                  key={section.group}
+                  className={styles.playbookGroup}
+                  ref={section.group === 'Live Shows' ? liveShowsGroupRef : undefined}
+                >
                   <summary className={styles.playbookGroupSummary}>
                     <span className={styles.disclosureChevron} aria-hidden="true">&gt;</span>
                     <span className={styles.playbookSummaryCopy}>
@@ -9453,16 +9515,40 @@ export function HelpResourcesCard({
                     <span className={styles.rosterTag}>Open section</span>
                   </summary>
                   <div className={styles.playbookGuideList}>
-                    {section.resources.map((resource) => (
-                      <details key={resource.id} className={styles.playbookGuide}>
+                    {section.resources.map((resource) => {
+                      const isLiveLineupGuide = resource.id === LIVE_LINEUP_HELP_RESOURCE_ID
+                      return (
+                      <details
+                        key={resource.id}
+                        className={styles.playbookGuide}
+                        ref={isLiveLineupGuide ? liveLineupGuideRef : undefined}
+                        onToggle={
+                          isLiveLineupGuide
+                            ? (event) => setLiveLineupGuideOpen(event.currentTarget.open)
+                            : undefined
+                        }
+                      >
                         <summary className={styles.playbookGuideSummary}>
                           <span>
                             <span className={styles.customerName}>{resource.title}</span>
+                            {isLiveLineupGuide ? (
+                              <span className={styles.rosterTag}>Updated</span>
+                            ) : null}
                             <span className={styles.helperNote}>{resource.summary}</span>
                           </span>
                           <span className={styles.rosterTag}>Open guide</span>
                         </summary>
                         <div className={styles.playbookGuideBody}>
+                          {isLiveLineupGuide ? (
+                            liveLineupGuideOpen ? (
+                              <LiveLineupHowToGuide
+                                supportView={supportView}
+                                onContactSupport={onContactSupport}
+                                updateHeadingRef={updateHeadingRef}
+                              />
+                            ) : null
+                          ) : (
+                          <>
                           <div className={styles.guideField}>
                             <span className={styles.searchLabel}>Goal</span>
                             <p>{resource.goal}</p>
@@ -9511,9 +9597,12 @@ export function HelpResourcesCard({
                               </span>
                             </div>
                           ) : null}
+                          </>
+                          )}
                         </div>
                       </details>
-                    ))}
+                      )
+                    })}
                   </div>
                 </details>
               ))}

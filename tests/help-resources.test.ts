@@ -15,7 +15,7 @@ describe('help resources', () => {
       'Update your customer-facing site',
       'Embed a TikTok video on your customer-facing site',
       'Get ready for a live show',
-      'Use Live Lineup during a show',
+      'How to run your show with Live Lineup',
       'Use Live Lineup on a Mac',
       'Add a dancer to your Dance Floor',
       'Handle swap requests',
@@ -112,7 +112,8 @@ describe('help resources', () => {
     expect(combinedText).not.toContain('unpacked')
     expect(combinedText).not.toContain('launch-gated')
     expect(combinedText).not.toContain('rollout')
-    expect(combinedText).toContain('stale')
+    expect(combinedText).toContain('out of date')
+    expect(combinedText).not.toContain('stale')
     expect(combinedText).toContain('empty')
   })
 
@@ -144,7 +145,8 @@ describe('help resources', () => {
       .map((resource) => [resource.title, resource.summary, resource.body].join(' '))
       .join(' ')
 
-    expect(liveQueueText).toContain('not ready for this account yet')
+    expect(liveQueueText).toContain('out of date')
+    expect(liveQueueText).not.toContain('not ready for this account yet')
     expect(liveQueueText).toContain('Web Store')
     expect(liveQueueText).not.toContain('launch-gated')
     expect(liveQueueText).not.toContain('unpacked')
@@ -196,7 +198,7 @@ describe('help resources', () => {
     ['assigned code', 'use-live-queue-during-show'],
     ['Web Store', 'use-live-queue-during-show'],
     ['Chrome', 'use-live-queue-during-show'],
-    ['stale lineup', 'use-live-queue-during-show'],
+    ['out of date', 'use-live-queue-during-show'],
     ['empty', 'use-live-queue-during-show'],
   ])('retrieves Live Queue help for "%s"', (query, expectedResourceId) => {
     expect(getHelpResources(query).map((resource) => resource.id)).toContain(expectedResourceId)
