@@ -70,7 +70,7 @@ export function LiveLineupExtensionDetails({snapshot, label, tone, onStatus, rea
   const control = snapshot?.showControl
   const extension = snapshot?.extensionStatus
   const isStarted = control?.mode === 'started'
-  const outdated = snapshot?.authorized === true && extension?.updateNeeded === true && extension.workerVersion && extension.latestPublishedVersion
+  const outdated = (snapshot?.authorized === true || readOnly) && extension?.updateNeeded === true && extension.workerVersion && extension.latestPublishedVersion
     ? {worker: extension.workerVersion, latest: extension.latestPublishedVersion} : null
   let version = 'Extension version not reported.'
   if (extension?.workerVersion) {

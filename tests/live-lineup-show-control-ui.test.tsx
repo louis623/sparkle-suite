@@ -114,6 +114,13 @@ it('shows the out-of-date notice only for an older authorized extension', () => 
   expect(support).not.toContain('<a ')
   expect(support).not.toContain('How to update')
   expect(support).not.toContain(UPDATE_HREF)
+
+  const supportSession = details({...extension({workerVersion: '2.0.6', latestPublishedVersion: '2.0.13', updateNeeded: true}), authorized: false}, true)
+  expect(supportSession).toContain('Your Live Lineup extension is out of date')
+  expect(supportSession).toContain('You have <span class="' + styles.versionNowrap + '">2.0.6</span>. The newest is <span class="' + styles.versionNowrap + '">2.0.13</span>.')
+  expect(supportSession).not.toContain('<a ')
+  expect(supportSession).not.toContain('How to update')
+  expect(supportSession).not.toContain(UPDATE_HREF)
 })
 
 it('renders a static 390-wide Live Lineup card with the notice and two rows', () => {
