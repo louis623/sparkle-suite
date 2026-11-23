@@ -185,7 +185,8 @@ describe('fast public lineup rows keep one left label and one fixed mobile heigh
     }
   }
   it('locks the mobile lineup row and scrolls pills on one line',()=>{
-    expect(lineupCss).toMatch(/\.hp-lineup-label\s*\{[^}]*position:\s*static;[^}]*flex:\s*none;[^}]*align-self:\s*stretch/)
+    expect(lineupCss).toMatch(/\.hp-lineup-label\s*\{[^}]*position:\s*static;[^}]*flex:\s*none;[^}]*align-self:\s*stretch[^}]*gap:\s*6px/)
+    expect(lineupCss).toMatch(/\.hp-lineup-row \.hp-lineup-idle-prompt\s*\{[^}]*min-height:\s*0;[^}]*min-block-size:\s*0/)
     expect(lineupCss).toMatch(/\.hp-lineup-row\s*\{[^}]*display:\s*flex;[^}]*max-width:\s*none;[^}]*margin:\s*0/)
     expect(lineupCss).toMatch(/\.hp-lineup-row \.hp-trade-preview-items\s*\{[^}]*flex-wrap:\s*nowrap;[^}]*overflow-x:\s*auto/)
     expect(lineupCss).toMatch(/@media \(max-width: 640px\)\s*\{[^}]*\.hp-lineup-row\s*\{[^}]*min-height:\s*56px;[^}]*height:\s*56px/)

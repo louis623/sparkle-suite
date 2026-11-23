@@ -6888,6 +6888,11 @@ body.surface-pumpkin-cat-glass {
   flex: none;
   align-self: stretch;
   white-space: nowrap;
+  gap: 6px;
+}
+.hp-lineup-row .hp-lineup-idle-prompt {
+  min-height: 0;
+  min-block-size: 0;
 }
 /* Rose Champagne's own stylesheet is hash-frozen, so its label colors live here. */
 body.bg-rose-champagne .hp-lineup-label {
