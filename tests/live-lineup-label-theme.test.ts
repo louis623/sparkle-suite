@@ -43,6 +43,11 @@ describe('public lineup label uses the same scoped ticker colors', () => {
   for (const file of files) {
     it(`${file} repeats each forward ticker-label rule for the lineup label`, () => {
       const css = readFileSync(file, 'utf8')
+      // Rose Champagne's stylesheet hash is frozen. Its label colors live in homepage.css.
+      if (file.endsWith('rose-champagne.css')) {
+        expect(css).not.toContain('.hp-lineup-label')
+        return
+      }
       const blocks = css.match(/[^{}]+\{[^{}]*\}/g) ?? []
       for (const block of blocks) {
         const selectors = block.slice(0, block.indexOf('{')).split(',').map((selector) => selector.trim()).filter(Boolean)
@@ -52,4 +57,10 @@ describe('public lineup label uses the same scoped ticker colors', () => {
       }
     })
   }
+
+  it('styles the Rose Champagne lineup label from the shared stylesheet', () => {
+    const shared = readFileSync('public/amethyst/homepage.css', 'utf8')
+    expect(shared).toMatch(/body\.bg-rose-champagne \.hp-lineup-label\s*\{[^}]*background:\s*#f1dfd8;[^}]*color:\s*#45252e;/)
+    expect(shared).not.toMatch(/body\.bg-rose-champagne \.hp-lineup-label\s*\{[^}]*transparent/)
+  })
 })

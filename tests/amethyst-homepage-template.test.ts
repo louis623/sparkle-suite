@@ -791,7 +791,7 @@ describe('Amethyst homepage template data wiring', () => {
     )
 
     expect(jsx).toContain('function LiveQueueStrip')
-    expect(jsx).toContain('className="hp-trade-preview"')
+    expect(jsx).toMatch(/className="[^"]*\bhp-trade-preview\b[^"]*\bhp-lineup-row\b[^"]*"/)
     expect(jsx).toContain('Live Lineup')
     expect(jsx).toContain('View full lineup')
     expect(jsx).toContain('function LiveQueueModal')

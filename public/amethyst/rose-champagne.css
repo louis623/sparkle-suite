@@ -54,7 +54,7 @@ body.bg-rose-champagne .hp-ticker-row.reverse { background: #f9ede7; }
 body.bg-rose-champagne :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #45252e; }
 body.bg-rose-champagne .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #45252e; }
 body.bg-rose-champagne .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #a04e5d; }
-body.bg-rose-champagne .hp-ticker-row .hp-ticker-label, body.bg-rose-champagne .hp-lineup-label {
+body.bg-rose-champagne .hp-ticker-row .hp-ticker-label {
   background: #f1dfd8;
   color: #45252e;
 }

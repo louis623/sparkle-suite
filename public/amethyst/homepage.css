@@ -6884,6 +6884,11 @@ body.surface-pumpkin-cat-glass {
   align-self: stretch;
   white-space: nowrap;
 }
+/* Rose Champagne's own stylesheet is hash-frozen, so its label colors live here. */
+body.bg-rose-champagne .hp-lineup-label {
+  background: #f1dfd8;
+  color: #45252e;
+}
 .hp-lineup-idle-inner,
 .hp-lineup-body {
   flex: 1 1 auto;

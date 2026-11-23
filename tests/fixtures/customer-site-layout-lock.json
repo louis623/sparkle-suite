@@ -4,7 +4,7 @@
   "locks": [
     {
       "path": "public/amethyst/homepage.css",
-      "sha256": "32dbcfefa80379a5fa0fd69d575c56cb69cb42f48dd9509f8bd4b00849c0fdbe"
+      "sha256": "e7ba0e813bbf7cb865a72e8440da029cf06c8733853878a408a2f73dbc66129f"
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
@@ -107,7 +107,7 @@
       {
         "path": "public/amethyst/homepage.css",
         "previousSha256": "b5e58af6ab58012efa6a7c26241847bc60f75ea00d7a558fad919cd2dc889286",
-        "sha256": "32dbcfefa80379a5fa0fd69d575c56cb69cb42f48dd9509f8bd4b00849c0fdbe"
+        "sha256": "e7ba0e813bbf7cb865a72e8440da029cf06c8733853878a408a2f73dbc66129f"
       },
       {
         "path": "public/amethyst/homepage.jsx",
