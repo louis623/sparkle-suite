@@ -190,7 +190,7 @@ describe('workspace control hover tips', () => {
           socialHandles: { instagram: '@sparklebysasha', facebook: 'sparklebysasha' },
         },
         hasUnsavedChanges: true,
-        changes: ['Site tagline'],
+        changes: ['Footer tagline'],
       }),
     )
     expect(settings).toContain('data-control-tip="save-site-settings"')

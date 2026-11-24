@@ -67,15 +67,66 @@ const sample: SiteSettingsDraft = {
   ],
 }
 
+const mileHigh: SiteSettingsDraft = {
+  ...sample,
+  displayName: 'Lindsey',
+  businessName: 'Mile High Fizz',
+  email: 'lindseychapman1188@gmail.com',
+  appearancePreset: 'alpine_opal',
+  heroAnimationType: 'soft_glow',
+  teamName: 'Diamond Peak Society',
+  heroMotionApplies: true,
+  grandfatheredHeadlineFallback: true,
+}
+
+const listedStandard: SiteSettingsDraft = {
+  ...sample,
+  heroMotionApplies: false,
+  grandfatheredHeadlineFallback: false,
+}
+
+function ReviewCard({
+  title,
+  saved,
+  slug,
+  openSections,
+}: {
+  title: string
+  saved: SiteSettingsDraft
+  slug?: string
+  openSections?: SiteSectionId[]
+}) {
+  const [draft, setDraft] = useState(saved)
+  return (
+    <section aria-label={title} style={{ marginBottom: 32 }}>
+      <h2 style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '1.1rem' }}>{title}</h2>
+      <SiteSettingsCard
+        state={{ status: 'ready', settings: saved }}
+        draft={draft}
+        publicSiteSlug={slug}
+        publicSiteUrl="https://sparklebysasha.example"
+        publicSiteDisplay="sparklebysasha.example"
+        canPreview
+        initialOpenSections={openSections}
+        onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
+        onPreview={() => undefined}
+        onDiscard={() => setDraft(saved)}
+        onSave={() => undefined}
+      />
+    </section>
+  )
+}
+
 export function MyWebsiteLayoutHarness({
   mode = 'gaps',
   openSection = null,
 }: {
-  mode?: 'gaps' | 'full'
+  mode?: 'gaps' | 'full' | 'states' | 'load-error'
   openSection?: SiteSectionId | null
 }) {
+  const [reloaded, setReloaded] = useState(false)
   const saved: SiteSettingsDraft =
-    mode === 'full'
+    mode === 'full' || mode === 'states'
       ? sample
       : {
           ...sample,
@@ -85,6 +136,50 @@ export function MyWebsiteLayoutHarness({
           ),
         }
   const [draft, setDraft] = useState(saved)
+  if (mode === 'load-error') {
+    return (
+      <div data-testid="my-website-layout-harness" style={{ padding: '16px 16px 120px' }}>
+        <p style={{ marginTop: 0, fontFamily: 'DM Sans, sans-serif' }}>
+          Signed-out review harness. Sample content only. It does not save, publish, or call a signed-in preview.
+        </p>
+        {reloaded ? (
+          <p data-testid="settings-reloaded">Settings loaded.</p>
+        ) : (
+          <SiteSettingsCard
+            state={{ status: 'error' }}
+            onRetry={() => setReloaded(true)}
+          />
+        )}
+      </div>
+    )
+  }
+  if (mode === 'states') {
+    return (
+      <div data-testid="my-website-layout-harness" style={{ padding: '16px 16px 120px' }}>
+        <p style={{ marginTop: 0, fontFamily: 'DM Sans, sans-serif' }}>
+          Signed-out review harness. Sample content only. It does not save, publish, or call a signed-in preview.
+        </p>
+        <ReviewCard
+          title="Listed standard rep: no Hero control"
+          saved={listedStandard}
+          slug="dudesfizzfest"
+          openSections={['hero', 'footer']}
+        />
+        <ReviewCard
+          title="Unlisted standard rep: Hero motion"
+          saved={{ ...sample, heroMotionApplies: true, grandfatheredHeadlineFallback: false }}
+          slug="newrep"
+          openSections={['hero', 'footer']}
+        />
+        <ReviewCard
+          title="Custom layout: Hero animation"
+          saved={mileHigh}
+          slug="milehighfizz"
+          openSections={['hero', 'footer']}
+        />
+      </div>
+    )
+  }
   return (
     <div data-testid="my-website-layout-harness" style={{ padding: '16px 16px 120px' }}>
       <p style={{ marginTop: 0, fontFamily: 'DM Sans, sans-serif' }}>

@@ -15,6 +15,7 @@ import { flushSync } from 'react-dom'
 import { SiteLeaveGuard, SiteSaveBar, type SiteDiscardOpener } from './SiteSaveBar'
 import { SiteMapRail, SiteSettingsBody, SetupChecklist } from './SiteSettingsBody'
 import { buildSiteSetupChecklist, type SiteSectionId } from './site-settings-layout'
+import { myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-applies'
 import {
   discountCodeFieldError,
   discountMessageFieldError,
@@ -2577,15 +2578,26 @@ export function hasSiteSettingsUnsavedChanges({
   isBrittWithBling?: boolean
 }) {
   if (!settings || !draft) return false
-  return (
-    JSON.stringify(getNormalizedSiteSettingsDraft(draft, { isBrittWithBling })) !==
-    JSON.stringify(
-      getNormalizedSiteSettingsDraft(
-        getSiteSettingsDraft(settings, { isBrittWithBling }),
-        { isBrittWithBling },
-      ),
-    )
+  return myWebsiteDraftFingerprint(draft, isBrittWithBling) !== myWebsiteDraftFingerprint(
+    getSiteSettingsDraft(settings, { isBrittWithBling }),
+    isBrittWithBling,
   )
+}
+
+/** Team I manage is edited in Team Management, so it does not count as a My Website change. */
+function myWebsiteDraftFingerprint(draft: SiteSettingsDraft, isBrittWithBling: boolean) {
+  const {
+    teamName,
+    recruitingLink,
+    heroMotionApplies,
+    grandfatheredHeadlineFallback,
+    ...rest
+  } = getNormalizedSiteSettingsDraft(draft, { isBrittWithBling })
+  void teamName
+  void recruitingLink
+  void heroMotionApplies
+  void grandfatheredHeadlineFallback
+  return JSON.stringify(rest)
 }
 
 export function getSiteSettingsManualSaveStatusText({
@@ -3449,6 +3461,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const siteSettingsSaveRequestRef = useRef(0)
   const siteSettingsVersionRef = useRef(0)
   const siteSettingsSavePendingRef = useRef(false)
+  const heroAnimationTouchedRef = useRef(false)
   const queuedNicNacSiteRefreshRef = useRef(false)
   const [tradeBoardState, setTradeBoardState] = useState<TradeBoardState>({
     status: reviewWorkspaceMode ? 'ready' : 'loading',
@@ -3671,6 +3684,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     setSiteSettingsState({
       status: 'ready',
       settings: payload,
+    })
+  }
+
+  function retrySiteSettings() {
+    setSiteSettingsState({ status: 'loading' })
+    void loadSiteSettings().catch((error) => {
+      if ((error as { name?: string }).name === 'AbortError') return
+      setSiteSettingsState({ status: 'error' })
     })
   }
 
@@ -4521,6 +4542,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   function handleSiteSettingsDraftChange(
     patch: Partial<SiteSettingsDraft>,
   ) {
+    if (Object.prototype.hasOwnProperty.call(patch, 'heroAnimationType')) {
+      heroAnimationTouchedRef.current = true
+    }
     setSiteSettingsActionState((current) => ({
       pending: current.pending,
       error: null,
@@ -4776,7 +4800,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(normalizedDraft),
+        body: JSON.stringify(myWebsiteSavePayload(normalizedDraft, {
+          includeHeroAnimation: heroAnimationTouchedRef.current,
+        })),
       })
 
       const payload = (await response.json().catch(() => null)) as
@@ -4789,6 +4815,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
 
       acceptSiteSettingsSnapshot(payload.settings)
       const latestDraft = siteSettingsDraftRef.current
+      if (!latestDraft || latestDraft.heroAnimationType === payload.settings.heroAnimationType) {
+        heroAnimationTouchedRef.current = false
+      }
       if (
         !latestDraft ||
         JSON.stringify(latestDraft) === JSON.stringify(normalizedDraft)
@@ -4832,6 +4861,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
 
   function handleDiscardSiteSettings() {
     if (siteSettingsState.status !== 'ready' || !siteSettingsState.settings) return
+    heroAnimationTouchedRef.current = false
     setForceSiteFieldErrors(false)
     setSiteSettingsFieldEpoch((current) => current + 1)
     setSiteSettingsDraft(
@@ -7467,10 +7497,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             mediaUploadKey={siteSettingsMediaUploadKey}
             mediaUploadFeedback={siteSettingsMediaUploadFeedback}
             isBrittWithBling={isBrittWithBlingWorkspace}
+            publicSiteSlug={currentPublicSiteSlug}
             canPreview={Boolean(customerSparkleSiteHref)}
             onPreview={handleOpenCustomerSitePreview}
             onDiscard={() => discardOpenerRef.current?.open()}
             onSave={handleSaveSiteSettings}
+            onRetry={retrySiteSettings}
           />
         </div>
       )
@@ -9851,9 +9883,12 @@ export function SiteSettingsCard({
   isBrittWithBling = false,
   canPreview,
   initialOpenSection = null,
+  initialOpenSections = null,
+  publicSiteSlug = null,
   onPreview,
   onDiscard,
   onSave,
+  onRetry,
 }: {
   repId?: string | null
   state: SiteSettingsState
@@ -9885,9 +9920,12 @@ export function SiteSettingsCard({
   isBrittWithBling?: boolean
   canPreview?: boolean
   initialOpenSection?: SiteSectionId | null
+  initialOpenSections?: SiteSectionId[] | null
+  publicSiteSlug?: string | null
   onPreview?: () => void
   onDiscard?: () => void
   onSave?: () => void
+  onRetry?: () => void
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
   const copyTimerRef = useRef<number | null>(null)
@@ -10008,8 +10046,11 @@ export function SiteSettingsCard({
 
   if (state.status === 'error') {
     return (
-      <div className={styles.rosterFallback}>
-        Site settings will appear here once your public profile data loads.
+      <div className={styles.settingsLoadError} role="alert">
+        <p>Site settings will appear here once your public profile data loads.</p>
+        <button type="button" className={styles.settingsLoadRetry} onClick={() => onRetry?.()}>
+          Retry
+        </button>
       </div>
     )
   }
@@ -10112,7 +10153,9 @@ export function SiteSettingsCard({
         savedSlots={state.settings.homepageMediaSlots}
         joinTeamAccessEnabled={state.settings.joinTeamAccessEnabled === true}
         isBrittWithBling={isBrittWithBling}
+        publicSiteSlug={publicSiteSlug}
         initialOpenSection={initialOpenSection}
+        initialOpenSections={initialOpenSections}
         emailError={emailError}
         shopLinkError={shopLinkError}
         discountCodeError={discountCodeError}

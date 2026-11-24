@@ -40,7 +40,7 @@ export const SHOWS_ON = {
   heroSocials: 'Hero buttons',
   heroMotion: 'Your hero animation',
   upcomingShows: 'Homepage, under the hero',
-  revealVideo: "The “It's a live jewelry reveal” block",
+  revealVideo: "the 'It's a live jewelry reveal' block",
   revealCaption: 'Under the live reveal video',
   aboutTitle: 'The About heading',
   aboutStory: 'The About story',

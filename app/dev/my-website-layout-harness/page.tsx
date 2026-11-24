@@ -17,10 +17,13 @@ export default async function MyWebsiteLayoutHarnessPage({
 }) {
   if (!isMyWebsiteLayoutHarnessEnabled()) notFound()
   const query = searchParams ? await searchParams : {}
+  const mode = query.case === 'full' || query.case === 'states' || query.case === 'load-error'
+    ? query.case
+    : 'gaps'
   return (
     <main style={{ minHeight: '100vh', background: 'var(--nic-nac-surface-dashboard, #fcf8f6)' }}>
       <MyWebsiteLayoutHarness
-        mode={query.case === 'full' ? 'full' : 'gaps'}
+        mode={mode}
         openSection={query.open === 'about' ? 'about' : null}
       />
     </main>

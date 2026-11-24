@@ -8286,6 +8286,59 @@
   line-height: 1.35;
 }
 
+.heroSwitchCopy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.managedTeamLine {
+  margin: 0;
+  color: var(--nic-nac-text-primary, #402924);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.settingsLoadError {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 120px;
+  margin-top: 4px;
+  border-radius: 8px;
+  background: var(--nic-nac-surface-dashboard-placeholder);
+  padding: 16px;
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  font-size: 1rem;
+  color: var(--nic-nac-text-secondary);
+}
+
+.settingsLoadError p {
+  margin: 0;
+}
+
+.settingsLoadRetry {
+  min-height: 44px;
+  min-width: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: #a10d68;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 10px 16px;
+}
+
+.settingsLoadRetry:focus-visible {
+  outline: 3px solid #be93ef;
+  outline-offset: 3px;
+}
+
 .setupChecklist {
   display: flex;
   flex-wrap: wrap;

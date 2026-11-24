@@ -725,6 +725,15 @@ export interface SiteSettingsDashboardResult {
   signupDiscountOffer?: string
   signupDiscountEnabled?: boolean
   signupDiscountMessage?: string
+  /**
+   * Read-only. True when this rep's hero still follows their saved motion
+   * (custom layout, or a slug the v2 renderer does not serve).
+   */
+  heroMotionApplies?: boolean
+  /**
+   * Read-only. True when an empty line under the headline falls back to the footer tagline.
+   */
+  grandfatheredHeadlineFallback?: boolean
 }
 
 export interface UpdateSiteSettingsDashboardInput {

@@ -661,7 +661,7 @@ describe('DashboardPlaceholder', () => {
         resolve(process.cwd(), 'app/nic-nac/components/SiteSettingsBody.tsx'),
         'utf8',
       ),
-    ).toContain('<span className={styles.searchLabel}>Team I belong to</span>')
+    ).toContain('<span className={styles.searchLabel}>Team I belong to (shown in small print)</span>')
   })
 
   it('disables copying a missing lineup code and routes bug reports to the selected support form', () => {
@@ -3637,11 +3637,10 @@ describe('DashboardPlaceholder', () => {
     )
 
     expect(html).toContain('Top bar')
-    expect(html).toContain('Display name')
-    expect(html).toContain('Show name')
+    expect(html).toContain('Your first name')
+    expect(html).toContain('Business name')
     expect(html).toContain('Bomb Party rep store link')
     expect(html).toContain('This powers the Shop buttons across your customer-facing site.')
-    expect(html).not.toContain('Business name')
     expect(html).not.toContain('Phone</span>')
     expect(html).toContain('Show on your website')
     expect(html).not.toContain('Banner and ticker')
@@ -3650,9 +3649,12 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Announcement ticker messages')
     expect(html).not.toContain('Hero image URL')
     expect(html).toContain('Hero motion')
-    expect(html).toContain('Hero title')
-    expect(html).toContain('Hero subtitle')
-    expect(html).toContain('Site tagline')
+    expect(html).toContain('Big headline')
+    expect(html).toContain('Line under the headline')
+    expect(html).toContain('Footer tagline')
+    expect(html).not.toContain('Hero title')
+    expect(html).not.toContain('Hero subtitle')
+    expect(html).not.toContain('Site tagline')
     expect(html).toContain('Sparkle rise')
     expect(html).toContain('Soft glow')
     expect(html).toContain('Still')
@@ -3869,7 +3871,7 @@ describe('DashboardPlaceholder', () => {
         },
         actionState: { pending: false, error: null, helperMessage: null },
         hasUnsavedChanges: true,
-        changes: ['Site tagline'],
+        changes: ['Footer tagline'],
         publicSiteUrl: 'https://www.example.com',
         publicSiteDisplay: 'example.com',
         canPreview: true,
@@ -3880,7 +3882,7 @@ describe('DashboardPlaceholder', () => {
 
     expect(html).not.toContain('Changes will auto-save.')
     expect(html).toContain('1 unsaved change')
-    expect(html).toContain('Site tagline')
+    expect(html).toContain('Footer tagline')
     expect(html).toContain('Preview saved site')
     expect(html).toContain('Save &amp; publish')
     expect(html).not.toContain('Save site settings')

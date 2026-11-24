@@ -1,3 +1,7 @@
+## November 24, 2026 — My Website hero motion, Chunk 4
+
+Louis approved the My Website redesign build on November 23, 2026. `cursor/my-website-hero-motion-583b` is allowlisted only so Chunk 4 can build on Smoke, stacked on `cursor/my-website-customer-scroll-cd8d`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
 ## November 24, 2026 — My Website customer-scroll layout, Chunk 3b
 
 Louis approved the My Website redesign build on November 23, 2026. `cursor/my-website-customer-scroll-cd8d` is allowlisted only so Chunk 3b can build on Smoke, stacked on `cursor/my-website-save-bar-1c57`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.

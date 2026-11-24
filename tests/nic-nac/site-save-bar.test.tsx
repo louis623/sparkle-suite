@@ -4,7 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { act } from 'react'
 import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { SiteSettingsCard, getSiteSettingsDraft } from '@/app/nic-nac/components/DashboardPlaceholder'
+import { SiteSettingsCard, getSiteSettingsDraft, hasSiteSettingsUnsavedChanges } from '@/app/nic-nac/components/DashboardPlaceholder'
 import { SiteLeaveGuard, type SiteDiscardOpener } from '@/app/nic-nac/components/SiteSaveBar'
 import {
   collectSiteSettingsFieldErrors,
@@ -89,6 +89,17 @@ afterEach(() => {
 })
 
 describe('site save bar', () => {
+  it('does not count a Team Management edit toward My Website unsaved changes', () => {
+    const saved = getSiteSettingsDraft(base)
+    const edited: SiteSettingsDraft = {
+      ...saved,
+      teamName: 'A different team',
+      recruitingLink: 'https://bombparty.com/sasha/packs',
+    }
+    expect(names(edited)).toEqual([])
+    expect(hasSiteSettingsUnsavedChanges({ settings: saved, draft: edited })).toBe(false)
+  })
+
   it('counts and names three unsaved changes, including the theme', () => {
     const draft: SiteSettingsDraft = {
       ...base,
@@ -97,7 +108,7 @@ describe('site save bar', () => {
       appearancePreset: 'rose_gold',
     }
     const labels = names(draft)
-    expect(labels).toEqual(['Theme', 'Display name', 'Email'])
+    expect(labels).toEqual(['Theme', 'Your first name', 'Email'])
     expect(unsavedChangesLabel(labels.length)).toBe('3 unsaved changes')
     expect(discardConfirmMessage(3)).toBe(
       "Discard 3 unsaved changes? Photos you uploaded stay uploaded but won't show on your site; removed videos stay removed.",
@@ -125,7 +136,7 @@ describe('site save bar', () => {
       ),
     }
     expect(names(edited)).toEqual(
-      expect.arrayContaining(['Site tagline', 'Announcements', 'Theme', 'About portrait photo']),
+      expect.arrayContaining(['Footer tagline', 'Announcements', 'Theme', 'About portrait photo']),
     )
     const discarded = getSiteSettingsDraft(saved)
     expect(discarded.tagline).toBe('Live sparkle')
@@ -187,7 +198,7 @@ describe('site save bar', () => {
         createElement(SiteSettingsCard, {
           state: { status: 'ready', settings: base },
           draft: { ...base, tagline: 'Still here' },
-          changes: ['Site tagline'],
+          changes: ['Footer tagline'],
           actionState: {
             pending: false,
             error: formatSiteSaveFailure('The database is busy.'),
