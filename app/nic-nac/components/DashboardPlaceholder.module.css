@@ -5541,15 +5541,15 @@
   gap: 8px;
   border-radius: 22px;
   padding: 16px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 246, 250, 0.72));
-  border: 1px solid var(--nic-nac-border);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.76);
+  background: var(--suite-plum-surface);
+  color: var(--suite-cream);
+  border: 1px solid var(--suite-dark-line);
+  box-shadow: 0 16px 40px rgba(52, 37, 47, 0.16);
 }
 
 .myWebsiteKicker {
   margin: 0;
-  color: #b91673;
+  color: var(--suite-soft-pink);
   font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 800;
@@ -5560,17 +5560,18 @@
 
 .myWebsiteTitle {
   margin: 0;
-  color: var(--nic-nac-text-primary, #402924);
+  color: var(--suite-cream);
   font-family: var(--font-prelaunch-display), 'Playfair Display', Georgia, serif;
   font-size: clamp(1.8rem, 4vw, 2.4rem);
   font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1.1;
+  text-wrap: balance;
 }
 
 .myWebsiteAddress {
   margin: 0;
-  color: var(--nic-nac-text-secondary, #775d57);
+  color: var(--suite-cream);
   font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
   font-size: 1rem;
   font-weight: 700;
@@ -5650,6 +5651,28 @@
 .siteSettingsPreviewButton:disabled {
   cursor: default;
   opacity: 0.58;
+}
+
+.myWebsiteHeader .siteSettingsPreviewButton {
+  background: var(--suite-cream);
+  color: var(--suite-ink);
+  border-color: transparent;
+}
+
+.myWebsiteHeader .siteSettingsPreviewButton:hover:not(:disabled) {
+  background: var(--suite-white);
+  border-color: transparent;
+}
+
+.myWebsiteHeader .siteSettingsPreviewButton:focus-visible {
+  outline: 3px solid var(--suite-soft-pink);
+  outline-offset: 3px;
+}
+
+.myWebsiteHeader .siteSettingsPreviewButton:disabled {
+  opacity: 1;
+  background: var(--suite-cream);
+  color: var(--suite-ink);
 }
 
 .siteSettingsSaveButton:hover {
