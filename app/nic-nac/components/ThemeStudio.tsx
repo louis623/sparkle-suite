@@ -362,9 +362,6 @@ export function ThemeStudio({
             <p className={styles.dialogCopy}>
               Your real headline, shows and photos. Customers still see {savedLabel}.
             </p>
-            {view.status === 'ready' && view.engine === 'legacy' ? (
-              <p className={styles.engineNotice}>{THEME_PREVIEW_LEGACY_NOTICE}</p>
-            ) : null}
             <PreviewSurface
               scope="dialog"
               page={page}
@@ -491,16 +488,27 @@ function PreviewSurface({
   retired: boolean
   framed?: boolean
 }) {
+  const panelId = `${scope}-preview-panel`
+  const pendingFocus = useRef<string | null>(null)
+  useEffect(() => {
+    const tabId = pendingFocus.current
+    if (!tabId) return
+    pendingFocus.current = null
+    document.getElementById(tabId)?.focus()
+  })
+
   function onTabKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const index = PREVIEW_PAGES.findIndex((item) => item.id === page)
     let next = index
-    if (event.key === 'ArrowRight') next = (index + 1) % PREVIEW_PAGES.length
-    else if (event.key === 'ArrowLeft') next = (index - 1 + PREVIEW_PAGES.length) % PREVIEW_PAGES.length
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % PREVIEW_PAGES.length
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (index - 1 + PREVIEW_PAGES.length) % PREVIEW_PAGES.length
     else if (event.key === 'Home') next = 0
     else if (event.key === 'End') next = PREVIEW_PAGES.length - 1
     else return
     event.preventDefault()
-    document.getElementById(`${scope}-tab-${PREVIEW_PAGES[next].id}`)?.focus()
+    const nextPage = PREVIEW_PAGES[next].id
+    pendingFocus.current = `${scope}-tab-${nextPage}`
+    onPage(nextPage)
   }
 
   return (
@@ -509,28 +517,37 @@ function PreviewSurface({
         <p className={styles.status}>This theme is no longer offered, so there isn&apos;t a preview.</p>
       ) : (
         <>
+          {view.status === 'ready' && view.engine === 'legacy' ? (
+            <p className={styles.engineNotice}>{THEME_PREVIEW_LEGACY_NOTICE}</p>
+          ) : null}
           <div
             className={styles.tabs}
             role="tablist"
             aria-label="Preview page"
             onKeyDown={onTabKeyDown}
           >
-            {PREVIEW_PAGES.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                role="tab"
-                id={`${scope}-tab-${item.id}`}
-                className={styles.tab}
-                aria-selected={page === item.id}
-                onClick={() => onPage(item.id)}
-              >
-                {item.label}
-              </button>
-            ))}
+            {PREVIEW_PAGES.map((item) => {
+              const selected = page === item.id
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  id={`${scope}-tab-${item.id}`}
+                  className={styles.tab}
+                  aria-selected={selected}
+                  aria-controls={panelId}
+                  tabIndex={selected ? 0 : -1}
+                  onClick={() => onPage(item.id)}
+                >
+                  {item.label}
+                </button>
+              )
+            })}
           </div>
           <div
             className={styles.stageBody}
+            id={panelId}
             role="tabpanel"
             aria-labelledby={`${scope}-tab-${page}`}
           >
@@ -547,7 +564,10 @@ function PreviewSurface({
               </p>
             ) : null}
             {view.status === 'expired' ? (
-              <p className={styles.warning} role="alert">{THEME_PREVIEW_SESSION_EXPIRED}</p>
+              <p className={styles.warning} role="alert">
+                {THEME_PREVIEW_SESSION_EXPIRED}{' '}
+                <a className={styles.signInLink} href="/login">Sign in</a>
+              </p>
             ) : null}
             {view.status === 'ready' ? (
               <SitePreviewFrame html={view.html} themeLabel={themeLabel} />

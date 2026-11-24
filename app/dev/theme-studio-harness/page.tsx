@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { isThemeStudioHarnessEnabled } from './access'
 import { ThemeStudioHarness } from './harness'
 
 export const dynamic = 'force-dynamic'
@@ -13,6 +15,7 @@ export default async function ThemeStudioHarnessPage({
 }: {
   searchParams?: Promise<{ skin?: string }>
 }) {
+  if (!isThemeStudioHarnessEnabled()) notFound()
   const query = searchParams ? await searchParams : {}
   const skin = query.skin === 'black_diamond' ? 'black_diamond' : undefined
   return (

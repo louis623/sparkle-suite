@@ -254,6 +254,11 @@
 .tryOn,
 .showAll,
 .keep,
+.signInLink {
+  color: #a10d68;
+  font-weight: 800;
+}
+
 .retry {
   border: 1px solid var(--nic-nac-border-strong, rgba(64, 41, 36, 0.2));
   border-radius: 999px;

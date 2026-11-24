@@ -210,9 +210,16 @@ describe('theme studio card', () => {
     await act(async () => {
       pending[1]?.resolve({ status: 200, html: '<p>Rose Gold</p>', engine: 'ssr' })
     })
+    const tabs = [...host.querySelectorAll('[role="tab"]')] as HTMLButtonElement[]
+    const selected = tabs.filter((tab) => tab.getAttribute('aria-selected') === 'true')
+    const panel = host.querySelector('[role="tabpanel"]')
+    expect(selected).toHaveLength(1)
+    expect(selected[0]?.tabIndex).toBe(0)
+    expect(tabs.filter((tab) => tab.tabIndex === 0)).toHaveLength(1)
+    expect(selected[0]?.getAttribute('aria-controls')).toBe(panel?.id)
+    expect(panel?.getAttribute('aria-labelledby')).toBe(selected[0]?.id)
     expect(host.querySelector('iframe')?.getAttribute('sandbox')).toBe('allow-scripts')
     expect(host.querySelector('iframe')?.getAttribute('sandbox')).toBe(sitePreviewFrameAttributes('Rose Gold').sandbox)
-    const panel = host.querySelector('[role="tabpanel"]')
     expect(panel?.querySelector('[role="tablist"]')).toBeNull()
     expect(panel?.querySelector('iframe')).not.toBeNull()
     await act(async () => {
@@ -228,6 +235,15 @@ describe('theme studio card', () => {
     })
     expect(loadPreview).toHaveBeenCalledTimes(3)
     expect(host.textContent).toContain('Rose Gold')
+    const homeTab = host.querySelector('#panel-tab-homepage') as HTMLButtonElement
+    await act(async () => {
+      homeTab.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    })
+    const danceFloor = host.querySelector('#panel-tab-trade') as HTMLButtonElement
+    expect(danceFloor.getAttribute('aria-selected')).toBe('true')
+    expect(danceFloor.tabIndex).toBe(0)
+    expect(homeTab.tabIndex).toBe(-1)
+    expect(loadPreview).toHaveBeenCalledTimes(3)
   })
 
   it('closes Try it on from X, Back to themes, and Escape, and returns focus to the card', async () => {
@@ -264,11 +280,11 @@ describe('theme studio card', () => {
     expect(document.activeElement).toBe(opener)
   })
 
-  it('keeps Try it on usable when the width changes and shows the legacy notice only in the pop-up', async () => {
+  it('keeps Try it on usable when the width changes and shows the legacy notice in the side panel', async () => {
     const loadPreview = vi.fn(async () => ({ status: 200, html: '<p>Preview</p>', engine: 'legacy' as const }))
     await renderStudio({ loadPreview, wide: true })
     await act(async () => releaseIdle?.())
-    expect(host.textContent).not.toContain(THEME_PREVIEW_LEGACY_NOTICE)
+    expect(host.textContent).toContain(THEME_PREVIEW_LEGACY_NOTICE)
     const opener = host.querySelector('#try-on-gobble_and_fizz') as HTMLButtonElement
     await act(async () => {
       opener.focus()
@@ -299,6 +315,7 @@ describe('theme studio card', () => {
       buttonNamed('Retry').click()
     })
     expect(host.textContent).toContain(THEME_PREVIEW_SESSION_EXPIRED)
+    expect(host.querySelector('a[href="/login"]')?.textContent).toBe('Sign in')
     expect(buttonNamed('Retry')).toBeUndefined()
   })
 })
