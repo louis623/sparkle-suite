@@ -13,6 +13,7 @@ import {
 import {
   groupThemesBySeason,
   THEME_SEASON_TAG,
+  uniqueThemes,
   type ThemeSeason,
 } from '@/lib/amethyst/theme-seasons'
 import styles from './ThemeStudio.module.css'
@@ -108,7 +109,6 @@ export function ThemeStudio({
   loadPreview?: (request: ThemePreviewRequest) => Promise<ThemePreviewResult>
 }) {
   const wide = useMediaQuery('(min-width: 880px)')
-  const desktopFrame = useMediaQuery('(min-width: 1200px)')
   const [armed, setArmed] = useState(false)
   const [chosenId, setChosenId] = useState(draftThemeId)
   const [page, setPage] = useState<PreviewPage>('homepage')
@@ -145,7 +145,7 @@ export function ThemeStudio({
     return false
   }
   const savedOffered = savedCard ? offeredIds.has(savedCard.id) : true
-  const themes = savedCard && !savedOffered ? [...cards, savedCard] : [...cards]
+  const themes = uniqueThemes(savedCard && !savedOffered ? [...cards, savedCard] : cards)
   const groups = groupThemesBySeason(themes, savedCard?.id ?? savedThemeId, now ?? new Date())
   const chosen = themes.find((theme) => theme.id === chosenId) ?? savedCard
   const chosenOffered = chosen ? offeredIds.has(chosen.id) : false
@@ -328,7 +328,7 @@ export function ThemeStudio({
           </p>
         </div>
         {wide ? (
-          <div className={desktopFrame ? styles.browserFrame : styles.phoneFrame}>
+          <div className={styles.previewColumn}>
             <PreviewSurface
               scope="panel"
               page={page}
@@ -412,24 +412,26 @@ export function ThemeStudio({
               showCachedOrLoading(theme.id, page)
             }}
           />
-          {theme.thumb ? (
-            <img
-              className={styles.thumb}
-              src={theme.thumb}
-              alt=""
-              width={480}
-              height={300}
-              loading={eager ? 'eager' : 'lazy'}
-              fetchPriority={eager ? 'low' : undefined}
-              decoding="async"
-            />
-          ) : (
-            <span
-              className={styles.colorBlock}
-              style={{ background: colorBlock(theme.previewColors) }}
-              aria-hidden="true"
-            />
-          )}
+          <span
+            className={styles.thumbFrame}
+            style={{ background: colorBlock(theme.previewColors) }}
+          >
+            {theme.thumb ? (
+              <img
+                className={styles.thumb}
+                src={theme.thumb}
+                alt=""
+                width={480}
+                height={300}
+                loading={eager ? 'eager' : 'lazy'}
+                fetchPriority={eager ? 'low' : undefined}
+                decoding="async"
+                onError={(event) => {
+                  event.currentTarget.hidden = true
+                }}
+              />
+            ) : null}
+          </span>
           <span className={styles.check} aria-hidden="true" data-check="">✓</span>
           <span className={styles.name}>{theme.label}</span>
           {theme.visibility === 'private' ? <span className={styles.tag}>Just for you</span> : null}

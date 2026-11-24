@@ -48,6 +48,18 @@ export function seasonsActiveOn(date: Date): Array<Exclude<ThemeSeason, 'none'>>
   return active
 }
 
+/** Drop a repeated id. A saved theme that is already offered must not be appended again. */
+export function uniqueThemes<T extends SeasonTheme>(themes: readonly T[]): T[] {
+  const seen = new Set<string>()
+  const unique: T[] = []
+  for (const theme of themes) {
+    if (seen.has(theme.id)) continue
+    seen.add(theme.id)
+    unique.push(theme)
+  }
+  return unique
+}
+
 function hoistSaved<T extends SeasonTheme>(themes: T[], savedId: string | null | undefined) {
   if (!savedId) return themes
   const index = themes.findIndex((theme) => theme.id === savedId)
@@ -64,7 +76,7 @@ export function groupThemesBySeason<T extends SeasonTheme>(
   const inSeason: T[] = []
   const everyday: T[] = []
   const outOfSeason: T[] = []
-  for (const theme of themes) {
+  for (const theme of uniqueThemes(themes)) {
     if (theme.season !== 'none' && active.has(theme.season)) inSeason.push(theme)
     else if (theme.season === 'none') everyday.push(theme)
     else outOfSeason.push(theme)
@@ -81,8 +93,9 @@ export function studioThemes<T extends SeasonTheme>(
   saved: T,
   date: Date,
 ) {
-  const savedOffered = offered.some((theme) => theme.id === saved.id)
-  const themes = savedOffered ? [...offered] : [...offered, saved]
+  const offeredOnce = uniqueThemes(offered)
+  const savedOffered = offeredOnce.some((theme) => theme.id === saved.id)
+  const themes = savedOffered ? offeredOnce : [...offeredOnce, saved]
   return {
     savedOffered,
     ...groupThemesBySeason(themes, saved.id, date),

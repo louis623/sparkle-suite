@@ -15,7 +15,7 @@ import {
 import { sitePreviewFrameAttributes } from '@/app/nic-nac/components/SitePreviewFrame'
 
 const NOV_23 = new Date('2026-11-23T17:00:00.000Z')
-const IDS = ['gobble_and_fizz', 'silver_bells', 'rose_champagne', 'rose_gold', 'black_diamond', 'halloween_pumpkin_cat'] as const
+const IDS = ['gobble_and_fizz', 'silver_bells', 'rose_champagne', 'rose_gold', 'black_diamond', 'halloween_pumpkin_cat', 'halloween_pumpkin_witch'] as const
 
 function cards() {
   return IDS.map((id) => AMETHYST_SKIN_CARDS.find((card) => card.id === id)!)
@@ -131,6 +131,9 @@ describe('theme studio card', () => {
     expect(radios.filter((item) => item.checked).map((item) => item.value)).toEqual(['rose_champagne'])
     expect(host.textContent).toContain('In season now')
     expect(host.textContent).toContain('Year-round')
+    const witchRadios = host.querySelectorAll('input[value="halloween_pumpkin_witch"]')
+    expect(witchRadios).toHaveLength(1)
+    expect(witchRadios[0]?.closest('article')?.textContent).toContain('Halloween')
     expect(host.textContent).toContain('Just for you')
     expect(host.textContent).toContain('Live now')
     expect(host.textContent).not.toContain('original custom skin')

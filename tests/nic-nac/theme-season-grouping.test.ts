@@ -82,6 +82,27 @@ describe('theme season grouping', () => {
     expect(parked.yearRound[0]?.id).toBe('halloween_pumpkin_cat')
   })
 
+  it('lists Halloween Pumpkin and Witch once when that saved theme is already offered', () => {
+    const witch = { id: 'halloween_pumpkin_witch', season: 'halloween' as const }
+    const rose = { id: 'rose_champagne', season: 'none' as const }
+    const offered = [witch, rose, { ...witch }]
+    const studio = studioThemes(offered, rose, JAN_10)
+    const listed = [...studio.inSeason, ...studio.yearRound].map((theme) => theme.id)
+    expect(studio.savedOffered).toBe(true)
+    expect(listed.filter((id) => id === 'halloween_pumpkin_witch')).toEqual(['halloween_pumpkin_witch'])
+    expect(studio.yearRound.at(-1)?.id).toBe('halloween_pumpkin_witch')
+    const savedWitch = studioThemes(offered, witch, JAN_10)
+    expect([...savedWitch.inSeason, ...savedWitch.yearRound].filter((theme) => theme.id === witch.id)).toHaveLength(1)
+    const real = AMETHYST_SKIN_CARDS.filter((card) =>
+      card.id === 'halloween_pumpkin_witch' || card.id === 'rose_champagne' || card.id === 'silver_bells',
+    )
+    const realWitch = real.find((card) => card.id === 'halloween_pumpkin_witch')
+    const november = studioThemes([...real, realWitch!], realWitch!, NOV_23)
+    const novemberIds = [...november.inSeason, ...november.yearRound].map((theme) => theme.id)
+    expect(novemberIds.filter((id) => id === 'halloween_pumpkin_witch')).toEqual(['halloween_pumpkin_witch'])
+    expect(november.inSeason.some((theme) => theme.id === 'halloween_pumpkin_witch')).toBe(false)
+  })
+
   it('keeps an unoffered saved theme selected at the front with no unsaved offer', () => {
     const saved = AMETHYST_SKIN_CARDS.find((card) => card.id === 'rose_quartz')
     expect(saved?.selectable).toBe(false)
