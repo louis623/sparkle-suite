@@ -280,6 +280,9 @@ describe('signed-in theme preview route', () => {
   it('does not add a public previewTheme switch', () => {
     const preview = readFileSync('lib/amethyst/site-preview.ts', 'utf8')
     const renderer = readFileSync('lib/amethyst/public-asset-response.ts', 'utf8')
+    const headers = readFileSync('next.config.ts', 'utf8')
+    expect(headers).toContain("source: '/nic-nac/site-preview'")
+    expect(headers.slice(headers.lastIndexOf("source: '/nic-nac/site-preview'"))).toContain("value: 'no-referrer'")
     expect(preview).not.toMatch(/searchParams\.get\(['"](?:rep|c|slug|host|ssrReviewTheme|ssrReviewLayout|previewTheme)['"]\)/)
     expect(renderer).not.toContain('previewTheme')
     expect(renderer).toContain('omitTracking')
