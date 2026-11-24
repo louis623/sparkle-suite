@@ -47,7 +47,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     steps: [
       'Review the dashboard as your home base.',
       'Open Nic-Nac when you want plain-English guidance.',
-      'Use Site Settings for customer-facing site details.',
+      'Use My Website for customer-facing site details.',
     'Use the Dance Floor for dancers, swap requests, and swap follow-up.',
       'Use Calendar and Live Lineup tools before and during live shows.',
       'Use Account for billing and site analytics.',
@@ -57,7 +57,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     nicNacPrompt: 'Walk me through the Sparkle Suite workspace.',
     stillStuck: 'Ask Nic-Nac what you are trying to do and which workspace area to open.',
     relatedFeatureIds: ['nic-nac', 'customer-site', 'trade-board', 'live-queue', 'billing'],
-    quickActions: ['Ask Nic-Nac for directions', 'Open Site Settings', 'Open Dance Floor'],
+    quickActions: ['Ask Nic-Nac for directions', 'Open My Website', 'Open Dance Floor'],
     video: {
       title: 'Workspace orientation walkthrough',
       provider: 'youtube',
@@ -94,7 +94,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     stillStuck:
       'Tell Nic-Nac which setup step is blocked and include any visible error or missing field.',
     relatedFeatureIds: ['customer-site', 'nic-nac', 'account-settings'],
-    quickActions: ['Review site preview', 'Ask Nic-Nac about setup', 'Open Site Settings'],
+    quickActions: ['Review site preview', 'Ask Nic-Nac about setup', 'Open My Website'],
   }),
   helpResource({
     id: 'update-customer-site',
@@ -104,12 +104,12 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     title: 'Update your customer-facing site',
     summary: 'Make common customer-site edits without needing support.',
     body:
-      'Use Site Settings for public-facing changes shoppers notice first. Custom hero image upload is not part of the launch surface.',
+      'Use My Website for public-facing changes shoppers notice first. Custom hero image upload is not part of the launch surface.',
     goal: 'Update the customer-facing site details reps can safely manage from the workspace.',
     useWhen: 'Use this when your show info, links, branding, or Join Team visibility changes.',
     beforeYouStart: ['The exact copy, link, handle, or setting you want to change.'],
     steps: [
-      'Open Site Settings.',
+      'Open My Website.',
       'Update display name, business name, ticker, site tagline, hero title, hero subtitle, or social links.',
       'Confirm the Shop Now link points to the right customer destination.',
       'Set Join Team visibility for launch expectations.',
@@ -121,7 +121,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     stillStuck:
       'Ask Nic-Nac to identify which site setting controls the change and include the exact copy or link you wanted to use.',
     relatedFeatureIds: ['customer-site', 'account-settings', 'nic-nac'],
-    quickActions: ['Open Site Settings', 'Preview customer site', 'Ask Nic-Nac for a site edit'],
+    quickActions: ['Open My Website', 'Preview customer site', 'Ask Nic-Nac for a site edit'],
     video: {
       title: 'Public site editing walkthrough',
       provider: 'youtube',
@@ -149,7 +149,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     steps: [
       'Open the individual TikTok video you want customers to watch.',
       'Choose Share, then Embed, and copy the TikTok embed code. You can instead copy that individual video\'s full TikTok link.',
-      'In the Sparkle Suite workspace, open Site Settings.',
+      'In the Sparkle Suite workspace, open My Website.',
       'Find Homepage photos and videos.',
       'Choose Showcase video for the main homepage feature, or choose About short video 1, 2, or 3 for a portrait video below your About story.',
       'Paste the TikTok embed code or full individual-video link into TikTok embed code or video URL.',
@@ -164,7 +164,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
       'Give Nic-Nac the individual TikTok video link, tell it which spot you chose, and include what the preview shows. Do not send a profile link when you want a video embed.',
     relatedFeatureIds: ['customer-site', 'account-settings', 'nic-nac'],
     quickActions: [
-      'Open Site Settings',
+      'Open My Website',
       'Paste TikTok embed code or video URL',
       'Preview customer site',
     ],

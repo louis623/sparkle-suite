@@ -340,13 +340,13 @@
     top: 12px;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 24px);
-    height: calc(100dvh - 24px);
+    height: calc(100vh - 24px - var(--site-save-bar-stack, 0px));
+    height: calc(100dvh - 24px - var(--site-save-bar-stack, 0px));
   }
 
   .picker {
-    max-height: calc(100vh - 24px);
-    max-height: calc(100dvh - 24px);
+    max-height: calc(100vh - 24px - var(--site-save-bar-stack, 0px));
+    max-height: calc(100dvh - 24px - var(--site-save-bar-stack, 0px));
     overflow: auto;
     overscroll-behavior: contain;
   }

@@ -3714,11 +3714,11 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('aria-label="Show Facebook in hero"')
     expect(html).toContain('Add a link to choose footer and hero.')
     expect(html).not.toContain('Show Facebook VIP button in the landing hero')
-    expect(html).toContain('Customer-facing site setup')
-    expect(html).toContain('Save site settings')
-    expect(html).toContain('Preview customer site')
-    expect(html).toContain('No unsaved changes.')
-    expect(html).toContain('data-testid="site-settings-save-status"')
+    expect(html).toContain('My Website')
+    expect(html).toContain('Preview saved site')
+    expect(html).toContain('View my site')
+    expect(html).not.toContain('Save site settings')
+    expect(html).not.toContain('data-testid="site-save-bar"')
     expect(html).not.toContain('Brittany custom media')
   })
 
@@ -3864,7 +3864,9 @@ describe('DashboardPlaceholder', () => {
         },
         actionState: { pending: false, error: null, helperMessage: null },
         hasUnsavedChanges: true,
-        statusMessage: 'Unsaved changes.',
+        changes: ['Site tagline'],
+        publicSiteUrl: 'https://www.example.com',
+        publicSiteDisplay: 'example.com',
         canPreview: true,
         onPreview: () => undefined,
         onSave: () => undefined,
@@ -3872,12 +3874,15 @@ describe('DashboardPlaceholder', () => {
     )
 
     expect(html).not.toContain('Changes will auto-save.')
-    expect(html).toContain('Unsaved changes.')
-    expect(html).toContain('Preview customer site')
-    expect(html).toContain('Save site settings')
+    expect(html).toContain('1 unsaved change')
+    expect(html).toContain('Site tagline')
+    expect(html).toContain('Preview saved site')
+    expect(html).toContain('Save &amp; publish')
+    expect(html).not.toContain('Save site settings')
     expect(html).not.toContain('No unsaved changes')
-    expect(html).not.toMatch(/class="[^"]*siteSettingsPreviewButton[^"]*" disabled/)
-    expect(html).not.toMatch(/class="[^"]*siteSettingsSaveButton[^"]*" disabled/)
+    expect(html).not.toMatch(/siteSettingsPreviewButton[^"]*" disabled/)
+    const saveAt = html.indexOf('Save &amp; publish')
+    expect(html.slice(Math.max(0, saveAt - 220), saveAt)).not.toContain('disabled')
   })
 
   it('derives manual site settings save status text', () => {
@@ -3945,10 +3950,12 @@ describe('DashboardPlaceholder', () => {
         }),
       )
 
-      expect(html).toContain('data-testid="site-settings-save-status"')
-      expect(html).toContain('Save site settings')
-      expect(html).toContain('Preview customer site')
-      expect(html).toContain('No unsaved changes.')
+      expect(html).toContain('My Website')
+      expect(html).toContain('Preview saved site')
+      expect(html).toContain('View my site ↗')
+      expect(html).toContain('yoursparklesuite.com/sparkle-test')
+      expect(html).not.toContain('Save site settings')
+      expect(html).not.toContain('data-testid="site-save-bar"')
       expect(html).toContain('siteSettingsSaveActions')
       expect(html).not.toContain('siteSettingsAutoSaveStatus')
     } finally {
@@ -3977,7 +3984,6 @@ describe('DashboardPlaceholder', () => {
 
     expect(styles).not.toContain('.workspaceSaveDock')
     expect(styles).toContain('.siteSettingsSaveActions')
-    expect(styles).toContain('.siteSettingsSaveButton')
     expect(styles).toContain('.siteSettingsPreviewButton')
     expect(styles).not.toContain('.siteSettingsSaveFooter')
     expect(styles).not.toContain('.siteSettingsAutoSaveStatus')
@@ -3986,6 +3992,11 @@ describe('DashboardPlaceholder', () => {
     expect(source).not.toContain('siteSettingsAutosaveTimerRef')
     expect(source).not.toContain('void saveSiteSettingsDraft(normalizedDraft)')
     expect(source).toContain('function handleSaveSiteSettings()')
+    expect(source).toContain('function handleDiscardSiteSettings()')
+    expect(source).not.toContain('Save site settings')
+    expect(
+      readFileSync(resolve(process.cwd(), 'app/nic-nac/components/SiteSaveBar.tsx'), 'utf8'),
+    ).toContain('Save & publish')
   })
 
   it('routes active account billing to Stripe without duplicating billing details', () => {
@@ -4450,10 +4461,10 @@ describe('DashboardPlaceholder', () => {
       'Account',
       'Business Calculator',
       'Customer List',
-      'Customer-facing site setup',
       'Jewelry Library',
       'Live Lineup',
       'Message Center',
+      'My Website',
       'QR codes, QR flyers, business cards',
       'Recipes',
       'Resources & Help',

@@ -10,9 +10,22 @@ import { isQueuedVideoUrl } from '@/lib/public-site/queue-video-link'
 import { isTikTokCardUrl } from '@/lib/public-site/tiktok-video-id'
 
 import Link from 'next/link'
-import { normalizeSignupDiscountCode, normalizeSignupDiscountMessage } from '@/lib/public-site/signup-discount'
 import { PublicSiteVisibility } from './PublicSiteVisibility'
+import { SiteLeaveGuard, SiteSaveBar, type SiteDiscardOpener } from './SiteSaveBar'
 import { SocialHandlesSettings } from './SocialHandlesSettings'
+import {
+  discountCodeFieldError,
+  discountMessageFieldError,
+  emailFieldError,
+  formatSiteSaveFailure,
+  listSiteSettingsChanges,
+  mergePreparedSiteSettingsDraft,
+  requestSiteSettingsSave,
+  SAVED_LABEL,
+  shopLinkFieldError,
+  SITE_FIELD_IDS,
+  socialLinkFieldError,
+} from './site-settings-save'
 import dynamic from 'next/dynamic'
 import type {
   ChangeEvent,
@@ -260,8 +273,8 @@ const SECONDARY_WORKSPACE_SECTIONS = [
   },
   {
     key: 'site-settings',
-    label: 'Customer-facing site setup',
-    shortLabel: 'Site setup',
+    label: 'My Website',
+    shortLabel: 'My Website',
     icon: Settings2,
   },
   {
@@ -3389,6 +3402,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       error: null,
       helperMessage: null,
     })
+  const [forceSiteFieldErrors, setForceSiteFieldErrors] = useState(false)
+  const [siteSettingsFieldEpoch, setSiteSettingsFieldEpoch] = useState(0)
   const [siteSettingsMediaUploadKey, setSiteSettingsMediaUploadKey] =
     useState<PublicSiteMediaSlotKey | null>(null)
   const [siteSettingsMediaUploadFeedback, setSiteSettingsMediaUploadFeedback] =
@@ -4154,19 +4169,44 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     setAutoRechargeDraft(getAutoRechargeDraft(walletState.summary))
   }, [walletState.status, walletState.summary])
 
+  const siteSettingsBaselineRef = useRef<SiteSettingsDashboardResult | null>(
+    initialSiteSettings ?? null,
+  )
+  const siteSettingsBrittRef = useRef(isBrittWithBlingWorkspace)
   useEffect(() => {
     if (siteSettingsState.status !== 'ready' || !siteSettingsState.settings) return
-
-    setSiteSettingsDraft(
-      getSiteSettingsDraft(siteSettingsState.settings, {
-        isBrittWithBling: isBrittWithBlingWorkspace,
-      }),
-    )
+    const nextSettings = siteSettingsState.settings
+    const previousSettings = siteSettingsBaselineRef.current
+    const previousBritt = siteSettingsBrittRef.current
+    siteSettingsBaselineRef.current = nextSettings
+    siteSettingsBrittRef.current = isBrittWithBlingWorkspace
+    const options = { isBrittWithBling: isBrittWithBlingWorkspace }
+    setSiteSettingsDraft((current) => {
+      if (!current || !previousSettings || previousBritt !== isBrittWithBlingWorkspace) {
+        return getSiteSettingsDraft(nextSettings, options)
+      }
+      if (previousSettings === nextSettings) return current
+      return mergePreparedSiteSettingsDraft(
+        current,
+        getSiteSettingsDraft(previousSettings, options),
+        getSiteSettingsDraft(nextSettings, options),
+      )
+    })
   }, [
     isBrittWithBlingWorkspace,
     siteSettingsState.status,
     siteSettingsState.settings,
   ])
+
+  useEffect(() => {
+    if (siteSettingsActionState.helperMessage !== SAVED_LABEL) return
+    const timeout = window.setTimeout(() => {
+      setSiteSettingsActionState((current) =>
+        current.helperMessage === SAVED_LABEL ? { ...current, helperMessage: null } : current,
+      )
+    }, 1200)
+    return () => window.clearTimeout(timeout)
+  }, [siteSettingsActionState.helperMessage])
 
   useEffect(() => {
     siteSettingsDraftRef.current = siteSettingsDraft
@@ -4566,7 +4606,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       setSiteSettingsActionState((current) => ({
         pending: current.pending,
         error: null,
-        helperMessage: 'Image uploaded. Save site settings to publish it.',
+        helperMessage: null,
       }))
       setSiteSettingsMediaUploadFeedback({
         key,
@@ -4581,7 +4621,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         error instanceof Error ? error.message : 'Unable to upload that image.'
       setSiteSettingsActionState((current) => ({
         pending: current.pending,
-        error: message,
+        error: null,
         helperMessage: null,
       }))
       setSiteSettingsMediaUploadFeedback({ key, message, tone: 'error' })
@@ -4730,7 +4770,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         setSiteSettingsActionState({
           pending: false,
           error: null,
-          helperMessage: 'Site settings saved.',
+          helperMessage: SAVED_LABEL,
         })
       }
       refreshLiveSitePreviewAfterSiteSettingsSave()
@@ -4738,17 +4778,36 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       if (siteSettingsSaveRequestRef.current === requestId) {
         setSiteSettingsActionState({
           pending: false,
-          error:
+          error: formatSiteSaveFailure(
             error instanceof Error ? error.message : 'Unable to save site settings.',
+          ),
           helperMessage: null,
         })
       }
     }
   }
 
+  function handleDiscardSiteSettings() {
+    if (siteSettingsState.status !== 'ready' || !siteSettingsState.settings) return
+    setForceSiteFieldErrors(false)
+    setSiteSettingsFieldEpoch((current) => current + 1)
+    setSiteSettingsDraft(
+      getSiteSettingsDraft(siteSettingsState.settings, {
+        isBrittWithBling: isBrittWithBlingWorkspace,
+      }),
+    )
+    setSiteSettingsActionState({ pending: false, error: null, helperMessage: null })
+  }
+
   function handleSaveSiteSettings() {
+    if (siteSettingsActionState.pending) return
     if (siteSettingsState.status !== 'ready' || !siteSettingsState.settings) return
     if (!siteSettingsDraft) return
+    const saveAttempt = requestSiteSettingsSave(siteSettingsDraft, () => undefined)
+    if (!saveAttempt.ok) {
+      setForceSiteFieldErrors(true)
+      return
+    }
     if (
       !hasSiteSettingsUnsavedChanges({
         settings: siteSettingsState.settings,
@@ -5325,6 +5384,15 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         void loadCalendar().catch(() => {
           setCalendarState({ status: 'error' })
         })
+      }
+      if (topic === 'site' && !reviewWorkspaceMode) {
+        void fetch('/api/nic-nac/site-settings', { credentials: 'include' })
+          .then(async (response) => {
+            if (!response.ok) return
+            const payload = (await response.json()) as SiteSettingsResponsePayload
+            setSiteSettingsState({ status: 'ready', settings: payload })
+          })
+          .catch(() => undefined)
       }
       if (topic === 'site' && activeSection === 'recipes') {
         void loadSiteRecipes(undefined, {
@@ -6874,13 +6942,29 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     draft: siteSettingsDraft,
     isBrittWithBling: isBrittWithBlingWorkspace,
   })
-  const siteSettingsSaveStatusText = getSiteSettingsManualSaveStatusText({
-    settings: siteSettingsState.settings,
-    draft: siteSettingsDraft,
-    actionState: siteSettingsActionState,
-    statusMessage: siteSettingsActionState.helperMessage,
-    isBrittWithBling: isBrittWithBlingWorkspace,
-  })
+  const siteSettingsChangeLabels =
+    siteSettingsState.settings && siteSettingsDraft
+      ? listSiteSettingsChanges(
+          getNormalizedSiteSettingsDraft(
+            getSiteSettingsDraft(siteSettingsState.settings, {
+              isBrittWithBling: isBrittWithBlingWorkspace,
+            }),
+            { isBrittWithBling: isBrittWithBlingWorkspace },
+          ),
+          getNormalizedSiteSettingsDraft(siteSettingsDraft, {
+            isBrittWithBling: isBrittWithBlingWorkspace,
+          }),
+          { isBrittWithBling: isBrittWithBlingWorkspace },
+        )
+      : []
+  const siteSettingsChanges =
+    siteSettingsChangeLabels.length > 0
+      ? siteSettingsChangeLabels
+      : siteSettingsHasUnsavedChanges
+        ? ['Site details']
+        : []
+  const siteSettingsLeaveActive = siteSettingsChanges.length > 0
+  const discardOpenerRef = useRef<SiteDiscardOpener | null>(null)
   const activeWorkspaceShellSection = WORKSPACE_SECTIONS.some(
     (section) => section.key === activeSection,
   )
@@ -7329,7 +7413,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             draft={siteSettingsDraft}
             actionState={siteSettingsActionState}
             hasUnsavedChanges={siteSettingsHasUnsavedChanges}
-            statusMessage={siteSettingsSaveStatusText}
+            changes={siteSettingsChanges}
+            forceFieldErrors={forceSiteFieldErrors}
+            fieldEpoch={siteSettingsFieldEpoch}
+            publicSiteUrl={customerSparkleSiteUrl}
+            publicSiteDisplay={customerSparkleSiteDisplay}
             onDraftChange={handleSiteSettingsDraftChange}
             onSocialHandleChange={handleSocialHandleChange}
             onHomepageMediaChange={handleHomepageMediaChange}
@@ -7340,6 +7428,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             isBrittWithBling={isBrittWithBlingWorkspace}
             canPreview={Boolean(customerSparkleSiteHref)}
             onPreview={handleOpenCustomerSitePreview}
+            onDiscard={() => discardOpenerRef.current?.open()}
             onSave={handleSaveSiteSettings}
           />
         </div>
@@ -7449,6 +7538,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       data-workspace-skin="concept-one"
       data-customer-site-skin={workspaceSkinPreset}
     >
+      <SiteLeaveGuard
+        active={siteSettingsLeaveActive}
+        count={siteSettingsChanges.length}
+        onDiscard={handleDiscardSiteSettings}
+        openerRef={discardOpenerRef}
+      />
       {tradeReview ? <TradeRequestReviewDialog
         key={tradeReview.request.id}
         request={tradeReview.request}
@@ -9700,7 +9795,11 @@ export function SiteSettingsCard({
   draft,
   actionState,
   hasUnsavedChanges = false,
-  statusMessage,
+  changes = [],
+  forceFieldErrors = false,
+  fieldEpoch = 0,
+  publicSiteUrl = null,
+  publicSiteDisplay = 'Site address not set',
   onDraftChange,
   onSocialHandleChange,
   onHomepageMediaChange,
@@ -9711,6 +9810,7 @@ export function SiteSettingsCard({
   isBrittWithBling = false,
   canPreview,
   onPreview,
+  onDiscard,
   onSave,
 }: {
   repId?: string | null
@@ -9718,7 +9818,11 @@ export function SiteSettingsCard({
   draft?: SiteSettingsDraft | null
   actionState?: SiteSettingsActionState
   hasUnsavedChanges?: boolean
-  statusMessage?: string | null
+  changes?: string[]
+  forceFieldErrors?: boolean
+  fieldEpoch?: number
+  publicSiteUrl?: string | null
+  publicSiteDisplay?: string | null
   onDraftChange?: (patch: Partial<SiteSettingsDraft>) => void
   onSocialHandleChange?: (platform: string, value: string) => void
   onHomepageMediaChange?: (
@@ -9739,9 +9843,14 @@ export function SiteSettingsCard({
   isBrittWithBling?: boolean
   canPreview?: boolean
   onPreview?: () => void
+  onDiscard?: () => void
   onSave?: () => void
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const copyTimerRef = useRef<number | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
+  const [localFieldErrors, setLocalFieldErrors] = useState(false)
   const [tickerLinkUrl, setTickerLinkUrl] = useState('')
   const [tickerLinkError, setTickerLinkError] = useState<string | null>(null)
   const [tickerLinkSelection, setTickerLinkSelection] = useState<{
@@ -9749,6 +9858,36 @@ export function SiteSettingsCard({
     end: number
     text: string
   } | null>(null)
+
+  useEffect(() => {
+    setTouchedFields({})
+    setLocalFieldErrors(false)
+  }, [fieldEpoch])
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current)
+    }
+  }, [])
+
+  const touchField = (id: string) => {
+    setTouchedFields((current) => (current[id] ? current : { ...current, [id]: true }))
+  }
+
+  const showFieldError = (id: string, message: string | null) =>
+    message && (forceFieldErrors || localFieldErrors || touchedFields[id]) ? message : null
+
+  const copySiteLink = async () => {
+    if (!publicSiteUrl) return
+    try {
+      await navigator.clipboard.writeText(publicSiteUrl)
+      setCopied(true)
+      if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current)
+      copyTimerRef.current = window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setCopied(false)
+    }
+  }
 
   const addTickerText = (value: string) => {
     if (!onDraftChange) return
@@ -9831,47 +9970,65 @@ export function SiteSettingsCard({
   )
   const discountCode = draft.signupDiscountCode ?? ''
   const discountMessage = draft.signupDiscountMessage ?? ''
-  const discountCodeError = (discountCode.trim() || draft.signupDiscountEnabled === true) && !normalizeSignupDiscountCode(discountCode)
-    ? 'Use 1 to 40 letters, numbers, or hyphens.' : null
-  const discountMessageError = discountMessage.trim() && !normalizeSignupDiscountMessage(discountMessage)
-    ? 'Use up to 140 characters of plain text, without < or >.' : null
+  const discountCodeError = showFieldError(
+    SITE_FIELD_IDS.discountCode,
+    discountCodeFieldError(discountCode, draft.signupDiscountEnabled),
+  )
+  const discountMessageError = showFieldError(
+    SITE_FIELD_IDS.discountMessage,
+    discountMessageFieldError(discountMessage),
+  )
+  const emailError = showFieldError(SITE_FIELD_IDS.email, emailFieldError(draft.email))
+  const shopLinkError = showFieldError(SITE_FIELD_IDS.shopLink, shopLinkFieldError(draft.shopLink))
+  const socialErrors = Object.fromEntries(
+    (['instagram', 'facebook', 'tiktok', 'youtube', 'whatnot'] as const).map((platform) => [
+      platform,
+      showFieldError(
+        SITE_FIELD_IDS.social(platform),
+        socialLinkFieldError(platform, draft.socialHandles?.[platform]),
+      ),
+    ]),
+  )
+  const changeLabels = changes.length > 0 ? changes : hasUnsavedChanges ? ['Site details'] : []
+  const saveError = actionState?.error ?? null
 
   return (
     <div className={styles.siteSettingsCard}>
-      <div className={styles.workspaceSectionHeader}>
-        <div>
-          <div className={styles.cardTitle}>Customer-facing site setup</div>
-          <div className={styles.cardSubtitle}>
-            Keep your public profile, customer pages, and brand details tuned up.
-          </div>
-        </div>
+      <div className={styles.myWebsiteHeader}>
+        <p className={styles.myWebsiteKicker}>Public site</p>
+        <h1 className={styles.myWebsiteTitle}>My Website</h1>
+        <p className={styles.myWebsiteAddress}>{publicSiteDisplay || 'Site address not set'}</p>
         <div className={styles.siteSettingsSaveActions}>
-          <span
-            className={styles.siteSettingsSaveStatus}
-            data-testid="site-settings-save-status"
-            role="status"
-            aria-live="polite"
+          {publicSiteUrl ? (
+            <a
+              className={styles.siteSettingsPreviewButton}
+              href={publicSiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View my site ↗
+            </a>
+          ) : (
+            <button type="button" className={styles.siteSettingsPreviewButton} disabled>
+              View my site ↗
+            </button>
+          )}
+          <button
+            type="button"
+            className={styles.siteSettingsPreviewButton}
+            onClick={() => void copySiteLink()}
+            disabled={!publicSiteUrl}
           >
-            {statusMessage ?? 'No unsaved changes.'}
-          </span>
+            {copied ? 'Copied' : 'Copy link'}
+          </button>
           <button
             type="button"
             className={styles.siteSettingsPreviewButton}
             onClick={onPreview}
             disabled={!canPreview}
           >
-            Preview customer site
+            Preview saved site
           </button>
-          <ControlTip tip="save-site-settings">
-            <button
-              type="button"
-              className={styles.siteSettingsSaveButton}
-              onClick={onSave}
-              disabled={actionState?.pending || !hasUnsavedChanges || Boolean(discountCodeError || discountMessageError)}
-            >
-              {actionState?.pending ? 'Saving...' : 'Save site settings'}
-            </button>
-          </ControlTip>
         </div>
       </div>
       <ThemeStudio
@@ -9898,27 +10055,46 @@ export function SiteSettingsCard({
           <label className={styles.searchField}>
             <span className={styles.searchLabel}>Code</span>
             <input
+              id={SITE_FIELD_IDS.discountCode}
               className={styles.searchInput}
               value={discountCode}
               maxLength={40}
-              aria-invalid={Boolean(discountCodeError)}
-              aria-describedby={discountCodeError ? 'signup-discount-code-error' : undefined}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              aria-invalid={discountCodeError ? 'true' : 'false'}
+              aria-describedby={discountCodeError ? `${SITE_FIELD_IDS.discountCode}-error` : undefined}
+              onBlur={() => touchField(SITE_FIELD_IDS.discountCode)}
               onChange={(event) => onDraftChange?.({ signupDiscountCode: event.target.value })}
             />
-            {discountCodeError ? <span id="signup-discount-code-error" role="alert" className={styles.tickerLinkError}>{discountCodeError}</span> : null}
+            {discountCodeError ? (
+              <span id={`${SITE_FIELD_IDS.discountCode}-error`} className={styles.fieldError}>
+                <span role="img" aria-label="Error">!</span> {discountCodeError}
+              </span>
+            ) : null}
           </label>
           <label className={styles.searchField}>
             <span className={styles.searchLabel}>Message shown with your code</span>
             <input
+              id={SITE_FIELD_IDS.discountMessage}
               className={styles.searchInput}
               value={discountMessage}
               maxLength={140}
-              aria-invalid={Boolean(discountMessageError)}
-              aria-describedby="signup-discount-message-count signup-discount-message-error"
+              aria-invalid={discountMessageError ? 'true' : 'false'}
+              aria-describedby={
+                discountMessageError
+                  ? `signup-discount-message-count ${SITE_FIELD_IDS.discountMessage}-error`
+                  : 'signup-discount-message-count'
+              }
+              onBlur={() => touchField(SITE_FIELD_IDS.discountMessage)}
               onChange={(event) => onDraftChange?.({ signupDiscountMessage: event.target.value })}
             />
-            <span id="signup-discount-message-count" className={styles.helperNote} aria-live="polite">{discountMessage.length}/140 · Plain text</span>
-            <span id="signup-discount-message-error" className={styles.tickerLinkError} role={discountMessageError ? 'alert' : undefined}>{discountMessageError}</span>
+            <span id="signup-discount-message-count" className={styles.helperNote}>{discountMessage.length}/140 · Plain text</span>
+            {discountMessageError ? (
+              <span id={`${SITE_FIELD_IDS.discountMessage}-error`} className={styles.fieldError}>
+                <span role="img" aria-label="Error">!</span> {discountMessageError}
+              </span>
+            ) : null}
           </label>
         </div>
         <p className={styles.helperNote}>Suite only shows this code. Set up the code itself in Bomb Party first.</p>
@@ -9953,24 +10129,56 @@ export function SiteSettingsCard({
         <label className={styles.searchField}>
           <span className={styles.searchLabel}>Email</span>
           <input
+            id={SITE_FIELD_IDS.email}
             className={styles.searchInput}
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             value={draft.email}
+            aria-invalid={emailError ? 'true' : 'false'}
+            aria-describedby={emailError ? `${SITE_FIELD_IDS.email}-error` : undefined}
+            onBlur={() => touchField(SITE_FIELD_IDS.email)}
             onChange={(event) => onDraftChange?.({ email: event.target.value })}
           />
+          {emailError ? (
+            <span id={`${SITE_FIELD_IDS.email}-error`} className={styles.fieldError}>
+              <span role="img" aria-label="Error">!</span> {emailError}
+            </span>
+          ) : null}
         </label>
         <label className={styles.searchField}>
           <span className={styles.searchLabel}>Bomb Party rep store link</span>
+          <span id={`${SITE_FIELD_IDS.shopLink}-hint`} className={styles.helperNote}>
+            This powers the Shop buttons across your customer-facing site. Use the full store URL.
+          </span>
           <input
+            id={SITE_FIELD_IDS.shopLink}
             className={styles.searchInput}
             type="url"
             inputMode="url"
+            autoComplete="url"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             value={draft.shopLink ?? ''}
+            aria-invalid={shopLinkError ? 'true' : 'false'}
+            aria-describedby={
+              shopLinkError
+                ? `${SITE_FIELD_IDS.shopLink}-hint ${SITE_FIELD_IDS.shopLink}-error`
+                : `${SITE_FIELD_IDS.shopLink}-hint`
+            }
+            onBlur={() => touchField(SITE_FIELD_IDS.shopLink)}
             onChange={(event) => onDraftChange?.({ shopLink: event.target.value })}
             placeholder="https://bombparty.com/..."
           />
-          <span className={styles.helperNote}>
-            This powers the Shop buttons across your customer-facing site. Use the full store URL.
-          </span>
+          {shopLinkError ? (
+            <span id={`${SITE_FIELD_IDS.shopLink}-error`} className={styles.fieldError}>
+              <span role="img" aria-label="Error">!</span> {shopLinkError}
+            </span>
+          ) : null}
         </label>
       </div>
 
@@ -10480,16 +10688,26 @@ export function SiteSettingsCard({
         <SocialHandlesSettings
           socialHandles={draft.socialHandles}
           socialVisibility={draft.socialVisibility}
+          errors={socialErrors}
+          onBlur={(platform) => touchField(SITE_FIELD_IDS.social(platform))}
           onSocialHandleChange={onSocialHandleChange}
           onSocialVisibilityChange={(socialVisibility) =>
             onDraftChange?.({ socialVisibility })
           }
         />
       </div>
-
-      {actionState?.error ? (
-        <div className={styles.actionError}>{actionState.error}</div>
-      ) : null}
+      <SiteSaveBar
+        changes={changeLabels}
+        pending={actionState?.pending === true}
+        saved={actionState?.helperMessage === SAVED_LABEL}
+        serverError={saveError}
+        onDiscard={() => onDiscard?.()}
+        onSave={() => {
+          if (!draft) return
+          const result = requestSiteSettingsSave(draft, () => onSave?.())
+          if (!result.ok) setLocalFieldErrors(true)
+        }}
+      />
     </div>
   )
 }
@@ -13001,7 +13219,7 @@ export function PublicTeamRosterPanel({
         </fieldset>
       </div> : <div className={styles.teamEditorPane} hidden={editorTab !== 'details'}>
         <p className={styles.helperNote}>Your lead name and social links come from Site Settings.</p>
-        <Link className={styles.helperLink} href="/nic-nac?section=site-settings">Open Site Settings</Link>
+        <Link className={styles.helperLink} href="/nic-nac?section=site-settings">Open My Website</Link>
       </div>}
 
       {isNew ? <>

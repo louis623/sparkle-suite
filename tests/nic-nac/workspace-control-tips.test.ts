@@ -117,17 +117,17 @@ describe('workspace control hover tips', () => {
     expect(board).toContain("'Deny'")
     expect(home).toContain("section.key === 'jewelry-library' || section.key === 'wispr-flow'")
     expect(home).toContain('tip={section.key} block listItem')
-    expect(home).toContain('tip="save-site-settings"')
+    expect(source('app/nic-nac/components/SiteSaveBar.tsx')).toContain('tip="save-site-settings"')
     expect(home).not.toContain('tip="collection-intake"')
 
     expect(source('app/nic-nac/components/TradeBoardWorkspaceCard.tsx')).not.toContain('AddDancers')
     expect(home).not.toContain('id="dance-floor-bulk-intake-title"')
 
-    const preview = home.indexOf('Preview customer site')
+    const preview = home.indexOf('Preview saved site')
     const previewButton = home.lastIndexOf('<button', preview)
     const previewEnd = home.indexOf('</button>', preview)
     expect(home.slice(previewButton, previewEnd)).not.toContain('ControlTip')
-    expect(home.indexOf('tip="save-site-settings"')).toBeGreaterThan(previewEnd)
+    expect(home.indexOf('<SiteSaveBar')).toBeGreaterThan(previewEnd)
   })
 
   it('keeps the tip text off the resting controls', () => {
@@ -190,12 +190,12 @@ describe('workspace control hover tips', () => {
           socialHandles: { instagram: '@sparklebysasha', facebook: 'sparklebysasha' },
         },
         hasUnsavedChanges: true,
-        statusMessage: 'Unsaved changes.',
+        changes: ['Site tagline'],
       }),
     )
     expect(settings).toContain('data-control-tip="save-site-settings"')
-    expect(settings).toContain('Save site settings')
-    expect(settings).toContain('Preview customer site')
+    expect(settings).toContain('Save &amp; publish')
+    expect(settings).toContain('Preview saved site')
     expect(settings).not.toContain(EXACT_TIPS['save-site-settings'])
     expect(settings.match(/data-control-tip=/g)).toHaveLength(1)
 

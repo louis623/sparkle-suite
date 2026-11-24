@@ -21,11 +21,15 @@ export function SocialHandlesSettings({
   socialVisibility,
   onSocialHandleChange,
   onSocialVisibilityChange,
+  errors,
+  onBlur,
 }: {
   socialHandles: Record<string, string>
   socialVisibility?: SocialVisibility
   onSocialHandleChange?: (platform: SocialPlatformKey, value: string) => void
   onSocialVisibilityChange?: (socialVisibility: SocialVisibility) => void
+  errors?: Partial<Record<SocialPlatformKey, string | null>>
+  onBlur?: (platform: SocialPlatformKey) => void
 }) {
   return (
     <div className={styles.grid}>
@@ -33,6 +37,8 @@ export function SocialHandlesSettings({
         const rawUrl = socialHandles[platform.key] ?? ''
         const placement = describeSocialPlacement(platform.key, rawUrl, socialVisibility)
         const hasUrl = placement.href.length > 0
+        const error = errors?.[platform.key] ?? null
+        const fieldId = `my-website-social-${platform.key}`
         const hint = rawUrl.trim()
           ? `Use a real ${platform.label} link to choose footer and hero.`
           : 'Add a link to choose footer and hero.'
@@ -50,12 +56,26 @@ export function SocialHandlesSettings({
             <label className={surface.searchField}>
               <span className={styles.srOnly}>{platform.label} link</span>
               <input
+                id={fieldId}
                 className={surface.searchInput}
                 placeholder={PLACEHOLDERS[platform.key]}
                 value={rawUrl}
+                inputMode="url"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                aria-invalid={error ? 'true' : 'false'}
+                aria-describedby={error ? `${fieldId}-error` : undefined}
+                onBlur={() => onBlur?.(platform.key)}
                 onChange={(event) => onSocialHandleChange?.(platform.key, event.target.value)}
               />
+              {error ? (
+                <span id={`${fieldId}-error`} className={surface.fieldError}>
+                  <span role="img" aria-label="Error">!</span> {error}
+                </span>
+              ) : null}
             </label>
+            {!hasUrl && !error ? <p className={surface.siteSettingsPreviewNote}>{hint}</p> : null}
             {hasUrl ? (
               <div className={styles.toggles}>
                 <PlacementSwitch
@@ -81,9 +101,7 @@ export function SocialHandlesSettings({
                   }
                 />
               </div>
-            ) : (
-              <p className={surface.siteSettingsPreviewNote}>{hint}</p>
-            )}
+            ) : null}
             {hasUrl ? (
               <p className={`${surface.siteSettingsPreviewNote} ${styles.outcome}`}>
                 {placement.summary}
