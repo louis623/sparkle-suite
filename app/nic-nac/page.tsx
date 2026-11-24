@@ -17,16 +17,13 @@ export default async function NicNacPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
-  const params = await searchParams
-  const section = typeof params.section === 'string' ? params.section : ''
+  await searchParams
   let initialWorkspaceSettings: SiteSettingsDashboardResult | null = null
-  if (section === 'site-settings') {
-    try {
-      const { repId, supabase } = await getPaidNicNacContext()
-      initialWorkspaceSettings = await getSiteSettingsDashboard(supabase, repId)
-    } catch {
-      initialWorkspaceSettings = null
-    }
+  try {
+    const { repId, supabase } = await getPaidNicNacContext()
+    initialWorkspaceSettings = await getSiteSettingsDashboard(supabase, repId)
+  } catch {
+    initialWorkspaceSettings = null
   }
   return (
     <main className={styles.page}>

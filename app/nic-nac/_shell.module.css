@@ -52,7 +52,7 @@
 
 .desktopReopen {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + var(--site-save-bar-block, 0px));
   right: 24px;
   width: 56px;
   height: 56px;

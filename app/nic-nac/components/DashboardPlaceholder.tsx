@@ -3369,6 +3369,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           status: 'loading',
         },
   )
+  useEffect(() => {
+    if (!initialSiteSettings) return
+    setSiteSettingsState((current) =>
+      current.status === 'ready' ? current : { status: 'ready', settings: initialSiteSettings },
+    )
+  }, [initialSiteSettings])
   const [accountBillingState, setAccountBillingState] =
     useState<AccountBillingState>({
       status: reviewWorkspaceMode ? 'ready' : 'loading',

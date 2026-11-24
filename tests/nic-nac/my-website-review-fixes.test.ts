@@ -5,6 +5,7 @@ import {
   inlinePreviewMediaIcons,
   previewNeedsProductionImages,
   sitePreviewContentSecurityPolicy,
+  stripPreviewProductionIcons,
 } from '@/lib/amethyst/site-preview'
 
 describe('private theme offer', () => {
@@ -24,6 +25,16 @@ describe('private theme offer', () => {
       availableIds: ['amethyst', 'alpine_opal'],
       catalog,
     })).toEqual({ skinIds: ['amethyst', 'alpine_opal'], ownedPrivateSkinIds: ['alpine_opal'] })
+    expect(skinsOfferedToRep({
+      repId: 'reviewer-rep',
+      availableIds: ['amethyst', 'alpine_opal'],
+      catalog: [{ skin_id: 'amethyst', visibility: 'community', owner_rep_id: null }],
+    })).toEqual({ skinIds: ['amethyst'], ownedPrivateSkinIds: [] })
+    expect(skinsOfferedToRep({
+      repId: 'reviewer-rep',
+      availableIds: ['alpine_opal'],
+      catalog: [{ skin_id: 'alpine_opal', visibility: 'community', owner_rep_id: null }],
+    })).toEqual({ skinIds: [], ownedPrivateSkinIds: [] })
   })
 })
 
@@ -34,6 +45,14 @@ describe('theme preview assets', () => {
     expect(inlined).not.toContain('/amethyst/media-icons.svg')
     expect(inlined).toContain('href="#preview-media-icon-video"')
     expect(inlined).toContain('id="preview-media-icon-video"')
+    const scripted = inlinePreviewMediaIcons(
+      '<html><head><link rel="icon" href="https://www.yoursparklesuite.com/icon" /><link rel="apple-touch-icon" href="https://www.yoursparklesuite.com/apple-icon" /></head><body><script>node.setAttribute("href","/amethyst/media-icons.svg#calendar")</script></body></html>',
+    )
+    expect(scripted).toContain('#preview-media-icon-calendar')
+    expect(scripted).not.toContain('/amethyst/media-icons.svg')
+    expect(scripted).not.toContain('yoursparklesuite.com/icon')
+    expect(scripted).not.toContain('apple-icon')
+    expect(stripPreviewProductionIcons('<link rel="stylesheet" href="https://fonts.googleapis.com/css2">')).toContain('stylesheet')
     const policy = sitePreviewContentSecurityPolicy(inlined, 'https://sparkle-suite-smoke.vercel.app')
     expect(policy.header).toContain('img-src https://sparkle-suite-smoke.vercel.app data: blob: https://www.yoursparklesuite.com')
     expect(policy.header).not.toMatch(/(?:^|;)\s*\*\s*(?:;|$)/)

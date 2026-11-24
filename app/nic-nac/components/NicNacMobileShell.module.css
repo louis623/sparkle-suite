@@ -1,6 +1,6 @@
 .bubble {
   position: fixed;
-  bottom: max(86px, calc(env(safe-area-inset-bottom) + 82px));
+  bottom: calc(max(86px, env(safe-area-inset-bottom) + 82px) + var(--site-save-bar-block, 0px));
   right: max(14px, calc(env(safe-area-inset-right) + 14px));
   width: 48px;
   height: 48px;

@@ -169,24 +169,14 @@ export function SiteLeaveGuard({
   )
 }
 
-function clearFocusedField(bar: HTMLElement) {
-  const active = document.activeElement
-  if (!(active instanceof HTMLElement) || bar.contains(active)) return
-  const field = active.matches('input, textarea, select') ? active : null
-  if (!field) return
-  const barRect = bar.getBoundingClientRect()
-  const fieldRect = field.getBoundingClientRect()
-  if (fieldRect.bottom <= barRect.top - 12 || fieldRect.top >= barRect.bottom) return
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  field.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' })
-}
+const FIELD_CLEARANCE = 16
 
 function useSaveBarOffset(barRef: RefObject<HTMLDivElement | null>, active: boolean) {
-  const wasActive = useRef(false)
+  const lastField = useRef<HTMLElement | null>(null)
   useLayoutEffect(() => {
     const root = document.documentElement
     if (!active) {
-      wasActive.current = false
+      lastField.current = null
       root.style.removeProperty('--site-save-bar-height')
       root.style.removeProperty('--site-save-bar-stack')
       root.style.removeProperty('--site-save-bar-block')
@@ -194,27 +184,46 @@ function useSaveBarOffset(barRef: RefObject<HTMLDivElement | null>, active: bool
       root.style.paddingBottom = ''
       return
     }
+    const rememberField = (bar: HTMLElement) => {
+      const activeNode = document.activeElement
+      if (!(activeNode instanceof HTMLElement) || bar.contains(activeNode)) return
+      const block = activeNode.closest('[data-site-field], label')
+      if (block instanceof HTMLElement && !bar.contains(block)) lastField.current = block
+    }
+    const clear = (bar: HTMLElement) => {
+      rememberField(bar)
+      const block = lastField.current
+      if (!block?.isConnected || bar.contains(block)) return
+      const barRect = bar.getBoundingClientRect()
+      const blockRect = block.getBoundingClientRect()
+      const limit = barRect.top - FIELD_CLEARANCE
+      if (blockRect.bottom <= limit || blockRect.top >= barRect.bottom) return
+      const delta = blockRect.bottom - limit
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const behavior = reduce ? 'auto' : 'smooth'
+      const scroller = block.closest('[data-workspace-scroll]')
+      if (scroller instanceof HTMLElement && scroller.scrollHeight > scroller.clientHeight + 1) {
+        scroller.scrollBy({ top: delta, behavior })
+      } else {
+        window.scrollBy({ top: delta, behavior })
+      }
+    }
     const apply = () => {
       const bar = barRef.current
       const tabs = document.querySelector('[data-workspace-tab-bar]')
       const tabTop = tabs?.getBoundingClientRect().top ?? window.innerHeight
       const clearance = Math.max(0, window.innerHeight - tabTop)
       if (bar) bar.style.bottom = `${clearance + 8}px`
-      const block = (bar?.offsetHeight ?? 0) + 12
+      const block = (bar?.offsetHeight ?? 0) + FIELD_CLEARANCE
       const stack = block + clearance
       root.style.setProperty('--site-save-bar-height', `${stack}px`)
       root.style.setProperty('--site-save-bar-stack', `${stack}px`)
       root.style.setProperty('--site-save-bar-block', `${block}px`)
       root.style.scrollPaddingBottom = `${stack}px`
       root.style.paddingBottom = document.querySelector('[data-workspace-scroll]') ? '' : `${block}px`
+      if (bar) clear(bar)
     }
     apply()
-    if (!wasActive.current && barRef.current) {
-      const bar = barRef.current
-      clearFocusedField(bar)
-      window.requestAnimationFrame(() => clearFocusedField(bar))
-    }
-    wasActive.current = true
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(apply)
     if (barRef.current) observer?.observe(barRef.current)
     const tabs = document.querySelector('[data-workspace-tab-bar]')

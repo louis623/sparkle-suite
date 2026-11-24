@@ -202,13 +202,23 @@ export function previewNeedsProductionImages(html: string) {
     || /https:\/\/www\.yoursparklesuite\.com\/amethyst\//i.test(html)
 }
 
+/** Drop the production favicon requests. The preview does not need them, and CSP would block them. */
+export function stripPreviewProductionIcons(html: string) {
+  return html.replace(/<link\b[^>]*>/gi, (tag) => {
+    const rel = /rel=["']([^"']+)["']/i.exec(tag)?.[1] ?? ''
+    const href = /href=["']([^"']+)["']/i.exec(tag)?.[1] ?? ''
+    const iconRel = /(^|\s)(shortcut icon|icon|apple-touch-icon)(\s|$)/i.test(rel)
+    const productionIcon = /(?:^|\/)(?:apple-icon|icon)(?:$|\?)/i.test(href)
+      && /yoursparklesuite\.com/i.test(href)
+    return iconRel || productionIcon ? '' : tag
+  })
+}
+
 /** Keep the media sprite in the preview document. A sandboxed frame cannot load the root-relative file. */
 export function inlinePreviewMediaIcons(html: string) {
-  if (!html.includes('/amethyst/media-icons.svg')) return html
-  const rewritten = html.replace(
-    /(href=["'])(?:https?:\/\/[^"']+)?\/amethyst\/media-icons\.svg#([A-Za-z0-9_-]+)(["'])/g,
-    '$1#preview-media-icon-$2$3',
-  )
+  const stripped = stripPreviewProductionIcons(html)
+  if (!stripped.includes('/amethyst/media-icons.svg')) return stripped
+  const rewritten = stripped.replace(/\/amethyst\/media-icons\.svg#/g, '#preview-media-icon-')
   const symbols = MEDIA_ICON_SPRITE
     .replace(
       '<svg xmlns="http://www.w3.org/2000/svg">',
