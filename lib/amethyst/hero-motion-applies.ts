@@ -1,8 +1,9 @@
+import 'server-only'
 import { normalizeAmethystAppearancePreset } from '@/lib/amethyst/appearance-presets'
 import { repRenderV2Enabled } from '@/lib/amethyst/rep-render-version'
 import { isBrittWithBlingSettings } from '@/lib/britt-with-bling/profile'
 import { isMileHighFizzSettings } from '@/lib/mile-high-fizz/profile'
-import type { HeroAnimationType, SiteSettingsDashboardResult } from '@/lib/services/types'
+import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 
 /**
  * The homepage renderer (v2/homepage.jsx) mounts a custom hero only when
@@ -92,31 +93,4 @@ export function grandfatheredHeadlineFallback(
 ) {
   const readable = withProfileText(settings)
   return isBrittWithBlingSettings(readable, publicSiteSlug) || isMileHighFizzSettings(readable)
-}
-
-export function applyHeroMotionSwitch(input: {
-  on: boolean
-  current: HeroAnimationType
-  remembered: HeroAnimationType | null
-}): { heroAnimationType: HeroAnimationType; remembered: HeroAnimationType | null } {
-  if (!input.on) {
-    const remembered = input.current !== 'still' ? input.current : input.remembered
-    return { heroAnimationType: 'still', remembered }
-  }
-  const restored = input.remembered && input.remembered !== 'still' ? input.remembered : 'sparkle_rise'
-  return { heroAnimationType: restored, remembered: restored }
-}
-
-/** My Website save. Team I manage stays on the Team Management save. An untouched hero control sends nothing. */
-export function myWebsiteSavePayload(
-  draft: SiteSettingsDashboardResult,
-  options: { includeHeroAnimation: boolean },
-) {
-  const payload: Record<string, unknown> = { ...draft }
-  delete payload.teamName
-  delete payload.recruitingLink
-  delete payload.heroMotionApplies
-  delete payload.grandfatheredHeadlineFallback
-  if (!options.includeHeroAnimation) delete payload.heroAnimationType
-  return payload
 }

@@ -336,18 +336,20 @@ export function ThemeStudio({
           </p>
         </div>
         <div className={styles.previewColumn}>
-          <PreviewSurface
-            scope="panel"
-            page={page}
-            onPage={(nextPage) => {
-              setPage(nextPage)
-              if (chosen) showCachedOrLoading(chosen.id, nextPage)
-            }}
-            view={view}
-            themeLabel={chosenLabel}
-            onRetry={retryPreview}
-            retired={themeRetired}
-          />
+          {wide ? (
+            <PreviewSurface
+              scope="panel"
+              page={page}
+              onPage={(nextPage) => {
+                setPage(nextPage)
+                if (chosen) showCachedOrLoading(chosen.id, nextPage)
+              }}
+              view={view}
+              themeLabel={chosenLabel}
+              onRetry={retryPreview}
+              retired={themeRetired}
+            />
+          ) : null}
         </div>
       </div>
       <dialog

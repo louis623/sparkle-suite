@@ -7,24 +7,26 @@ import {
 } from '@/app/nic-nac/components/DashboardPlaceholder'
 import type { SiteSectionId } from '@/app/nic-nac/components/site-settings-layout'
 
-const video = 'https://www.youtube.com/shorts/abcdefghijk'
+const video = 'https://video.example/shorts/sample'
+const shop = 'https://shop.example/sasha'
 
 const sample: SiteSettingsDraft = {
-  displayName: 'Sasha',
+  displayName: 'Sasha Sample',
   businessName: 'Sparkle by Sasha',
   email: 'hello@sparklebysasha.example',
   phone: '',
-  shopLink: 'https://bombparty.com/sasha',
+  shopLink: shop,
   bannerText: '',
   bannerVisible: false,
-  tickerText: 'Tonight’s reveal is live\nShop the [new drop](https://bombparty.com/sasha)',
+  tickerText: `Tonight’s reveal is live\nShop the [new drop](${shop})`,
   tickerVisible: true,
   tagline: 'Live jewelry, real sparkle.',
   heroHeadline: 'Real jewelry. Live reveals.',
   heroSubtitle: 'Come watch a live jewelry reveal with Sasha.',
   heroImageUrl: '',
   heroAnimationType: 'soft_glow',
-  teamName: 'Moonstone Squad',
+  heroMotionMode: 'choices',
+  teamName: 'Sample Squad',
   memberTeamName: 'Upline Gems',
   showJoinPage: true,
   joinTeamAccessEnabled: true,
@@ -39,11 +41,11 @@ const sample: SiteSettingsDraft = {
   aboutNarrative:
     'Sasha hosts live jewelry reveals from her living room. She started with one Friday night show and now her regulars plan their week around the next box.',
   socialHandles: {
-    instagram: 'https://instagram.com/sparklebysasha',
-    facebook: 'https://facebook.com/sparklebysasha',
-    tiktok: 'https://www.tiktok.com/@sparklebysasha',
-    youtube: 'https://www.youtube.com/@sparklebysasha',
-    whatnot: 'https://www.whatnot.com/user/sparklebysasha',
+    instagram: 'https://example.com/instagram/sparklebysasha',
+    facebook: 'https://example.com/facebook/sparklebysasha',
+    tiktok: 'https://example.com/tiktok/sparklebysasha',
+    youtube: 'https://example.com/youtube/sparklebysasha',
+    whatnot: 'https://example.com/whatnot/sparklebysasha',
   },
   socialVisibility: {
     instagram: true,
@@ -56,7 +58,7 @@ const sample: SiteSettingsDraft = {
     {
       key: 'about_1',
       caption: 'Sasha before a Friday show',
-      imageUrl: '/marketing/louis-headshot.webp',
+      imageUrl: '/dev/sample-portrait.svg',
       videoUrl: '',
       isVisible: true,
       sectionVisible: true,
@@ -65,24 +67,6 @@ const sample: SiteSettingsDraft = {
     { key: 'about_3', caption: 'A favorite ring from last month', imageUrl: '', videoUrl: video, isVisible: true },
     { key: 'about_4', caption: 'The room just before go-live', imageUrl: '', videoUrl: video, isVisible: true },
   ],
-}
-
-const mileHigh: SiteSettingsDraft = {
-  ...sample,
-  displayName: 'Lindsey',
-  businessName: 'Mile High Fizz',
-  email: 'lindseychapman1188@gmail.com',
-  appearancePreset: 'alpine_opal',
-  heroAnimationType: 'soft_glow',
-  teamName: 'Diamond Peak Society',
-  heroMotionApplies: true,
-  grandfatheredHeadlineFallback: true,
-}
-
-const listedStandard: SiteSettingsDraft = {
-  ...sample,
-  heroMotionApplies: false,
-  grandfatheredHeadlineFallback: false,
 }
 
 function ReviewCard({
@@ -98,12 +82,11 @@ function ReviewCard({
 }) {
   const [draft, setDraft] = useState(saved)
   return (
-    <section aria-label={title} style={{ marginBottom: 32 }}>
+    <section aria-label={title} data-sample-slug={slug} style={{ marginBottom: 32 }}>
       <h2 style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '1.1rem' }}>{title}</h2>
       <SiteSettingsCard
         state={{ status: 'ready', settings: saved }}
         draft={draft}
-        publicSiteSlug={slug}
         publicSiteUrl="https://sparklebysasha.example"
         publicSiteDisplay="sparklebysasha.example"
         canPreview
@@ -130,7 +113,7 @@ export function MyWebsiteLayoutHarness({
       ? sample
       : {
           ...sample,
-          shopLink: 'bombparty.com/sasha',
+          shopLink: 'shop.example/sasha',
           homepageMediaSlots: sample.homepageMediaSlots?.map((slot) =>
             slot.key === 'about_1' ? { ...slot, imageUrl: '' } : slot,
           ),
@@ -161,20 +144,20 @@ export function MyWebsiteLayoutHarness({
         </p>
         <ReviewCard
           title="Listed standard rep: no Hero control"
-          saved={listedStandard}
-          slug="dudesfizzfest"
+          saved={{ ...sample, heroMotionMode: 'theme', grandfatheredHeadlineFallback: false }}
+          slug="sample-theme"
           openSections={['hero', 'footer']}
         />
         <ReviewCard
           title="Unlisted standard rep: Hero motion"
-          saved={{ ...sample, heroMotionApplies: true, grandfatheredHeadlineFallback: false }}
-          slug="newrep"
+          saved={{ ...sample, heroMotionMode: 'choices', grandfatheredHeadlineFallback: false }}
+          slug="sample-choices"
           openSections={['hero', 'footer']}
         />
         <ReviewCard
           title="Custom layout: Hero animation"
-          saved={mileHigh}
-          slug="milehighfizz"
+          saved={{ ...sample, heroMotionMode: 'switch', grandfatheredHeadlineFallback: true }}
+          slug="sample-switch"
           openSections={['hero', 'footer']}
         />
       </div>

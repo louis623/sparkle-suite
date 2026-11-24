@@ -15,7 +15,7 @@ import { flushSync } from 'react-dom'
 import { SiteLeaveGuard, SiteSaveBar, type SiteDiscardOpener } from './SiteSaveBar'
 import { SiteMapRail, SiteSettingsBody, SetupChecklist } from './SiteSettingsBody'
 import { buildSiteSetupChecklist, type SiteSectionId } from './site-settings-layout'
-import { myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-applies'
+import { myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-client'
 import {
   discountCodeFieldError,
   discountMessageFieldError,
@@ -2590,12 +2590,14 @@ function myWebsiteDraftFingerprint(draft: SiteSettingsDraft, isBrittWithBling: b
     teamName,
     recruitingLink,
     heroMotionApplies,
+    heroMotionMode,
     grandfatheredHeadlineFallback,
     ...rest
   } = getNormalizedSiteSettingsDraft(draft, { isBrittWithBling })
   void teamName
   void recruitingLink
   void heroMotionApplies
+  void heroMotionMode
   void grandfatheredHeadlineFallback
   return JSON.stringify(rest)
 }
@@ -7497,7 +7499,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             mediaUploadKey={siteSettingsMediaUploadKey}
             mediaUploadFeedback={siteSettingsMediaUploadFeedback}
             isBrittWithBling={isBrittWithBlingWorkspace}
-            publicSiteSlug={currentPublicSiteSlug}
             canPreview={Boolean(customerSparkleSiteHref)}
             onPreview={handleOpenCustomerSitePreview}
             onDiscard={() => discardOpenerRef.current?.open()}
@@ -9884,7 +9885,6 @@ export function SiteSettingsCard({
   canPreview,
   initialOpenSection = null,
   initialOpenSections = null,
-  publicSiteSlug = null,
   onPreview,
   onDiscard,
   onSave,
@@ -9921,7 +9921,6 @@ export function SiteSettingsCard({
   canPreview?: boolean
   initialOpenSection?: SiteSectionId | null
   initialOpenSections?: SiteSectionId[] | null
-  publicSiteSlug?: string | null
   onPreview?: () => void
   onDiscard?: () => void
   onSave?: () => void
@@ -10153,7 +10152,6 @@ export function SiteSettingsCard({
         savedSlots={state.settings.homepageMediaSlots}
         joinTeamAccessEnabled={state.settings.joinTeamAccessEnabled === true}
         isBrittWithBling={isBrittWithBling}
-        publicSiteSlug={publicSiteSlug}
         initialOpenSection={initialOpenSection}
         initialOpenSections={initialOpenSections}
         emailError={emailError}

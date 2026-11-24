@@ -9,7 +9,7 @@ import {
 import { resolveSocialHeroLinks } from '@/lib/public-site/social-hero'
 import type { SocialPlatformKey } from '@/lib/public-site/social-visibility'
 import type { HeroAnimationType, PublicSiteMediaSlot, PublicSiteMediaSlotKey, SiteSettingsDashboardResult } from '@/lib/services/types'
-import { applyHeroMotionSwitch, heroMotionControl } from '@/lib/amethyst/hero-motion-applies'
+import { applyHeroMotionSwitch } from '@/lib/amethyst/hero-motion-client'
 import visibility from './PublicSiteVisibility.module.css'
 import type { SiteSettingsDraft } from '@/app/nic-nac/components/DashboardPlaceholder'
 import { HomepageMediaSlot } from './HomepageMediaSlot'
@@ -195,7 +195,6 @@ export function SiteSettingsBody({
   savedSlots,
   joinTeamAccessEnabled,
   isBrittWithBling,
-  publicSiteSlug = null,
   initialOpenSection,
   initialOpenSections = null,
   emailError,
@@ -229,7 +228,6 @@ export function SiteSettingsBody({
   savedSlots?: PublicSiteMediaSlot[]
   joinTeamAccessEnabled: boolean
   isBrittWithBling: boolean
-  publicSiteSlug?: string | null
   initialOpenSection?: SiteSectionId | null
   initialOpenSections?: SiteSectionId[] | null
   emailError: string | null
@@ -265,7 +263,7 @@ export function SiteSettingsBody({
   const status = (section: SiteSectionId) => siteSectionStatus({ section, checklist, draft })
   const sectionOpen = (id: SiteSectionId) =>
     initialOpenSections?.includes(id) === true || openSection === id
-  const motionMode = heroMotionControl({ settings: draft, publicSiteSlug })
+  const motionMode = draft.heroMotionMode ?? 'choices'
   const rememberedHeroMotion = useRef<HeroAnimationType | null>(
     draft.heroAnimationType !== 'still' ? draft.heroAnimationType : null,
   )
@@ -875,12 +873,12 @@ export function SiteSettingsBody({
             />
             <ShowsOn id="member-team-shows">{SHOWS_ON.memberTeam}</ShowsOn>
           </label>
-          <div className={styles.searchField} data-site-field="team-i-manage">
+          <div className={styles.sortFieldWide} data-site-field="team-i-manage">
             <p className={styles.managedTeamLine} data-site-control="team-i-manage" data-chunk="4">
               Team I manage: {draft.teamName.trim() || 'Not set yet'}
               {' · '}
               <a
-                className={styles.workspaceSectionLink}
+                className={styles.managedTeamLink}
                 href="/nic-nac?section=team-management"
                 onClick={followWorkspaceLink}
               >

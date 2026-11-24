@@ -8296,10 +8296,22 @@
 
 .managedTeamLine {
   margin: 0;
-  color: var(--nic-nac-text-primary, #402924);
-  font-size: 1rem;
-  font-weight: 700;
+  color: var(--nic-nac-text-secondary, #775d57);
+  font-size: 0.9375rem;
+  font-weight: 500;
   line-height: 1.4;
+}
+
+.managedTeamLink {
+  color: inherit;
+  font-weight: 500;
+  text-decoration-line: underline;
+  text-underline-offset: 0.15em;
+}
+
+.managedTeamLink:focus-visible {
+  outline: 3px solid #0b57d0;
+  outline-offset: 2px;
 }
 
 .settingsLoadError {

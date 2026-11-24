@@ -321,6 +321,7 @@ describe('site settings service', () => {
       heroImageUrl: '',
       heroAnimationType: 'sparkle_rise',
       heroMotionApplies: true,
+      heroMotionMode: 'choices',
       grandfatheredHeadlineFallback: false,
       teamName: '',
       memberTeamName: '',

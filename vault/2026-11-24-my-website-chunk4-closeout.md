@@ -4,3 +4,4 @@
 - Hero motion follows the renderer. Team I manage is read-only on My Website. Labels renamed. Settings load error has Retry.
 - No Live deploy and no Live database write. Smoke allowlist is preview-only on `sparkle-suite-smoke`.
 - Follow-up: restored the locked `preview-template-data.ts`, made the hero flags null-safe, and kept the theme preview column in the first paint so desktop CLS stays under 0.1.
+- Privacy follow-up: harness data is fictional (Sasha Sample). Hero motion mode is computed on the server. Profile modules stay server-only. The theme preview frame mounts only when the column is wide.

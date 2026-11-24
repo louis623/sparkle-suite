@@ -13,7 +13,7 @@ const saved: SiteSettingsDraft = {
   businessName: 'Fizz Festival',
   email: 'fizz@example.com',
   phone: '',
-  shopLink: 'https://bombparty.com/fizz',
+  shopLink: 'https://shop.example/fizz',
   bannerText: '',
   bannerVisible: false,
   tickerText: 'Festival night',

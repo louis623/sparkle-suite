@@ -1,13 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { mapPreviewSettingsToHomepageTemplateData } from '@/lib/amethyst/preview-template-data'
+import { applyHeroMotionSwitch, myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-client'
 import {
-  applyHeroMotionSwitch,
   grandfatheredHeadlineFallback,
   heroMotionApplies,
   homepageRendererVariant,
   isRendererCustomHeroVariant,
-  myWebsiteSavePayload,
 } from '@/lib/amethyst/hero-motion-applies'
 import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 

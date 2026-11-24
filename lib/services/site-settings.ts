@@ -12,6 +12,7 @@ import {
 import {
   grandfatheredHeadlineFallback,
   heroMotionApplies,
+  heroMotionControl,
 } from '@/lib/amethyst/hero-motion-applies'
 import { isAmethystSkinSelectionAvailableToRep } from '@/lib/amethyst/skin-access'
 import {
@@ -426,9 +427,11 @@ function withReadOnlySiteFields(
   settings: SiteSettingsDashboardResult,
   publicSiteSlug: string | null | undefined,
 ): SiteSettingsDashboardResult {
+  const heroMotionAppliesValue = heroMotionApplies({ settings, publicSiteSlug })
+  const withMotion = { ...settings, heroMotionApplies: heroMotionAppliesValue }
   return {
-    ...settings,
-    heroMotionApplies: heroMotionApplies({ settings, publicSiteSlug }),
+    ...withMotion,
+    heroMotionMode: heroMotionControl({ settings: withMotion, publicSiteSlug }),
     grandfatheredHeadlineFallback: grandfatheredHeadlineFallback(settings, publicSiteSlug),
   }
 }

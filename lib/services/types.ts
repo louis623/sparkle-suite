@@ -730,6 +730,8 @@ export interface SiteSettingsDashboardResult {
    * (custom layout, or a slug the v2 renderer does not serve).
    */
   heroMotionApplies?: boolean
+  /** Read-only. Which Hero control this rep should see. */
+  heroMotionMode?: 'switch' | 'choices' | 'theme'
   /**
    * Read-only. True when an empty line under the headline falls back to the footer tagline.
    */
