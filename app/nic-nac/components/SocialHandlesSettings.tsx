@@ -131,14 +131,16 @@ function PlacementSwitch({
   onChange: (checked: boolean) => void
 }) {
   return (
-    <label className={styles.toggle}>
+    <label
+      className={styles.toggle}
+      data-site-control={label === 'Show on site' ? 'social-show-on-site' : 'social-show-in-hero'}
+    >
       <span>{label}</span>
       <span className={styles.control}>
         <input
           type="checkbox"
           role="switch"
           aria-label={ariaLabel}
-          data-site-control={label === 'Show on site' ? 'social-show-on-site' : 'social-show-in-hero'}
           checked={checked}
           onChange={(event) => onChange(event.target.checked)}
         />
