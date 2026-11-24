@@ -10,30 +10,57 @@ import {
 
 describe('private theme offer', () => {
   const catalog = [
-    { skin_id: 'alpine_opal', visibility: 'private', owner_rep_id: 'lindsey-rep' },
-    { skin_id: 'amethyst', visibility: 'community', owner_rep_id: null },
+    { skin_id: 'alpine_opal', visibility: 'private', owner_rep_id: 'lindsey-rep', allow_internal_demo: true },
+    { skin_id: 'amethyst', visibility: 'community', owner_rep_id: null, allow_internal_demo: false },
   ]
+  const availableIds = ['amethyst', 'alpine_opal']
 
-  it('offers a private theme only to its owner', () => {
-    expect(skinsOfferedToRep({
-      repId: 'reviewer-rep',
-      availableIds: ['amethyst', 'alpine_opal'],
-      catalog,
-    })).toEqual({ skinIds: ['amethyst'], ownedPrivateSkinIds: [] })
+  it('offers a private theme to its owner and a real internal demo, not to the reviewer or another rep', () => {
     expect(skinsOfferedToRep({
       repId: 'lindsey-rep',
-      availableIds: ['amethyst', 'alpine_opal'],
+      availableIds,
       catalog,
-    })).toEqual({ skinIds: ['amethyst', 'alpine_opal'], ownedPrivateSkinIds: ['alpine_opal'] })
+    })).toEqual({ skinIds: availableIds, ownedPrivateSkinIds: ['alpine_opal'] })
+    expect(skinsOfferedToRep({
+      repId: 'louis-demo',
+      availableIds,
+      catalog,
+      internalDemo: true,
+    })).toEqual({ skinIds: availableIds, ownedPrivateSkinIds: [] })
     expect(skinsOfferedToRep({
       repId: 'reviewer-rep',
-      availableIds: ['amethyst', 'alpine_opal'],
-      catalog: [{ skin_id: 'amethyst', visibility: 'community', owner_rep_id: null }],
+      availableIds,
+      catalog,
+      internalDemo: true,
+      reviewer: true,
     })).toEqual({ skinIds: ['amethyst'], ownedPrivateSkinIds: [] })
+    expect(skinsOfferedToRep({
+      repId: 'other-rep',
+      availableIds,
+      catalog,
+    })).toEqual({ skinIds: ['amethyst'], ownedPrivateSkinIds: [] })
+  })
+
+  it('still treats a known private theme as private when the catalog row is missing or unmarked', () => {
+    expect(skinsOfferedToRep({
+      repId: 'reviewer-rep',
+      availableIds,
+      catalog: [{ skin_id: 'amethyst', visibility: 'community', owner_rep_id: null }],
+      internalDemo: true,
+      reviewer: true,
+    })).toEqual({ skinIds: ['amethyst'], ownedPrivateSkinIds: [] })
+    expect(skinsOfferedToRep({
+      repId: 'other-rep',
+      availableIds: ['alpine_opal'],
+      catalog: [{ skin_id: 'alpine_opal', visibility: 'community', owner_rep_id: null, allow_internal_demo: true }],
+      internalDemo: true,
+    })).toEqual({ skinIds: ['alpine_opal'], ownedPrivateSkinIds: [] })
     expect(skinsOfferedToRep({
       repId: 'reviewer-rep',
       availableIds: ['alpine_opal'],
-      catalog: [{ skin_id: 'alpine_opal', visibility: 'community', owner_rep_id: null }],
+      catalog: [{ skin_id: 'alpine_opal', visibility: 'community', owner_rep_id: null, allow_internal_demo: true }],
+      internalDemo: true,
+      reviewer: true,
     })).toEqual({ skinIds: [], ownedPrivateSkinIds: [] })
   })
 })

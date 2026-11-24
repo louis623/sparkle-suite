@@ -41,6 +41,11 @@ export function reviewerSmokeSlug(email: string) {
   return slug
 }
 
+export function isReviewerSmokeEmail(email: string | null | undefined) {
+  const normalized = email?.trim().toLowerCase() ?? ''
+  return supported.has(normalized)
+}
+
 /** Null, the current slug, or that reviewer's exact previous slug. Nothing else. */
 export function isAcceptedReviewerSmokeSlug(email: string, slug: string | null) {
   if (slug === null) return true

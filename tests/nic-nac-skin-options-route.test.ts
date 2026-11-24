@@ -11,15 +11,26 @@ vi.mock('@/lib/nic-nac/auth', () => ({
 }))
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => ({
-    from: () => ({
-      select: async () => ({
-        data: [
-          { skin_id: 'black_diamond', visibility: 'private', owner_rep_id: 'brittany-rep' },
-          { skin_id: 'alpine_opal', visibility: 'private', owner_rep_id: 'lindsey-rep' },
-        ],
-        error: null,
-      }),
-    }),
+    from: (table: string) => {
+      if (table === 'reps') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({ data: null, error: null }),
+            }),
+          }),
+        }
+      }
+      return {
+        select: async () => ({
+          data: [
+            { skin_id: 'black_diamond', visibility: 'private', owner_rep_id: 'brittany-rep', allow_internal_demo: true },
+            { skin_id: 'alpine_opal', visibility: 'private', owner_rep_id: 'lindsey-rep', allow_internal_demo: true },
+          ],
+          error: null,
+        }),
+      }
+    },
   }),
 }))
 
