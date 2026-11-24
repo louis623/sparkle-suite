@@ -11,6 +11,7 @@ import {
 
 import surface from './DashboardPlaceholder.module.css'
 import styles from './SocialHandlesSettings.module.css'
+import { SHOWS_ON } from './site-settings-layout'
 
 const PLACEHOLDERS: Partial<Record<SocialPlatformKey, string>> = {
   facebook: 'VIP group or page',
@@ -53,10 +54,11 @@ export function SocialHandlesSettings({
               <SocialMark platform={platform.key} className="social-handle-mark" />
               <span className={surface.searchLabel}>{platform.label}</span>
             </div>
-            <label className={surface.searchField}>
+            <label className={surface.searchField} data-site-field={`social-${platform.key}`}>
               <span className={styles.srOnly}>{platform.label} link</span>
               <input
                 id={fieldId}
+                data-site-control="social-link"
                 className={surface.searchInput}
                 placeholder={PLACEHOLDERS[platform.key]}
                 value={rawUrl}
@@ -65,7 +67,7 @@ export function SocialHandlesSettings({
                 autoCorrect="off"
                 spellCheck={false}
                 aria-invalid={error ? 'true' : 'false'}
-                aria-describedby={error ? `${fieldId}-error` : undefined}
+                aria-describedby={error ? `${fieldId}-error ${fieldId}-shows` : `${fieldId}-shows`}
                 onBlur={() => onBlur?.(platform.key)}
                 onChange={(event) => onSocialHandleChange?.(platform.key, event.target.value)}
               />
@@ -74,6 +76,9 @@ export function SocialHandlesSettings({
                   <span role="img" aria-label="Error">!</span> {error}
                 </span>
               ) : null}
+              <span id={`${fieldId}-shows`} className={surface.showsOn} data-shows-on="">
+                Shows on: {SHOWS_ON.social}
+              </span>
             </label>
             {!hasUrl && !error ? <p className={surface.siteSettingsPreviewNote}>{hint}</p> : null}
             {hasUrl ? (
@@ -133,6 +138,7 @@ function PlacementSwitch({
           type="checkbox"
           role="switch"
           aria-label={ariaLabel}
+          data-site-control={label === 'Show on site' ? 'social-show-on-site' : 'social-show-in-hero'}
           checked={checked}
           onChange={(event) => onChange(event.target.checked)}
         />

@@ -11,9 +11,10 @@ import { isTikTokCardUrl } from '@/lib/public-site/tiktok-video-id'
 import { SOCIAL_PLATFORMS } from '@/lib/public-site/social-visibility'
 
 import Link from 'next/link'
-import { PublicSiteVisibility } from './PublicSiteVisibility'
+import { flushSync } from 'react-dom'
 import { SiteLeaveGuard, SiteSaveBar, type SiteDiscardOpener } from './SiteSaveBar'
-import { SocialHandlesSettings } from './SocialHandlesSettings'
+import { SiteMapRail, SiteSettingsBody, SetupChecklist } from './SiteSettingsBody'
+import { buildSiteSetupChecklist, type SiteSectionId } from './site-settings-layout'
 import {
   discountCodeFieldError,
   discountMessageFieldError,
@@ -9832,6 +9833,7 @@ export function SiteSettingsCard({
   mediaUploadFeedback,
   isBrittWithBling = false,
   canPreview,
+  initialOpenSection = null,
   onPreview,
   onDiscard,
   onSave,
@@ -9865,6 +9867,7 @@ export function SiteSettingsCard({
   } | null
   isBrittWithBling?: boolean
   canPreview?: boolean
+  initialOpenSection?: SiteSectionId | null
   onPreview?: () => void
   onDiscard?: () => void
   onSave?: () => void
@@ -10003,9 +10006,6 @@ export function SiteSettingsCard({
     )
   }
 
-  const aboutPortraitSlot = (draft.homepageMediaSlots ?? []).find(
-    (slot) => slot.key === 'about_1',
-  )
   const discountCode = draft.signupDiscountCode ?? ''
   const discountMessage = draft.signupDiscountMessage ?? ''
   const discountCodeError = showFieldError(
@@ -10030,9 +10030,13 @@ export function SiteSettingsCard({
   const changeLabels = changes.length > 0 ? changes : hasUnsavedChanges ? ['Site details'] : []
   const saveError = actionState?.error ?? null
 
+  const checklist = buildSiteSetupChecklist(draft)
+
   return (
-    <div className={styles.siteSettingsCard}>
-      <div className={styles.myWebsiteHeader}>
+    <div className={styles.siteSettingsLayout}>
+      <SiteMapRail />
+      <div className={styles.siteSettingsCard}>
+      <div className={styles.myWebsiteHeader} data-site-section="header">
         <p className={styles.myWebsiteKicker}>Public site</p>
         <h1 className={styles.myWebsiteTitle}>My Website</h1>
         <p className={styles.myWebsiteAddress}>{publicSiteDisplay || 'Site address not set'}</p>
@@ -10040,6 +10044,7 @@ export function SiteSettingsCard({
           {publicSiteUrl ? (
             <a
               className={styles.siteSettingsPreviewButton}
+              data-site-control="view-my-site"
               href={publicSiteUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -10047,13 +10052,14 @@ export function SiteSettingsCard({
               View my site ↗
             </a>
           ) : (
-            <button type="button" className={styles.siteSettingsPreviewButton} disabled>
+            <button type="button" className={styles.siteSettingsPreviewButton} data-site-control="view-my-site" disabled>
               View my site ↗
             </button>
           )}
           <button
             type="button"
             className={styles.siteSettingsPreviewButton}
+            data-site-control="copy-link"
             onClick={() => void copySiteLink()}
             disabled={!publicSiteUrl}
           >
@@ -10062,6 +10068,7 @@ export function SiteSettingsCard({
           <button
             type="button"
             className={styles.siteSettingsPreviewButton}
+            data-site-control="preview-saved-site"
             onClick={onPreview}
             disabled={!canPreview}
           >
@@ -10072,6 +10079,7 @@ export function SiteSettingsCard({
       <div className={styles.visuallyHidden} aria-live="polite">
         {fieldAnnouncement}
       </div>
+      <SetupChecklist items={checklist} />
       <ThemeStudio
         status={skinOptions.status}
         cards={skinOptions.cards}
@@ -10082,681 +10090,52 @@ export function SiteSettingsCard({
         }
         onRetry={skinOptions.retry}
       />
-      <div className={styles.siteSettingsSection} aria-label="Signup discount">
-        <div className={styles.walletSettingsTitle}>Signup discount</div>
-        <label className={styles.walletToggleRow}>
-          <span className={styles.searchLabel}>Show a discount code after customers sign up for updates</span>
-          <input
-            type="checkbox"
-            role="switch"
-            checked={draft.signupDiscountEnabled === true}
-            onChange={(event) => onDraftChange?.({ signupDiscountEnabled: event.target.checked })}
-          />
-        </label>
-        <div className={styles.siteSettingsGrid}>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>Code</span>
-            <input
-              id={SITE_FIELD_IDS.discountCode}
-              className={styles.searchInput}
-              value={discountCode}
-              maxLength={40}
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              aria-invalid={discountCodeError ? 'true' : 'false'}
-              aria-describedby={discountCodeError ? `${SITE_FIELD_IDS.discountCode}-error` : undefined}
-              onBlur={() => reportFieldBlur(
-                SITE_FIELD_IDS.discountCode,
-                'Discount code',
-                discountCodeFieldError(discountCode, draft.signupDiscountEnabled),
-              )}
-              onChange={(event) => onDraftChange?.({ signupDiscountCode: event.target.value })}
-            />
-            {discountCodeError ? (
-              <span id={`${SITE_FIELD_IDS.discountCode}-error`} className={styles.fieldError}>
-                <span role="img" aria-label="Error">!</span> {discountCodeError}
-              </span>
-            ) : null}
-          </label>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>Message shown with your code</span>
-            <input
-              id={SITE_FIELD_IDS.discountMessage}
-              className={styles.searchInput}
-              value={discountMessage}
-              maxLength={140}
-              aria-invalid={discountMessageError ? 'true' : 'false'}
-              aria-describedby={
-                discountMessageError
-                  ? `signup-discount-message-count ${SITE_FIELD_IDS.discountMessage}-error`
-                  : 'signup-discount-message-count'
-              }
-              onBlur={() => reportFieldBlur(
-                SITE_FIELD_IDS.discountMessage,
-                'Discount message',
-                discountMessageFieldError(discountMessage),
-              )}
-              onChange={(event) => onDraftChange?.({ signupDiscountMessage: event.target.value })}
-            />
-            <span id="signup-discount-message-count" className={styles.helperNote}>{discountMessage.length}/140 · Plain text</span>
-            {discountMessageError ? (
-              <span id={`${SITE_FIELD_IDS.discountMessage}-error`} className={styles.fieldError}>
-                <span role="img" aria-label="Error">!</span> {discountMessageError}
-              </span>
-            ) : null}
-          </label>
-        </div>
-        <p className={styles.helperNote}>Suite only shows this code. Set up the code itself in Bomb Party first.</p>
-      </div>
-      <div className={styles.calendarHeader}>
-        <div className={styles.walletSettingsTitle}>Profile basics</div>
-        <span className={styles.rosterTag}>
-          Update what shoppers and recruits see across your public pages.
-        </span>
-      </div>
-      <div className={styles.siteSettingsGrid}>
-        <label className={styles.searchField}>
-          <span className={styles.searchLabel}>Display name</span>
-          <input
-            className={styles.searchInput}
-            value={draft.displayName}
-            onChange={(event) =>
-              onDraftChange?.({ displayName: event.target.value })
-            }
-          />
-        </label>
-        <label className={styles.searchField}>
-          <span className={styles.searchLabel}>Show name</span>
-          <input
-            className={styles.searchInput}
-            value={draft.businessName}
-            onChange={(event) =>
-              onDraftChange?.({ businessName: event.target.value })
-            }
-          />
-        </label>
-        <label className={styles.searchField}>
-          <span className={styles.searchLabel}>Email</span>
-          <input
-            id={SITE_FIELD_IDS.email}
-            className={styles.searchInput}
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            value={draft.email}
-            aria-invalid={emailError ? 'true' : 'false'}
-            aria-describedby={emailError ? `${SITE_FIELD_IDS.email}-error` : undefined}
-            onBlur={() => reportFieldBlur(SITE_FIELD_IDS.email, 'Email', emailFieldError(draft.email))}
-            onChange={(event) => onDraftChange?.({ email: event.target.value })}
-          />
-          {emailError ? (
-            <span id={`${SITE_FIELD_IDS.email}-error`} className={styles.fieldError}>
-              <span role="img" aria-label="Error">!</span> {emailError}
-            </span>
-          ) : null}
-        </label>
-        <label className={styles.searchField}>
-          <span className={styles.searchLabel}>Bomb Party rep store link</span>
-          <span id={`${SITE_FIELD_IDS.shopLink}-hint`} className={styles.helperNote}>
-            This powers the Shop buttons across your customer-facing site. Use the full store URL.
-          </span>
-          <input
-            id={SITE_FIELD_IDS.shopLink}
-            className={styles.searchInput}
-            type="url"
-            inputMode="url"
-            autoComplete="url"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            value={draft.shopLink ?? ''}
-            aria-invalid={shopLinkError ? 'true' : 'false'}
-            aria-describedby={
-              shopLinkError
-                ? `${SITE_FIELD_IDS.shopLink}-hint ${SITE_FIELD_IDS.shopLink}-error`
-                : `${SITE_FIELD_IDS.shopLink}-hint`
-            }
-            onBlur={() => reportFieldBlur(
-              SITE_FIELD_IDS.shopLink,
-              'Bomb Party rep store link',
-              shopLinkFieldError(draft.shopLink),
-            )}
-            onChange={(event) => onDraftChange?.({ shopLink: event.target.value })}
-            placeholder="https://bombparty.com/..."
-          />
-          {shopLinkError ? (
-            <span id={`${SITE_FIELD_IDS.shopLink}-error`} className={styles.fieldError}>
-              <span role="img" aria-label="Error">!</span> {shopLinkError}
-            </span>
-          ) : null}
-        </label>
-      </div>
-
-      <div className={styles.siteSettingsSection}>
-        <div className={styles.walletSettingsTitle}>Announcement messages</div>
-        <div className={styles.siteSettingsGrid}>
-          <label className={styles.sortFieldWide}>
-            <span className={styles.searchLabel}>Announcement ticker messages</span>
-            <textarea
-              ref={tickerTextareaRef}
-              className={styles.siteSettingsTextarea}
-              value={draft.tickerText}
-              onChange={(event) => {
-                setTickerLinkSelection(null)
-                onDraftChange?.({ tickerText: event.target.value })
-              }}
-              onSelect={(event) => {
-                const textarea = event.currentTarget
-                const start = textarea.selectionStart
-                const end = textarea.selectionEnd
-                setTickerLinkSelection(
-                  start === end
-                    ? null
-                    : { start, end, text: textarea.value.slice(start, end) },
-                )
-                setTickerLinkError(null)
-              }}
-            />
-            <span className={styles.helperNote}>
-              Use one announcement per line. Add emojis, then highlight only the words you want to link.
-            </span>
-            <div className={styles.tickerComposer}>
-              <div>
-                <span className={styles.searchLabel}>Add an emoji</span>
-                <div className={styles.tickerEmojiRow}>
-                  {['✨', '💎', '🎥', '🛍️', '🎉', '📣', '⏰', '💖'].map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      className={styles.tickerEmojiButton}
-                      onClick={() => addTickerText(emoji)}
-                      aria-label={`Add ${emoji} to the announcement ticker`}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <span className={styles.searchLabel}>Link selected words</span>
-                <span className={styles.tickerLinkHint}>
-                  {tickerLinkSelection?.text.trim()
-                    ? `Ready to link: “${tickerLinkSelection.text}”`
-                    : 'Highlight the exact words in your announcement first.'}
-                </span>
-                <div className={styles.tickerLinkBuilder}>
-                  <input
-                    className={styles.searchInput}
-                    type="url"
-                    value={tickerLinkUrl}
-                    onChange={(event) => setTickerLinkUrl(event.target.value)}
-                    placeholder="Paste the destination link"
-                  />
-                  <button
-                    type="button"
-                    className={styles.tickerLinkButton}
-                    onClick={linkSelectedTickerWords}
-                    disabled={!tickerLinkSelection?.text.trim() || !tickerLinkUrl.trim()}
-                  >
-                    Link selected words
-                  </button>
-                </div>
-                {hasTickerLinks ? (
-                  <button
-                    type="button"
-                    className={styles.tickerLinkResetButton}
-                    onClick={resetTickerLinksToPlainText}
-                  >
-                    Make existing links plain text
-                  </button>
-                ) : null}
-                {hasTickerLinks ? (
-                  <span className={styles.tickerLinkHint}>
-                    This fixes an older ticker link that made a whole message clickable. Your words stay; only the old link is removed.
-                  </span>
-                ) : null}
-                {tickerLinkError ? <span className={styles.tickerLinkError}>{tickerLinkError}</span> : null}
-              </div>
-            </div>
-          </label>
-        </div>
-        <PublicSiteVisibility
-          settings={draft}
-          joinTeamAccessEnabled={state.status === 'ready' && state.settings?.joinTeamAccessEnabled === true}
-          onChange={onDraftChange}
-        />
-      </div>
-
-      <div className={styles.siteSettingsSection}>
-        <div className={styles.walletSettingsTitle}>Branding and visuals</div>
-        <div className={styles.siteSettingsGrid}>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>Team I manage</span>
-            <input
-              className={styles.searchInput}
-              value={draft.teamName}
-              onChange={(event) =>
-                onDraftChange?.({ teamName: event.target.value })
-              }
-            />
-          </label>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>Team I belong to</span>
-            <input
-              className={styles.searchInput}
-              value={draft.memberTeamName}
-              onChange={(event) =>
-                onDraftChange?.({ memberTeamName: event.target.value })
-              }
-            />
-          </label>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>Site tagline</span>
-            <input
-              className={styles.searchInput}
-              value={draft.tagline}
-              onChange={(event) =>
-                onDraftChange?.({ tagline: event.target.value })
-              }
-            />
-          </label>
-          <label className={styles.sortFieldWide}>
-            <span className={styles.searchLabel}>Hero title</span>
-            <input className={styles.searchInput} value={draft.heroHeadline ?? ''} maxLength={180} onChange={(event) => onDraftChange?.({ heroHeadline: event.target.value })} />
-            <span className={styles.siteSettingsPreviewNote}>This is the large heading customers see first on your homepage.</span>
-          </label>
-          <label className={styles.sortFieldWide}>
-            <span className={styles.searchLabel}>Hero subtitle</span>
-            <input className={styles.searchInput} value={draft.heroSubtitle ?? ''} maxLength={240} onChange={(event) => onDraftChange?.({ heroSubtitle: event.target.value })} />
-            <span className={styles.siteSettingsPreviewNote}>This supporting sentence appears directly beneath the hero title.</span>
-          </label>
-          <label className={styles.sortField}>
-            <span className={styles.sortLabel}>Hero motion</span>
-            <select
-              className={styles.sortSelect}
-              value={draft.heroAnimationType}
-              onChange={(event) =>
-                onDraftChange?.({
-                  heroAnimationType: event.target.value as SiteSettingsDashboardResult['heroAnimationType'],
-                })
-              }
-            >
-              <option value="sparkle_rise">Sparkle rise</option>
-              <option value="soft_glow">Soft glow</option>
-              <option value="still">Still</option>
-            </select>
-            <span className={styles.siteSettingsPreviewNote}>
-              Hero visuals stay curated by your site appearance so the page keeps
-              its polish on desktop and mobile.
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <div className={styles.siteSettingsSection}>
-        <div>
-          <div className={styles.walletSettingsTitle}>
-            {!draft.allSourcesEnabled && isBrittWithBling ? 'Brittany custom media' : 'Homepage photos and videos'}
-          </div>
-          <p className={styles.siteSettingsPreviewNote}>
-            {draft.allSourcesEnabled ? 'Add one portrait photo and up to four videos. Paste a public TikTok, YouTube, Instagram, or Facebook video link into the spot you want. Videos can be up to 3 minutes. Visitors tap Play to watch. Videos already on your site will stay as they are until you remove or replace them. A new video can take 24–48 hours to be ready. Until then, visitors see a card they can tap to watch it on that app.' : isBrittWithBling
-              ? 'Manage the changeable media on Britt with Bling. Your theme and all standard site settings remain available above.'
-              : 'Add one clean portrait photo and up to four customer videos.'}
-          </p>
-          {isBrittWithBling ? (
-            <p className={styles.siteSettingsPreviewNote}>
-              Hero and “The Rise of Her” stay managed for this custom site.
-            </p>
-          ) : null}
-        </div>
-        {isBrittWithBling ? (
-          <label className={styles.walletToggleRow}>
-            <span>
-              <span className={styles.searchLabel}>
-                Show the About Brittany and Sparkle Moments section
-              </span>
-              <span className={styles.helperNote}>
-                Empty video spots stay hidden. Turn this off without deleting any saved media.
-              </span>
-            </span>
-            <input
-              type="checkbox"
-              checked={aboutPortraitSlot?.sectionVisible === true}
-              onChange={(event) =>
-                onHomepageMediaChange?.('about_1', {
-                  sectionVisible: event.target.checked,
-                })
-              }
-            />
-          </label>
-        ) : null}
-        <div className={styles.homepageMediaGrid}>
-          {!draft.allSourcesEnabled && <aside className={styles.homepageMediaHelp} aria-label="Video links and embeds">
-            <strong>Video links and embeds</strong>
-            <p>
-              Use a public TikTok, YouTube Short, Instagram Reel, or Facebook Reel/video.
-              Paste its link or the platform&apos;s embed code into the video spot you want.
-              {draft.tiktokQueueEnabled
-                ? 'TikTok videos are added to your site by the Sparkle Suite team within 24–48 hours. Until then, your site shows a tap-to-watch TikTok card.'
-                : 'TikTok and YouTube play muted, loop, and do not show a pause control.'}
-              Instagram and Facebook use their native player controls.
-            </p>
-          </aside>}
-          {(draft.homepageMediaSlots ?? EMPTY_HOMEPAGE_MEDIA_SLOTS).map((slot) => {
-            const label =
-              slot.key === 'showcase'
-                ? isBrittWithBling
-                  ? 'What is a Bomb Party? showcase video'
-                  : 'Live reveal video'
-                : slot.key === 'about_1'
-                  ? isBrittWithBling
-                    ? 'About Brittany portrait'
-                    : 'About portrait photo'
-                  : isBrittWithBling
-                    ? `Sparkle moment ${Number(slot.key.slice(-1)) - 1}`
-                    : `About short video ${Number(slot.key.slice(-1)) - 1}`
-            const allowsPhoto = slot.key === 'about_1'
-            const allowsVideo = slot.key !== 'about_1'
-            const savedVideoUrl = state.settings?.homepageMediaSlots?.find(saved => saved.key === slot.key)?.videoUrl ?? ''
-            const lockedTikTok = Boolean(draft.tiktokQueueEnabled && !slot.videoPreserved && (draft.allSourcesEnabled ? isQueuedVideoUrl(savedVideoUrl) : isTikTokCardUrl(savedVideoUrl)))
-            const isUploading = mediaUploadKey === slot.key
-            const hasVisiblePhoto =
-              allowsPhoto && Boolean(slot.imageUrl) && slot.isVisible !== false
-            const hasVisibleVideo =
-              allowsVideo &&
-              Boolean(publicVideoDraftUrl(slot.videoUrl)) &&
-              slot.isVisible !== false
-
-            return (
-              <section
-                className={`${styles.homepageMediaCard} ${
-                  allowsPhoto
-                    ? styles.homepagePortraitMediaCard
-                    : styles.homepageVideoMediaCard
-                }`}
-                key={slot.key}
-              >
-                <div className={styles.homepageMediaCardHeader}>
-                  <strong>{label}</strong>
-                  {hasVisiblePhoto ? <span>Photo added</span> : null}
-                  {isBrittWithBling && hasVisibleVideo ? <span>Video added</span> : null}
-                  {isBrittWithBling && slot.isVisible === false ? <span>Removed</span> : null}
-                </div>
-                {hasVisiblePhoto ? (
-                  <div className={styles.homepagePortraitFramePreview}>
-                    <img
-                      className={styles.homepageMediaPreview}
-                      src={slot.imageUrl}
-                      alt={`${label} preview`}
-                      style={{
-                        '--homepage-portrait-focus-x': `${slot.portraitFocusX ?? 50}%`,
-                        '--homepage-portrait-focus-y': `${slot.portraitFocusY ?? 20}%`,
-                        '--homepage-portrait-zoom': slot.portraitZoom ?? 1.18,
-                      } as CSSProperties}
-                    />
-                  </div>
-                ) : null}
-                {allowsPhoto ? (
-                  <label className={styles.homepageMediaUploadButton}>
-                    {isUploading
-                      ? 'Uploading...'
-                      : slot.imageUrl
-                        ? 'Replace photo'
-                        : 'Upload photo'}
-                    <input
-                      className={styles.homepageMediaFileInput}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      disabled={isUploading}
-                      onChange={(event) => {
-                        const file = event.target.files?.[0]
-                        if (file) onHomepageMediaUpload?.(slot.key, file)
-                        event.target.value = ''
-                      }}
-                    />
-                  </label>
-                ) : null}
-                {mediaUploadFeedback?.key === slot.key ? (
-                  <p
-                    className={
-                      mediaUploadFeedback.tone === 'success'
-                        ? styles.homepageMediaUploadSuccess
-                        : styles.homepageMediaUploadError
-                    }
-                    role="status"
-                  >
-                    {mediaUploadFeedback.message}
-                  </p>
-                ) : null}
-                {allowsVideo ? (
-                  <label className={styles.searchField}>
-                    <span className={styles.searchLabel}>
-                      {draft.allSourcesEnabled ? 'Video link' : 'Video link or embed'}
-                    </span>
-                    <input
-                      className={styles.searchInput}
-                      type="text"
-                      placeholder={draft.allSourcesEnabled ? "Paste a public TikTok, YouTube, Instagram, or Facebook video link" : "Paste a public video link or embed code"}
-                      value={slot.videoUrl}
-                      readOnly={lockedTikTok}
-                      aria-describedby={lockedTikTok ? `remove-video-help-${slot.key}` : undefined}
-                      onChange={(event) => {
-                        const videoUrl = event.target.value
-                        onHomepageMediaChange?.(slot.key, {
-                          videoUrl,
-                          tiktokVideoStatus: null,
-                          ...(isBrittWithBling || draft.tiktokQueueEnabled
-                            ? { isVisible: Boolean(videoUrl.trim()) }
-                            : {}),
-                        })
-                      }}
-                    />
-                    {lockedTikTok ? <span id={`remove-video-help-${slot.key}`}>Remove this video before adding a new link.</span> : null}
-                    {draft.tiktokQueueEnabled && slot.tiktokVideoStatus ? (
-                      <span role="status">{draft.allSourcesEnabled ? (slot.tiktokVideoStatus === 'live' ? 'Your video is ready. Visitors can tap Play to watch.' : slot.tiktokVideoStatus === 'unavailable' ? "We couldn't use this video. It may be private or too long. Remove it and try another link, or contact us." : 'Your video is queued. This can take 24–48 hours.') : slot.tiktokVideoStatus === 'live'
-                        ? 'Video is ready and now playing on your site.'
-                        : 'Video is queued to be pulled and placed on your site. This can take up to 24–48 hours.'}</span>
-                    ) : null}
-                  </label>
-                ) : null}
-                {allowsVideo ? (
-                  <label className={styles.searchField}>
-                    <span className={styles.searchLabel}>{draft.allSourcesEnabled ? 'Caption (optional)' : 'Video caption (optional)'}</span>
-                    <input
-                      className={styles.searchInput}
-                      maxLength={180}
-                      placeholder={draft.allSourcesEnabled ? "A short line under the video" : "Add a short caption shown below the video"}
-                      value={slot.caption}
-                      onChange={(event) =>
-                        onHomepageMediaChange?.(slot.key, { caption: event.target.value })
-                      }
-                    />
-                  </label>
-                ) : null}
-                {isBrittWithBling && hasVisibleVideo ? (
-                  <div className={styles.homepageMediaCurrentState}>
-                    <span>Current video is ready.</span>
-                    <a href={slot.videoUrl} target="_blank" rel="noreferrer noopener">
-                      Open video
-                    </a>
-                  </div>
-                ) : null}
-                {isBrittWithBling &&
-                allowsVideo &&
-                slot.isVisible !== false &&
-                slot.videoUrl.trim() &&
-                !hasVisibleVideo ? (
-                  <p className={styles.homepageMediaUploadError} role="status">
-                    This link is not a playable public video. Replace it before saving.
-                  </p>
-                ) : null}
-                {hasVisiblePhoto ? (
-                  <fieldset className={styles.homepagePortraitControls}>
-                    <legend>Smart Frame</legend>
-                    <span>Fine-tune only if the automatic preview needs it.</span>
-                    <label>
-                      <span>Zoom</span>
-                      <input
-                        type="range"
-                        min="1"
-                        max="1.5"
-                        step="0.01"
-                        value={slot.portraitZoom ?? 1.18}
-                        onChange={(event) =>
-                          onHomepageMediaChange?.(slot.key, {
-                            portraitZoom: Number(event.target.value),
-                          })
-                        }
-                      />
-                    </label>
-                    <label>
-                      <span>Move subject up or down</span>
-                      <input
-                        type="range"
-                        min="0"
-                        max="60"
-                        step="1"
-                        value={slot.portraitFocusY ?? 20}
-                        onChange={(event) =>
-                          onHomepageMediaChange?.(slot.key, {
-                            portraitFocusY: Number(event.target.value),
-                          })
-                        }
-                      />
-                    </label>
-                    <label>
-                      <span>Move subject left or right</span>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={slot.portraitFocusX ?? 50}
-                        onChange={(event) =>
-                          onHomepageMediaChange?.(slot.key, {
-                            portraitFocusX: Number(event.target.value),
-                          })
-                        }
-                      />
-                    </label>
-                  </fieldset>
-                ) : null}
-                {allowsPhoto ? (
-                  <label className={styles.searchField}>
-                    <span className={styles.searchLabel}>Photo caption</span>
-                    <input
-                      className={styles.searchInput}
-                      maxLength={240}
-                      value={slot.caption}
-                      onChange={(event) =>
-                        onHomepageMediaChange?.(slot.key, { caption: event.target.value })
-                      }
-                    />
-                  </label>
-                ) : null}
-                {hasVisiblePhoto ? (
-                  <button
-                    type="button"
-                    className={styles.homepageMediaRemoveButton}
-                    onClick={() =>
-                      onHomepageMediaChange?.(slot.key, {
-                        imageUrl: '',
-                        ...(isBrittWithBling ? { isVisible: false } : {}),
-                      })
-                    }
-                  >
-                    Remove photo
-                  </button>
-                ) : null}
-                {lockedTikTok || slot.videoPreserved ? (
-                  <button
-                    type="button"
-                    className={styles.homepageMediaRemoveButton}
-                    disabled={actionState?.pending}
-                    onClick={() => {
-                      if (window.confirm('Remove this video from your site?')) onHomepageVideoRemove?.(slot.key, savedVideoUrl)
-                    }}
-                  >
-                    Remove video
-                  </button>
-                ) : isBrittWithBling && hasVisibleVideo ? (
-                  <button
-                    type="button"
-                    className={styles.homepageMediaRemoveButton}
-                    onClick={() =>
-                      onHomepageMediaChange?.(slot.key, {
-                        videoUrl: '',
-                        isVisible: false,
-                      })
-                    }
-                  >
-                    Remove video
-                  </button>
-                ) : null}
-              </section>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className={styles.siteSettingsSection}>
-        <div className={styles.walletSettingsTitle}>About section</div>
-        <p className={styles.siteSettingsPreviewNote}>
-          Add a short title and paste your customer-facing story. Keep it concise
-          so it stays balanced beside your photo.
-        </p>
-        <div className={styles.siteSettingsGrid}>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>About title</span>
-            <input
-              className={styles.searchInput}
-              maxLength={ABOUT_TITLE_MAX_LENGTH}
-              placeholder="Meet Brianna"
-              value={draft.aboutHeading ?? ''}
-              onChange={(event) => onDraftChange?.({ aboutHeading: event.target.value })}
-            />
-          </label>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>About narrative</span>
-            <textarea
-              className={styles.siteSettingsTextarea}
-              maxLength={ABOUT_NARRATIVE_MAX_LENGTH}
-              rows={7}
-              placeholder="Paste the story you want customers to read."
-              value={draft.aboutNarrative ?? ''}
-              onChange={(event) => onDraftChange?.({ aboutNarrative: event.target.value })}
-            />
-            <span className={styles.siteSettingsPreviewNote}>
-              {(draft.aboutNarrative ?? '').length} / {ABOUT_NARRATIVE_MAX_LENGTH} characters
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <div className={styles.siteSettingsSection}>
-        <div className={styles.walletSettingsTitle}>Social handles</div>
-        <SocialHandlesSettings
-          socialHandles={draft.socialHandles}
-          socialVisibility={draft.socialVisibility}
-          errors={socialErrors}
-          onBlur={(platform) => {
-            const label = SOCIAL_PLATFORMS.find((item) => item.key === platform)?.label ?? 'Social link'
-            reportFieldBlur(
-              SITE_FIELD_IDS.social(platform),
-              label,
-              socialLinkFieldError(platform, draft.socialHandles?.[platform]),
-            )
-          }}
-          onSocialHandleChange={onSocialHandleChange}
-          onSocialVisibilityChange={(socialVisibility) =>
-            onDraftChange?.({ socialVisibility })
-          }
-        />
-      </div>
+      <SiteSettingsBody
+        draft={draft}
+        savedSlots={state.settings.homepageMediaSlots}
+        joinTeamAccessEnabled={state.settings.joinTeamAccessEnabled === true}
+        isBrittWithBling={isBrittWithBling}
+        initialOpenSection={initialOpenSection}
+        emailError={emailError}
+        shopLinkError={shopLinkError}
+        discountCodeError={discountCodeError}
+        discountMessageError={discountMessageError}
+        socialErrors={socialErrors}
+        mediaUploadKey={mediaUploadKey}
+        mediaUploadFeedback={mediaUploadFeedback}
+        actionPending={actionState?.pending === true}
+        tickerRef={tickerTextareaRef}
+        tickerLinkUrl={tickerLinkUrl}
+        tickerLinkError={tickerLinkError}
+        tickerLinkSelection={tickerLinkSelection}
+        hasTickerLinks={hasTickerLinks}
+        onDraftChange={onDraftChange}
+        onSocialHandleChange={onSocialHandleChange}
+        onHomepageMediaChange={onHomepageMediaChange}
+        onHomepageMediaUpload={onHomepageMediaUpload}
+        onHomepageVideoRemove={onHomepageVideoRemove}
+        onFieldBlur={reportFieldBlur}
+        onSocialBlur={(platform) => {
+          const label = SOCIAL_PLATFORMS.find((item) => item.key === platform)?.label ?? 'Social link'
+          reportFieldBlur(
+            SITE_FIELD_IDS.social(platform),
+            label,
+            socialLinkFieldError(platform, draft.socialHandles?.[platform]),
+          )
+        }}
+        onTickerChange={(value) => {
+          setTickerLinkSelection(null)
+          onDraftChange?.({ tickerText: value })
+        }}
+        onTickerSelect={(selection) => {
+          setTickerLinkSelection(selection)
+          setTickerLinkError(null)
+        }}
+        onTickerLinkUrl={setTickerLinkUrl}
+        onAddTickerText={addTickerText}
+        onLinkTickerWords={linkSelectedTickerWords}
+        onResetTickerLinks={resetTickerLinksToPlainText}
+      />
       <SiteSaveBar
         changes={changeLabels}
         pending={actionState?.pending === true}
@@ -10766,9 +10145,20 @@ export function SiteSettingsCard({
         onSave={() => {
           if (!draft) return
           const result = requestSiteSettingsSave(draft, () => onSave?.())
-          if (!result.ok) setLocalFieldErrors(true)
+          if (!result.ok) {
+            setLocalFieldErrors(true)
+            const field = document.getElementById(result.errors[0]?.id ?? '')
+            const details = field?.closest('details')
+            if (details) {
+              flushSync(() => {
+                window.dispatchEvent(new CustomEvent('site-section-open', { detail: details.id }))
+              })
+            }
+            field?.focus()
+          }
         }}
       />
+      </div>
     </div>
   )
 }

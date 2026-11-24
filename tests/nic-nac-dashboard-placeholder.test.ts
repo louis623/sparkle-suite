@@ -658,7 +658,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Team I manage')
     expect(
       readFileSync(
-        resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
+        resolve(process.cwd(), 'app/nic-nac/components/SiteSettingsBody.tsx'),
         'utf8',
       ),
     ).toContain('<span className={styles.searchLabel}>Team I belong to</span>')
@@ -3636,7 +3636,7 @@ describe('DashboardPlaceholder', () => {
       'utf8',
     )
 
-    expect(html).toContain('Profile basics')
+    expect(html).toContain('Top bar')
     expect(html).toContain('Display name')
     expect(html).toContain('Show name')
     expect(html).toContain('Bomb Party rep store link')
@@ -3682,7 +3682,9 @@ describe('DashboardPlaceholder', () => {
     expect(source).toContain('linkSelectedTickerWords')
     expect(source).toContain('First highlight the exact words you want customers to click.')
     expect(source).toContain('makeTickerLinksPlainText')
-    expect(source).toContain('Make existing links plain text')
+    expect(readFileSync(resolve(process.cwd(), 'app/nic-nac/components/SiteSettingsBody.tsx'), 'utf8')).toContain(
+      'Make existing links plain text',
+    )
     expect(html).toContain('Homepage photos and videos')
     expect(html).toContain('About section')
     expect(html).toContain('About title')
@@ -3702,7 +3704,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('maxLength="180"')
     expect(html.match(/Upload photo/g)).toHaveLength(1)
     expect(html).toContain('Video links and embeds')
-    expect(html).not.toContain('<summary>')
+    expect(html).toContain('<summary')
     expect(html).toContain('public TikTok, YouTube Short, Instagram Reel, or Facebook Reel/video')
     expect(html).toContain('TikTok and YouTube play muted, loop, and do not show a pause control.')
     expect(html).toContain('Instagram')
@@ -3836,7 +3838,10 @@ describe('DashboardPlaceholder', () => {
 
   it('keeps the portrait beside one desktop stack containing all four video controls', () => {
     const source = readFileSync(
-      resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
+      resolve(process.cwd(), 'app/nic-nac/components/SiteSettingsBody.tsx'),
+      'utf8',
+    ) + readFileSync(
+      resolve(process.cwd(), 'app/nic-nac/components/HomepageMediaSlot.tsx'),
       'utf8',
     )
     const css = readFileSync(
