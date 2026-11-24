@@ -5855,6 +5855,11 @@
   clip-path: inset(50%);
 }
 
+.homepageMediaUploadButton:has(:focus-visible) {
+  outline: 3px solid #0b57d0;
+  outline-offset: 2px;
+}
+
 .lockedAppearanceField {
   min-height: 92px;
 }

@@ -119,7 +119,10 @@ export function SetupChecklist({ items }: { items: ReturnType<typeof buildSiteSe
         window.dispatchEvent(new CustomEvent('site-section-open', { detail: details.id }))
       })
     }
-    document.getElementById(item.fieldId)?.focus()
+    const field = document.getElementById(item.fieldId)
+    if (field instanceof HTMLElement) {
+      field.focus({ focusVisible: true } as FocusOptions)
+    }
   }
   return (
     <div className={styles.setupChecklist} data-testid="site-setup-checklist">

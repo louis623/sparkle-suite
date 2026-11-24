@@ -205,6 +205,11 @@ describe('theme studio card', () => {
     expect(host.textContent).toContain('Preview loads after the themes are ready.')
     expect(host.textContent).not.toContain('no longer offered')
     expect(host.textContent).toContain('Loading your available themes')
+    expect(host.textContent).not.toContain('Use Rose Champagne')
+    expect(host.textContent).not.toContain('Keep Rose Champagne')
+    const css = readFileSync('app/nic-nac/components/ThemeStudio.module.css', 'utf8')
+    expect(css).toContain('cursor: not-allowed')
+    expect(css).toContain('filter: grayscale(1)')
   })
 
   it('offers Retry when the theme list fails', async () => {

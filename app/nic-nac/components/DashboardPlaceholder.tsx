@@ -3449,6 +3449,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const siteSettingsSaveRequestRef = useRef(0)
   const siteSettingsVersionRef = useRef(0)
   const siteSettingsSavePendingRef = useRef(false)
+  const queuedNicNacSiteRefreshRef = useRef(false)
   const [tradeBoardState, setTradeBoardState] = useState<TradeBoardState>({
     status: reviewWorkspaceMode ? 'ready' : 'loading',
     board: reviewWorkspaceMode
@@ -4729,8 +4730,31 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } finally {
       if (siteSettingsSaveRequestRef.current === requestId) {
         siteSettingsSavePendingRef.current = false
+        flushQueuedNicNacSiteRefresh()
       }
     }
+  }
+
+  function refreshSiteSettingsFromNicNac() {
+    const startedVersion = siteSettingsVersionRef.current
+    void fetch('/api/nic-nac/site-settings', { credentials: 'include' })
+      .then(async (response) => {
+        if (!response.ok) return
+        const payload = (await response.json()) as SiteSettingsResponsePayload
+        if (!shouldApplyNicNacSiteRefresh({
+          startedVersion,
+          currentVersion: siteSettingsVersionRef.current,
+          savePending: siteSettingsSavePendingRef.current,
+        })) return
+        setSiteSettingsState({ status: 'ready', settings: payload })
+      })
+      .catch(() => undefined)
+  }
+
+  function flushQueuedNicNacSiteRefresh() {
+    if (!queuedNicNacSiteRefreshRef.current) return
+    queuedNicNacSiteRefreshRef.current = false
+    refreshSiteSettingsFromNicNac()
   }
 
   async function saveSiteSettingsDraft(draftToSave: SiteSettingsDraft) {
@@ -4796,6 +4820,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } finally {
       if (siteSettingsSaveRequestRef.current === requestId) {
         siteSettingsSavePendingRef.current = false
+        flushQueuedNicNacSiteRefresh()
       }
     }
   }
@@ -5403,20 +5428,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           setCalendarState({ status: 'error' })
         })
       }
-      if (topic === 'site' && !reviewWorkspaceMode && !siteSettingsSavePendingRef.current) {
-        const startedVersion = siteSettingsVersionRef.current
-        void fetch('/api/nic-nac/site-settings', { credentials: 'include' })
-          .then(async (response) => {
-            if (!response.ok) return
-            const payload = (await response.json()) as SiteSettingsResponsePayload
-            if (!shouldApplyNicNacSiteRefresh({
-              startedVersion,
-              currentVersion: siteSettingsVersionRef.current,
-              savePending: siteSettingsSavePendingRef.current,
-            })) return
-            setSiteSettingsState({ status: 'ready', settings: payload })
-          })
-          .catch(() => undefined)
+      if (topic === 'site' && !reviewWorkspaceMode) {
+        if (siteSettingsSavePendingRef.current) {
+          queuedNicNacSiteRefreshRef.current = true
+        } else {
+          refreshSiteSettingsFromNicNac()
+        }
       }
       if (topic === 'site' && activeSection === 'recipes') {
         void loadSiteRecipes(undefined, {

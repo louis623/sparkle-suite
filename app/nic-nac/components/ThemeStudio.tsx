@@ -311,24 +311,26 @@ export function ThemeStudio({
               </div>
             </fieldset>
           ) : null}
-          <div className={styles.actions}>
-            <button
-              type="button"
-              className={styles.use}
-              onClick={useTheme}
-              disabled={!chosen || chosen.id === draftThemeId}
-            >
-              Use {chosenLabel}
-            </button>
-            <button
-              type="button"
-              className={styles.keep}
-              onClick={keepTheme}
-              disabled={chosenId === savedThemeId && draftThemeId === savedThemeId}
-            >
-              Keep {savedLabel}
-            </button>
-          </div>
+          {status === 'ready' ? (
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className={styles.use}
+                onClick={useTheme}
+                disabled={!chosen || chosen.id === draftThemeId}
+              >
+                Use {chosenLabel}
+              </button>
+              <button
+                type="button"
+                className={styles.keep}
+                onClick={keepTheme}
+                disabled={chosenId === savedThemeId && draftThemeId === savedThemeId}
+              >
+                Keep {savedLabel}
+              </button>
+            </div>
+          ) : null}
           <p className={styles.note}>
             Applies only to your public customer-facing site. Your Sparkle Suite workspace keeps the standard workspace theme.
           </p>

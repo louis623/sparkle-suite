@@ -55,7 +55,7 @@ export const SHOWS_ON = {
   discountMessage: 'The line shown with your discount code',
   tagline: 'The footer of every page',
   email: 'Join page Contact',
-  social: 'Footer icons and hero buttons',
+  social: 'Footer icons on every page; hero buttons when Show in hero is on',
   memberTeam: 'Small print on your homepage, Join, and Dance Floor',
   managedTeam: 'The Join page and New Rep Onboarding',
   danceFloor: 'Your Dance Floor page and its links',
