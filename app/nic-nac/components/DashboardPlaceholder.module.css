@@ -8431,6 +8431,13 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 246, 250, 0.56));
 }
 
+@media (max-width: 879px) {
+  .siteSectionDisclosure:not([open]) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 5.5rem;
+  }
+}
+
 .siteSectionSummary {
   display: flex;
   align-items: center;

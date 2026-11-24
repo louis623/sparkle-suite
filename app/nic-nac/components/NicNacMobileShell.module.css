@@ -20,6 +20,11 @@
 }
 
 @media (max-width: 879px) {
+  /* Dock into the tab bar so an idle launcher does not cover form text. 880px and up keep the offset above. */
+  .bubble {
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
   :global(html[data-site-save-bar='open']) .bubble,
   :global(html[data-site-field-focus='true']) .bubble {
     display: none;

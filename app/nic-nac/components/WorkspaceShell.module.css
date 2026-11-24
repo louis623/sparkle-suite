@@ -121,6 +121,19 @@
   }
 }
 
+@media (max-width: 879px) {
+  .content {
+    padding-bottom: max(
+      var(--site-save-bar-height, 0px),
+      calc(92px + env(safe-area-inset-bottom))
+    );
+    scroll-padding-bottom: max(
+      var(--site-save-bar-height, 0px),
+      calc(92px + env(safe-area-inset-bottom))
+    );
+  }
+}
+
 @media (max-width: 840px) {
   .shell {
     height: auto;
