@@ -122,9 +122,9 @@ export function HomepageMediaSlot({
               event.target.value = ''
             }}
           />
-          <ShowsOn id="about-photo-shows">{SHOWS_ON.aboutPhoto}</ShowsOn>
         </label>
       ) : null}
+      {allowsPhoto ? <ShowsOn id="about-photo-shows">{SHOWS_ON.aboutPhoto}</ShowsOn> : null}
       {feedback ? (
         <p
           className={

@@ -98,6 +98,7 @@ export function ThemeStudio({
   draftThemeId,
   onDraftThemeChange,
   now,
+  ownedPrivateSkinIds = [],
   loadPreview = loadThemePreview,
   onRetry,
 }: {
@@ -107,6 +108,7 @@ export function ThemeStudio({
   draftThemeId: string
   onDraftThemeChange: (themeId: string) => void
   now?: Date
+  ownedPrivateSkinIds?: readonly string[]
   loadPreview?: (request: ThemePreviewRequest) => Promise<ThemePreviewResult>
   onRetry?: () => void
 }) {
@@ -439,7 +441,9 @@ export function ThemeStudio({
           </span>
           <span className={styles.check} aria-hidden="true" data-check="">✓</span>
           <span className={styles.name}>{theme.label}</span>
-          {theme.visibility === 'private' ? <span className={styles.tag}>Just for you</span> : null}
+          {theme.visibility === 'private' && ownedPrivateSkinIds.includes(theme.id) ? (
+            <span className={styles.tag}>Just for you</span>
+          ) : null}
           {seasonTag ? <span className={styles.tag}>{seasonTag}</span> : null}
           {live ? (
             <span className={styles.liveChip}>

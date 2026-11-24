@@ -6,10 +6,28 @@ import {
 import styles from './page.module.css'
 import './nic-nac-tokens.css'
 import { liveLineupOwnerMutationsAvailable } from '@/lib/live-lineup/runtime-mode'
+import { getPaidNicNacContext } from '@/lib/nic-nac/auth'
+import { getSiteSettingsDashboard } from '@/lib/services/site-settings'
+import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 
 export const dynamic = 'force-dynamic'
 
-export default function NicNacPage() {
+export default async function NicNacPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  const params = await searchParams
+  const section = typeof params.section === 'string' ? params.section : ''
+  let initialWorkspaceSettings: SiteSettingsDashboardResult | null = null
+  if (section === 'site-settings') {
+    try {
+      const { repId, supabase } = await getPaidNicNacContext()
+      initialWorkspaceSettings = await getSiteSettingsDashboard(supabase, repId)
+    } catch {
+      initialWorkspaceSettings = null
+    }
+  }
   return (
     <main className={styles.page}>
       <div className={styles.app}>
@@ -19,6 +37,7 @@ export default function NicNacPage() {
             reviewerSmokeVisible={
               reviewerSmokeModeEnabled()
             }
+            initialWorkspaceSettings={initialWorkspaceSettings}
           />
         </Suspense>
       </div>

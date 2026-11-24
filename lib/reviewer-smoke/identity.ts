@@ -2,8 +2,8 @@ import 'server-only'
 
 export const REVIEWER_SMOKE_SCOPE = 'sparkle-suite-reviewer-v1'
 const supported = new Map([
-  ['sparkle-reviewer+preview@neonrabbit.net', 'sparkle-reviewer-preview'],
-  ['sparkle-reviewer+local@neonrabbit.net', 'sparkle-reviewer-local'],
+  ['sparkle-reviewer+preview@neonrabbit.net', 'sparklereviewerpreview'],
+  ['sparkle-reviewer+local@neonrabbit.net', 'sparklereviewerlocal'],
 ])
 export class ReviewerSmokeSafetyError extends Error {
   constructor(public code: string, message: string) { super(message) }

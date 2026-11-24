@@ -109,6 +109,46 @@ export function SiteSection({
   )
 }
 
+const SECTION_SHELLS = [
+  ['1', 'top-bar', 'Top bar', 'Your name, store link, and announcements'],
+  ['2', 'hero', 'Hero', 'The headline customers see first'],
+  ['3', 'upcoming-shows', 'Upcoming shows', 'Shows on your homepage'],
+  ['4', 'bomb-party', 'What is a Bomb Party', 'The live reveal explanation'],
+  ['5', 'about', 'About you', 'Your photo and story'],
+  ['6', 'signup', 'Sign-up & discount', 'How customers join'],
+  ['7', 'footer', 'Footer & socials', 'Tagline, email, social links, and team'],
+  ['8', 'other-pages', 'Other pages', 'Dance Floor, Join, and Live Lineup'],
+] as const
+
+/** Fixed first paint for My Website. Real settings replace the words without changing the boxes. */
+export function SiteSettingsLoadingShell() {
+  return (
+    <div className={styles.siteSettingsCard} data-site-settings-shell="">
+      <div className={styles.myWebsiteHeader} data-site-section="header">
+        <p className={styles.myWebsiteKicker}>Public site</p>
+        <h1 className={styles.myWebsiteTitle}>My Website</h1>
+        <p className={styles.myWebsiteAddress}>Loading your site address</p>
+      </div>
+      <div className={styles.setupChecklist} data-testid="site-setup-checklist">
+        <p className={styles.setupChecklistCount}>Checking what's left to finish</p>
+      </div>
+      <div className={styles.siteSectionList}>
+        {SECTION_SHELLS.map(([number, id, title, summary]) => (
+          <details key={id} className={styles.siteSectionDisclosure} data-site-section={id}>
+            <summary className={styles.siteSectionSummary}>
+              <span className={styles.siteSectionIndex} aria-hidden="true">{number}</span>
+              <span className={styles.siteSectionHeading}>
+                <span className={styles.siteSectionTitle}>{title}</span>
+                <span className={styles.siteSectionBlurb}>{summary}</span>
+              </span>
+            </summary>
+          </details>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function SetupChecklist({ items }: { items: ReturnType<typeof buildSiteSetupChecklist> }) {
   const remaining = items.filter((item) => !item.done)
   if (remaining.length === 0) return null

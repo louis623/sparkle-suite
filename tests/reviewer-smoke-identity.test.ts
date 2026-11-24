@@ -9,8 +9,8 @@ describe('isolated reviewer authority',()=>{
     {finder_directory_visible:true},{custom_domain:'customer.example.com'},{public_site_slug:'customer-site'},
   ])('rejects non-isolated workspace %j',patch=>expect(()=>assertReviewerSmokeRep({...rep,...patch},user,email)).toThrow())
   it('accepts only email-matched reserved synthetic slug',()=>{
-    expect(()=>assertReviewerSmokeRep({...rep,public_site_slug:'sparkle-reviewer-preview'},user,email)).not.toThrow()
-    expect(()=>assertReviewerSmokeRep({...rep,public_site_slug:'sparkle-reviewer-local'},user,email)).toThrow()
+    expect(()=>assertReviewerSmokeRep({...rep,public_site_slug:'sparklereviewerpreview'},user,email)).not.toThrow()
+    expect(()=>assertReviewerSmokeRep({...rep,public_site_slug:'sparklereviewerlocal'},user,email)).toThrow()
   })
   it('normalizes only proven old synthetic entitlement amounts',()=>{
     const row={rep_id:'rep',stripe_subscription_id:'sub_reviewer_smoke_rep',stripe_customer_id:'cus_reviewer_smoke_rep',stripe_livemode:false,pricing_tier:'smoke',monthly_amount:99}
@@ -27,7 +27,7 @@ describe('isolated reviewer authority',()=>{
     const getUserById=vi.fn().mockResolvedValue({data:{user},error:null});const q={select:vi.fn(),eq:vi.fn(),in:vi.fn(),maybeSingle:async()=>({data:rep,error:null})}
     for(const key of ['select','eq','in'] as const)q[key].mockReturnValue(q)
     const admin={from:()=>q,auth:{admin:{getUserById}}}
-    expect(await reservedReviewerSetupSlug(admin as never,'rep')).toBe('sparkle-reviewer-preview')
+    expect(await reservedReviewerSetupSlug(admin as never,'rep')).toBe('sparklereviewerpreview')
     getUserById.mockResolvedValue({data:{user:{...user,app_metadata:{},user_metadata:{reviewer_smoke_scope:REVIEWER_SMOKE_SCOPE}}},error:null})
     await expect(reservedReviewerSetupSlug(admin as never,'rep')).rejects.toMatchObject({code:'REVIEWER_SMOKE_IDENTITY_MIGRATION_REQUIRED'})
   })

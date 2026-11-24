@@ -5502,7 +5502,7 @@
 }
 
 .siteSettingsCard :is(input, textarea, select) {
-  scroll-margin-bottom: var(--site-save-bar-height, 0px);
+  scroll-margin-bottom: calc(var(--site-save-bar-block, 0px) + 12px);
 }
 
 .siteSettingsCard :is(input, textarea, select):user-invalid,
@@ -8356,6 +8356,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 16px;
+  min-height: 4.5rem;
   border-radius: 18px;
   padding: 12px 14px;
   background: #fff1f7;

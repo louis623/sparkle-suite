@@ -13,7 +13,7 @@ import { SOCIAL_PLATFORMS } from '@/lib/public-site/social-visibility'
 import Link from 'next/link'
 import { flushSync } from 'react-dom'
 import { SiteLeaveGuard, SiteSaveBar, type SiteDiscardOpener } from './SiteSaveBar'
-import { SiteMapRail, SiteSettingsBody, SetupChecklist } from './SiteSettingsBody'
+import { SiteMapRail, SiteSettingsBody, SiteSettingsLoadingShell, SetupChecklist } from './SiteSettingsBody'
 import { buildSiteSetupChecklist, type SiteSectionId } from './site-settings-layout'
 import { myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-client'
 import {
@@ -3120,6 +3120,7 @@ export type DashboardPlaceholderProps = {
   reviewWorkspaceMode?: boolean
   operatorSupportMode?: boolean
   initialSectionOverride?: WorkspaceSectionKey
+  initialSearch?: string
   onLaunchNicNacAction?: (action: WorkspaceLaunchAction) => void
   onSendNicNacPrompt?: (prompt: string) => void
   onNewConversation?: () => void
@@ -3178,6 +3179,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     reviewWorkspaceMode = false,
     operatorSupportMode = false,
     initialSectionOverride,
+    initialSearch = '',
     onLaunchNicNacAction,
     onSendNicNacPrompt,
     onNewConversation,
@@ -3194,9 +3196,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const [activeSection, setActiveSectionState] =
     useState<WorkspaceSectionKey>(() =>
       initialSectionOverride ??
-      (typeof window === 'undefined'
-        ? 'home'
-        : getInitialWorkspaceSection(window.location.search)),
+      getInitialWorkspaceSection(typeof window === 'undefined' ? initialSearch : window.location.search),
     )
   const setActiveSection = useFloorSectionGuard(activeSection, setActiveSectionState, () => {
     workspaceHistoryNavRef.current = 'idle'
@@ -10055,12 +10055,7 @@ export function SiteSettingsCard({
   }
 
   if (state.status !== 'ready' || !state.settings || !draft) {
-    return (
-      <div className={styles.cardFill}>
-        <div className={styles.loadingLine} />
-        <div className={styles.loadingLineShort} />
-      </div>
-    )
+    return <SiteSettingsLoadingShell />
   }
 
   const discountCode = draft.signupDiscountCode ?? ''
@@ -10145,6 +10140,7 @@ export function SiteSettingsCard({
         onDraftThemeChange={(appearancePreset) =>
           onDraftChange?.({ appearancePreset: appearancePreset as SiteAppearancePreset })
         }
+        ownedPrivateSkinIds={skinOptions.ownedPrivateSkinIds}
         onRetry={skinOptions.retry}
       />
       <SiteSettingsBody

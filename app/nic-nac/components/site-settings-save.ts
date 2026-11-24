@@ -40,7 +40,8 @@ export function unsavedChangesLabel(count: number) {
 }
 
 export function discardConfirmMessage(count: number) {
-  return `Discard ${count} unsaved changes? Photos you uploaded stay uploaded but won't show on your site; removed videos stay removed.`
+  const changes = count === 1 ? 'change' : 'changes'
+  return `Discard ${count} unsaved ${changes}? Photos you uploaded stay uploaded but won't show on your site; removed videos stay removed.`
 }
 
 export function formatSiteSaveFailure(message: string) {

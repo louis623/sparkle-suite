@@ -1,5 +1,7 @@
 import 'server-only'
 
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { AMETHYST_APPEARANCE_PRESET_IDS, type AmethystAppearancePresetId } from '@/lib/amethyst/appearance-presets'
 import { isAmethystSkinSelectionAvailableToRep } from '@/lib/amethyst/skin-access'
 import { getAmethystSkinPresetLabel } from '@/lib/amethyst/skin-cards'
@@ -190,8 +192,41 @@ export function sitePreviewImageHosts(html: string, origin: string) {
   return [...hosts].sort()
 }
 
+const PRODUCTION_IMAGE_ORIGIN = 'https://www.yoursparklesuite.com'
+
+const MEDIA_ICON_SPRITE = readFileSync(join(process.cwd(), 'public/amethyst/media-icons.svg'), 'utf8')
+
+export function previewNeedsProductionImages(html: string) {
+  return /<img\b[^>]*\ssrc=["']https:\/\/www\.yoursparklesuite\.com\//i.test(html)
+    || /https:\/\/www\.yoursparklesuite\.com\/[^"'\\\s)]+\.(?:avif|gif|jpe?g|png|svg|webp)/i.test(html)
+    || /https:\/\/www\.yoursparklesuite\.com\/amethyst\//i.test(html)
+}
+
+/** Keep the media sprite in the preview document. A sandboxed frame cannot load the root-relative file. */
+export function inlinePreviewMediaIcons(html: string) {
+  if (!html.includes('/amethyst/media-icons.svg')) return html
+  const rewritten = html.replace(
+    /(href=["'])(?:https?:\/\/[^"']+)?\/amethyst\/media-icons\.svg#([A-Za-z0-9_-]+)(["'])/g,
+    '$1#preview-media-icon-$2$3',
+  )
+  const symbols = MEDIA_ICON_SPRITE
+    .replace(
+      '<svg xmlns="http://www.w3.org/2000/svg">',
+      '<svg id="preview-media-icons" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="0" height="0" style="position:absolute">',
+    )
+    .replace(/\bid="([A-Za-z0-9_-]+)"/g, (match, id: string) => (
+      id === 'preview-media-icons' ? match : `id="preview-media-icon-${id}"`
+    ))
+  return rewritten.includes('</body>')
+    ? rewritten.replace('</body>', `${symbols}</body>`)
+    : `${rewritten}${symbols}`
+}
+
 export function sitePreviewContentSecurityPolicy(html: string, origin: string) {
   const imageHosts = sitePreviewImageHosts(html, origin)
+  if (previewNeedsProductionImages(html) && !imageHosts.includes(PRODUCTION_IMAGE_ORIGIN)) {
+    imageHosts.push(PRODUCTION_IMAGE_ORIGIN)
+  }
   const directives = [
     "default-src 'none'",
     `script-src 'unsafe-inline' ${origin}`,
@@ -213,7 +248,7 @@ export function sitePreviewContentSecurityPolicy(html: string, origin: string) {
 }
 
 export function prepareSitePreviewDocument(html: string, origin: string) {
-  const cleaned = cleanSitePreviewDocument(html, origin)
+  const cleaned = inlinePreviewMediaIcons(cleanSitePreviewDocument(html, origin))
   const policy = sitePreviewContentSecurityPolicy(cleaned, origin)
   const meta = `<meta http-equiv="Content-Security-Policy" content="${escapeHtml(policy.meta)}">`
   const preamble = `${meta}<base href="${escapeHtml(origin)}/"><meta name="referrer" content="no-referrer"><script>${PREVIEW_GUARD}</script>`

@@ -113,6 +113,9 @@ describe('site save bar', () => {
     expect(discardConfirmMessage(3)).toBe(
       "Discard 3 unsaved changes? Photos you uploaded stay uploaded but won't show on your site; removed videos stay removed.",
     )
+    expect(discardConfirmMessage(1)).toBe(
+      "Discard 1 unsaved change? Photos you uploaded stay uploaded but won't show on your site; removed videos stay removed.",
+    )
   })
 
   it('resets text, switches, and the theme, and drops an unpublished photo from the draft', () => {

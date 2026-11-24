@@ -80,6 +80,7 @@ async function renderStudio(props: {
   loadPreview?: (request: ThemePreviewRequest) => Promise<ThemePreviewResult>
   onRetry?: () => void
   wide?: boolean
+  ownedPrivateSkinIds?: string[]
 } = {}) {
   const node = createElement(ThemeStudio, {
     status: props.status ?? 'ready',
@@ -88,6 +89,7 @@ async function renderStudio(props: {
     draftThemeId: props.draftThemeId ?? props.savedThemeId ?? 'rose_champagne',
     onDraftThemeChange: props.onDraftThemeChange ?? (() => {}),
     now: NOV_23,
+    ownedPrivateSkinIds: props.ownedPrivateSkinIds ?? ['black_diamond'],
     loadPreview: props.loadPreview ?? (async () => ({ status: 200, html: '<p>Preview</p>', engine: 'ssr' as const })),
     onRetry: props.onRetry,
   })
@@ -139,6 +141,8 @@ describe('theme studio card', () => {
     expect(witchRadios).toHaveLength(1)
     expect(witchRadios[0]?.closest('article')?.textContent).toContain('Halloween')
     expect(host.textContent).toContain('Just for you')
+    await renderStudio({ ownedPrivateSkinIds: [] })
+    expect(host.textContent).not.toContain('Just for you')
     expect(host.textContent).toContain('Live now')
     expect(host.textContent).not.toContain('original custom skin')
     expect(host.textContent).not.toMatch(/\([A-Z]{1,4}-\d{2}\)/)

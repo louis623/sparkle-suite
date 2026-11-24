@@ -446,6 +446,15 @@
   overscroll-behavior: contain;
 }
 
+@media (min-width: 720px) {
+  .dialog[open] {
+    position: fixed;
+    inset: 0;
+    height: fit-content;
+    margin: auto;
+  }
+}
+
 .dialog::backdrop {
   overflow: hidden;
   overscroll-behavior: contain;
@@ -523,8 +532,8 @@
 }
 
 .dialogStage .stageBody {
-  aspect-ratio: 9 / 16;
-  max-height: 52dvh;
+  width: 100%;
+  height: min(68dvh, 720px);
 }
 
 :global(.main[data-workspace-skin='black_diamond']) .studio {
