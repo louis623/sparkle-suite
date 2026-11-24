@@ -1,8 +1,12 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { mapPreviewSettingsToHomepageTemplateData } from '@/lib/amethyst/preview-template-data'
 import {
   applyHeroMotionSwitch,
   grandfatheredHeadlineFallback,
   heroMotionApplies,
+  homepageRendererVariant,
+  isRendererCustomHeroVariant,
   myWebsiteSavePayload,
 } from '@/lib/amethyst/hero-motion-applies'
 import type { SiteSettingsDashboardResult } from '@/lib/services/types'
@@ -115,6 +119,49 @@ describe('hero motion applies', () => {
     expect(turnedOff.heroAnimationType).toBe('still')
     expect(turnedOff).not.toHaveProperty('teamName')
     expect(turnedOff).not.toHaveProperty('recruitingLink')
+  })
+
+  it('uses the same custom variants as the homepage renderer and mapper', () => {
+    const renderer = readFileSync('lib/amethyst/v2/homepage.jsx', 'utf8')
+    for (const variant of ['mile_high_fizz_hybrid', 'britt_with_bling_hybrid', 'bling_kitchen_hybrid'] as const) {
+      expect(renderer).toContain(`CONTENT.publicSiteVariant === "${variant}"`)
+      expect(isRendererCustomHeroVariant(variant)).toBe(true)
+    }
+
+    const mileHigh = settings({
+      businessName: 'Mile High Fizz',
+      email: 'lindseychapman1188@gmail.com',
+      appearancePreset: 'alpine_opal',
+    })
+    const britt = settings({
+      businessName: 'Britt with Bling',
+      teamName: 'The Virtuous Fizzers',
+      appearancePreset: 'black_diamond',
+    })
+    const kitchen = settings({
+      businessName: 'BlingKitchen',
+      email: 'blingkitchen19@gmail.com',
+      teamName: 'Opal Sparkling Gems',
+    })
+    for (const [current, slug, variant] of [
+      [mileHigh, 'milehighfizz', 'mile_high_fizz_hybrid'],
+      [britt, 'brittwithbling', 'britt_with_bling_hybrid'],
+      [kitchen, 'blingkitchen', undefined],
+    ] as const) {
+      expect(homepageRendererVariant(current, slug)).toBe(variant)
+      expect(mapPreviewSettingsToHomepageTemplateData(current, { publicSiteSlug: slug }).publicSiteVariant).toBe(variant)
+    }
+  })
+
+  it('treats a profile row with missing text as a standard site', () => {
+    const partial = settings({
+      email: undefined as unknown as string,
+      businessName: undefined as unknown as string,
+      teamName: undefined as unknown as string,
+    })
+    expect(() => heroMotionApplies({ settings: partial, publicSiteSlug: 'newrep', allowlist })).not.toThrow()
+    expect(grandfatheredHeadlineFallback(partial, 'newrep')).toBe(false)
+    expect(homepageRendererVariant(partial, 'newrep')).toBeUndefined()
   })
 
   it('marks the grandfathered headline fallback only for Britt with Bling and Mile High Fizz', () => {

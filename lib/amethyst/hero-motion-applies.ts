@@ -34,13 +34,28 @@ export function isRendererCustomHeroVariant(
  * the renderer uses the custom kitchen hero only when publicSiteVariant
  * is already bling_kitchen_hybrid.
  */
+function profileText(value: string | null | undefined) {
+  return value?.trim() ?? ''
+}
+
+/** Profile checks trim these fields. A partial row must not throw. */
+function withProfileText(settings: SiteSettingsDashboardResult): SiteSettingsDashboardResult {
+  return {
+    ...settings,
+    email: profileText(settings.email),
+    businessName: profileText(settings.businessName),
+    teamName: profileText(settings.teamName),
+  }
+}
+
 export function homepageRendererVariant(
   settings: SiteSettingsDashboardResult,
   publicSiteSlug?: string | null,
 ): RendererCustomHeroVariant | undefined {
-  const skin = normalizeAmethystAppearancePreset(settings.appearancePreset)
-  if (isMileHighFizzSettings(settings) && skin === 'alpine_opal') return 'mile_high_fizz_hybrid'
-  if (isBrittWithBlingSettings(settings, publicSiteSlug) && skin === 'black_diamond') {
+  const readable = withProfileText(settings)
+  const skin = normalizeAmethystAppearancePreset(readable.appearancePreset)
+  if (isMileHighFizzSettings(readable) && skin === 'alpine_opal') return 'mile_high_fizz_hybrid'
+  if (isBrittWithBlingSettings(readable, publicSiteSlug) && skin === 'black_diamond') {
     return 'britt_with_bling_hybrid'
   }
   return undefined
@@ -75,7 +90,8 @@ export function grandfatheredHeadlineFallback(
   settings: SiteSettingsDashboardResult,
   publicSiteSlug?: string | null,
 ) {
-  return isBrittWithBlingSettings(settings, publicSiteSlug) || isMileHighFizzSettings(settings)
+  const readable = withProfileText(settings)
+  return isBrittWithBlingSettings(readable, publicSiteSlug) || isMileHighFizzSettings(readable)
 }
 
 export function applyHeroMotionSwitch(input: {

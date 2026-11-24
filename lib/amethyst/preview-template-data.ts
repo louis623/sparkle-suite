@@ -67,7 +67,6 @@ import {
 import {
   isBlingKitchenSettings,
 } from '@/lib/bling-kitchen/profile'
-import { homepageRendererVariant } from '@/lib/amethyst/hero-motion-applies'
 
 interface PreviewTemplateDataDependencies {
   createAdminClient?: typeof createAdminClient
@@ -554,6 +553,7 @@ export function mapPreviewSettingsToHomepageTemplateData(
   settings: SiteSettingsDashboardResult,
   extras: PreviewRepExtras = {},
 ): AmethystHomepageTemplateData {
+  const selectedSkin = normalizeAmethystAppearancePreset(settings.appearancePreset)
   const isBrittWithBling = isBrittWithBlingSettings(settings, extras.publicSiteSlug)
   const isGrandfatheredSite = isBrittWithBling || isMileHighFizzSettings(settings)
   const repName = getPublicRepName(
@@ -660,10 +660,9 @@ export function mapPreviewSettingsToHomepageTemplateData(
     },
   }
 
-  const rendererLayout = homepageRendererVariant(settings, extras.publicSiteSlug)
-  const variantHomepage = rendererLayout === 'mile_high_fizz_hybrid'
+  const variantHomepage = isMileHighFizzSettings(settings) && selectedSkin === 'alpine_opal'
     ? applyMileHighFizzHomepage(homepage)
-    : rendererLayout === 'britt_with_bling_hybrid'
+    : isBrittWithBling && selectedSkin === 'black_diamond'
       ? applyBrittWithBlingHomepage(homepage)
       : isBlingKitchenSettings(settings)
         ? applyBlingKitchenPantryAccess(homepage)
@@ -678,6 +677,7 @@ export function mapPreviewSettingsToTradeTemplateData(
   settings: SiteSettingsDashboardResult,
   extras: PreviewRepExtras = {},
 ): AmethystTradeTemplateData {
+  const selectedSkin = normalizeAmethystAppearancePreset(settings.appearancePreset)
   const isBrittWithBling = isBrittWithBlingSettings(settings, extras.publicSiteSlug)
   const businessName = firstText(
     settings.businessName,
@@ -713,9 +713,10 @@ export function mapPreviewSettingsToTradeTemplateData(
     },
   }
 
-  const rendererLayout = homepageRendererVariant(settings, extras.publicSiteSlug)
-  if (rendererLayout === 'mile_high_fizz_hybrid') return applyMileHighFizzTrade(trade)
-  if (rendererLayout === 'britt_with_bling_hybrid') return applyBrittWithBlingTrade(trade)
+  if (isMileHighFizzSettings(settings) && selectedSkin === 'alpine_opal') return applyMileHighFizzTrade(trade)
+  if (isBrittWithBling && selectedSkin === 'black_diamond') {
+    return applyBrittWithBlingTrade(trade)
+  }
   if (isBlingKitchenSettings(settings)) {
     return {
       ...trade,
@@ -730,6 +731,7 @@ export function mapPreviewSettingsToJoinTemplateData(
   extras: PreviewRepExtras = {},
   teamMembers?: AmethystJoinTeamMember[],
 ): AmethystJoinTemplateData {
+  const selectedSkin = normalizeAmethystAppearancePreset(settings.appearancePreset)
   const isBrittWithBling = isBrittWithBlingSettings(settings, extras.publicSiteSlug)
   const repName = getPublicRepName(
     firstText(settings.displayName, defaultAmethystJoinTemplateData.repName),
@@ -802,9 +804,8 @@ export function mapPreviewSettingsToJoinTemplateData(
       : defaultAmethystJoinTemplateData.teamMembers,
   }
 
-  const rendererLayout = homepageRendererVariant(settings, extras.publicSiteSlug)
-  if (rendererLayout === 'mile_high_fizz_hybrid') return applyMileHighFizzJoin(join)
-  if (rendererLayout === 'britt_with_bling_hybrid') {
+  if (isMileHighFizzSettings(settings) && selectedSkin === 'alpine_opal') return applyMileHighFizzJoin(join)
+  if (isBrittWithBling && selectedSkin === 'black_diamond') {
     return applyBrittWithBlingJoin(join, teamMembers ? resolvedTeamMembers : [])
   }
   if (isBlingKitchenSettings(settings)) {

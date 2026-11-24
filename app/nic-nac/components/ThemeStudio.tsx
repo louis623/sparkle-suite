@@ -335,22 +335,20 @@ export function ThemeStudio({
             Applies only to your public customer-facing site. Your Sparkle Suite workspace keeps the standard workspace theme.
           </p>
         </div>
-        {wide ? (
-          <div className={styles.previewColumn}>
-            <PreviewSurface
-              scope="panel"
-              page={page}
-              onPage={(nextPage) => {
-                setPage(nextPage)
-                if (chosen) showCachedOrLoading(chosen.id, nextPage)
-              }}
-              view={view}
-              themeLabel={chosenLabel}
-              onRetry={retryPreview}
-              retired={themeRetired}
-            />
-          </div>
-        ) : null}
+        <div className={styles.previewColumn}>
+          <PreviewSurface
+            scope="panel"
+            page={page}
+            onPage={(nextPage) => {
+              setPage(nextPage)
+              if (chosen) showCachedOrLoading(chosen.id, nextPage)
+            }}
+            view={view}
+            themeLabel={chosenLabel}
+            onRetry={retryPreview}
+            retired={themeRetired}
+          />
+        </div>
       </div>
       <dialog
         ref={dialogRef}

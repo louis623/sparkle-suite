@@ -336,6 +336,10 @@
   min-width: 0;
 }
 
+.previewColumn {
+  display: none;
+}
+
 @media (min-width: 880px) {
   .previewColumn {
     position: sticky;
