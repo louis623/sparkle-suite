@@ -13,6 +13,7 @@ import {
   listSiteSettingsChanges,
   mergePreparedSiteSettingsDraft,
   shopLinkFieldError,
+  shouldApplyNicNacSiteRefresh,
   unsavedChangesLabel,
   workspaceLeaveHref,
   SHOP_LINK_ERROR,
@@ -249,6 +250,66 @@ describe('site save bar', () => {
       opener.current?.open()
     })
     expect(discarded).not.toHaveBeenCalled()
+  })
+
+  it('skips a stale Nic-Nac site refresh after a save or while a save is pending', () => {
+    expect(shouldApplyNicNacSiteRefresh({
+      startedVersion: 2,
+      currentVersion: 2,
+      savePending: false,
+    })).toBe(true)
+    expect(shouldApplyNicNacSiteRefresh({
+      startedVersion: 2,
+      currentVersion: 2,
+      savePending: true,
+    })).toBe(false)
+    expect(shouldApplyNicNacSiteRefresh({
+      startedVersion: 2,
+      currentVersion: 3,
+      savePending: false,
+    })).toBe(false)
+    const source = readFileSync('app/nic-nac/components/DashboardPlaceholder.tsx', 'utf8')
+    const refresh = source.slice(
+      source.indexOf("if (topic === 'site' && !reviewWorkspaceMode"),
+      source.indexOf("if (topic === 'site' && activeSection === 'recipes')"),
+    )
+    expect(refresh).toContain('siteSettingsSavePendingRef.current')
+    expect(refresh).toContain('shouldApplyNicNacSiteRefresh')
+    expect(source).toContain('siteSettingsVersionRef.current += 1')
+    expect(source).toContain('siteSettingsSavePendingRef.current = true')
+  })
+
+  it('announces a field error that appears on blur', async () => {
+    vi.useFakeTimers()
+    function Harness() {
+      const [draft, setDraft] = useState<SiteSettingsDraft>({ ...base, shopLink: 'bombparty.com/x' })
+      return createElement(SiteSettingsCard, {
+        state: { status: 'ready', settings: base },
+        draft,
+        changes: ['Bomb Party rep store link'],
+        onDraftChange: (patch) => setDraft((current) => ({ ...current, ...patch })),
+      })
+    }
+    try {
+      await act(async () => {
+        root.render(createElement(Harness))
+      })
+      const shop = host.querySelector('#my-website-shop-link') as HTMLInputElement
+      const live = host.querySelector('[aria-live="polite"]')
+      expect(live).toBeTruthy()
+      expect(live?.textContent).toBe('')
+      await act(async () => {
+        shop.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
+      })
+      expect(live?.textContent).toBe('')
+      await act(async () => {
+        vi.advanceTimersByTime(500)
+      })
+      expect(live?.textContent).toContain('Bomb Party rep store link')
+      expect(live?.textContent).toContain(SHOP_LINK_ERROR)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('refreshes saved values from a Nic-Nac write without clobbering the draft', () => {

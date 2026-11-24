@@ -8,6 +8,7 @@ import {
 import { LiveLineupHowToGuide } from './LiveLineupHowToGuide'
 import { isQueuedVideoUrl } from '@/lib/public-site/queue-video-link'
 import { isTikTokCardUrl } from '@/lib/public-site/tiktok-video-id'
+import { SOCIAL_PLATFORMS } from '@/lib/public-site/social-visibility'
 
 import Link from 'next/link'
 import { PublicSiteVisibility } from './PublicSiteVisibility'
@@ -23,6 +24,7 @@ import {
   requestSiteSettingsSave,
   SAVED_LABEL,
   shopLinkFieldError,
+  shouldApplyNicNacSiteRefresh,
   SITE_FIELD_IDS,
   socialLinkFieldError,
 } from './site-settings-save'
@@ -3444,6 +3446,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     siteSettingsDraft,
   )
   const siteSettingsSaveRequestRef = useRef(0)
+  const siteSettingsVersionRef = useRef(0)
+  const siteSettingsSavePendingRef = useRef(false)
   const [tradeBoardState, setTradeBoardState] = useState<TradeBoardState>({
     status: reviewWorkspaceMode ? 'ready' : 'loading',
     board: reviewWorkspaceMode
@@ -4672,7 +4676,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       }
 
       const savedSettings = payload.settings
-      setSiteSettingsState({ status: 'ready', settings: savedSettings })
+      acceptSiteSettingsSnapshot(savedSettings)
       setSiteSettingsDraft((current) =>
         current
           ? {
@@ -4700,7 +4704,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   }
 
   async function handleRemoveHomepageVideo(key: PublicSiteMediaSlotKey, expectedUrl: string) {
-    if (siteSettingsActionState.pending) return
+    if (siteSettingsActionState.pending || siteSettingsSavePendingRef.current) return
+    const requestId = siteSettingsSaveRequestRef.current
+    siteSettingsSavePendingRef.current = true
     setSiteSettingsActionState({ pending: true, error: null, helperMessage: null })
     try {
       const response = await fetch('/api/nic-nac/site-settings/remove-video', {
@@ -4711,7 +4717,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       if (!response.ok || !payload.settings) throw new Error(payload.error || 'Unable to remove video.')
       const settings = payload.settings
       const clearedSlot = settings.homepageMediaSlots?.find(slot => slot.key === key)
-      setSiteSettingsState({ status: 'ready', settings })
+      acceptSiteSettingsSnapshot(settings)
       setSiteSettingsDraft(current => current && clearedSlot
         ? updateHomepageMediaSlot(current, key, { videoUrl: '', isVisible: false, tiktokVideoStatus: null })
         : current)
@@ -4719,6 +4725,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       refreshLiveSitePreviewAfterSiteSettingsSave()
     } catch (error) {
       setSiteSettingsActionState({ pending: false, error: error instanceof Error ? error.message : 'Unable to remove video.', helperMessage: null })
+    } finally {
+      if (siteSettingsSaveRequestRef.current === requestId) {
+        siteSettingsSavePendingRef.current = false
+      }
     }
   }
 
@@ -4729,6 +4739,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       isBrittWithBling: isBrittWithBlingWorkspace,
     })
 
+    siteSettingsSavePendingRef.current = true
     setSiteSettingsActionState({
       pending: true,
       error: null,
@@ -4751,10 +4762,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         throw new Error(payload?.error || 'Unable to save site settings.')
       }
 
-      setSiteSettingsState({
-        status: 'ready',
-        settings: payload.settings,
-      })
+      acceptSiteSettingsSnapshot(payload.settings)
       const latestDraft = siteSettingsDraftRef.current
       if (
         !latestDraft ||
@@ -4784,7 +4792,16 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           helperMessage: null,
         })
       }
+    } finally {
+      if (siteSettingsSaveRequestRef.current === requestId) {
+        siteSettingsSavePendingRef.current = false
+      }
     }
+  }
+
+  function acceptSiteSettingsSnapshot(settings: SiteSettingsDashboardResult) {
+    siteSettingsVersionRef.current += 1
+    setSiteSettingsState({ status: 'ready', settings })
   }
 
   function handleDiscardSiteSettings() {
@@ -5385,11 +5402,17 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           setCalendarState({ status: 'error' })
         })
       }
-      if (topic === 'site' && !reviewWorkspaceMode) {
+      if (topic === 'site' && !reviewWorkspaceMode && !siteSettingsSavePendingRef.current) {
+        const startedVersion = siteSettingsVersionRef.current
         void fetch('/api/nic-nac/site-settings', { credentials: 'include' })
           .then(async (response) => {
             if (!response.ok) return
             const payload = (await response.json()) as SiteSettingsResponsePayload
+            if (!shouldApplyNicNacSiteRefresh({
+              startedVersion,
+              currentVersion: siteSettingsVersionRef.current,
+              savePending: siteSettingsSavePendingRef.current,
+            })) return
             setSiteSettingsState({ status: 'ready', settings: payload })
           })
           .catch(() => undefined)
@@ -6170,7 +6193,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       throw new Error(responseError || 'Unable to save that lead card photo right now.')
     }
     const savedSettings = payload.settings
-    setSiteSettingsState({ status: 'ready', settings: savedSettings })
+    acceptSiteSettingsSnapshot(savedSettings)
     setSiteSettingsDraft((current) =>
       current
         ? {
@@ -9851,6 +9874,8 @@ export function SiteSettingsCard({
   const [copied, setCopied] = useState(false)
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
   const [localFieldErrors, setLocalFieldErrors] = useState(false)
+  const [fieldAnnouncement, setFieldAnnouncement] = useState('')
+  const fieldAnnounceTimer = useRef<number | null>(null)
   const [tickerLinkUrl, setTickerLinkUrl] = useState('')
   const [tickerLinkError, setTickerLinkError] = useState<string | null>(null)
   const [tickerLinkSelection, setTickerLinkSelection] = useState<{
@@ -9867,11 +9892,24 @@ export function SiteSettingsCard({
   useEffect(() => {
     return () => {
       if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current)
+      if (fieldAnnounceTimer.current !== null) window.clearTimeout(fieldAnnounceTimer.current)
     }
   }, [])
 
   const touchField = (id: string) => {
     setTouchedFields((current) => (current[id] ? current : { ...current, [id]: true }))
+  }
+
+  const reportFieldBlur = (id: string, label: string, message: string | null) => {
+    touchField(id)
+    if (fieldAnnounceTimer.current !== null) window.clearTimeout(fieldAnnounceTimer.current)
+    if (!message) {
+      setFieldAnnouncement('')
+      return
+    }
+    fieldAnnounceTimer.current = window.setTimeout(() => {
+      setFieldAnnouncement(`${label}: ${message}`)
+    }, 500)
   }
 
   const showFieldError = (id: string, message: string | null) =>
@@ -10031,6 +10069,9 @@ export function SiteSettingsCard({
           </button>
         </div>
       </div>
+      <div className={styles.visuallyHidden} aria-live="polite">
+        {fieldAnnouncement}
+      </div>
       <ThemeStudio
         status={skinOptions.status}
         cards={skinOptions.cards}
@@ -10039,6 +10080,7 @@ export function SiteSettingsCard({
         onDraftThemeChange={(appearancePreset) =>
           onDraftChange?.({ appearancePreset: appearancePreset as SiteAppearancePreset })
         }
+        onRetry={skinOptions.retry}
       />
       <div className={styles.siteSettingsSection} aria-label="Signup discount">
         <div className={styles.walletSettingsTitle}>Signup discount</div>
@@ -10064,7 +10106,11 @@ export function SiteSettingsCard({
               spellCheck={false}
               aria-invalid={discountCodeError ? 'true' : 'false'}
               aria-describedby={discountCodeError ? `${SITE_FIELD_IDS.discountCode}-error` : undefined}
-              onBlur={() => touchField(SITE_FIELD_IDS.discountCode)}
+              onBlur={() => reportFieldBlur(
+                SITE_FIELD_IDS.discountCode,
+                'Discount code',
+                discountCodeFieldError(discountCode, draft.signupDiscountEnabled),
+              )}
               onChange={(event) => onDraftChange?.({ signupDiscountCode: event.target.value })}
             />
             {discountCodeError ? (
@@ -10086,7 +10132,11 @@ export function SiteSettingsCard({
                   ? `signup-discount-message-count ${SITE_FIELD_IDS.discountMessage}-error`
                   : 'signup-discount-message-count'
               }
-              onBlur={() => touchField(SITE_FIELD_IDS.discountMessage)}
+              onBlur={() => reportFieldBlur(
+                SITE_FIELD_IDS.discountMessage,
+                'Discount message',
+                discountMessageFieldError(discountMessage),
+              )}
               onChange={(event) => onDraftChange?.({ signupDiscountMessage: event.target.value })}
             />
             <span id="signup-discount-message-count" className={styles.helperNote}>{discountMessage.length}/140 · Plain text</span>
@@ -10140,7 +10190,7 @@ export function SiteSettingsCard({
             value={draft.email}
             aria-invalid={emailError ? 'true' : 'false'}
             aria-describedby={emailError ? `${SITE_FIELD_IDS.email}-error` : undefined}
-            onBlur={() => touchField(SITE_FIELD_IDS.email)}
+            onBlur={() => reportFieldBlur(SITE_FIELD_IDS.email, 'Email', emailFieldError(draft.email))}
             onChange={(event) => onDraftChange?.({ email: event.target.value })}
           />
           {emailError ? (
@@ -10170,7 +10220,11 @@ export function SiteSettingsCard({
                 ? `${SITE_FIELD_IDS.shopLink}-hint ${SITE_FIELD_IDS.shopLink}-error`
                 : `${SITE_FIELD_IDS.shopLink}-hint`
             }
-            onBlur={() => touchField(SITE_FIELD_IDS.shopLink)}
+            onBlur={() => reportFieldBlur(
+              SITE_FIELD_IDS.shopLink,
+              'Bomb Party rep store link',
+              shopLinkFieldError(draft.shopLink),
+            )}
             onChange={(event) => onDraftChange?.({ shopLink: event.target.value })}
             placeholder="https://bombparty.com/..."
           />
@@ -10689,7 +10743,14 @@ export function SiteSettingsCard({
           socialHandles={draft.socialHandles}
           socialVisibility={draft.socialVisibility}
           errors={socialErrors}
-          onBlur={(platform) => touchField(SITE_FIELD_IDS.social(platform))}
+          onBlur={(platform) => {
+            const label = SOCIAL_PLATFORMS.find((item) => item.key === platform)?.label ?? 'Social link'
+            reportFieldBlur(
+              SITE_FIELD_IDS.social(platform),
+              label,
+              socialLinkFieldError(platform, draft.socialHandles?.[platform]),
+            )
+          }}
           onSocialHandleChange={onSocialHandleChange}
           onSocialVisibilityChange={(socialVisibility) =>
             onDraftChange?.({ socialVisibility })

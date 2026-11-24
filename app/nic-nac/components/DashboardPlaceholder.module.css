@@ -5511,6 +5511,18 @@
   background: #fff1f2;
 }
 
+.visuallyHidden {
+  position: absolute;
+  clip-path: inset(50%);
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  white-space: nowrap;
+}
+
 .fieldError {
   color: #9f1239;
   font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;

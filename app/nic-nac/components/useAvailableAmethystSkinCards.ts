@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   getAmethystSkinCardsForIds,
   type AmethystSkinCard,
@@ -18,12 +18,17 @@ const EMPTY_SKIN_OPTIONS: SkinOptionState = {
 }
 
 export function useAvailableAmethystSkinCards(repId: string | null | undefined) {
+  const [attempt, setAttempt] = useState(0)
   const [state, setState] = useState<SkinOptionState>(EMPTY_SKIN_OPTIONS)
+  const retry = useCallback(() => {
+    setAttempt((current) => current + 1)
+  }, [])
 
   useEffect(() => {
     if (!repId) return
 
     let cancelled = false
+    setState({ repId, status: 'loading', cards: [] })
     void fetch('/api/nic-nac/skin-options')
       .then(async (response) => {
         if (!response.ok) throw new Error('Skin options request failed')
@@ -46,8 +51,9 @@ export function useAvailableAmethystSkinCards(repId: string | null | undefined) 
     return () => {
       cancelled = true
     }
-  }, [repId])
+  }, [repId, attempt])
 
   // Never render a previous account's list while another account is loading.
-  return state.repId === repId ? state : EMPTY_SKIN_OPTIONS
+  const visible = state.repId === repId ? state : EMPTY_SKIN_OPTIONS
+  return { ...visible, retry }
 }

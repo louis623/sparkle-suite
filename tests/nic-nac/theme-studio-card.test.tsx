@@ -13,6 +13,7 @@ import {
   type ThemePreviewResult,
 } from '@/app/nic-nac/components/ThemeStudio'
 import { sitePreviewFrameAttributes } from '@/app/nic-nac/components/SitePreviewFrame'
+import { useAvailableAmethystSkinCards } from '@/app/nic-nac/components/useAvailableAmethystSkinCards'
 
 const NOV_23 = new Date('2026-11-23T17:00:00.000Z')
 const IDS = ['gobble_and_fizz', 'silver_bells', 'rose_champagne', 'rose_gold', 'black_diamond', 'halloween_pumpkin_cat', 'halloween_pumpkin_witch'] as const
@@ -71,21 +72,24 @@ function installBrowser() {
 }
 
 async function renderStudio(props: {
+  status?: 'loading' | 'ready' | 'error'
   offered?: readonly AmethystSkinCard[]
   savedThemeId?: string
   draftThemeId?: string
   onDraftThemeChange?: (themeId: string) => void
   loadPreview?: (request: ThemePreviewRequest) => Promise<ThemePreviewResult>
+  onRetry?: () => void
   wide?: boolean
 } = {}) {
   const node = createElement(ThemeStudio, {
-    status: 'ready',
+    status: props.status ?? 'ready',
     cards: props.offered ?? cards(),
     savedThemeId: props.savedThemeId ?? 'rose_champagne',
     draftThemeId: props.draftThemeId ?? props.savedThemeId ?? 'rose_champagne',
     onDraftThemeChange: props.onDraftThemeChange ?? (() => {}),
     now: NOV_23,
     loadPreview: props.loadPreview ?? (async () => ({ status: 200, html: '<p>Preview</p>', engine: 'ssr' as const })),
+    onRetry: props.onRetry,
   })
   await act(async () => {
     root.render(node as ReactNode)
@@ -189,6 +193,61 @@ describe('theme studio card', () => {
     })
     expect(host.textContent).toContain("You can't switch back to Rose Quartz after saving.")
     expect(saved.selectable).toBe(false)
+  })
+
+  it('does not call a saved theme retired while the theme list is still loading', async () => {
+    await renderStudio({
+      status: 'loading',
+      offered: [],
+      savedThemeId: 'rose_champagne',
+      wide: true,
+    })
+    expect(host.textContent).toContain('Preview loads after the themes are ready.')
+    expect(host.textContent).not.toContain('no longer offered')
+    expect(host.textContent).toContain('Loading your available themes')
+  })
+
+  it('offers Retry when the theme list fails', async () => {
+    const onRetry = vi.fn()
+    await renderStudio({ status: 'error', offered: [], onRetry })
+    expect(host.textContent).toContain('Themes unavailable')
+    await act(async () => {
+      buttonNamed('Retry')?.click()
+    })
+    expect(onRetry).toHaveBeenCalledTimes(1)
+  })
+
+  it('retries the theme list after an error', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+    fetchMock.mockRejectedValueOnce(new Error('offline'))
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ skinIds: ['rose_gold'] }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    }))
+    function Probe() {
+      const options = useAvailableAmethystSkinCards('rep-1')
+      return createElement(
+        'div',
+        null,
+        createElement('p', null, options.status),
+        createElement('button', { type: 'button', onClick: options.retry }, 'Retry themes'),
+      )
+    }
+    await act(async () => {
+      root.render(createElement(Probe))
+    })
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(host.textContent).toContain('error')
+    await act(async () => {
+      buttonNamed('Retry themes')?.click()
+    })
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(host.textContent).toContain('ready')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
   it('waits for idle, aborts the previous preview, and reuses the session cache', async () => {

@@ -303,6 +303,15 @@ function mergeDirty(draft: unknown, previous: unknown, next: unknown): unknown {
   return sameLeaf(draft, previous) ? next : draft
 }
 
+/** A Nic-Nac settings GET may apply only if no save is in flight and nothing newer has landed. */
+export function shouldApplyNicNacSiteRefresh(input: {
+  startedVersion: number
+  currentVersion: number
+  savePending: boolean
+}) {
+  return !input.savePending && input.startedVersion === input.currentVersion
+}
+
 export function workspaceLeaveHref(input: {
   href: string | null | undefined
   currentHref: string
