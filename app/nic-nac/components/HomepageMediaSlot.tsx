@@ -106,7 +106,8 @@ export function HomepageMediaSlot({
         </div>
       ) : null}
       {allowsPhoto ? (
-        <label className={styles.homepageMediaUploadButton} data-site-field="about-photo">
+        <div data-site-field="about-photo">
+        <label className={styles.homepageMediaUploadButton}>
           {isUploading ? 'Uploading...' : slot.imageUrl ? 'Replace photo' : 'Upload photo'}
           <input
             id={SETUP_FIELD_IDS.aboutPhoto}
@@ -123,8 +124,9 @@ export function HomepageMediaSlot({
             }}
           />
         </label>
+        <ShowsOn id="about-photo-shows">{SHOWS_ON.aboutPhoto}</ShowsOn>
+        </div>
       ) : null}
-      {allowsPhoto ? <ShowsOn id="about-photo-shows">{SHOWS_ON.aboutPhoto}</ShowsOn> : null}
       {feedback ? (
         <p
           className={
