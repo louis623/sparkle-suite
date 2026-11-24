@@ -114,6 +114,20 @@ function sameOrigin(value: string, origin: string) {
   }
 }
 
+/** Theme faces load from these hosts, the same set /skin-preview allows. */
+const THEME_FONT_STYLESHEET_ORIGINS = new Set([
+  'https://fonts.googleapis.com',
+  'https://api.fontshare.com',
+])
+
+function isThemeFontStylesheet(href: string, origin: string) {
+  try {
+    return THEME_FONT_STYLESHEET_ORIGINS.has(new URL(href, `${origin}/`).origin)
+  } catch {
+    return false
+  }
+}
+
 export function cleanSitePreviewDocument(html: string, origin: string) {
   let next = html
     .replace(/<script\b[^>]*id="sparkle-site-visit"[\s\S]*?<\/script>/gi, '')
@@ -133,6 +147,7 @@ export function cleanSitePreviewDocument(html: string, origin: string) {
     const href = /href="([^"]*)"/i.exec(tag)?.[1]
     if (/\b(?:preconnect|dns-prefetch)\b/.test(rel)) return ''
     if (!href || !/\b(?:stylesheet|preload|prefetch|modulepreload)\b/.test(rel)) return tag
+    if (/\bstylesheet\b/.test(rel) && isThemeFontStylesheet(href, origin)) return tag
     return sameOrigin(href, origin) ? tag : ''
   })
   next = next.replace(/<(video|audio)\b[^>]*>/gi, tag => tag
@@ -180,8 +195,8 @@ export function sitePreviewContentSecurityPolicy(html: string, origin: string) {
   const directives = [
     "default-src 'none'",
     `script-src 'unsafe-inline' ${origin}`,
-    `style-src 'unsafe-inline' ${origin}`,
-    `font-src ${origin} data:`,
+    `style-src 'unsafe-inline' ${origin} https://fonts.googleapis.com https://api.fontshare.com`,
+    `font-src ${origin} https://fonts.gstatic.com https://cdn.fontshare.com https://api.fontshare.com data:`,
     `img-src ${origin} data: blob:${imageHosts.length ? ` ${imageHosts.join(' ')}` : ''}`,
     `media-src ${origin}`,
     "connect-src 'none'",
@@ -191,7 +206,8 @@ export function sitePreviewContentSecurityPolicy(html: string, origin: string) {
     "object-src 'none'",
   ]
   return {
-    header: `${directives.join('; ')}; frame-ancestors 'self'`,
+    // sandbox is header-only: a direct open gets the same script-only sandbox as the frame.
+    header: `${directives.join('; ')}; frame-ancestors 'self'; sandbox allow-scripts`,
     meta: directives.join('; '),
   }
 }
@@ -203,8 +219,10 @@ export function prepareSitePreviewDocument(html: string, origin: string) {
   const preamble = `${meta}<base href="${escapeHtml(origin)}/"><meta name="referrer" content="no-referrer"><script>${PREVIEW_GUARD}</script>`
   const withHead = cleaned.includes('<head>')
     ? cleaned.replace('<head>', `<head>${preamble}`)
-    : `<!DOCTYPE html><html lang="en"><head>${preamble}</head><body>${cleaned}</body></html>`
-  return { html: `${meta}${withHead}`, policy }
+    : `<html lang="en"><head>${preamble}</head><body>${cleaned}</body></html>`
+  const trimmed = withHead.trimStart()
+  const documentHtml = /^<!doctype\s+html/i.test(trimmed) ? trimmed : `<!DOCTYPE html>\n${trimmed}`
+  return { html: documentHtml, policy }
 }
 
 function previewHeaders(policy: string, engine: 'legacy' | 'ssr') {
