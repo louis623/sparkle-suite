@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { SitePreviewFrame } from '@/app/nic-nac/components/SitePreviewFrame'
 import {
+  AMETHYST_APPEARANCE_PRESET_IDS,
+  type AmethystAppearancePresetId,
+} from '@/lib/amethyst/appearance-presets'
+import {
   AMETHYST_SKIN_CARDS,
   type AmethystSkinCard,
 } from '@/lib/amethyst/skin-cards'
@@ -134,6 +138,12 @@ export function ThemeStudio({
 
   const savedCard = findSkin(savedThemeId)
   const offeredIds = new Set(cards.map((card) => card.id))
+  function isOfferedPresetId(id: string): id is AmethystAppearancePresetId {
+    for (const presetId of AMETHYST_APPEARANCE_PRESET_IDS) {
+      if (presetId === id && offeredIds.has(presetId)) return true
+    }
+    return false
+  }
   const savedOffered = savedCard ? offeredIds.has(savedCard.id) : true
   const themes = savedCard && !savedOffered ? [...cards, savedCard] : [...cards]
   const groups = groupThemesBySeason(themes, savedCard?.id ?? savedThemeId, now ?? new Date())
@@ -180,7 +190,7 @@ export function ThemeStudio({
   }, [shouldLoad, chosen, page, requestToken, loadPreview])
 
   function showCachedOrLoading(themeId: string, nextPage: PreviewPage) {
-    if (!offeredIds.has(themeId)) {
+    if (!isOfferedPresetId(themeId)) {
       setView({ status: 'idle' })
       return
     }
