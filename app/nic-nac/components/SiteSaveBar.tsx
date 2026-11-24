@@ -171,12 +171,82 @@ export function SiteLeaveGuard({
 
 const FIELD_CLEARANCE = 16
 
+function fieldBlock(node: HTMLElement) {
+  const field = node.closest('[data-site-field]')
+  if (field instanceof HTMLElement) return field
+  const label = node.closest('label')
+  return label instanceof HTMLElement ? label : node
+}
+
+/** Bottom of the field, its helper text, and anything the input describes. */
+function blockBottom(block: HTMLElement) {
+  let bottom = block.getBoundingClientRect().bottom
+  const control = block.querySelector('input, textarea, select')
+  const described = control?.getAttribute('aria-describedby') ?? ''
+  for (const id of described.split(/\s+/)) {
+    if (!id) continue
+    const extra = document.getElementById(id)
+    if (extra) bottom = Math.max(bottom, extra.getBoundingClientRect().bottom)
+  }
+  for (const extra of block.querySelectorAll('[data-shows-on]')) {
+    bottom = Math.max(bottom, extra.getBoundingClientRect().bottom)
+  }
+  return bottom
+}
+
+/** The bar's top, or the visual viewport when the keyboard covers the bar. */
+function obstructionTop(bar: HTMLElement) {
+  const barTop = bar.getBoundingClientRect().top
+  const viewport = window.visualViewport
+  if (!viewport) return barTop
+  return Math.min(barTop, viewport.height)
+}
+
+function scrollByDelta(block: HTMLElement, delta: number) {
+  let node: HTMLElement | null = block.parentElement
+  while (node && node !== document.body && node !== document.documentElement) {
+    const overflow = getComputedStyle(node).overflowY
+    if (
+      (overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay')
+      && node.scrollHeight > node.clientHeight + 1
+    ) {
+      node.scrollTop += delta
+      return
+    }
+    node = node.parentElement
+  }
+  const root = document.scrollingElement
+  if (root) root.scrollTop += delta
+}
+
 function useSaveBarOffset(barRef: RefObject<HTMLDivElement | null>, active: boolean) {
   const lastField = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    const root = document.documentElement
+    const onFocusIn = (event: FocusEvent) => {
+      const target = event.target
+      if (target instanceof HTMLElement && target.closest('[data-site-field]')) {
+        root.dataset.siteFieldFocus = 'true'
+      }
+    }
+    const onFocusOut = (event: FocusEvent) => {
+      const next = event.relatedTarget
+      if (next instanceof HTMLElement && next.closest('[data-site-field]')) return
+      delete root.dataset.siteFieldFocus
+    }
+    document.addEventListener('focusin', onFocusIn)
+    document.addEventListener('focusout', onFocusOut)
+    return () => {
+      document.removeEventListener('focusin', onFocusIn)
+      document.removeEventListener('focusout', onFocusOut)
+      delete root.dataset.siteFieldFocus
+    }
+  }, [])
   useLayoutEffect(() => {
     const root = document.documentElement
     if (!active) {
       lastField.current = null
+      delete root.dataset.siteSaveBar
       root.style.removeProperty('--site-save-bar-height')
       root.style.removeProperty('--site-save-bar-stack')
       root.style.removeProperty('--site-save-bar-block')
@@ -184,35 +254,33 @@ function useSaveBarOffset(barRef: RefObject<HTMLDivElement | null>, active: bool
       root.style.paddingBottom = ''
       return
     }
+    root.dataset.siteSaveBar = 'open'
     const rememberField = (bar: HTMLElement) => {
       const activeNode = document.activeElement
       if (!(activeNode instanceof HTMLElement) || bar.contains(activeNode)) return
-      const block = activeNode.closest('[data-site-field], label')
-      if (block instanceof HTMLElement && !bar.contains(block)) lastField.current = block
+      const block = fieldBlock(activeNode)
+      if (!bar.contains(block)) lastField.current = block
     }
     const clear = (bar: HTMLElement) => {
       rememberField(bar)
       const block = lastField.current
       if (!block?.isConnected || bar.contains(block)) return
-      const barRect = bar.getBoundingClientRect()
-      const blockRect = block.getBoundingClientRect()
-      const limit = barRect.top - FIELD_CLEARANCE
-      if (blockRect.bottom <= limit || blockRect.top >= barRect.bottom) return
-      const delta = blockRect.bottom - limit
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      const behavior = reduce ? 'auto' : 'smooth'
-      const scroller = block.closest('[data-workspace-scroll]')
-      if (scroller instanceof HTMLElement && scroller.scrollHeight > scroller.clientHeight + 1) {
-        scroller.scrollBy({ top: delta, behavior })
-      } else {
-        window.scrollBy({ top: delta, behavior })
-      }
+      const limit = obstructionTop(bar) - FIELD_CLEARANCE
+      const bottom = blockBottom(block)
+      const top = block.getBoundingClientRect().top
+      if (bottom <= limit || top >= bar.getBoundingClientRect().bottom) return
+      // Instant in every case, including prefers-reduced-motion: reduce.
+      // A smooth correction loses to the browser's focus scroll and leaves the helper under the bar.
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      scrollByDelta(block, bottom - limit)
+      if (reduceMotion) return
     }
     const apply = () => {
       const bar = barRef.current
       const tabs = document.querySelector('[data-workspace-tab-bar]')
-      const tabTop = tabs?.getBoundingClientRect().top ?? window.innerHeight
-      const clearance = Math.max(0, window.innerHeight - tabTop)
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+      const tabTop = tabs?.getBoundingClientRect().top ?? viewportHeight
+      const clearance = Math.max(0, viewportHeight - tabTop)
       if (bar) bar.style.bottom = `${clearance + 8}px`
       const block = (bar?.offsetHeight ?? 0) + FIELD_CLEARANCE
       const stack = block + clearance
@@ -224,14 +292,33 @@ function useSaveBarOffset(barRef: RefObject<HTMLDivElement | null>, active: bool
       if (bar) clear(bar)
     }
     apply()
+    const settle = () => {
+      const bar = barRef.current
+      if (bar) clear(bar)
+    }
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(apply)
     if (barRef.current) observer?.observe(barRef.current)
     const tabs = document.querySelector('[data-workspace-tab-bar]')
     if (tabs) observer?.observe(tabs)
+    const viewport = window.visualViewport
     window.addEventListener('resize', apply)
+    window.addEventListener('focusin', settle)
+    viewport?.addEventListener('resize', apply)
+    viewport?.addEventListener('scroll', settle)
+    let secondFrame = 0
+    const frame = window.requestAnimationFrame(() => {
+      settle()
+      secondFrame = window.requestAnimationFrame(settle)
+    })
     return () => {
       observer?.disconnect()
       window.removeEventListener('resize', apply)
+      window.removeEventListener('focusin', settle)
+      viewport?.removeEventListener('resize', apply)
+      viewport?.removeEventListener('scroll', settle)
+      window.cancelAnimationFrame(frame)
+      window.cancelAnimationFrame(secondFrame)
+      delete root.dataset.siteSaveBar
       root.style.removeProperty('--site-save-bar-height')
       root.style.removeProperty('--site-save-bar-stack')
       root.style.removeProperty('--site-save-bar-block')

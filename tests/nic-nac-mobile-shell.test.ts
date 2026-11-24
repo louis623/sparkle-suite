@@ -15,11 +15,14 @@ describe('Nic-Nac mobile shell launcher', () => {
     expect(css).toMatch(/\.bubble\s*\{[^}]*width:\s*48px/s)
     expect(css).toMatch(/\.bubble\s*\{[^}]*height:\s*48px/s)
     expect(css).toContain(
-      'bottom: max(86px, calc(env(safe-area-inset-bottom) + 82px));',
+      'bottom: calc(max(86px, env(safe-area-inset-bottom) + 82px) + var(--site-save-bar-block, 0px));',
     )
     expect(css).toContain(
       'right: max(14px, calc(env(safe-area-inset-right) + 14px));',
     )
+    expect(css).toContain('@media (max-width: 879px)')
+    expect(css).toContain("html[data-site-save-bar='open']")
+    expect(css).toContain("html[data-site-field-focus='true']")
   })
 
   it('returns focus only after the mobile sheet closes, not on first mount', () => {

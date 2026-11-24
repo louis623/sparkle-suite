@@ -19,6 +19,13 @@
   transition: background 120ms ease, box-shadow 120ms ease;
 }
 
+@media (max-width: 879px) {
+  :global(html[data-site-save-bar='open']) .bubble,
+  :global(html[data-site-field-focus='true']) .bubble {
+    display: none;
+  }
+}
+
 .bubble:hover {
   background: var(--nic-nac-accent-hover);
   box-shadow:

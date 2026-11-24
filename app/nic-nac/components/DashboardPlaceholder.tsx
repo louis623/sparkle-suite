@@ -104,7 +104,6 @@ import {
 } from '@/lib/amethyst/team-photo-framing'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
 import { useAvailableAmethystSkinCards } from './useAvailableAmethystSkinCards'
-import { ThemeStudio } from './ThemeStudio'
 import {
   BRITT_WITH_BLING_ABOUT_PORTRAIT_URL,
   BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
@@ -210,7 +209,21 @@ const WorkspaceResourceLibraryView = dynamic(() =>
   ),
 )
 
+const ThemeStudio = dynamic(
+  () => import('./ThemeStudio').then((mod) => mod.ThemeStudio),
+  { loading: () => <div data-theme-studio-pending="" style={{ minHeight: 220 }} /> },
+)
+
 const RECIPE_AUDIT_STORAGE_KEY = 'sparkle-suite:recipe-audit'
+
+function afterFirstPaint(work: () => void) {
+  if (typeof window.requestIdleCallback === 'function') {
+    const id = window.requestIdleCallback(work, { timeout: 1600 })
+    return () => window.cancelIdleCallback(id)
+  }
+  const id = window.setTimeout(work, 1)
+  return () => window.clearTimeout(id)
+}
 
 // Texting and email updates are not launched yet. Keep the wallet implementation
 // intact for that release, but do not expose prepaid SMS spend or recharge controls.
@@ -3117,6 +3130,8 @@ export type DashboardPlaceholderProps = {
   publicSiteSlugOverride?: string | null
   liveQueueSyncCodeOverride?: string | null
   initialSiteSettings?: SiteSettingsDashboardResult
+  /** The server already passed the paid workspace check, so My Website can paint before billing loads. */
+  serverPaidAccess?: boolean
   reviewWorkspaceMode?: boolean
   operatorSupportMode?: boolean
   initialSectionOverride?: WorkspaceSectionKey
@@ -3176,6 +3191,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     publicSiteSlugOverride,
     liveQueueSyncCodeOverride,
     initialSiteSettings,
+    serverPaidAccess = false,
     reviewWorkspaceMode = false,
     operatorSupportMode = false,
     initialSectionOverride,
@@ -4119,8 +4135,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     const controller = new AbortController()
     let cancelled = false
 
-    ;(async () => {
-      await Promise.all([
+    const start = () => {
+      void Promise.all([
         loadRepProfile(controller.signal).catch((error) => {
           if (cancelled) return
           if ((error as { name?: string }).name === 'AbortError') return
@@ -4137,13 +4153,15 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           setResourcesState({ status: 'error' })
         }),
       ])
-    })()
+    }
+    const cancelIdle = serverPaidAccess ? afterFirstPaint(start) : (start(), () => {})
 
     return () => {
       cancelled = true
+      cancelIdle()
       controller.abort()
     }
-  }, [operatorSupportMode, reviewWorkspaceMode])
+  }, [operatorSupportMode, reviewWorkspaceMode, serverPaidAccess])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -5512,9 +5530,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (reviewWorkspaceMode) return
 
     const controller = new AbortController()
-    void loadPaidWorkspaceData(controller.signal)
+    const cancelIdle = afterFirstPaint(() => {
+      void loadPaidWorkspaceData(controller.signal)
+    })
 
-    return () => controller.abort()
+    return () => {
+      cancelIdle()
+      controller.abort()
+    }
   }, [operatorSupportMode, reviewWorkspaceMode])
 
   useEffect(() => {
@@ -6994,7 +7017,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     publicSiteSlug: publicSiteSlugOverride ?? repProfileState.publicSiteSlug,
   })
   const isWorkspaceAccessLoading = accountBillingState.status !== 'ready'
-  const hasWorkspaceAccess = operatorSupportMode || hasPaidWorkspace
+  const hasWorkspaceAccess = operatorSupportMode || hasPaidWorkspace || serverPaidAccess
   const canRenderWorkspaceSections = hasWorkspaceAccess
   const visibleWorkspaceSections = getVisibleWorkspaceSections(
     hasWorkspaceAccess,

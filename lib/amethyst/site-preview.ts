@@ -32,12 +32,35 @@ const PAGE_OFF_MESSAGE: Partial<Record<SitePreviewPage, string>> = {
 
 const PREVIEW_GUARD = `(function(){
   var nativeSetAttribute = Element.prototype.setAttribute;
+  function localIconHref(value) {
+    var text = String(value);
+    var marker = 'media-icons.svg#';
+    var at = text.indexOf(marker);
+    if (at === -1) return value;
+    return '#preview-media-icon-' + text.slice(at + marker.length);
+  }
   Element.prototype.setAttribute = function(name, value) {
     var key = String(name).toLowerCase();
+    if (key === 'href' || key === 'xlink:href') value = localIconHref(value);
     if (this instanceof HTMLMediaElement && (key === 'src' || key === 'autoplay')) return;
     if (this instanceof HTMLMediaElement && key === 'preload') return nativeSetAttribute.call(this, name, 'none');
     return nativeSetAttribute.call(this, name, value);
   };
+  var nativeSetAttributeNS = Element.prototype.setAttributeNS;
+  Element.prototype.setAttributeNS = function(ns, name, value) {
+    if (String(name).toLowerCase() === 'href') value = localIconHref(value);
+    return nativeSetAttributeNS.call(this, ns, name, value);
+  };
+  function rewriteIcons(root) {
+    var nodes = [];
+    if (root && root.matches && root.matches('use')) nodes.push(root);
+    if (root && root.querySelectorAll) nodes = nodes.concat([].slice.call(root.querySelectorAll('use')));
+    nodes.forEach(function(node) {
+      var href = node.getAttribute('href') || node.getAttribute('xlink:href') || '';
+      var next = localIconHref(href);
+      if (next !== href) nativeSetAttribute.call(node, 'href', next);
+    });
+  }
   try {
     Object.defineProperty(HTMLMediaElement.prototype, 'src', { configurable: true, get: function() { return ''; }, set: function() {} });
   } catch (error) {}
@@ -67,6 +90,7 @@ const PREVIEW_GUARD = `(function(){
     });
   }
   quiet(document);
+  rewriteIcons(document);
   document.addEventListener('play', function(event) {
     var media = event.target;
     if (!media || !media.pause) return;
@@ -85,7 +109,7 @@ const PREVIEW_GUARD = `(function(){
     new MutationObserver(function(records) {
       records.forEach(function(record) {
         [].slice.call(record.addedNodes).forEach(function(node) {
-          if (node && node.nodeType === 1) quiet(node);
+          if (node && node.nodeType === 1) { quiet(node); rewriteIcons(node); }
         });
       });
     }).observe(document.documentElement, { childList: true, subtree: true });
@@ -215,10 +239,36 @@ export function stripPreviewProductionIcons(html: string) {
 }
 
 /** Keep the media sprite in the preview document. A sandboxed frame cannot load the root-relative file. */
+const compiledPreviewSources = new Map<string, string>()
+
+function compiledPreviewSource(name: string) {
+  const cached = compiledPreviewSources.get(name)
+  if (cached) return cached
+  const source = readFileSync(join(process.cwd(), 'public/amethyst/compiled', name), 'utf8')
+    .replace(/\\\/amethyst\\\/media-icons\.svg#/g, '#preview-media-icon-')
+    .replace(/\/amethyst\/media-icons\.svg#/g, '#preview-media-icon-')
+    .replace(/<\/script/gi, '<\\/script')
+  compiledPreviewSources.set(name, source)
+  return source
+}
+
+/** The sandboxed frame cannot load the compiled page script, which sets external icon hrefs. */
+export function inlinePreviewRuntimeScripts(html: string) {
+  return html.replace(
+    /<script\b([^>]*)\bsrc="([^"]*\/amethyst\/compiled\/(homepage|trade|join|pantry)\.js(?:\?[^"]*)?)"([^>]*)>\s*<\/script>/gi,
+    (_tag, before: string, _src: string, name: string, after: string) => {
+      const attrs = `${before}${after}`.replace(/\s(?:defer|async)\b/gi, '')
+      return `<script${attrs}>${compiledPreviewSource(`${name}.js`)}</script>`
+    },
+  )
+}
+
 export function inlinePreviewMediaIcons(html: string) {
   const stripped = stripPreviewProductionIcons(html)
   if (!stripped.includes('/amethyst/media-icons.svg')) return stripped
-  const rewritten = stripped.replace(/\/amethyst\/media-icons\.svg#/g, '#preview-media-icon-')
+  const rewritten = stripped
+    .replace(/\\\/amethyst\\\/media-icons\.svg#/g, '#preview-media-icon-')
+    .replace(/\/amethyst\/media-icons\.svg#/g, '#preview-media-icon-')
   const symbols = MEDIA_ICON_SPRITE
     .replace(
       '<svg xmlns="http://www.w3.org/2000/svg">',
@@ -258,7 +308,7 @@ export function sitePreviewContentSecurityPolicy(html: string, origin: string) {
 }
 
 export function prepareSitePreviewDocument(html: string, origin: string) {
-  const cleaned = inlinePreviewMediaIcons(cleanSitePreviewDocument(html, origin))
+  const cleaned = inlinePreviewMediaIcons(inlinePreviewRuntimeScripts(cleanSitePreviewDocument(html, origin)))
   const policy = sitePreviewContentSecurityPolicy(cleaned, origin)
   const meta = `<meta http-equiv="Content-Security-Policy" content="${escapeHtml(policy.meta)}">`
   const preamble = `${meta}<base href="${escapeHtml(origin)}/"><meta name="referrer" content="no-referrer"><script>${PREVIEW_GUARD}</script>`

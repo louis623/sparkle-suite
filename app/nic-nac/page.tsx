@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import NicNacClient from './_client'
+import { MyWebsiteFirstPaint } from './my-website-first-paint'
 import {
   reviewerSmokeModeEnabled,
 } from '@/lib/reviewer-smoke/config'
@@ -17,7 +18,8 @@ export default async function NicNacPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
-  await searchParams
+  const params = await searchParams
+  const requestedSection = typeof params.section === 'string' ? params.section : ''
   let initialWorkspaceSettings: SiteSettingsDashboardResult | null = null
   try {
     const { repId, supabase } = await getPaidNicNacContext()
@@ -28,6 +30,9 @@ export default async function NicNacPage({
   return (
     <main className={styles.page}>
       <div className={styles.app}>
+        {requestedSection === 'site-settings' && initialWorkspaceSettings ? (
+          <MyWebsiteFirstPaint settings={initialWorkspaceSettings} />
+        ) : null}
         <Suspense fallback={<div style={{ padding: 24 }}>Loading...</div>}>
           <NicNacClient
             liveLineupReadOnly={!liveLineupOwnerMutationsAvailable()}
@@ -35,6 +40,7 @@ export default async function NicNacPage({
               reviewerSmokeModeEnabled()
             }
             initialWorkspaceSettings={initialWorkspaceSettings}
+            initialPaidAccess={initialWorkspaceSettings !== null}
           />
         </Suspense>
       </div>

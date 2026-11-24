@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { skinsOfferedToRep } from '@/lib/amethyst/skin-offer'
 import {
   inlinePreviewMediaIcons,
+  inlinePreviewRuntimeScripts,
+  prepareSitePreviewDocument,
   previewNeedsProductionImages,
   sitePreviewContentSecurityPolicy,
   stripPreviewProductionIcons,
@@ -86,6 +88,15 @@ describe('theme preview assets', () => {
     const plain = sitePreviewContentSecurityPolicy('<html><body><p>Preview</p></body></html>', 'https://sparkle-suite-smoke.vercel.app')
     expect(previewNeedsProductionImages('<p>Preview</p>')).toBe(false)
     expect(plain.header).not.toContain('https://www.yoursparklesuite.com')
+    const srcdoc = prepareSitePreviewDocument(
+      '<html><head></head><body><script defer src="/amethyst/compiled/homepage.js"></script><svg><use href="/amethyst/media-icons.svg#video"></use></svg></body></html>',
+      'https://sparkle-suite-smoke.vercel.app',
+    ).html
+    expect(srcdoc).not.toContain('src="/amethyst/compiled/homepage.js"')
+    expect(srcdoc).not.toContain('/amethyst/media-icons.svg')
+    expect(srcdoc).toContain('#preview-media-icon-')
+    expect(srcdoc).toContain('id="preview-media-icons"')
+    expect(inlinePreviewRuntimeScripts('<script src="/amethyst/compiled/trade.js"></script>')).not.toContain('/amethyst/media-icons.svg')
   })
 })
 

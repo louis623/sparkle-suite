@@ -5501,8 +5501,12 @@
   padding: 14px;
 }
 
+.siteSettingsCard [data-site-field] {
+  scroll-margin-bottom: calc(var(--site-save-bar-block, 0px) + 16px);
+}
+
 .siteSettingsCard :is(input, textarea, select) {
-  scroll-margin-bottom: calc(var(--site-save-bar-block, 0px) + 12px);
+  scroll-margin-bottom: calc(var(--site-save-bar-block, 0px) + 3.5rem);
 }
 
 .siteSettingsCard :is(input, textarea, select):user-invalid,

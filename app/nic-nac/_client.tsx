@@ -181,11 +181,13 @@ export default function NicNacClient({
   reviewerSmokeVisible = false,
   liveLineupReadOnly = false,
   initialWorkspaceSettings = null,
+  initialPaidAccess = false,
   operatorSupport,
 }: {
   reviewerSmokeVisible?: boolean
   liveLineupReadOnly?: boolean
   initialWorkspaceSettings?: SiteSettingsDashboardResult | null
+  initialPaidAccess?: boolean
   operatorSupport?: {
     sessionId: string
     operatorDisplayName: string
@@ -920,6 +922,7 @@ export default function NicNacClient({
         initialSiteSettings={
           showWorkspaceReviewState ? buildReviewSiteSettings(setupState) : initialWorkspaceSettings ?? undefined
         }
+        serverPaidAccess={initialPaidAccess}
         initialSearch={searchParams.toString()}
         reviewWorkspaceMode={showWorkspaceReviewState}
         operatorSupportMode={isOperatorSupport}
