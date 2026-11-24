@@ -1,5 +1,5 @@
 import {describe,it,expect,vi} from 'vitest'
-import {assertReviewerSmokeRep, assertReviewerSmokeSubscription, reservedReviewerSetupSlug, REVIEWER_SMOKE_SCOPE} from '@/lib/reviewer-smoke/identity'
+import {assertReviewerSmokeRep, assertReviewerSmokeSubscription, reservedReviewerSetupSlug, reviewerSmokeSlug, REVIEWER_SMOKE_SCOPE} from '@/lib/reviewer-smoke/identity'
 const email='sparkle-reviewer+preview@neonrabbit.net'
 const user={id:'auth',email,app_metadata:{reviewer_smoke_scope:REVIEWER_SMOKE_SCOPE}}
 const rep={id:'rep',auth_user_id:'auth',email,account_classification:'demo',finder_directory_visible:false,custom_domain:null,public_site_slug:null}
@@ -11,6 +11,20 @@ describe('isolated reviewer authority',()=>{
   it('accepts only email-matched reserved synthetic slug',()=>{
     expect(()=>assertReviewerSmokeRep({...rep,public_site_slug:'sparklereviewerpreview'},user,email)).not.toThrow()
     expect(()=>assertReviewerSmokeRep({...rep,public_site_slug:'sparklereviewerlocal'},user,email)).toThrow()
+  })
+  it('accepts the previous hyphenated slug and rewrites it to the current slug',()=>{
+    const localEmail='sparkle-reviewer+local@neonrabbit.net'
+    const localUser={...user,email:localEmail}
+    expect(()=>assertReviewerSmokeRep({...rep,public_site_slug:'sparkle-reviewer-preview'},user,email)).not.toThrow()
+    expect(reviewerSmokeSlug(email)).toBe('sparklereviewerpreview')
+    expect(()=>assertReviewerSmokeRep({...rep,public_site_slug:'sparklereviewerpreview'},user,email)).not.toThrow()
+    expect(()=>assertReviewerSmokeRep({...rep,public_site_slug:'sparkle-reviewer-local'},user,email)).toThrow()
+    expect(()=>assertReviewerSmokeRep({...rep,public_site_slug:'someoneelse'},user,email)).toThrow()
+    const localRep={...rep,email:localEmail}
+    expect(()=>assertReviewerSmokeRep({...localRep,public_site_slug:'sparkle-reviewer-local'},localUser,localEmail)).not.toThrow()
+    expect(reviewerSmokeSlug(localEmail)).toBe('sparklereviewerlocal')
+    expect(()=>assertReviewerSmokeRep({...localRep,public_site_slug:'sparklereviewerlocal'},localUser,localEmail)).not.toThrow()
+    expect(()=>assertReviewerSmokeRep({...localRep,public_site_slug:'sparkle-reviewer-preview'},localUser,localEmail)).toThrow()
   })
   it('normalizes only proven old synthetic entitlement amounts',()=>{
     const row={rep_id:'rep',stripe_subscription_id:'sub_reviewer_smoke_rep',stripe_customer_id:'cus_reviewer_smoke_rep',stripe_livemode:false,pricing_tier:'smoke',monthly_amount:99}
