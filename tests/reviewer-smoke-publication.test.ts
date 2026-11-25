@@ -4,7 +4,7 @@ import {assertReviewerSmokeRep, REVIEWER_SMOKE_SCOPE} from '@/lib/reviewer-smoke
 
 const email='sparkle-reviewer+preview@neonrabbit.net'
 const user={id:'auth',email,app_metadata:{reviewer_smoke_scope:REVIEWER_SMOKE_SCOPE}}
-const reviewer={id:'rep',auth_user_id:'auth',email,account_classification:'demo',finder_directory_visible:false,custom_domain:null,public_site_slug:'sparkle-reviewer-preview'}
+const reviewer={id:'rep',auth_user_id:'auth',email,account_classification:'demo',finder_directory_visible:false,custom_domain:null,public_site_slug:'sparklereviewerpreview'}
 function fixture(rep:unknown=reviewer,authUser:unknown=user){
   const read={select:vi.fn(),eq:vi.fn(),in:vi.fn(),maybeSingle:vi.fn().mockResolvedValue({data:rep,error:null})}
   for(const key of ['select','eq','in'] as const)read[key].mockReturnValue(read)

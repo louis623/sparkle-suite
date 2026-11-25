@@ -661,7 +661,7 @@ describe('DashboardPlaceholder', () => {
         resolve(process.cwd(), 'app/nic-nac/components/SiteSettingsBody.tsx'),
         'utf8',
       ),
-    ).toContain('<span className={styles.searchLabel}>Team I belong to</span>')
+    ).toContain('<span className={styles.searchLabel}>Team I belong to (shown in small print)</span>')
   })
 
   it('disables copying a missing lineup code and routes bug reports to the selected support form', () => {
@@ -3637,11 +3637,10 @@ describe('DashboardPlaceholder', () => {
     )
 
     expect(html).toContain('Top bar')
-    expect(html).toContain('Display name')
-    expect(html).toContain('Show name')
+    expect(html).toContain('Your first name')
+    expect(html).toContain('Business name')
     expect(html).toContain('Bomb Party rep store link')
     expect(html).toContain('This powers the Shop buttons across your customer-facing site.')
-    expect(html).not.toContain('Business name')
     expect(html).not.toContain('Phone</span>')
     expect(html).toContain('Show on your website')
     expect(html).not.toContain('Banner and ticker')
@@ -3650,13 +3649,16 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Announcement ticker messages')
     expect(html).not.toContain('Hero image URL')
     expect(html).toContain('Hero motion')
-    expect(html).toContain('Hero title')
-    expect(html).toContain('Hero subtitle')
-    expect(html).toContain('Site tagline')
+    expect(html).toContain('Big headline')
+    expect(html).toContain('Line under the headline')
+    expect(html).toContain('Footer tagline')
+    expect(html).not.toContain('Hero title')
+    expect(html).not.toContain('Hero subtitle')
+    expect(html).not.toContain('Site tagline')
     expect(html).toContain('Sparkle rise')
     expect(html).toContain('Soft glow')
     expect(html).toContain('Still')
-    expect(html).toContain('Customer-facing site theme')
+    expect(html).toContain('Choose your theme')
     expect(html).not.toContain('Customer Site Looks')
     expect(html).not.toContain('Morganite is locked in for every Sparkle Suite workspace and Amethyst customer site.')
     expect(html).not.toContain('Reference polished customer-site looks')
@@ -3704,7 +3706,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('maxLength="180"')
     expect(html.match(/Upload photo/g)).toHaveLength(1)
     expect(html).toContain('Video links and embeds')
-    expect(html).toContain('<summary')
+    expect(html).toContain('About you')
     expect(html).toContain('public TikTok, YouTube Short, Instagram Reel, or Facebook Reel/video')
     expect(html).toContain('TikTok and YouTube play muted, loop, and do not show a pause control.')
     expect(html).toContain('Instagram')
@@ -3716,12 +3718,98 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('aria-label="Show Facebook in hero"')
     expect(html).toContain('Add a link to choose footer and hero.')
     expect(html).not.toContain('Show Facebook VIP button in the landing hero')
-    expect(html).toContain('My Website')
-    expect(html).toContain('Preview saved site')
-    expect(html).toContain('View my site')
+    expect(html).toContain('Tap a part of your site to change it')
+    expect(html).not.toContain('Preview saved site')
+    expect(html).not.toContain('View my site')
     expect(html).not.toContain('Save site settings')
     expect(html).not.toContain('data-testid="site-save-bar"')
     expect(html).not.toContain('Brittany custom media')
+  })
+
+  it('renders the About magazine cover from the saved photo, caption, or tagline', () => {
+    const photo = 'https://cdn.example.com/sasha-portrait.jpg'
+    const withPhoto = getSiteSettingsDraft({
+      ...SITE_SETTINGS_READY_STATE.settings,
+      displayName: 'Sasha Sample',
+      tagline: 'Live jewelry, real sparkle.',
+      homepageMediaSlots: [
+        { key: 'about_1', caption: 'Come sparkle with me.', imageUrl: photo, videoUrl: '' },
+      ],
+    })
+    const photoHtml = renderToStaticMarkup(
+      createElement(SiteSettingsCard, {
+        state: { status: 'ready', settings: { ...SITE_SETTINGS_READY_STATE.settings, ...withPhoto } },
+        draft: withPhoto,
+      }),
+    )
+    expect(photoHtml).toContain('data-about-cover="photo"')
+    expect(photoHtml).toContain('Meet your host')
+    expect(photoHtml).toContain('>Sasha<')
+    expect(photoHtml).toContain('Come sparkle with me.')
+    expect(photoHtml).toContain(`src="${photo}"`)
+    expect(photoHtml).not.toContain('Add your photo')
+
+    const nextPhoto = 'https://cdn.example.com/sasha-new.jpg'
+    const nextHtml = renderToStaticMarkup(
+      createElement(SiteSettingsCard, {
+        state: { status: 'ready', settings: SITE_SETTINGS_READY_STATE.settings },
+        draft: {
+          ...withPhoto,
+          homepageMediaSlots: withPhoto.homepageMediaSlots?.map((slot) =>
+            slot.key === 'about_1' ? { ...slot, imageUrl: nextPhoto, caption: 'New caption' } : slot,
+          ),
+        },
+      }),
+    )
+    expect(nextHtml).toContain(`src="${nextPhoto}"`)
+    expect(nextHtml).toContain('New caption')
+    expect(nextHtml).not.toContain(photo)
+
+    const fallback = getSiteSettingsDraft({
+      ...SITE_SETTINGS_READY_STATE.settings,
+      displayName: 'Sasha Sample',
+      tagline: 'Live jewelry, real sparkle.',
+      homepageMediaSlots: [{ key: 'about_1', caption: '', imageUrl: '', videoUrl: '' }],
+    })
+    const fallbackHtml = renderToStaticMarkup(
+      createElement(SiteSettingsCard, {
+        state: { status: 'ready', settings: SITE_SETTINGS_READY_STATE.settings },
+        draft: fallback,
+      }),
+    )
+    expect(fallbackHtml).toContain('data-about-cover="fallback"')
+    expect(fallbackHtml).toContain('>Sasha<')
+    expect(fallbackHtml).toContain('Live jewelry, real sparkle.')
+    expect(fallbackHtml).toContain('Add your photo')
+    expect(fallbackHtml).not.toContain(photo)
+
+    for (const stock of [
+      '/dev/sample-portrait.svg',
+      'https://sparkle-suite-smoke.vercel.app/amethyst/skins/pie-please/sample-portrait.webp',
+    ]) {
+      const stockDraft = getSiteSettingsDraft({
+        ...SITE_SETTINGS_READY_STATE.settings,
+        displayName: 'Sasha Sample',
+        tagline: 'Live jewelry, real sparkle.',
+        homepageMediaSlots: [
+          { key: 'about_1', caption: 'Sasha before a Friday show', imageUrl: stock, videoUrl: '' },
+        ],
+      })
+      const stockHtml = renderToStaticMarkup(
+        createElement(SiteSettingsCard, {
+          state: { status: 'ready', settings: SITE_SETTINGS_READY_STATE.settings },
+          draft: stockDraft,
+        }),
+      )
+      const aboutArt = stockHtml.slice(
+        stockHtml.indexOf('data-tile-art="about"'),
+        stockHtml.indexOf('data-tile-art="shows"'),
+      )
+      expect(aboutArt).toContain('data-about-cover="fallback"')
+      expect(aboutArt).toContain('Add your photo')
+      expect(aboutArt).not.toContain('sample-portrait')
+      expect(aboutArt).not.toContain('<img')
+    }
   })
 
   it('renders Brittany custom media controls without removing standard theme controls', () => {
@@ -3761,7 +3849,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Sparkle moment 3')
     expect(html).toContain('Show the About Brittany and Sparkle Moments section')
     expect(html).toContain('Hero and “The Rise of Her” stay managed for this custom site.')
-    expect(html).toContain('Customer-facing site theme')
+    expect(html).toContain('Choose your theme')
     expect(html).toContain('Loading your available themes…')
     expect(html).toContain('Remove video')
     expect(html).toContain('7602795836380073229')
@@ -3869,7 +3957,7 @@ describe('DashboardPlaceholder', () => {
         },
         actionState: { pending: false, error: null, helperMessage: null },
         hasUnsavedChanges: true,
-        changes: ['Site tagline'],
+        changes: ['Footer tagline'],
         publicSiteUrl: 'https://www.example.com',
         publicSiteDisplay: 'example.com',
         canPreview: true,
@@ -3878,16 +3966,12 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(html).not.toContain('Changes will auto-save.')
-    expect(html).toContain('1 unsaved change')
-    expect(html).toContain('Site tagline')
-    expect(html).toContain('Preview saved site')
-    expect(html).toContain('Save &amp; publish')
+    expect(html).toContain('Everything saves on its own as you go.')
+    expect(html).toContain('All changes saved')
+    expect(html).toContain('Footer tagline')
+    expect(html).not.toContain('Preview saved site')
+    expect(html).not.toContain('Save &amp; publish')
     expect(html).not.toContain('Save site settings')
-    expect(html).not.toContain('No unsaved changes')
-    expect(html).not.toMatch(/siteSettingsPreviewButton[^"]*" disabled/)
-    const saveAt = html.indexOf('Save &amp; publish')
-    expect(html.slice(Math.max(0, saveAt - 220), saveAt)).not.toContain('disabled')
   })
 
   it('derives manual site settings save status text', () => {
@@ -3955,14 +4039,13 @@ describe('DashboardPlaceholder', () => {
         }),
       )
 
-      expect(html).toContain('My Website')
-      expect(html).toContain('Preview saved site')
-      expect(html).toContain('View my site ↗')
+      expect(html).toContain('Tap a part of your site to change it')
+      expect(html).not.toContain('Preview saved site')
+      expect(html).not.toContain('View my site ↗')
       expect(html).toContain('yoursparklesuite.com/sparkle-test')
       expect(html).not.toContain('Save site settings')
       expect(html).not.toContain('data-testid="site-save-bar"')
-      expect(html).toContain('siteSettingsSaveActions')
-      expect(html).not.toContain('siteSettingsAutoSaveStatus')
+      expect(html).toContain('All changes saved')
     } finally {
       Object.defineProperty(globalThis, 'window', {
         configurable: true,
@@ -3988,20 +4071,13 @@ describe('DashboardPlaceholder', () => {
     )
 
     expect(styles).not.toContain('.workspaceSaveDock')
-    expect(styles).toContain('.siteSettingsSaveActions')
-    expect(styles).toContain('.siteSettingsPreviewButton')
-    expect(styles).not.toContain('.siteSettingsSaveFooter')
-    expect(styles).not.toContain('.siteSettingsAutoSaveStatus')
+    expect(styles).toContain('.siteSavePill')
     expect(styles).not.toContain('.siteSettingsSaveBar')
-    expect(styles).not.toContain('calc(96px + env(safe-area-inset-bottom))')
-    expect(source).not.toContain('siteSettingsAutosaveTimerRef')
-    expect(source).not.toContain('void saveSiteSettingsDraft(normalizedDraft)')
-    expect(source).toContain('function handleSaveSiteSettings()')
-    expect(source).toContain('function handleDiscardSiteSettings()')
+    expect(source).toContain('autosaveTimerRef')
+    expect(source).toContain('function runSiteAutosave()')
+    expect(source).toContain('function undoLastSiteChange()')
+    expect(source).not.toContain('<SiteSaveBar')
     expect(source).not.toContain('Save site settings')
-    expect(
-      readFileSync(resolve(process.cwd(), 'app/nic-nac/components/SiteSaveBar.tsx'), 'utf8'),
-    ).toContain('Save & publish')
   })
 
   it('routes active account billing to Stripe without duplicating billing details', () => {

@@ -62,7 +62,7 @@
 
 .actions {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 100%;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
@@ -70,6 +70,7 @@
 
 .discard,
 .save {
+  flex: 0 0 auto;
   min-height: 48px;
   border-radius: 999px;
   padding: 10px 16px;
@@ -77,6 +78,7 @@
   font-size: max(1rem, 1em);
   font-weight: 800;
   line-height: 1.2;
+  white-space: nowrap;
   cursor: pointer;
 }
 

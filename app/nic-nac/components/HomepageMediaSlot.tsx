@@ -11,7 +11,7 @@ import { SHOWS_ON, SETUP_FIELD_IDS } from './site-settings-layout'
 function ShowsOn({ id, children }: { id: string; children: string }) {
   return (
     <span id={id} className={styles.showsOn} data-shows-on="">
-      Shows on: {children}
+      Shows on your site: {children}
     </span>
   )
 }
@@ -106,7 +106,8 @@ export function HomepageMediaSlot({
         </div>
       ) : null}
       {allowsPhoto ? (
-        <label className={styles.homepageMediaUploadButton} data-site-field="about-photo">
+        <div data-site-field="about-photo">
+        <label className={styles.homepageMediaUploadButton}>
           {isUploading ? 'Uploading...' : slot.imageUrl ? 'Replace photo' : 'Upload photo'}
           <input
             id={SETUP_FIELD_IDS.aboutPhoto}
@@ -122,8 +123,9 @@ export function HomepageMediaSlot({
               event.target.value = ''
             }}
           />
-          <ShowsOn id="about-photo-shows">{SHOWS_ON.aboutPhoto}</ShowsOn>
         </label>
+        <ShowsOn id="about-photo-shows">{SHOWS_ON.aboutPhoto}</ShowsOn>
+        </div>
       ) : null}
       {feedback ? (
         <p

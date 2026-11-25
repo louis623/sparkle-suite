@@ -16,7 +16,7 @@ it('guards and atomically resets only the reserved reviewer with no fake ready s
       create table subscriptions(rep_id uuid primary key,stripe_livemode boolean,monthly_amount numeric,pricing_tier text,stripe_subscription_id text,stripe_customer_id text);
       create table live_queue(rep_id uuid primary key,sync_code text,queue jsonb,last_updated timestamptz);`)
     await sql.query('insert into auth.users values($1,$2,$3)',[auth,email,JSON.stringify({reviewer_smoke_scope:'sparkle-suite-reviewer-v1'})])
-    await sql.query("insert into reps values($1,$2,$3,'demo',false,null,'sparkle-reviewer-preview'),($4,null,'customer@example.com','customer',true,'customer.example.com','customer')",[rep,auth,email,other])
+    await sql.query("insert into reps values($1,$2,$3,'demo',false,null,'sparklereviewerpreview'),($4,null,'customer@example.com','customer',true,'customer.example.com','customer')",[rep,auth,email,other])
     await sql.query("insert into subscriptions values($1,false,0,'smoke',$2,$3)",[rep,`sub_reviewer_smoke_${rep}`,`cus_reviewer_smoke_${rep}`])
     const lineupSql=readFileSync(new URL('../supabase/migrations/20260910000100_live_lineup_v2.sql',import.meta.url),'utf8')
     await sql.exec(lineupSql)
@@ -26,6 +26,8 @@ it('guards and atomically resets only the reserved reviewer with no fake ready s
     expect(resetSql).toContain(tenantLock)
     expect(resetSql.indexOf(tenantLock)).toBeLessThan(resetSql.indexOf('select u.* into reviewer_auth'))
     await sql.exec(resetSql)
+    const hyphenFreeSql=readFileSync(new URL('../supabase/migrations/20261124120000_reviewer_slug_hyphen_free.sql',import.meta.url),'utf8')
+    await sql.exec(hyphenFreeSql)
     for(const [id,hash] of [[rep,'a'],[other,'b']]) {
       await sql.query('insert into live_lineup_states(rep_id,revision,state) values($1,1,$2)',[id,JSON.stringify({schemaVersion:2,revision:1,entries:[],order:[],held:[]})])
       await sql.query("insert into live_lineup_publisher_tokens(rep_id,token_hash,label) values($1,$2,'Synthetic fixture')",[id,hash.repeat(64)])
@@ -39,7 +41,7 @@ it('guards and atomically resets only the reserved reviewer with no fake ready s
     await sql.query("update auth.users set raw_app_meta_data=$2 where id=$1",[auth,JSON.stringify({reviewer_smoke_scope:'sparkle-suite-reviewer-v1'})])
     for(const update of ["custom_domain='unsafe.example.com'","public_site_slug='customer-site'","finder_directory_visible=true","account_classification='customer'"]) {
       await sql.query(`update reps set ${update} where id=$1`,[rep]);await expect(call()).rejects.toThrow('isolated')
-      await sql.query("update reps set custom_domain=null,public_site_slug='sparkle-reviewer-preview',finder_directory_visible=false,account_classification='demo' where id=$1",[rep])
+      await sql.query("update reps set custom_domain=null,public_site_slug='sparklereviewerpreview',finder_directory_visible=false,account_classification='demo' where id=$1",[rep])
     }
     await sql.query('update subscriptions set stripe_livemode=true where rep_id=$1',[rep]);await expect(call()).rejects.toThrow('zero-dollar')
     await sql.query('update subscriptions set stripe_livemode=false where rep_id=$1',[rep])

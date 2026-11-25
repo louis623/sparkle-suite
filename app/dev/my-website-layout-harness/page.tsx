@@ -13,15 +13,19 @@ export const metadata: Metadata = {
 export default async function MyWebsiteLayoutHarnessPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ case?: string; open?: string }>
+  searchParams?: Promise<{ case?: string; open?: string; cover?: string }>
 }) {
   if (!isMyWebsiteLayoutHarnessEnabled()) notFound()
   const query = searchParams ? await searchParams : {}
+  const mode = query.case === 'full' || query.case === 'states' || query.case === 'load-error' || query.case === 'no-photo'
+    ? query.case
+    : 'gaps'
   return (
     <main style={{ minHeight: '100vh', background: 'var(--nic-nac-surface-dashboard, #fcf8f6)' }}>
       <MyWebsiteLayoutHarness
-        mode={query.case === 'full' ? 'full' : 'gaps'}
+        mode={mode}
         openSection={query.open === 'about' ? 'about' : null}
+        coverPhoto={query.cover === 'photo'}
       />
     </main>
   )

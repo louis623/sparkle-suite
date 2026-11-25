@@ -13,16 +13,22 @@ import { SOCIAL_PLATFORMS } from '@/lib/public-site/social-visibility'
 import Link from 'next/link'
 import { flushSync } from 'react-dom'
 import { SiteLeaveGuard, SiteSaveBar, type SiteDiscardOpener } from './SiteSaveBar'
-import { SiteMapRail, SiteSettingsBody, SetupChecklist } from './SiteSettingsBody'
+import { SiteSettingsBody, SiteSettingsLoadingShell } from './SiteSettingsBody'
 import { buildSiteSetupChecklist, type SiteSectionId } from './site-settings-layout'
+import { myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-client'
+import { getAmethystSkinCard, type AmethystSkinCard } from '@/lib/amethyst/skin-cards'
+import { SocialMark } from '@/lib/amethyst/social-mark-icon'
+import { ThemeStudio } from './ThemeStudio'
 import {
+  AUTOSAVE_WAIT_MS,
+  autosaveTiming,
   discountCodeFieldError,
   discountMessageFieldError,
+  draftHoldingInvalidFields,
   emailFieldError,
   formatSiteSaveFailure,
   listSiteSettingsChanges,
   mergePreparedSiteSettingsDraft,
-  requestSiteSettingsSave,
   SAVED_LABEL,
   shopLinkFieldError,
   shouldApplyNicNacSiteRefresh,
@@ -103,7 +109,6 @@ import {
 } from '@/lib/amethyst/team-photo-framing'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
 import { useAvailableAmethystSkinCards } from './useAvailableAmethystSkinCards'
-import { ThemeStudio } from './ThemeStudio'
 import {
   BRITT_WITH_BLING_ABOUT_PORTRAIT_URL,
   BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
@@ -210,6 +215,15 @@ const WorkspaceResourceLibraryView = dynamic(() =>
 )
 
 const RECIPE_AUDIT_STORAGE_KEY = 'sparkle-suite:recipe-audit'
+
+function afterFirstPaint(work: () => void) {
+  if (typeof window.requestIdleCallback === 'function') {
+    const id = window.requestIdleCallback(work, { timeout: 1600 })
+    return () => window.cancelIdleCallback(id)
+  }
+  const id = window.setTimeout(work, 1)
+  return () => window.clearTimeout(id)
+}
 
 // Texting and email updates are not launched yet. Keep the wallet implementation
 // intact for that release, but do not expose prepaid SMS spend or recharge controls.
@@ -364,6 +378,74 @@ export function formatHeaderRepShow(
 
 export function formatHeaderRepName(displayName?: string | null) {
   return displayName?.trim() || 'Rep info loading'
+}
+
+/** Shipped illustration and sample portraits. Matched by path, never by how the picture looks. */
+const BUILT_IN_STOCK_AVATARS = new Set([
+  '/dev/sample-portrait.svg',
+  '/amethyst/skins/gobble-and-fizz/sample-portrait.webp',
+  '/amethyst/skins/pie-please/sample-portrait.webp',
+])
+
+export function isBuiltInStockAvatar(url: string | null | undefined) {
+  const raw = url?.trim()
+  if (!raw) return false
+  let pathname = raw
+  try {
+    pathname = new URL(raw, 'https://local.invalid').pathname
+  } catch {
+    pathname = raw.split(/[?#]/)[0]
+  }
+  try {
+    pathname = decodeURIComponent(pathname)
+  } catch {
+    // Keep the raw pathname when it is not valid encoding.
+  }
+  if (!pathname.startsWith('/')) pathname = `/${pathname}`
+  return BUILT_IN_STOCK_AVATARS.has(pathname)
+}
+
+function hostFirstName(displayName?: string | null) {
+  const name = displayName?.trim()
+  if (!name) return 'You'
+  return name.split(/\s+/)[0] || 'You'
+}
+
+function hexLuminance(hex: string) {
+  const raw = hex.trim().replace('#', '')
+  const full = raw.length === 3 ? raw.split('').map((part) => part + part).join('') : raw
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return 1
+  const channels = [0, 2, 4].map((index) => {
+    const value = parseInt(full.slice(index, index + 2), 16) / 255
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+}
+
+function mixTowardBlack(hex: string, amount: number) {
+  const raw = hex.trim().replace('#', '')
+  const full = raw.length === 3 ? raw.split('').map((part) => part + part).join('') : raw.padEnd(6, '0').slice(0, 6)
+  const mixed = [0, 2, 4].map((index) =>
+    Math.round(parseInt(full.slice(index, index + 2), 16) * (1 - amount))
+      .toString(16)
+      .padStart(2, '0'),
+  )
+  return `#${mixed.join('')}`
+}
+
+/** Theme swatches, darkened until white type on the cover fade stays readable. */
+export function magazineCoverColors(card: AmethystSkinCard) {
+  const swatch = (label: string, fallback: string) =>
+    card.swatches.find((item) => item.label === label)?.value ?? fallback
+  const accent = swatch('Accent', '#ff1ac2')
+  const candidates = [swatch('Primary', '#5c0eff'), accent, swatch('Ground', '#120616')]
+  let deep = candidates.reduce((darkest, color) =>
+    hexLuminance(color) < hexLuminance(darkest) ? color : darkest,
+  )
+  for (let guard = 0; hexLuminance(deep) > 0.12 && guard < 8; guard += 1) {
+    deep = mixTowardBlack(deep, 0.22)
+  }
+  return { accent, deep }
 }
 
 export function formatHeaderShowName(
@@ -2577,15 +2659,28 @@ export function hasSiteSettingsUnsavedChanges({
   isBrittWithBling?: boolean
 }) {
   if (!settings || !draft) return false
-  return (
-    JSON.stringify(getNormalizedSiteSettingsDraft(draft, { isBrittWithBling })) !==
-    JSON.stringify(
-      getNormalizedSiteSettingsDraft(
-        getSiteSettingsDraft(settings, { isBrittWithBling }),
-        { isBrittWithBling },
-      ),
-    )
+  return myWebsiteDraftFingerprint(draft, isBrittWithBling) !== myWebsiteDraftFingerprint(
+    getSiteSettingsDraft(settings, { isBrittWithBling }),
+    isBrittWithBling,
   )
+}
+
+/** Team I manage is edited in Team Management, so it does not count as a My Website change. */
+function myWebsiteDraftFingerprint(draft: SiteSettingsDraft, isBrittWithBling: boolean) {
+  const {
+    teamName,
+    recruitingLink,
+    heroMotionApplies,
+    heroMotionMode,
+    grandfatheredHeadlineFallback,
+    ...rest
+  } = getNormalizedSiteSettingsDraft(draft, { isBrittWithBling })
+  void teamName
+  void recruitingLink
+  void heroMotionApplies
+  void heroMotionMode
+  void grandfatheredHeadlineFallback
+  return JSON.stringify(rest)
 }
 
 export function getSiteSettingsManualSaveStatusText({
@@ -2698,6 +2793,19 @@ function getCalendarDisplayTimeZone(events: CalendarEvent[]) {
 function getMonthStartInTimeZone(referenceDate: Date, timeZone: string) {
   const { year, month } = getTimeZoneParts(referenceDate, timeZone)
   return new Date(Date.UTC(year, month - 1, 1))
+}
+
+function tileShowFromCalendar(event: CalendarEvent | undefined) {
+  if (!event?.eventTime) return null
+  const zone = event.timeZone || 'America/New_York'
+  const date = new Date(event.eventTime)
+  if (Number.isNaN(date.getTime())) return null
+  return {
+    month: new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: zone }).format(date).toUpperCase(),
+    day: new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone: zone }).format(date),
+    name: getCalendarEventTitle(event),
+    time: new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: zone }).format(date),
+  }
 }
 
 function getCalendarEventTitle(event: CalendarEvent) {
@@ -3103,9 +3211,12 @@ export type DashboardPlaceholderProps = {
   publicSiteSlugOverride?: string | null
   liveQueueSyncCodeOverride?: string | null
   initialSiteSettings?: SiteSettingsDashboardResult
+  /** The server already passed the paid workspace check, so My Website can paint before billing loads. */
+  serverPaidAccess?: boolean
   reviewWorkspaceMode?: boolean
   operatorSupportMode?: boolean
   initialSectionOverride?: WorkspaceSectionKey
+  initialSearch?: string
   onLaunchNicNacAction?: (action: WorkspaceLaunchAction) => void
   onSendNicNacPrompt?: (prompt: string) => void
   onNewConversation?: () => void
@@ -3161,9 +3272,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     publicSiteSlugOverride,
     liveQueueSyncCodeOverride,
     initialSiteSettings,
+    serverPaidAccess = false,
     reviewWorkspaceMode = false,
     operatorSupportMode = false,
     initialSectionOverride,
+    initialSearch = '',
     onLaunchNicNacAction,
     onSendNicNacPrompt,
     onNewConversation,
@@ -3180,9 +3293,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const [activeSection, setActiveSectionState] =
     useState<WorkspaceSectionKey>(() =>
       initialSectionOverride ??
-      (typeof window === 'undefined'
-        ? 'home'
-        : getInitialWorkspaceSection(window.location.search)),
+      getInitialWorkspaceSection(typeof window === 'undefined' ? initialSearch : window.location.search),
     )
   const setActiveSection = useFloorSectionGuard(activeSection, setActiveSectionState, () => {
     workspaceHistoryNavRef.current = 'idle'
@@ -3355,6 +3466,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           status: 'loading',
         },
   )
+  useEffect(() => {
+    if (!initialSiteSettings) return
+    setSiteSettingsState((current) =>
+      current.status === 'ready' ? current : { status: 'ready', settings: initialSiteSettings },
+    )
+  }, [initialSiteSettings])
   const [accountBillingState, setAccountBillingState] =
     useState<AccountBillingState>({
       status: reviewWorkspaceMode ? 'ready' : 'loading',
@@ -3446,9 +3563,18 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const siteSettingsDraftRef = useRef<SiteSettingsDraft | null>(
     siteSettingsDraft,
   )
+  const siteSettingsStateRef = useRef(siteSettingsState)
+  siteSettingsStateRef.current = siteSettingsState
+  const autosaveTimerRef = useRef<number | null>(null)
+  const autosaveAgainRef = useRef(false)
+  const undoSnapshotRef = useRef<SiteSettingsDraft | null>(null)
+  const undoTimerRef = useRef<number | null>(null)
+  const [undoReady, setUndoReady] = useState(false)
+  const runSiteAutosaveRef = useRef<() => void>(() => {})
   const siteSettingsSaveRequestRef = useRef(0)
   const siteSettingsVersionRef = useRef(0)
   const siteSettingsSavePendingRef = useRef(false)
+  const heroAnimationTouchedRef = useRef(false)
   const queuedNicNacSiteRefreshRef = useRef(false)
   const [tradeBoardState, setTradeBoardState] = useState<TradeBoardState>({
     status: reviewWorkspaceMode ? 'ready' : 'loading',
@@ -3671,6 +3797,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     setSiteSettingsState({
       status: 'ready',
       settings: payload,
+    })
+  }
+
+  function retrySiteSettings() {
+    setSiteSettingsState({ status: 'loading' })
+    void loadSiteSettings().catch((error) => {
+      if ((error as { name?: string }).name === 'AbortError') return
+      setSiteSettingsState({ status: 'error' })
     })
   }
 
@@ -4090,8 +4224,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     const controller = new AbortController()
     let cancelled = false
 
-    ;(async () => {
-      await Promise.all([
+    const start = () => {
+      void Promise.all([
         loadRepProfile(controller.signal).catch((error) => {
           if (cancelled) return
           if ((error as { name?: string }).name === 'AbortError') return
@@ -4108,13 +4242,15 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           setResourcesState({ status: 'error' })
         }),
       ])
-    })()
+    }
+    const cancelIdle = serverPaidAccess ? afterFirstPaint(start) : (start(), () => {})
 
     return () => {
       cancelled = true
+      cancelIdle()
       controller.abort()
     }
-  }, [operatorSupportMode, reviewWorkspaceMode])
+  }, [operatorSupportMode, reviewWorkspaceMode, serverPaidAccess])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -4518,24 +4654,46 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }
 
+  function rememberSiteDraft(next: SiteSettingsDraft | null) {
+    siteSettingsDraftRef.current = next
+    setSiteSettingsDraft(next)
+  }
+
+  function scheduleSiteAutosave(mode: 'now' | 'debounce') {
+    setUndoReady(false)
+    if (autosaveTimerRef.current != null) window.clearTimeout(autosaveTimerRef.current)
+    if (mode === 'now') {
+      autosaveTimerRef.current = null
+      runSiteAutosaveRef.current()
+      return
+    }
+    autosaveTimerRef.current = window.setTimeout(() => {
+      autosaveTimerRef.current = null
+      runSiteAutosaveRef.current()
+    }, AUTOSAVE_WAIT_MS)
+  }
+
   function handleSiteSettingsDraftChange(
     patch: Partial<SiteSettingsDraft>,
   ) {
+    if (Object.prototype.hasOwnProperty.call(patch, 'heroAnimationType')) {
+      heroAnimationTouchedRef.current = true
+    }
     setSiteSettingsActionState((current) => ({
       pending: current.pending,
       error: null,
       helperMessage: null,
     }))
-    setSiteSettingsDraft((current) => {
-      if (!current) return current
-      return {
-        ...current,
-        ...patch,
-        socialHandles: patch.socialHandles
-          ? { ...patch.socialHandles }
-          : current.socialHandles,
-      }
+    const current = siteSettingsDraftRef.current
+    if (!current) return
+    rememberSiteDraft({
+      ...current,
+      ...patch,
+      socialHandles: patch.socialHandles
+        ? { ...patch.socialHandles }
+        : current.socialHandles,
     })
+    scheduleSiteAutosave(autosaveTiming(patch))
   }
 
   function handleSocialHandleChange(platform: string, value: string) {
@@ -4544,16 +4702,16 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       error: null,
       helperMessage: null,
     }))
-    setSiteSettingsDraft((current) => {
-      if (!current) return current
-      return {
-        ...current,
-        socialHandles: {
-          ...current.socialHandles,
-          [platform]: value,
-        },
-      }
+    const current = siteSettingsDraftRef.current
+    if (!current) return
+    rememberSiteDraft({
+      ...current,
+      socialHandles: {
+        ...current.socialHandles,
+        [platform]: value,
+      },
     })
+    scheduleSiteAutosave('debounce')
   }
 
   function handleHomepageMediaChange(
@@ -4565,9 +4723,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       error: null,
       helperMessage: null,
     }))
-    setSiteSettingsDraft((current) =>
-      current ? updateHomepageMediaSlot(current, key, patch) : current,
-    )
+    const current = siteSettingsDraftRef.current
+    if (!current) return
+    rememberSiteDraft(updateHomepageMediaSlot(current, key, patch))
+    const textOnly = Object.keys(patch).every((field) => field === 'caption' || field === 'videoUrl')
+    scheduleSiteAutosave(textOnly ? 'debounce' : 'now')
   }
 
   async function handleHomepageMediaUpload(
@@ -4600,15 +4760,15 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       if (!response.ok || !payload?.imageUrl) {
         throw new Error(payload?.error || 'Unable to upload that image.')
       }
-      setSiteSettingsDraft((current) =>
-        current
-          ? updateHomepageMediaSlot(current, key, {
-              imageUrl: payload.imageUrl,
-              ...(isBrittWithBlingWorkspace ? { isVisible: true } : {}),
-              ...(smartPortraitFraming ?? {}),
-            })
-          : current,
-      )
+      const currentDraft = siteSettingsDraftRef.current
+      if (currentDraft) {
+        rememberSiteDraft(updateHomepageMediaSlot(currentDraft, key, {
+          imageUrl: payload.imageUrl,
+          ...(isBrittWithBlingWorkspace ? { isVisible: true } : {}),
+          ...(smartPortraitFraming ?? {}),
+        }))
+        scheduleSiteAutosave('now')
+      }
       setSiteSettingsActionState((current) => ({
         pending: current.pending,
         error: null,
@@ -4618,8 +4778,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         key,
         message:
           key === 'about_1'
-            ? 'Photo uploaded with Smart Frame. Review the preview, then save.'
-            : 'Photo uploaded. It is ready to save.',
+            ? 'Photo uploaded with Smart Frame. It saves on its own.'
+            : 'Photo uploaded. It saves on its own.',
         tone: 'success',
       })
     } catch (error) {
@@ -4776,7 +4936,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(normalizedDraft),
+        body: JSON.stringify(myWebsiteSavePayload(normalizedDraft, {
+          includeHeroAnimation: heroAnimationTouchedRef.current,
+        })),
       })
 
       const payload = (await response.json().catch(() => null)) as
@@ -4789,15 +4951,18 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
 
       acceptSiteSettingsSnapshot(payload.settings)
       const latestDraft = siteSettingsDraftRef.current
+      if (!latestDraft || latestDraft.heroAnimationType === payload.settings.heroAnimationType) {
+        heroAnimationTouchedRef.current = false
+      }
       if (
         !latestDraft ||
         JSON.stringify(latestDraft) === JSON.stringify(normalizedDraft)
       ) {
-        setSiteSettingsDraft(
-          getSiteSettingsDraft(payload.settings, {
-            isBrittWithBling: isBrittWithBlingWorkspace,
-          }),
-        )
+        const nextDraft = getSiteSettingsDraft(payload.settings, {
+          isBrittWithBling: isBrittWithBlingWorkspace,
+        })
+        siteSettingsDraftRef.current = nextDraft
+        setSiteSettingsDraft(nextDraft)
       }
       if (siteSettingsSaveRequestRef.current === requestId) {
         setSiteSettingsActionState({
@@ -4805,6 +4970,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           error: null,
           helperMessage: SAVED_LABEL,
         })
+        if (!autosaveAgainRef.current) {
+          setUndoReady(true)
+          if (undoTimerRef.current != null) window.clearTimeout(undoTimerRef.current)
+          undoTimerRef.current = window.setTimeout(() => setUndoReady(false), 8000)
+        }
       }
       refreshLiveSitePreviewAfterSiteSettingsSave()
     } catch (error) {
@@ -4821,6 +4991,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       if (siteSettingsSaveRequestRef.current === requestId) {
         siteSettingsSavePendingRef.current = false
         flushQueuedNicNacSiteRefresh()
+        if (autosaveAgainRef.current) {
+          autosaveAgainRef.current = false
+          runSiteAutosaveRef.current()
+        }
       }
     }
   }
@@ -4832,6 +5006,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
 
   function handleDiscardSiteSettings() {
     if (siteSettingsState.status !== 'ready' || !siteSettingsState.settings) return
+    heroAnimationTouchedRef.current = false
     setForceSiteFieldErrors(false)
     setSiteSettingsFieldEpoch((current) => current + 1)
     setSiteSettingsDraft(
@@ -4842,31 +5017,43 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     setSiteSettingsActionState({ pending: false, error: null, helperMessage: null })
   }
 
-  function handleSaveSiteSettings() {
-    if (siteSettingsActionState.pending) return
-    if (siteSettingsState.status !== 'ready' || !siteSettingsState.settings) return
-    if (!siteSettingsDraft) return
-    const saveAttempt = requestSiteSettingsSave(siteSettingsDraft, () => undefined)
-    if (!saveAttempt.ok) {
-      setForceSiteFieldErrors(true)
-      return
-    }
+  function runSiteAutosave() {
+    const draft = siteSettingsDraftRef.current
+    const state = siteSettingsStateRef.current
+    if (!draft || state.status !== 'ready' || !state.settings) return
+    const saved = getSiteSettingsDraft(state.settings, {
+      isBrittWithBling: isBrittWithBlingWorkspace,
+    })
+    const ready = draftHoldingInvalidFields(draft, saved)
     if (
       !hasSiteSettingsUnsavedChanges({
-        settings: siteSettingsState.settings,
-        draft: siteSettingsDraft,
+        settings: state.settings,
+        draft: ready,
         isBrittWithBling: isBrittWithBlingWorkspace,
       })
     ) {
-      setSiteSettingsActionState({
-        pending: false,
-        error: null,
-        helperMessage: 'No unsaved changes.',
-      })
       return
     }
+    if (siteSettingsSavePendingRef.current) {
+      autosaveAgainRef.current = true
+      return
+    }
+    undoSnapshotRef.current = saved
+    void saveSiteSettingsDraft(getNormalizedSiteSettingsDraft(ready))
+  }
+  runSiteAutosaveRef.current = runSiteAutosave
 
-    void saveSiteSettingsDraft(getNormalizedSiteSettingsDraft(siteSettingsDraft))
+  function undoLastSiteChange() {
+    const snapshot = undoSnapshotRef.current
+    if (!snapshot) return
+    setUndoReady(false)
+    rememberSiteDraft(snapshot)
+    if (autosaveTimerRef.current != null) window.clearTimeout(autosaveTimerRef.current)
+    runSiteAutosaveRef.current()
+  }
+
+  function handleSaveSiteSettings() {
+    runSiteAutosave()
   }
 
   function handleRecipeDraftChange(patch: Partial<RecipeDraft>) {
@@ -5474,9 +5661,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (reviewWorkspaceMode) return
 
     const controller = new AbortController()
-    void loadPaidWorkspaceData(controller.signal)
+    const cancelIdle = afterFirstPaint(() => {
+      void loadPaidWorkspaceData(controller.signal)
+    })
 
-    return () => controller.abort()
+    return () => {
+      cancelIdle()
+      controller.abort()
+    }
   }, [operatorSupportMode, reviewWorkspaceMode])
 
   useEffect(() => {
@@ -6956,7 +7148,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     publicSiteSlug: publicSiteSlugOverride ?? repProfileState.publicSiteSlug,
   })
   const isWorkspaceAccessLoading = accountBillingState.status !== 'ready'
-  const hasWorkspaceAccess = operatorSupportMode || hasPaidWorkspace
+  const hasWorkspaceAccess = operatorSupportMode || hasPaidWorkspace || serverPaidAccess
   const canRenderWorkspaceSections = hasWorkspaceAccess
   const visibleWorkspaceSections = getVisibleWorkspaceSections(
     hasWorkspaceAccess,
@@ -7004,7 +7196,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       : siteSettingsHasUnsavedChanges
         ? ['Site details']
         : []
-  const siteSettingsLeaveActive = siteSettingsChanges.length > 0
+  const siteSettingsLeaveActive =
+    siteSettingsActionState.pending || Boolean(siteSettingsActionState.error)
   const discardOpenerRef = useRef<SiteDiscardOpener | null>(null)
   const activeWorkspaceShellSection = WORKSPACE_SECTIONS.some(
     (section) => section.key === activeSection,
@@ -7471,6 +7664,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             onPreview={handleOpenCustomerSitePreview}
             onDiscard={() => discardOpenerRef.current?.open()}
             onSave={handleSaveSiteSettings}
+            onCommit={() => scheduleSiteAutosave('now')}
+            onUndo={undoLastSiteChange}
+            undoReady={undoReady}
+            onRetry={retrySiteSettings}
+            nextShow={tileShowFromCalendar(calendarState.summary?.upcomingEvents?.[0])}
           />
         </div>
       )
@@ -7584,6 +7782,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         count={siteSettingsChanges.length}
         onDiscard={handleDiscardSiteSettings}
         openerRef={discardOpenerRef}
+        message={
+          siteSettingsActionState.pending
+            ? 'A save is still finishing.'
+            : siteSettingsActionState.error
+              ? "The last save didn't go through."
+              : null
+        }
       />
       {tradeReview ? <TradeRequestReviewDialog
         key={tradeReview.request.id}
@@ -9851,9 +10056,16 @@ export function SiteSettingsCard({
   isBrittWithBling = false,
   canPreview,
   initialOpenSection = null,
+  initialOpenSections = null,
   onPreview,
   onDiscard,
   onSave,
+  onRetry,
+  onCommit,
+  onUndo,
+  undoReady = false,
+  previewThemeCards = null,
+  nextShow = null,
 }: {
   repId?: string | null
   state: SiteSettingsState
@@ -9885,13 +10097,23 @@ export function SiteSettingsCard({
   isBrittWithBling?: boolean
   canPreview?: boolean
   initialOpenSection?: SiteSectionId | null
+  initialOpenSections?: SiteSectionId[] | null
   onPreview?: () => void
   onDiscard?: () => void
   onSave?: () => void
+  onRetry?: () => void
+  onCommit?: () => void
+  onUndo?: () => void
+  undoReady?: boolean
+  previewThemeCards?: readonly AmethystSkinCard[] | null
+  nextShow?: { month: string; day: string; name: string; time: string } | null
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
-  const copyTimerRef = useRef<number | null>(null)
-  const [copied, setCopied] = useState(false)
+  const lookRef = useRef<HTMLDialogElement>(null)
+  const aboutRef = useRef<HTMLDialogElement>(null)
+  const showsRef = useRef<HTMLDialogElement>(null)
+  const linksRef = useRef<HTMLDialogElement>(null)
+  const themeRef = useRef<HTMLDialogElement>(null)
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
   const [localFieldErrors, setLocalFieldErrors] = useState(false)
   const [fieldAnnouncement, setFieldAnnouncement] = useState('')
@@ -9911,7 +10133,6 @@ export function SiteSettingsCard({
 
   useEffect(() => {
     return () => {
-      if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current)
       if (fieldAnnounceTimer.current !== null) window.clearTimeout(fieldAnnounceTimer.current)
     }
   }, [])
@@ -9923,6 +10144,7 @@ export function SiteSettingsCard({
   const reportFieldBlur = (id: string, label: string, message: string | null) => {
     touchField(id)
     if (fieldAnnounceTimer.current !== null) window.clearTimeout(fieldAnnounceTimer.current)
+    onCommit?.()
     if (!message) {
       setFieldAnnouncement('')
       return
@@ -9934,18 +10156,6 @@ export function SiteSettingsCard({
 
   const showFieldError = (id: string, message: string | null) =>
     message && (forceFieldErrors || localFieldErrors || touchedFields[id]) ? message : null
-
-  const copySiteLink = async () => {
-    if (!publicSiteUrl) return
-    try {
-      await navigator.clipboard.writeText(publicSiteUrl)
-      setCopied(true)
-      if (copyTimerRef.current !== null) window.clearTimeout(copyTimerRef.current)
-      copyTimerRef.current = window.setTimeout(() => setCopied(false), 2000)
-    } catch {
-      setCopied(false)
-    }
-  }
 
   const addTickerText = (value: string) => {
     if (!onDraftChange) return
@@ -10004,24 +10214,26 @@ export function SiteSettingsCard({
   }
 
   const hasTickerLinks = /\[[^\]]+\]\([^()\s]+\)/.test(draft?.tickerText ?? '')
-  const skinOptions = useAvailableAmethystSkinCards(repId)
+  const liveSkinOptions = useAvailableAmethystSkinCards(previewThemeCards ? null : repId)
+  const skinOptions = previewThemeCards
+    ? { status: 'ready' as const, cards: previewThemeCards, ownedPrivateSkinIds: [] as string[], retry: () => undefined }
+    : liveSkinOptions
 
   if (state.status === 'error') {
     return (
-      <div className={styles.rosterFallback}>
-        Site settings will appear here once your public profile data loads.
+      <div className={styles.settingsLoadError} role="alert">
+        <p>Site settings will appear here once your public profile data loads.</p>
+        <button type="button" className={styles.settingsLoadRetry} onClick={() => onRetry?.()}>
+          Retry
+        </button>
       </div>
     )
   }
 
   if (state.status !== 'ready' || !state.settings || !draft) {
-    return (
-      <div className={styles.cardFill}>
-        <div className={styles.loadingLine} />
-        <div className={styles.loadingLineShort} />
-      </div>
-    )
+    return <SiteSettingsLoadingShell />
   }
+  const settings = state.settings
 
   const discountCode = draft.signupDiscountCode ?? ''
   const discountMessage = draft.signupDiscountMessage ?? ''
@@ -10044,138 +10256,337 @@ export function SiteSettingsCard({
       ),
     ]),
   )
-  const changeLabels = changes.length > 0 ? changes : hasUnsavedChanges ? ['Site details'] : []
   const saveError = actionState?.error ?? null
-
+  const savePhase = actionState?.pending ? 'saving' : saveError ? 'error' : 'saved'
   const checklist = buildSiteSetupChecklist(draft)
+  const themeCard = getAmethystSkinCard(draft.appearancePreset)
+  const aboutSlot = draft.homepageMediaSlots?.find((slot) => slot.key === 'about_1')
+  const aboutSavedPhoto = aboutSlot?.imageUrl?.trim() || ''
+  const aboutPhoto = isBuiltInStockAvatar(aboutSavedPhoto) ? '' : aboutSavedPhoto
+  const aboutCaption = aboutSlot?.caption?.trim() || draft.tagline?.trim() || ''
+  const aboutName = hostFirstName(draft.displayName)
+  const aboutCover = magazineCoverColors(themeCard)
+  const aboutCoverStyle = {
+    '--mag-accent': aboutCover.accent,
+    '--mag-deep': aboutCover.deep,
+  } as CSSProperties
+  const siteGroups = [
+    {
+      id: 'look',
+      title: 'Look',
+      art: themeCard.thumb,
+      summary: `${themeCard.label}. ${draft.businessName.trim() || 'Add your name.'}`,
+      sections: ['top-bar', 'hero'] as SiteSectionId[],
+      dialog: lookRef,
+    },
+    {
+      id: 'about',
+      title: 'About you',
+      art: draft.homepageMediaSlots?.find((slot) => slot.key === 'about_1')?.imageUrl || null,
+      summary: draft.aboutNarrative?.trim() || 'Your story, photo, and the Bomb Party video.',
+      sections: ['about', 'bomb-party'] as SiteSectionId[],
+      dialog: aboutRef,
+    },
+    {
+      id: 'shows',
+      title: 'Shows & sign-ups',
+      art: null,
+      summary: draft.signupDiscountEnabled
+        ? `Discount ${draft.signupDiscountCode?.trim() || 'code'} for new sign-ups.`
+        : 'Upcoming shows and the sign-up offer.',
+      sections: ['upcoming-shows', 'signup'] as SiteSectionId[],
+      dialog: showsRef,
+    },
+    {
+      id: 'links',
+      title: 'Links & other pages',
+      art: null,
+      summary: draft.tagline.trim() || 'Footer, socials, Dance Floor, Join, and Live Lineup.',
+      sections: ['footer', 'other-pages'] as SiteSectionId[],
+      dialog: linksRef,
+    },
+  ]
+  const readyGroups = siteGroups.filter((group) =>
+    checklist.filter((item) => group.sections.includes(item.section) && !item.done).length === 0,
+  ).length
+  const settingsBody = (sections: SiteSectionId[]) => (
+    <SiteSettingsBody
+      draft={draft}
+      sections={sections}
+      savedSlots={settings.homepageMediaSlots}
+      joinTeamAccessEnabled={settings.joinTeamAccessEnabled === true}
+      isBrittWithBling={isBrittWithBling}
+      emailError={emailError}
+      shopLinkError={shopLinkError}
+      discountCodeError={discountCodeError}
+      discountMessageError={discountMessageError}
+      socialErrors={socialErrors}
+      mediaUploadKey={mediaUploadKey}
+      mediaUploadFeedback={mediaUploadFeedback}
+      actionPending={actionState?.pending === true}
+      tickerRef={tickerTextareaRef}
+      tickerLinkUrl={tickerLinkUrl}
+      tickerLinkError={tickerLinkError}
+      tickerLinkSelection={tickerLinkSelection}
+      hasTickerLinks={hasTickerLinks}
+      onDraftChange={onDraftChange}
+      onSocialHandleChange={onSocialHandleChange}
+      onHomepageMediaChange={onHomepageMediaChange}
+      onHomepageMediaUpload={onHomepageMediaUpload}
+      onHomepageVideoRemove={onHomepageVideoRemove}
+      onFieldBlur={reportFieldBlur}
+      onSocialBlur={(platform) => {
+        const label = SOCIAL_PLATFORMS.find((item) => item.key === platform)?.label ?? 'Social link'
+        reportFieldBlur(
+          SITE_FIELD_IDS.social(platform),
+          label,
+          socialLinkFieldError(platform, draft.socialHandles?.[platform]),
+        )
+      }}
+      onTickerChange={(value) => {
+        setTickerLinkSelection(null)
+        onDraftChange?.({ tickerText: value })
+      }}
+      onTickerSelect={(selection) => {
+        setTickerLinkSelection(selection)
+        setTickerLinkError(null)
+      }}
+      onTickerLinkUrl={setTickerLinkUrl}
+      onAddTickerText={addTickerText}
+      onLinkTickerWords={linkSelectedTickerWords}
+      onResetTickerLinks={resetTickerLinksToPlainText}
+    />
+  )
+  const saveLine = savePhase === 'saving'
+    ? 'Saving…'
+    : savePhase === 'error'
+      ? "Couldn't save — Retry"
+      : undoReady
+        ? 'Saved · Undo'
+        : 'All changes saved'
 
   return (
-    <div className={styles.siteSettingsLayout}>
-      <SiteMapRail />
-      <div className={styles.siteSettingsCard}>
-      <div className={styles.myWebsiteHeader} data-site-section="header">
-        <p className={styles.myWebsiteKicker}>Public site</p>
-        <h1 className={styles.myWebsiteTitle}>My Website</h1>
-        <p className={styles.myWebsiteAddress}>{publicSiteDisplay || 'Site address not set'}</p>
-        <div className={styles.siteSettingsSaveActions}>
-          {publicSiteUrl ? (
-            <a
-              className={styles.siteSettingsPreviewButton}
-              data-site-control="view-my-site"
-              href={publicSiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+    <div className={styles.siteHome} data-testid="my-website-home">
+      <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
+      <p className={styles.siteHomeKicker}>Your customer site</p>
+      <h1 className={styles.siteHomeTitle}>Tap a part of your site to change it</h1>
+      <p className={styles.siteHomeLede}>Everything saves on its own as you go.</p>
+      <div className={styles.siteHomeStatusRow}>
+        <p
+          className={savePhase === 'error' ? styles.siteSavePillError : savePhase === 'saving' ? styles.siteSavePillBusy : styles.siteSavePill}
+          role="status"
+          aria-live="polite"
+          data-testid="site-save-status"
+        >
+          {savePhase === 'error' ? (
+            <>
+              {saveError ?? "Couldn't save — Retry"}{' '}
+              <button type="button" className={styles.siteRetry} onClick={() => onSave?.()}>Retry</button>
+            </>
+          ) : saveLine}
+          {undoReady && savePhase === 'saved' ? (
+            <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button>
+          ) : null}
+        </p>
+        <span className={styles.siteReady}>
+          <span className={styles.siteProgressLabel}>{readyGroups} of 4 ready</span>
+          <span className={styles.siteSegments} aria-hidden="true">
+            {[0, 1, 2, 3].map((index) => (
+              <span key={index} data-on={index < readyGroups ? 'true' : 'false'} />
+            ))}
+          </span>
+        </span>
+      </div>
+      <div className={styles.siteHomeGrid}>
+        {siteGroups.map((group) => {
+          const needs = checklist.filter((item) => group.sections.includes(item.section) && !item.done).length
+          return (
+            <button
+              key={group.id}
+              type="button"
+              className={styles.siteTile}
+              onClick={() => group.dialog.current?.showModal()}
             >
-              View my site ↗
-            </a>
-          ) : (
-            <button type="button" className={styles.siteSettingsPreviewButton} data-site-control="view-my-site" disabled>
-              View my site ↗
+              <span className={styles.siteTileArt} data-tile-art={group.id} aria-hidden="true">
+                {group.id === 'look' ? (
+                  themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : <span className={styles.sitePaletteName}>{themeCard.label}</span>
+                ) : null}
+                {group.id === 'about' ? (
+                  <span
+                    className={styles.siteMag}
+                    data-about-cover={aboutPhoto ? 'photo' : 'fallback'}
+                    style={aboutCoverStyle}
+                  >
+                    {aboutPhoto ? (
+                      <img
+                        key={aboutPhoto}
+                        className={styles.siteMagPhoto}
+                        src={aboutPhoto}
+                        alt=""
+                        style={{
+                          objectPosition: `${aboutSlot?.portraitFocusX ?? 50}% ${aboutSlot?.portraitFocusY ?? 25}%`,
+                        }}
+                      />
+                    ) : (
+                      <span className={styles.siteMagWatermark}>{aboutName.slice(0, 1)}</span>
+                    )}
+                    <span className={styles.siteMagOverlay}>
+                      <span className={styles.siteMagMast}>Meet your host</span>
+                      <span className={styles.siteMagName}>{aboutName}</span>
+                      {aboutCaption ? <span className={styles.siteMagTag}>{aboutCaption}</span> : null}
+                      {aboutPhoto ? null : <span className={styles.siteMagHint}>Add your photo</span>}
+                    </span>
+                  </span>
+                ) : null}
+                {group.id === 'shows' ? (
+                  <span className={styles.siteShowScene}>
+                    <span className={styles.siteCalendar}>
+                      <span className={styles.siteCalMonth}>{nextShow?.month || 'NEXT'}</span>
+                      <span className={styles.siteCalDay}>{nextShow?.day || '—'}</span>
+                      <span className={styles.siteCalName}>{nextShow?.name || 'Your next show'}</span>
+                      <span className={styles.siteCalTime}>{nextShow?.time || 'Add it in Calendar'}</span>
+                    </span>
+                    <span className={styles.siteCodeCard}>
+                      <span className={styles.siteCodeLabel}>Sign-up code</span>
+                      <span className={styles.siteCodeValue}>{draft.signupDiscountCode?.trim() || 'Code'}</span>
+                    </span>
+                  </span>
+                ) : null}
+                {group.id === 'links' ? (
+                  <span className={styles.siteLinkScene}>
+                    <span className={styles.siteSocialRow}>
+                      {([
+                        ['instagram', 'Instagram'],
+                        ['facebook', 'Facebook'],
+                        ['tiktok', 'TikTok'],
+                        ['youtube', 'YouTube'],
+                        ['website', 'Website'],
+                      ] as const).map(([platform, label]) => (
+                        <span key={platform} className={styles.siteBrand} data-brand={platform} title={label}>
+                          <SocialMark platform={platform} className={styles.siteBrandIcon} />
+                        </span>
+                      ))}
+                    </span>
+                    <span className={styles.sitePagePills}>
+                      <span>Dance Floor</span>
+                      <span>Join</span>
+                      <span>Live Lineup</span>
+                    </span>
+                  </span>
+                ) : null}
+              </span>
+              <span className={styles.siteTileCopy}>
+                <span className={needs > 0 ? styles.siteChipNeeds : styles.siteChipDone}>
+                  {needs > 0 ? `Needs ${needs} ${needs === 1 ? 'thing' : 'things'}` : 'Done'}
+                </span>
+                <span className={styles.siteTileTitle}>{group.title}</span>
+                <span className={styles.siteTileSummary}>{group.summary}</span>
+              </span>
             </button>
-          )}
-          <button
-            type="button"
-            className={styles.siteSettingsPreviewButton}
-            data-site-control="copy-link"
-            onClick={() => void copySiteLink()}
-            disabled={!publicSiteUrl}
-          >
-            {copied ? 'Copied' : 'Copy link'}
-          </button>
-          <button
-            type="button"
-            className={styles.siteSettingsPreviewButton}
-            data-site-control="preview-saved-site"
-            onClick={onPreview}
-            disabled={!canPreview}
-          >
-            Preview saved site
-          </button>
-        </div>
-      </div>
-      <div className={styles.visuallyHidden} aria-live="polite">
-        {fieldAnnouncement}
-      </div>
-      <SetupChecklist items={checklist} />
-      <ThemeStudio
-        status={skinOptions.status}
-        cards={skinOptions.cards}
-        savedThemeId={state.settings.appearancePreset}
-        draftThemeId={draft.appearancePreset}
-        onDraftThemeChange={(appearancePreset) =>
-          onDraftChange?.({ appearancePreset: appearancePreset as SiteAppearancePreset })
-        }
-        onRetry={skinOptions.retry}
-      />
-      <SiteSettingsBody
-        draft={draft}
-        savedSlots={state.settings.homepageMediaSlots}
-        joinTeamAccessEnabled={state.settings.joinTeamAccessEnabled === true}
-        isBrittWithBling={isBrittWithBling}
-        initialOpenSection={initialOpenSection}
-        emailError={emailError}
-        shopLinkError={shopLinkError}
-        discountCodeError={discountCodeError}
-        discountMessageError={discountMessageError}
-        socialErrors={socialErrors}
-        mediaUploadKey={mediaUploadKey}
-        mediaUploadFeedback={mediaUploadFeedback}
-        actionPending={actionState?.pending === true}
-        tickerRef={tickerTextareaRef}
-        tickerLinkUrl={tickerLinkUrl}
-        tickerLinkError={tickerLinkError}
-        tickerLinkSelection={tickerLinkSelection}
-        hasTickerLinks={hasTickerLinks}
-        onDraftChange={onDraftChange}
-        onSocialHandleChange={onSocialHandleChange}
-        onHomepageMediaChange={onHomepageMediaChange}
-        onHomepageMediaUpload={onHomepageMediaUpload}
-        onHomepageVideoRemove={onHomepageVideoRemove}
-        onFieldBlur={reportFieldBlur}
-        onSocialBlur={(platform) => {
-          const label = SOCIAL_PLATFORMS.find((item) => item.key === platform)?.label ?? 'Social link'
-          reportFieldBlur(
-            SITE_FIELD_IDS.social(platform),
-            label,
-            socialLinkFieldError(platform, draft.socialHandles?.[platform]),
           )
-        }}
-        onTickerChange={(value) => {
-          setTickerLinkSelection(null)
-          onDraftChange?.({ tickerText: value })
-        }}
-        onTickerSelect={(selection) => {
-          setTickerLinkSelection(selection)
-          setTickerLinkError(null)
-        }}
-        onTickerLinkUrl={setTickerLinkUrl}
-        onAddTickerText={addTickerText}
-        onLinkTickerWords={linkSelectedTickerWords}
-        onResetTickerLinks={resetTickerLinksToPlainText}
-      />
-      <SiteSaveBar
-        changes={changeLabels}
-        pending={actionState?.pending === true}
-        saved={actionState?.helperMessage === SAVED_LABEL}
-        serverError={saveError}
-        onDiscard={() => onDiscard?.()}
-        onSave={() => {
-          if (!draft) return
-          const result = requestSiteSettingsSave(draft, () => onSave?.())
-          if (!result.ok) {
-            setLocalFieldErrors(true)
-            const field = document.getElementById(result.errors[0]?.id ?? '')
-            const details = field?.closest('details')
-            if (details) {
-              flushSync(() => {
-                window.dispatchEvent(new CustomEvent('site-section-open', { detail: details.id }))
-              })
-            }
-            field?.focus()
-          }
-        }}
-      />
+        })}
       </div>
+      <dialog ref={lookRef} className={styles.siteDialog} data-site-dialog="" aria-labelledby="site-look-title">
+        <div className={styles.siteDialogBand}>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Look</p>
+            <h1 id="site-look-title" className={styles.siteDialogTitle}>Look</h1>
+            <p className={styles.siteDialogSubtitle}>Theme, top bar, and hero</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => lookRef.current?.close()}><span aria-hidden="true">×</span></button>
+        </div>
+        <div className={styles.siteDialogBody}>
+          <div className={styles.themeRow}>
+            <span className={styles.siteThemeThumb}>{themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : null}</span>
+            <span>
+              <span className={styles.themeRowKicker}>On your site now</span>
+              <span className={styles.themeRowName}>{themeCard.label}</span>
+            </span>
+            <button type="button" className={styles.siteChangeTheme} onClick={() => themeRef.current?.showModal()}>Change theme</button>
+          </div>
+          {settingsBody(['top-bar', 'hero'])}
+        </div>
+        <footer className={styles.siteDialogFoot}>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
+        </footer>
+      </dialog>
+      <dialog ref={aboutRef} className={styles.siteDialog} aria-labelledby="site-about-title">
+        <div className={styles.siteDialogBand}>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>About you</p>
+            <h1 id="site-about-title" className={styles.siteDialogTitle}>About you</h1>
+            <p className={styles.siteDialogSubtitle}>Your story, photo, and the Bomb Party video</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => aboutRef.current?.close()}><span aria-hidden="true">×</span></button>
+        </div>
+        <div className={styles.siteDialogBody}>
+          {settingsBody(['about'])}
+          {settingsBody(['bomb-party'])}
+        </div>
+        <footer className={styles.siteDialogFoot}>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
+        </footer>
+      </dialog>
+      <dialog ref={showsRef} className={styles.siteDialog} aria-labelledby="site-shows-title">
+        <div className={styles.siteDialogBand}>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Shows</p>
+            <h1 id="site-shows-title" className={styles.siteDialogTitle}>Shows & sign-ups</h1>
+            <p className={styles.siteDialogSubtitle}>Upcoming shows, sign-up, and discount code</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => showsRef.current?.close()}><span aria-hidden="true">×</span></button>
+        </div>
+        <div className={styles.siteDialogBody}>{settingsBody(['upcoming-shows', 'signup'])}</div>
+        <footer className={styles.siteDialogFoot}>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
+        </footer>
+      </dialog>
+      <dialog ref={linksRef} className={styles.siteDialog} aria-labelledby="site-links-title">
+        <div className={styles.siteDialogBand}>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Links</p>
+            <h1 id="site-links-title" className={styles.siteDialogTitle}>Links & other pages</h1>
+            <p className={styles.siteDialogSubtitle}>Footer, socials, and your other pages</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => linksRef.current?.close()}><span aria-hidden="true">×</span></button>
+        </div>
+        <div className={styles.siteDialogBody}>{settingsBody(['footer', 'other-pages'])}</div>
+        <footer className={styles.siteDialogFoot}>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
+        </footer>
+      </dialog>
+      <dialog ref={themeRef} className={`${styles.siteDialog} ${styles.siteDialogWide}`} data-site-dialog="" aria-labelledby="site-theme-title">
+        <div className={styles.siteDialogBand}>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Themes</p>
+            <h1 id="site-theme-title" className={styles.siteDialogTitle}>Choose your theme</h1>
+            <p className={styles.siteDialogSubtitle}>Tap a theme and it&apos;s on your site right away. Changed your mind? Tap Undo.</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => themeRef.current?.close()}><span aria-hidden="true">×</span></button>
+        </div>
+        <div className={styles.siteDialogBody}>
+          <ThemeStudio
+            status={skinOptions.status}
+            cards={skinOptions.cards}
+            savedThemeId={settings.appearancePreset}
+            draftThemeId={draft.appearancePreset}
+            onDraftThemeChange={(appearancePreset) =>
+              onDraftChange?.({ appearancePreset: appearancePreset as SiteAppearancePreset })
+            }
+            ownedPrivateSkinIds={skinOptions.ownedPrivateSkinIds}
+            onRetry={skinOptions.retry}
+          />
+        </div>
+        <footer className={styles.siteDialogFoot}>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
+        </footer>
+      </dialog>
+      <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
     </div>
   )
 }

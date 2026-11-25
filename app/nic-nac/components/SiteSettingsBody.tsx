@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type MouseEvent, ReactNode, RefObject } from 'react'
+import { useEffect, useRef, useState, type MouseEvent, ReactNode, RefObject } from 'react'
 import { flushSync } from 'react-dom'
 import {
   ABOUT_NARRATIVE_MAX_LENGTH,
@@ -8,7 +8,9 @@ import {
 } from '@/lib/public-site/about-section'
 import { resolveSocialHeroLinks } from '@/lib/public-site/social-hero'
 import type { SocialPlatformKey } from '@/lib/public-site/social-visibility'
-import type { PublicSiteMediaSlot, PublicSiteMediaSlotKey, SiteSettingsDashboardResult } from '@/lib/services/types'
+import type { HeroAnimationType, PublicSiteMediaSlot, PublicSiteMediaSlotKey, SiteSettingsDashboardResult } from '@/lib/services/types'
+import { applyHeroMotionSwitch } from '@/lib/amethyst/hero-motion-client'
+import visibility from './PublicSiteVisibility.module.css'
 import type { SiteSettingsDraft } from '@/app/nic-nac/components/DashboardPlaceholder'
 import { HomepageMediaSlot } from './HomepageMediaSlot'
 import { PublicSiteVisibility } from './PublicSiteVisibility'
@@ -41,7 +43,7 @@ const EMPTY_SLOTS: PublicSiteMediaSlot[] = [
 function ShowsOn({ id, children }: { id: string; children: string }) {
   return (
     <span id={id} className={styles.showsOn} data-shows-on="">
-      Shows on: {children}
+      Shows on your site: {children}
     </span>
   )
 }
@@ -58,6 +60,8 @@ export function SiteSection({
   summary,
   status,
   defaultOpen,
+  plain = false,
+  hidden = false,
   children,
 }: {
   id: SiteSectionId
@@ -66,6 +70,8 @@ export function SiteSection({
   summary: string
   status: string
   defaultOpen: boolean
+  plain?: boolean
+  hidden?: boolean
   children: ReactNode
 }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -76,6 +82,16 @@ export function SiteSection({
     window.addEventListener('site-section-open', onOpen)
     return () => window.removeEventListener('site-section-open', onOpen)
   }, [id])
+  if (hidden) return null
+  if (plain) {
+    return (
+      <section id={`site-section-${id}`} data-site-section={id} className={styles.siteDialogSection}>
+        <h2 className={styles.siteDialogSectionTitle}>{title}</h2>
+        <p className={styles.siteDialogSectionSummary}>{summary}</p>
+        {children}
+      </section>
+    )
+  }
   return (
     <details
       id={`site-section-${id}`}
@@ -104,6 +120,46 @@ export function SiteSection({
       </summary>
       <div className={styles.siteSectionBody}>{children}</div>
     </details>
+  )
+}
+
+const SECTION_SHELLS = [
+  ['1', 'top-bar', 'Top bar', 'Your name, store link, and announcements'],
+  ['2', 'hero', 'Hero', 'The headline customers see first'],
+  ['3', 'upcoming-shows', 'Upcoming shows', 'Shows on your homepage'],
+  ['4', 'bomb-party', 'What is a Bomb Party', 'The live reveal explanation'],
+  ['5', 'about', 'About you', 'Your photo and story'],
+  ['6', 'signup', 'Sign-up & discount', 'How customers join'],
+  ['7', 'footer', 'Footer & socials', 'Tagline, email, social links, and team'],
+  ['8', 'other-pages', 'Other pages', 'Dance Floor, Join, and Live Lineup'],
+] as const
+
+/** Fixed first paint for My Website. Real settings replace the words without changing the boxes. */
+export function SiteSettingsLoadingShell() {
+  return (
+    <div className={styles.siteSettingsCard} data-site-settings-shell="">
+      <div className={styles.myWebsiteHeader} data-site-section="header">
+        <p className={styles.myWebsiteKicker}>Public site</p>
+        <h1 className={styles.myWebsiteTitle}>My Website</h1>
+        <p className={styles.myWebsiteAddress}>Loading your site address</p>
+      </div>
+      <div className={styles.setupChecklist} data-testid="site-setup-checklist">
+        <p className={styles.setupChecklistCount}>Checking what's left to finish</p>
+      </div>
+      <div className={styles.siteSectionList}>
+        {SECTION_SHELLS.map(([number, id, title, summary]) => (
+          <details key={id} className={styles.siteSectionDisclosure} data-site-section={id}>
+            <summary className={styles.siteSectionSummary}>
+              <span className={styles.siteSectionIndex} aria-hidden="true">{number}</span>
+              <span className={styles.siteSectionHeading}>
+                <span className={styles.siteSectionTitle}>{title}</span>
+                <span className={styles.siteSectionBlurb}>{summary}</span>
+              </span>
+            </summary>
+          </details>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -194,6 +250,7 @@ export function SiteSettingsBody({
   joinTeamAccessEnabled,
   isBrittWithBling,
   initialOpenSection,
+  initialOpenSections = null,
   emailError,
   shopLinkError,
   discountCodeError,
@@ -220,12 +277,14 @@ export function SiteSettingsBody({
   onAddTickerText,
   onLinkTickerWords,
   onResetTickerLinks,
+  sections,
 }: {
   draft: SiteSettingsDraft
   savedSlots?: PublicSiteMediaSlot[]
   joinTeamAccessEnabled: boolean
   isBrittWithBling: boolean
   initialOpenSection?: SiteSectionId | null
+  initialOpenSections?: SiteSectionId[] | null
   emailError: string | null
   shopLinkError: string | null
   discountCodeError: string | null
@@ -252,11 +311,18 @@ export function SiteSettingsBody({
   onAddTickerText: (value: string) => void
   onLinkTickerWords: () => void
   onResetTickerLinks: () => void
+  sections?: readonly SiteSectionId[]
 }) {
   const checklist = buildSiteSetupChecklist(draft)
   const firstGap = checklist.find((item) => !item.done)?.section ?? null
-  const openSection = initialOpenSection ?? firstGap
+  const openSection = initialOpenSections?.length ? null : initialOpenSection ?? firstGap
   const status = (section: SiteSectionId) => siteSectionStatus({ section, checklist, draft })
+  const sectionOpen = (id: SiteSectionId) =>
+    initialOpenSections?.includes(id) === true || openSection === id
+  const motionMode = draft.heroMotionMode ?? 'choices'
+  const rememberedHeroMotion = useRef<HeroAnimationType | null>(
+    draft.heroAnimationType !== 'still' ? draft.heroAnimationType : null,
+  )
   const slots = draft.homepageMediaSlots ?? EMPTY_SLOTS
   const heroSocials = resolveSocialHeroLinks({
     socialHandles: draft.socialHandles,
@@ -266,6 +332,8 @@ export function SiteSettingsBody({
   const discountMessage = draft.signupDiscountMessage ?? ''
   const aboutPortrait = slots.find((slot) => slot.key === 'about_1')
 
+  const showSection = (id: SiteSectionId) => !sections || sections.includes(id)
+  const plain = Boolean(sections)
   const slotProps = (slot: PublicSiteMediaSlot) => (
     <HomepageMediaSlot
       key={slot.key}
@@ -285,17 +353,17 @@ export function SiteSettingsBody({
 
   return (
     <div className={styles.siteSectionList}>
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('top-bar')}
         id="top-bar"
         number="1"
         title="Top bar"
         summary="Your name, store link, and announcements"
         status={status('top-bar')}
-        defaultOpen={openSection === 'top-bar'}
+        defaultOpen={plain || sectionOpen('top-bar')}
       >
         <div className={styles.siteSettingsGrid}>
           <label className={styles.searchField} data-site-field="business-name">
-            <span className={styles.searchLabel}>Show name</span>
+            <span className={styles.searchLabel}>Business name</span>
             <input
               id={SETUP_FIELD_IDS.businessName}
               className={styles.searchInput}
@@ -308,7 +376,7 @@ export function SiteSettingsBody({
             <ShowsOn id="business-name-shows">{SHOWS_ON.businessName}</ShowsOn>
           </label>
           <label className={styles.searchField} data-site-field="display-name">
-            <span className={styles.searchLabel}>Display name</span>
+            <span className={styles.searchLabel}>Your first name</span>
             <input
               id={SETUP_FIELD_IDS.displayName}
               className={styles.searchInput}
@@ -453,17 +521,17 @@ export function SiteSettingsBody({
         />
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('hero')}
         id="hero"
         number="2"
         title="Hero"
         summary="The headline customers see first"
         status={status('hero')}
-        defaultOpen={openSection === 'hero'}
+        defaultOpen={plain || sectionOpen('hero')}
       >
         <div className={styles.siteSettingsGrid}>
           <label className={styles.sortFieldWide} data-site-field="hero-headline">
-            <span className={styles.searchLabel}>Hero title</span>
+            <span className={styles.searchLabel}>Big headline</span>
             <input
               id={SETUP_FIELD_IDS.headline}
               className={styles.searchInput}
@@ -477,7 +545,7 @@ export function SiteSettingsBody({
             <ShowsOn id="hero-headline-shows">{SHOWS_ON.heroTitle}</ShowsOn>
           </label>
           <label className={styles.sortFieldWide} data-site-field="hero-subtitle">
-            <span className={styles.searchLabel}>Hero subtitle</span>
+            <span className={styles.searchLabel}>Line under the headline</span>
             <input
               id="my-website-hero-subtitle"
               className={styles.searchInput}
@@ -487,7 +555,7 @@ export function SiteSettingsBody({
               aria-describedby="hero-subtitle-shows"
               onChange={(event) => onDraftChange?.({ heroSubtitle: event.target.value })}
             />
-            <span className={styles.siteSettingsPreviewNote}>This supporting sentence appears directly beneath the hero title.</span>
+            <span className={styles.siteSettingsPreviewNote}>This supporting sentence appears directly beneath the big headline.</span>
             <ShowsOn id="hero-subtitle-shows">{SHOWS_ON.heroSubtitle}</ShowsOn>
           </label>
           <div className={styles.sortFieldWide} data-site-field="hero-socials">
@@ -499,39 +567,86 @@ export function SiteSettingsBody({
             </p>
             <ShowsOn id="hero-socials-shows">{SHOWS_ON.heroSocials}</ShowsOn>
           </div>
-          <label className={styles.sortField} data-site-field="hero-motion">
-            <span className={styles.sortLabel}>Hero motion</span>
-            <select
-              className={styles.sortSelect}
-              data-site-control="hero-motion"
-              data-chunk="4"
-              value={draft.heroAnimationType}
-              aria-describedby="hero-motion-shows"
-              onChange={(event) =>
-                onDraftChange?.({
-                  heroAnimationType: event.target.value as SiteSettingsDashboardResult['heroAnimationType'],
-                })
-              }
-            >
-              <option value="sparkle_rise">Sparkle rise</option>
-              <option value="soft_glow">Soft glow</option>
-              <option value="still">Still</option>
-            </select>
-            <span className={styles.siteSettingsPreviewNote}>
-              Hero visuals stay curated by your site appearance so the page keeps its polish on desktop and mobile.
-            </span>
-            <ShowsOn id="hero-motion-shows">{SHOWS_ON.heroMotion}</ShowsOn>
-          </label>
+          <div className={styles.sortFieldWide} data-site-field="hero-motion" data-hero-motion-mode={motionMode}>
+            {motionMode === 'theme' ? (
+              <>
+                <p className={styles.siteSettingsPreviewNote} data-site-control="hero-motion" data-chunk="4">
+                  Your theme sets the hero animation.
+                </p>
+                <ShowsOn id="hero-motion-shows">{SHOWS_ON.heroMotion}</ShowsOn>
+              </>
+            ) : motionMode === 'switch' ? (
+              <label className={visibility.row}>
+                <span className={styles.heroSwitchCopy}>
+                  <span className={styles.searchLabel}>Hero animation</span>
+                  <span className={styles.siteSettingsPreviewNote}>
+                    Off keeps the hero still. On uses the motion you had before, or Sparkle rise.
+                  </span>
+                  <ShowsOn id="hero-motion-shows">{SHOWS_ON.heroMotion}</ShowsOn>
+                </span>
+                <span className={visibility.control}>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    data-site-control="hero-motion"
+                    data-chunk="4"
+                    checked={draft.heroAnimationType !== 'still'}
+                    aria-describedby="hero-motion-shows"
+                    ref={(node) => {
+                      if (node && !node.hasAttribute('switch')) node.setAttribute('switch', '')
+                    }}
+                    onChange={(event) => {
+                      const next = applyHeroMotionSwitch({
+                        on: event.target.checked,
+                        current: draft.heroAnimationType,
+                        remembered: rememberedHeroMotion.current,
+                      })
+                      rememberedHeroMotion.current = next.remembered
+                      onDraftChange?.({ heroAnimationType: next.heroAnimationType })
+                    }}
+                  />
+                  <span className={visibility.track} aria-hidden="true" />
+                  <span className={visibility.status} aria-hidden="true">
+                    {draft.heroAnimationType === 'still' ? 'Off' : 'On'}
+                  </span>
+                </span>
+              </label>
+            ) : (
+              <label>
+                <span className={styles.sortLabel}>Hero motion</span>
+                <select
+                  className={styles.sortSelect}
+                  data-site-control="hero-motion"
+                  data-chunk="4"
+                  value={draft.heroAnimationType}
+                  aria-describedby="hero-motion-shows"
+                  onChange={(event) => {
+                    const heroAnimationType = event.target.value as SiteSettingsDashboardResult['heroAnimationType']
+                    if (heroAnimationType !== 'still') rememberedHeroMotion.current = heroAnimationType
+                    onDraftChange?.({ heroAnimationType })
+                  }}
+                >
+                  <option value="sparkle_rise">Sparkle rise</option>
+                  <option value="soft_glow">Soft glow</option>
+                  <option value="still">Still</option>
+                </select>
+                <span className={styles.siteSettingsPreviewNote}>
+                  Hero visuals stay curated by your site appearance so the page keeps its polish on desktop and mobile.
+                </span>
+                <ShowsOn id="hero-motion-shows">{SHOWS_ON.heroMotion}</ShowsOn>
+              </label>
+            )}
+          </div>
         </div>
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('upcoming-shows')}
         id="upcoming-shows"
         number="3"
         title="Upcoming shows"
         summary="Comes from your Calendar"
         status={status('upcoming-shows')}
-        defaultOpen={openSection === 'upcoming-shows'}
+        defaultOpen={plain || sectionOpen('upcoming-shows')}
       >
         <div data-site-field="upcoming-shows">
           <p className={styles.siteSettingsPreviewNote}>
@@ -549,24 +664,24 @@ export function SiteSettingsBody({
         </div>
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('bomb-party')}
         id="bomb-party"
         number="4"
         title="What is a Bomb Party"
         summary="The live reveal video"
         status={status('bomb-party')}
-        defaultOpen={openSection === 'bomb-party'}
+        defaultOpen={plain || sectionOpen('bomb-party')}
       >
         {slots.filter((slot) => slot.key === 'showcase').map(slotProps)}
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('about')}
         id="about"
         number="5"
         title="About you"
         summary="About section: your story, photo, and short videos"
         status={status('about')}
-        defaultOpen={openSection === 'about'}
+        defaultOpen={plain || sectionOpen('about')}
       >
         <p className={styles.siteSettingsPreviewNote}>
           Add a short title and paste your customer-facing story. Keep it concise so it stays balanced beside your photo.
@@ -658,13 +773,13 @@ export function SiteSettingsBody({
         </div>
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('signup')}
         id="signup"
         number="6"
         title="Sign-up & discount"
         summary="A code after customers sign up"
         status={status('signup')}
-        defaultOpen={openSection === 'signup'}
+        defaultOpen={plain || sectionOpen('signup')}
       >
         <label className={styles.walletToggleRow} data-site-field="signup-switch">
           <span>
@@ -750,25 +865,33 @@ export function SiteSettingsBody({
         <p className={styles.helperNote}>Suite only shows this code. Set up the code itself in Bomb Party first.</p>
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('footer')}
         id="footer"
         number="7"
         title="Footer & socials"
         summary="Tagline, email, social links, and team"
         status={status('footer')}
-        defaultOpen={openSection === 'footer'}
+        defaultOpen={plain || sectionOpen('footer')}
       >
         <div className={styles.siteSettingsGrid}>
           <label className={styles.searchField} data-site-field="tagline">
-            <span className={styles.searchLabel}>Site tagline</span>
+            <span className={styles.searchLabel}>Footer tagline</span>
             <input
               id="my-website-tagline"
               className={styles.searchInput}
               data-site-control="tagline"
               value={draft.tagline}
-              aria-describedby="tagline-shows"
+              aria-describedby={describedBy(
+                draft.grandfatheredHeadlineFallback ? 'tagline-grandfathered' : null,
+                'tagline-shows',
+              )}
               onChange={(event) => onDraftChange?.({ tagline: event.target.value })}
             />
+            {draft.grandfatheredHeadlineFallback ? (
+              <span id="tagline-grandfathered" className={styles.siteSettingsPreviewNote}>
+                Also shows under your headline if that line is empty.
+              </span>
+            ) : null}
             <ShowsOn id="tagline-shows">{SHOWS_ON.tagline}</ShowsOn>
           </label>
           <label className={styles.searchField} data-site-field="email">
@@ -797,7 +920,7 @@ export function SiteSettingsBody({
             <ShowsOn id="email-shows">{SHOWS_ON.email}</ShowsOn>
           </label>
           <label className={styles.searchField} data-site-field="member-team">
-            <span className={styles.searchLabel}>Team I belong to</span>
+            <span className={styles.searchLabel}>Team I belong to (shown in small print)</span>
             <input
               id="my-website-member-team"
               className={styles.searchInput}
@@ -808,19 +931,20 @@ export function SiteSettingsBody({
             />
             <ShowsOn id="member-team-shows">{SHOWS_ON.memberTeam}</ShowsOn>
           </label>
-          <label className={styles.searchField} data-site-field="team-i-manage">
-            <span className={styles.searchLabel}>Team I manage</span>
-            <input
-              id="my-website-team-name"
-              className={styles.searchInput}
-              data-site-control="team-i-manage"
-              data-chunk="4"
-              value={draft.teamName}
-              aria-describedby="team-manage-shows"
-              onChange={(event) => onDraftChange?.({ teamName: event.target.value })}
-            />
+          <div className={styles.sortFieldWide} data-site-field="team-i-manage">
+            <p className={styles.managedTeamLine} data-site-control="team-i-manage" data-chunk="4">
+              Team I manage: {draft.teamName.trim() || 'Not set yet'}
+              {' · '}
+              <a
+                className={styles.managedTeamLink}
+                href="/nic-nac?section=team-management"
+                onClick={followWorkspaceLink}
+              >
+                Edit in Team settings
+              </a>
+            </p>
             <ShowsOn id="team-manage-shows">{SHOWS_ON.managedTeam}</ShowsOn>
-          </label>
+          </div>
         </div>
         <SocialHandlesSettings
           socialHandles={draft.socialHandles}
@@ -832,12 +956,12 @@ export function SiteSettingsBody({
         />
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('other-pages')}
         id="other-pages"
         title="Other pages"
         summary="Dance Floor, Join Team, and Live Lineup"
         status={status('other-pages')}
-        defaultOpen={openSection === 'other-pages'}
+        defaultOpen={plain || sectionOpen('other-pages')}
       >
         <PublicSiteVisibility
           settings={draft}

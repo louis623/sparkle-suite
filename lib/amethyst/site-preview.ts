@@ -1,5 +1,7 @@
 import 'server-only'
 
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { AMETHYST_APPEARANCE_PRESET_IDS, type AmethystAppearancePresetId } from '@/lib/amethyst/appearance-presets'
 import { isAmethystSkinSelectionAvailableToRep } from '@/lib/amethyst/skin-access'
 import { getAmethystSkinPresetLabel } from '@/lib/amethyst/skin-cards'
@@ -30,12 +32,35 @@ const PAGE_OFF_MESSAGE: Partial<Record<SitePreviewPage, string>> = {
 
 const PREVIEW_GUARD = `(function(){
   var nativeSetAttribute = Element.prototype.setAttribute;
+  function localIconHref(value) {
+    var text = String(value);
+    var marker = 'media-icons.svg#';
+    var at = text.indexOf(marker);
+    if (at === -1) return value;
+    return '#preview-media-icon-' + text.slice(at + marker.length);
+  }
   Element.prototype.setAttribute = function(name, value) {
     var key = String(name).toLowerCase();
+    if (key === 'href' || key === 'xlink:href') value = localIconHref(value);
     if (this instanceof HTMLMediaElement && (key === 'src' || key === 'autoplay')) return;
     if (this instanceof HTMLMediaElement && key === 'preload') return nativeSetAttribute.call(this, name, 'none');
     return nativeSetAttribute.call(this, name, value);
   };
+  var nativeSetAttributeNS = Element.prototype.setAttributeNS;
+  Element.prototype.setAttributeNS = function(ns, name, value) {
+    if (String(name).toLowerCase() === 'href') value = localIconHref(value);
+    return nativeSetAttributeNS.call(this, ns, name, value);
+  };
+  function rewriteIcons(root) {
+    var nodes = [];
+    if (root && root.matches && root.matches('use')) nodes.push(root);
+    if (root && root.querySelectorAll) nodes = nodes.concat([].slice.call(root.querySelectorAll('use')));
+    nodes.forEach(function(node) {
+      var href = node.getAttribute('href') || node.getAttribute('xlink:href') || '';
+      var next = localIconHref(href);
+      if (next !== href) nativeSetAttribute.call(node, 'href', next);
+    });
+  }
   try {
     Object.defineProperty(HTMLMediaElement.prototype, 'src', { configurable: true, get: function() { return ''; }, set: function() {} });
   } catch (error) {}
@@ -65,6 +90,7 @@ const PREVIEW_GUARD = `(function(){
     });
   }
   quiet(document);
+  rewriteIcons(document);
   document.addEventListener('play', function(event) {
     var media = event.target;
     if (!media || !media.pause) return;
@@ -83,7 +109,7 @@ const PREVIEW_GUARD = `(function(){
     new MutationObserver(function(records) {
       records.forEach(function(record) {
         [].slice.call(record.addedNodes).forEach(function(node) {
-          if (node && node.nodeType === 1) quiet(node);
+          if (node && node.nodeType === 1) { quiet(node); rewriteIcons(node); }
         });
       });
     }).observe(document.documentElement, { childList: true, subtree: true });
@@ -190,8 +216,77 @@ export function sitePreviewImageHosts(html: string, origin: string) {
   return [...hosts].sort()
 }
 
+const PRODUCTION_IMAGE_ORIGIN = 'https://www.yoursparklesuite.com'
+
+const MEDIA_ICON_SPRITE = readFileSync(join(process.cwd(), 'public/amethyst/media-icons.svg'), 'utf8')
+
+export function previewNeedsProductionImages(html: string) {
+  return /<img\b[^>]*\ssrc=["']https:\/\/www\.yoursparklesuite\.com\//i.test(html)
+    || /https:\/\/www\.yoursparklesuite\.com\/[^"'\\\s)]+\.(?:avif|gif|jpe?g|png|svg|webp)/i.test(html)
+    || /https:\/\/www\.yoursparklesuite\.com\/amethyst\//i.test(html)
+}
+
+/** Drop the production favicon requests. The preview does not need them, and CSP would block them. */
+export function stripPreviewProductionIcons(html: string) {
+  return html.replace(/<link\b[^>]*>/gi, (tag) => {
+    const rel = /rel=["']([^"']+)["']/i.exec(tag)?.[1] ?? ''
+    const href = /href=["']([^"']+)["']/i.exec(tag)?.[1] ?? ''
+    const iconRel = /(^|\s)(shortcut icon|icon|apple-touch-icon)(\s|$)/i.test(rel)
+    const productionIcon = /(?:^|\/)(?:apple-icon|icon)(?:$|\?)/i.test(href)
+      && /yoursparklesuite\.com/i.test(href)
+    return iconRel || productionIcon ? '' : tag
+  })
+}
+
+/** Keep the media sprite in the preview document. A sandboxed frame cannot load the root-relative file. */
+const compiledPreviewSources = new Map<string, string>()
+
+function compiledPreviewSource(name: string) {
+  const cached = compiledPreviewSources.get(name)
+  if (cached) return cached
+  const source = readFileSync(join(process.cwd(), 'public/amethyst/compiled', name), 'utf8')
+    .replace(/\\\/amethyst\\\/media-icons\.svg#/g, '#preview-media-icon-')
+    .replace(/\/amethyst\/media-icons\.svg#/g, '#preview-media-icon-')
+    .replace(/<\/script/gi, '<\\/script')
+  compiledPreviewSources.set(name, source)
+  return source
+}
+
+/** The sandboxed frame cannot load the compiled page script, which sets external icon hrefs. */
+export function inlinePreviewRuntimeScripts(html: string) {
+  return html.replace(
+    /<script\b([^>]*)\bsrc="([^"]*\/amethyst\/compiled\/(homepage|trade|join|pantry)\.js(?:\?[^"]*)?)"([^>]*)>\s*<\/script>/gi,
+    (_tag, before: string, _src: string, name: string, after: string) => {
+      const attrs = `${before}${after}`.replace(/\s(?:defer|async)\b/gi, '')
+      return `<script${attrs}>${compiledPreviewSource(`${name}.js`)}</script>`
+    },
+  )
+}
+
+export function inlinePreviewMediaIcons(html: string) {
+  const stripped = stripPreviewProductionIcons(html)
+  if (!stripped.includes('/amethyst/media-icons.svg')) return stripped
+  const rewritten = stripped
+    .replace(/\\\/amethyst\\\/media-icons\.svg#/g, '#preview-media-icon-')
+    .replace(/\/amethyst\/media-icons\.svg#/g, '#preview-media-icon-')
+  const symbols = MEDIA_ICON_SPRITE
+    .replace(
+      '<svg xmlns="http://www.w3.org/2000/svg">',
+      '<svg id="preview-media-icons" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="0" height="0" style="position:absolute">',
+    )
+    .replace(/\bid="([A-Za-z0-9_-]+)"/g, (match, id: string) => (
+      id === 'preview-media-icons' ? match : `id="preview-media-icon-${id}"`
+    ))
+  return rewritten.includes('</body>')
+    ? rewritten.replace('</body>', `${symbols}</body>`)
+    : `${rewritten}${symbols}`
+}
+
 export function sitePreviewContentSecurityPolicy(html: string, origin: string) {
   const imageHosts = sitePreviewImageHosts(html, origin)
+  if (previewNeedsProductionImages(html) && !imageHosts.includes(PRODUCTION_IMAGE_ORIGIN)) {
+    imageHosts.push(PRODUCTION_IMAGE_ORIGIN)
+  }
   const directives = [
     "default-src 'none'",
     `script-src 'unsafe-inline' ${origin}`,
@@ -213,7 +308,7 @@ export function sitePreviewContentSecurityPolicy(html: string, origin: string) {
 }
 
 export function prepareSitePreviewDocument(html: string, origin: string) {
-  const cleaned = cleanSitePreviewDocument(html, origin)
+  const cleaned = inlinePreviewMediaIcons(inlinePreviewRuntimeScripts(cleanSitePreviewDocument(html, origin)))
   const policy = sitePreviewContentSecurityPolicy(cleaned, origin)
   const meta = `<meta http-equiv="Content-Security-Policy" content="${escapeHtml(policy.meta)}">`
   const preamble = `${meta}<base href="${escapeHtml(origin)}/"><meta name="referrer" content="no-referrer"><script>${PREVIEW_GUARD}</script>`

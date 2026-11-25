@@ -9,6 +9,11 @@ import {
   normalizeAmethystAppearancePreset,
   normalizeCustomerSiteTemplate,
 } from '@/lib/amethyst/appearance-presets'
+import {
+  grandfatheredHeadlineFallback,
+  heroMotionApplies,
+  heroMotionControl,
+} from '@/lib/amethyst/hero-motion-applies'
 import { isAmethystSkinSelectionAvailableToRep } from '@/lib/amethyst/skin-access'
 import {
   isSupportedPublicVideoUrl,
@@ -76,12 +81,13 @@ type RepProfileRow = {
   social_handles: Record<string, string> | null
   profile_photo_url: string | null
   profile_photo_framing: Record<string, unknown> | null
+  public_site_slug?: string | null
 }
 
 const SITE_SETTINGS_SELECT =
   'banner_text, banner_visible, ticker_text, ticker_visible, dance_floor_visible, live_lineup_visible, tagline, hero_headline, hero_subtitle, hero_image_url, hero_animation_type, team_name, recruiting_link, member_team_name, join_team_access_enabled, show_join_page, customer_site_template, appearance_preset, about_heading, about_subheading, about_narrative, homepage_media_slots, social_visibility'
 const REP_PROFILE_SELECT =
-  'display_name, business_name, email, phone, shop_link, social_handles, profile_photo_url, profile_photo_framing'
+  'display_name, business_name, email, phone, shop_link, social_handles, profile_photo_url, profile_photo_framing, public_site_slug'
 
 function normalizeText(value: string | null | undefined) {
   return typeof value === 'string' ? value.trim() : ''
@@ -417,6 +423,19 @@ function buildDashboardResult(args: {
   }
 }
 
+function withReadOnlySiteFields(
+  settings: SiteSettingsDashboardResult,
+  publicSiteSlug: string | null | undefined,
+): SiteSettingsDashboardResult {
+  const heroMotionAppliesValue = heroMotionApplies({ settings, publicSiteSlug })
+  const withMotion = { ...settings, heroMotionApplies: heroMotionAppliesValue }
+  return {
+    ...withMotion,
+    heroMotionMode: heroMotionControl({ settings: withMotion, publicSiteSlug }),
+    grandfatheredHeadlineFallback: grandfatheredHeadlineFallback(settings, publicSiteSlug),
+  }
+}
+
 function signupDiscountFields(row: SiteSettingsRow | null) {
   if (!row) return {}
   const fields: Pick<SiteSettingsDashboardResult, 'signupDiscountCode' | 'signupDiscountOffer' | 'signupDiscountEnabled' | 'signupDiscountMessage'> = {}
@@ -507,10 +526,12 @@ export async function getSiteSettingsDashboard(
     }
   }
 
-  return attachTikTokSlotStatus(supabase, repId, buildDashboardResult({
-    siteSettings,
-    repProfile: repProfileResult.data as RepProfileRow,
-  }))
+  const repProfile = repProfileResult.data as RepProfileRow
+  return attachTikTokSlotStatus(
+    supabase,
+    repId,
+    withReadOnlySiteFields(buildDashboardResult({ siteSettings, repProfile }), repProfile.public_site_slug),
+  )
 }
 
 export async function getTargetedJoinPageAccessFlags(
@@ -845,10 +866,14 @@ export async function updateSiteSettingsDashboard(
     repProfileRow = data as RepProfileRow
   }
 
-  return attachTikTokSlotStatus(supabase, repId, buildDashboardResult({
-    siteSettings: siteSettingsRow,
-    repProfile: repProfileRow,
-  }))
+  return attachTikTokSlotStatus(
+    supabase,
+    repId,
+    withReadOnlySiteFields(
+      buildDashboardResult({ siteSettings: siteSettingsRow, repProfile: repProfileRow }),
+      repProfileRow.public_site_slug,
+    ),
+  )
 }
 
 export async function attachTikTokSlotStatus(supabase: SupabaseClient, repId: string, settings: SiteSettingsDashboardResult): Promise<SiteSettingsDashboardResult> {
