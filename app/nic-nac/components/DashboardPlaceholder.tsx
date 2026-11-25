@@ -86,8 +86,8 @@ import {
   type TeamPhotoFraming,
 } from '@/lib/amethyst/team-photo-framing'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
-import { getAmethystSkinDropdownLabel } from '@/lib/amethyst/skin-cards'
 import { useAvailableAmethystSkinCards } from './useAvailableAmethystSkinCards'
+import { ThemeStudio } from './ThemeStudio'
 import {
   BRITT_WITH_BLING_ABOUT_PORTRAIT_URL,
   BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
@@ -9808,10 +9808,6 @@ export function SiteSettingsCard({
 
   const hasTickerLinks = /\[[^\]]+\]\([^()\s]+\)/.test(draft?.tickerText ?? '')
   const skinOptions = useAvailableAmethystSkinCards(repId)
-  const appearancePresetOptions = skinOptions.cards.map((skin) => ({
-    value: skin.id as SiteAppearancePreset,
-    label: getAmethystSkinDropdownLabel(skin),
-  }))
 
   if (state.status === 'error') {
     return (
@@ -9878,6 +9874,15 @@ export function SiteSettingsCard({
           </ControlTip>
         </div>
       </div>
+      <ThemeStudio
+        status={skinOptions.status}
+        cards={skinOptions.cards}
+        savedThemeId={state.settings.appearancePreset}
+        draftThemeId={draft.appearancePreset}
+        onDraftThemeChange={(appearancePreset) =>
+          onDraftChange?.({ appearancePreset: appearancePreset as SiteAppearancePreset })
+        }
+      />
       <div className={styles.siteSettingsSection} aria-label="Signup discount">
         <div className={styles.walletSettingsTitle}>Signup discount</div>
         <label className={styles.walletToggleRow}>
@@ -10067,39 +10072,6 @@ export function SiteSettingsCard({
       <div className={styles.siteSettingsSection}>
         <div className={styles.walletSettingsTitle}>Branding and visuals</div>
         <div className={styles.siteSettingsGrid}>
-          <label className={styles.sortFieldWide}>
-            <span className={styles.sortLabel}>Customer-facing site theme</span>
-            <select
-              className={styles.sortSelect}
-              value={
-                skinOptions.status === 'ready' ? draft.appearancePreset : ''
-              }
-              disabled={skinOptions.status !== 'ready'}
-              onChange={(event) =>
-                onDraftChange?.({
-                  appearancePreset: event.target.value as SiteAppearancePreset,
-                })
-              }
-            >
-              {skinOptions.status === 'ready' ? (
-                appearancePresetOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))
-              ) : (
-                <option value="">
-                  {skinOptions.status === 'error'
-                    ? 'Themes unavailable — refresh and try again'
-                    : 'Loading your available themes…'}
-                </option>
-              )}
-            </select>
-            <span className={styles.siteSettingsPreviewNote}>
-              Applies only to your public customer-facing site. Your Sparkle
-              Suite workspace keeps the standard workspace theme.
-            </span>
-          </label>
           <label className={styles.searchField}>
             <span className={styles.searchLabel}>Team I manage</span>
             <input

@@ -4383,11 +4383,18 @@ describe('DashboardPlaceholder', () => {
       'utf8',
     )
 
-    expect(source).toContain('Customer-facing site theme')
+    const studio = readFileSync(
+      resolve(process.cwd(), 'app/nic-nac/components/ThemeStudio.tsx'),
+      'utf8',
+    )
+    expect(studio).toContain('Choose your theme')
+    expect(studio).toContain('type="radio"')
+    expect(studio).toContain('SitePreviewFrame')
+    expect(source).toContain('<ThemeStudio')
     expect(source).toContain('WORKSPACE_APPEARANCE_PRESET')
     expect(source).toContain('useAvailableAmethystSkinCards')
     expect(source).not.toContain('Full skin gallery')
-    expect(source).toContain('skin.id')
+    expect(source).not.toContain('getAmethystSkinDropdownLabel')
     expect(source).toContain('normalizeAmethystAppearancePreset')
   })
 
