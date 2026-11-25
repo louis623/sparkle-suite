@@ -48,6 +48,39 @@ const WHEN_YOU_ARE_DONE = [
   'Keep your next show on your Workspace Calendar so it shows up under that message.',
 ] as const
 
+export const LIVE_LINEUP_STAY_AWAKE_TITLE = 'Keep your computer awake during a show'
+
+export const LIVE_LINEUP_STAY_AWAKE_INTRO =
+  "If your computer goes to sleep during a show, Live Lineup stops updating. Your customers won't see new people in line until you wake the computer and refresh your Bomb Party Live Party Orders page in Chrome."
+
+export const LIVE_LINEUP_STAY_AWAKE_NOTE =
+  "Plug in if you can, and change the sleep setting so the computer stays awake for the whole show. You can put your usual setting back when you're done."
+
+export const LIVE_LINEUP_STAY_AWAKE_MAC_STEPS = [
+  'Choose Apple menu > System Settings.',
+  'If you\'re on a laptop, click Battery in the sidebar, then click Options. Turn on "Prevent automatic sleeping on power adapter when the display is off."',
+  'If you\'re on a desktop, click Energy in the sidebar, then turn on "Prevent automatic sleeping when the display is off."',
+] as const
+
+export const LIVE_LINEUP_STAY_AWAKE_WINDOWS_STEPS = [
+  'Select Start > Settings > System > Power & battery.',
+  'Open Screen, sleep, and hibernate timeouts. On some PCs this says Screen and sleep.',
+  'Under "Make my device sleep after," choose a time longer than your show, or Never, for When plugged in. If you\'re on battery, set that one too.',
+] as const
+
+export const LIVE_LINEUP_STAY_AWAKE_MAC_LINK = {
+  label: "Apple's official steps",
+  href: 'https://support.apple.com/guide/mac-help/set-sleep-and-wake-settings-mchle41a6ccd/mac',
+} as const
+
+export const LIVE_LINEUP_STAY_AWAKE_WINDOWS_LINK = {
+  label: "Microsoft's official steps",
+  href: 'https://support.microsoft.com/en-us/windows/experience/power-battery/power-settings-in-windows-11',
+} as const
+
+export const LIVE_LINEUP_STAY_AWAKE_IF_ASLEEP =
+  'If it already went to sleep: Wake your computer, refresh the Live Party Orders page in Chrome, then click the Sparkle Suite extension and make sure it says Connected + Updating.'
+
 export const liveLineupHelpBeforeYouStart = [
   'Google Chrome on your computer',
   'The Sparkle Suite extension from the Chrome Web Store',
@@ -140,6 +173,16 @@ export function liveLineupGuideContent(
     whatsNew: WHATS_NEW,
     beforeYouGoLive,
     duringYourShow: DURING_YOUR_SHOW,
+    stayAwake: {
+      title: LIVE_LINEUP_STAY_AWAKE_TITLE,
+      intro: LIVE_LINEUP_STAY_AWAKE_INTRO,
+      note: LIVE_LINEUP_STAY_AWAKE_NOTE,
+      macSteps: LIVE_LINEUP_STAY_AWAKE_MAC_STEPS,
+      macLink: LIVE_LINEUP_STAY_AWAKE_MAC_LINK,
+      windowsSteps: LIVE_LINEUP_STAY_AWAKE_WINDOWS_STEPS,
+      windowsLink: LIVE_LINEUP_STAY_AWAKE_WINDOWS_LINK,
+      ifAsleep: LIVE_LINEUP_STAY_AWAKE_IF_ASLEEP,
+    },
     whenYouAreDone: WHEN_YOU_ARE_DONE,
     updateSteps: LIVE_LINEUP_UPDATE_STEPS,
   }
@@ -150,6 +193,11 @@ export function liveLineupHelpSteps(now = Date.now()): string[] {
   return [
     ...content.beforeYouGoLive,
     ...content.duringYourShow,
+    content.stayAwake.intro,
+    content.stayAwake.note,
+    ...content.stayAwake.macSteps,
+    ...content.stayAwake.windowsSteps,
+    content.stayAwake.ifAsleep,
     ...content.whenYouAreDone,
     ...content.updateSteps,
   ]
