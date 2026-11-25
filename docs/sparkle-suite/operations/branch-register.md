@@ -1,3 +1,7 @@
+## November 25, 2026 — Look tile real-screenshot, PR #230
+
+Louis approved getting the Look tile real-screenshot branch onto Suite Smoke on November 25, 2026, including the Smoke-only migration `20261125120000_site_look_previews` and a first picture for every Smoke rep. `cursor/look-real-screenshot` is allowlisted only so PR #230 can build on Smoke, stacked on `cursor/my-website-hero-motion-583b`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
 ## November 24, 2026 — My Website hero motion, Chunk 4
 
 Louis approved the My Website redesign build on November 23, 2026. `cursor/my-website-hero-motion-583b` is allowlisted only so Chunk 4 can build on Smoke, stacked on `cursor/my-website-customer-scroll-cd8d`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
