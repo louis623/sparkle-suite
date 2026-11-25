@@ -17,6 +17,7 @@ import { SiteSettingsBody, SiteSettingsLoadingShell } from './SiteSettingsBody'
 import { buildSiteSetupChecklist, type SiteSectionId } from './site-settings-layout'
 import { myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-client'
 import { getAmethystSkinCard, type AmethystSkinCard } from '@/lib/amethyst/skin-cards'
+import { SocialMark } from '@/lib/amethyst/social-mark-icon'
 import { ThemeStudio } from './ThemeStudio'
 import {
   AUTOSAVE_WAIT_MS,
@@ -2724,6 +2725,19 @@ function getCalendarDisplayTimeZone(events: CalendarEvent[]) {
 function getMonthStartInTimeZone(referenceDate: Date, timeZone: string) {
   const { year, month } = getTimeZoneParts(referenceDate, timeZone)
   return new Date(Date.UTC(year, month - 1, 1))
+}
+
+function tileShowFromCalendar(event: CalendarEvent | undefined) {
+  if (!event?.eventTime) return null
+  const zone = event.timeZone || 'America/New_York'
+  const date = new Date(event.eventTime)
+  if (Number.isNaN(date.getTime())) return null
+  return {
+    month: new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: zone }).format(date).toUpperCase(),
+    day: new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone: zone }).format(date),
+    name: getCalendarEventTitle(event),
+    time: new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: zone }).format(date),
+  }
 }
 
 function getCalendarEventTitle(event: CalendarEvent) {
@@ -7586,6 +7600,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             onUndo={undoLastSiteChange}
             undoReady={undoReady}
             onRetry={retrySiteSettings}
+            nextShow={tileShowFromCalendar(calendarState.summary?.upcomingEvents?.[0])}
           />
         </div>
       )
@@ -9982,6 +9997,7 @@ export function SiteSettingsCard({
   onUndo,
   undoReady = false,
   previewThemeCards = null,
+  nextShow = null,
 }: {
   repId?: string | null
   state: SiteSettingsState
@@ -10022,6 +10038,7 @@ export function SiteSettingsCard({
   onUndo?: () => void
   undoReady?: boolean
   previewThemeCards?: readonly AmethystSkinCard[] | null
+  nextShow?: { month: string; day: string; name: string; time: string } | null
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
   const lookRef = useRef<HTMLDialogElement>(null)
@@ -10333,19 +10350,31 @@ export function SiteSettingsCard({
                 {group.id === 'shows' ? (
                   <span className={styles.siteShowScene}>
                     <span className={styles.siteCalendar}>
-                      <span className={styles.siteDateChip}>Shows</span>
-                      <span className={styles.siteCalendarMark} aria-hidden="true">✦</span>
+                      <span className={styles.siteCalMonth}>{nextShow?.month || 'NEXT'}</span>
+                      <span className={styles.siteCalDay}>{nextShow?.day || '—'}</span>
+                      <span className={styles.siteCalName}>{nextShow?.name || 'Your next show'}</span>
+                      <span className={styles.siteCalTime}>{nextShow?.time || 'Add it in Calendar'}</span>
                     </span>
                     <span className={styles.siteCodeCard}>
                       <span className={styles.siteCodeLabel}>Sign-up code</span>
-                      {draft.signupDiscountCode?.trim() || 'Your code'}
+                      <span className={styles.siteCodeValue}>{draft.signupDiscountCode?.trim() || 'Code'}</span>
                     </span>
                   </span>
                 ) : null}
                 {group.id === 'links' ? (
                   <span className={styles.siteLinkScene}>
                     <span className={styles.siteSocialRow}>
-                      {['I', 'F', 'T', 'Y', 'W'].map((mark) => <span key={mark}>{mark}</span>)}
+                      {([
+                        ['instagram', 'Instagram'],
+                        ['facebook', 'Facebook'],
+                        ['tiktok', 'TikTok'],
+                        ['youtube', 'YouTube'],
+                        ['website', 'Website'],
+                      ] as const).map(([platform, label]) => (
+                        <span key={platform} className={styles.siteBrand} data-brand={platform} title={label}>
+                          <SocialMark platform={platform} className={styles.siteBrandIcon} />
+                        </span>
+                      ))}
                     </span>
                     <span className={styles.sitePagePills}>
                       <span>Dance Floor</span>
@@ -10356,7 +10385,6 @@ export function SiteSettingsCard({
                 ) : null}
               </span>
               <span className={styles.siteTileCopy}>
-                <span className={styles.siteTileIcon} aria-hidden="true">{group.id === 'look' ? '✦' : group.id === 'about' ? '☺' : group.id === 'shows' ? '▦' : '⤷'}</span>
                 <span className={needs > 0 ? styles.siteChipNeeds : styles.siteChipDone}>
                   {needs > 0 ? `Needs ${needs} ${needs === 1 ? 'thing' : 'things'}` : 'Done'}
                 </span>

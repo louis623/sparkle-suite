@@ -124,6 +124,7 @@ function ReviewCard({
         publicSiteDisplay="sparklebysasha.example"
         canPreview
         previewThemeCards={reviewThemes}
+        nextShow={{ month: 'DEC', day: '12', name: 'Friday night reveal', time: '7:00 PM' }}
         initialOpenSections={openSections}
         onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
         onPreview={() => undefined}
@@ -148,9 +149,6 @@ export function MyWebsiteLayoutHarness({
       : {
           ...sample,
           shopLink: 'shop.example/sasha',
-          homepageMediaSlots: sample.homepageMediaSlots?.map((slot) =>
-            slot.key === 'about_1' ? { ...slot, imageUrl: '' } : slot,
-          ),
         }
   const [draft, setDraft] = useState(saved)
   if (mode === 'load-error') {
@@ -203,6 +201,7 @@ export function MyWebsiteLayoutHarness({
         publicSiteDisplay="sparklebysasha.example"
         canPreview
         previewThemeCards={reviewThemes}
+        nextShow={{ month: 'DEC', day: '12', name: 'Friday night reveal', time: '7:00 PM' }}
         initialOpenSection={openSection}
         onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
         onPreview={() => undefined}

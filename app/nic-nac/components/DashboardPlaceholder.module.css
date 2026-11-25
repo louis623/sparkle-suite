@@ -8827,26 +8827,22 @@
   font-size: 0.68rem;
   font-weight: 800;
 }
-.siteDateChip { background: #34252f; color: #f6e7da; }
-.siteCodeCard {
-  border-radius: 12px;
-  padding: 8px;
-  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-.siteSocialRow { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 4px; }
-.siteSocialRow span {
-  width: 22px;
-  height: 22px;
+.siteSocialRow { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.siteBrand {
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: #fff;
-  color: #b91673;
-  font-size: 0.68rem;
-  font-weight: 800;
+  color: #fff;
 }
+.siteBrand[data-brand='instagram'] { background: linear-gradient(135deg, #f9ce34, #ee2a7b 55%, #6228d7); }
+.siteBrand[data-brand='facebook'] { background: #1877f2; }
+.siteBrand[data-brand='tiktok'] { background: #111; }
+.siteBrand[data-brand='youtube'] { background: #ff0033; }
+.siteBrand[data-brand='website'] { background: #34252f; }
+.siteBrandIcon { width: 15px; height: 15px; fill: currentColor; }
+.siteBrand[data-brand='instagram'] .siteBrandIcon { fill: none; stroke: currentColor; }
 .sitePagePills { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
 .siteAboutScene,
 .siteShowScene,
@@ -8858,8 +8854,9 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 100%;
 }
 .siteAboutName {
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
@@ -8868,29 +8865,93 @@
   text-align: center;
   color: #fff6fb;
 }
-.siteShowScene { flex-direction: column; align-items: stretch; }
+.siteShowScene { flex-direction: column; align-items: center; gap: 8px; }
 .siteCalendar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 0;
-  flex: 1;
+  width: 92px;
+  overflow: hidden;
   border-radius: 14px;
   background: #fffdfb;
+  box-shadow: 0 8px 20px rgba(54, 34, 29, 0.08);
 }
-.siteCalendarMark { color: #b91673; font-size: 1.1rem; }
+.siteCalMonth {
+  width: 100%;
+  background: #34252f;
+  color: #f6e7da;
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  padding: 4px 0;
+}
+.siteCalDay {
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: 1.7rem;
+  line-height: 1;
+  color: #402924;
+  padding: 6px 0 2px;
+}
+.siteCalName,
+.siteCalTime {
+  display: block;
+  width: 100%;
+  padding: 0 6px;
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #775d57;
+  line-height: 1.2;
+}
+.siteCalTime { padding-bottom: 8px; font-weight: 800; color: #402924; }
+.siteCodeCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 92px;
+  min-height: 72px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fffdfb;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(54, 34, 29, 0.08);
+}
+.siteCodeCard::before,
+.siteCodeCard::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #efd3c2;
+  transform: translateY(-50%);
+}
+.siteCodeCard::before { left: -6px; }
+.siteCodeCard::after { right: -6px; }
 .siteCodeLabel {
   display: block;
   font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #775d57;
 }
-.siteLinkScene { gap: 10px; }
+.siteCodeValue {
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: 1rem;
+  color: #402924;
+}
+.siteLinkScene {
+  gap: 8px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(255, 253, 251, 0.88);
+}
 .siteTileCopy {
   position: relative;
   display: flex;
@@ -9109,34 +9170,26 @@
   .sitePortraitMark { width: 112px; height: 112px; font-size: 2.4rem; }
   .siteAboutName { font-size: 1.7rem; }
   .siteArtPill { font-size: 0.85rem; padding: 6px 12px; }
-  .siteShowScene { flex-direction: row; gap: 16px; width: 88%; height: 82%; }
+  .siteShowScene { flex-direction: row; align-items: stretch; gap: 20px; }
   .siteCalendar,
-  .siteCodeCard { height: 100%; border-radius: 22px; }
-  .siteCalendarMark { font-size: 4.5rem; }
-  .siteDateChip { font-size: 0.9rem; padding: 6px 12px; }
-  .siteCodeCard {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-size: 2.6rem;
-    padding: 20px;
-    border: 2px dashed rgba(64, 41, 36, 0.22);
-  }
-  .siteCodeLabel { font-size: 0.8rem; margin-bottom: 8px; }
-  .siteLinkScene {
-    width: min(100%, 560px);
-    height: 72%;
-    padding: 28px 24px;
-    border-radius: 28px;
-    background: rgba(255, 253, 251, 0.82);
-  }
-  .siteSocialRow { gap: 14px; }
-  .siteSocialRow span { width: 76px; height: 76px; font-size: 1.35rem; }
+  .siteCodeCard { width: 176px; }
+  .siteCalMonth { font-size: 0.8rem; padding: 8px 0; }
+  .siteCalDay { font-size: 3.4rem; padding: 14px 0 6px; }
+  .siteCalName,
+  .siteCalTime { font-size: 0.85rem; padding-inline: 10px; }
+  .siteCalTime { padding-bottom: 14px; }
+  .siteCodeCard { min-height: 0; padding: 18px 16px; }
+  .siteCodeLabel { font-size: 0.72rem; }
+  .siteCodeValue { font-size: 1.7rem; }
+  .siteCodeCard::before,
+  .siteCodeCard::after { width: 18px; height: 18px; }
+  .siteCodeCard::before { left: -9px; }
+  .siteCodeCard::after { right: -9px; }
+  .siteLinkScene { gap: 16px; padding: 28px 32px; border-radius: 28px; }
+  .siteBrand { width: 64px; height: 64px; }
+  .siteBrandIcon { width: 30px; height: 30px; }
   .sitePagePills { gap: 10px; }
-  .sitePagePills span { font-size: 1rem; padding: 8px 14px; }
+  .sitePagePills span { font-size: 0.95rem; padding: 8px 14px; }
   .siteTileTitle { padding-right: 108px; }
   .siteTileSummary { -webkit-line-clamp: 1; }
   .siteChipDone,
