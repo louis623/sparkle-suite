@@ -85,7 +85,8 @@
     "codex/public-about-display-fixes",
     "codex/one-video-queue",
     "codex/video-queue-preserved-embeds",
-    "codex/live-lineup-208-reporting"
+    "codex/live-lineup-208-reporting",
+    "cursor/live-lineup-stay-awake-6529"
   ],
   "previewBranches": {
     "codex/suite-dance-floor-phase2-editable-floor": { "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ", "environment": "preview" },
@@ -289,6 +290,10 @@
       "environment": "preview"
     },
     "codex/live-lineup-208-reporting": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/live-lineup-stay-awake-6529": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }
