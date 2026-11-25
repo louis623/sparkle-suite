@@ -109,6 +109,26 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // The signed-in theme preview must not send a referrer. The app-wide
+        // policy is applied on the edge after the route header, so this path
+        // sets no-referrer the same way onboarding does.
+        source: '/nic-nac/site-preview',
+        headers: [
+          {
+            key: 'Referrer-Policy',
+            value: 'no-referrer',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'no-store, private',
+          },
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow',
+          },
+        ],
+      },
     ]
   },
 };

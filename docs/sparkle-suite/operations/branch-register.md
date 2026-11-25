@@ -1,3 +1,7 @@
+## November 24, 2026 — My Website theme preview, Chunk 1
+
+Louis approved the My Website redesign build on November 23, 2026. `cursor/my-website-theme-preview-2217` is allowlisted only so this chunk can build on Smoke. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
 ## November 15, 2026 — Dance Floor Phase 2 Smoke draft
 
 Louis explicitly authorizes this minimal registration for `codex/suite-dance-floor-phase2-editable-floor`, based on Phase 1 `71c425874db0c25f4aeb402d12dfaa727718a780`. Preview only: Smoke project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`. No guard, other branch, default/production branch, Live, or PR #193/#199/#200 changes. All candidate commits carry `[skip ci]`.
