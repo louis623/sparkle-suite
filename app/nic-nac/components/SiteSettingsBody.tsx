@@ -43,7 +43,7 @@ const EMPTY_SLOTS: PublicSiteMediaSlot[] = [
 function ShowsOn({ id, children }: { id: string; children: string }) {
   return (
     <span id={id} className={styles.showsOn} data-shows-on="">
-      Shows on: {children}
+      Shows on your site: {children}
     </span>
   )
 }
@@ -60,6 +60,8 @@ export function SiteSection({
   summary,
   status,
   defaultOpen,
+  plain = false,
+  hidden = false,
   children,
 }: {
   id: SiteSectionId
@@ -68,6 +70,8 @@ export function SiteSection({
   summary: string
   status: string
   defaultOpen: boolean
+  plain?: boolean
+  hidden?: boolean
   children: ReactNode
 }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -78,6 +82,16 @@ export function SiteSection({
     window.addEventListener('site-section-open', onOpen)
     return () => window.removeEventListener('site-section-open', onOpen)
   }, [id])
+  if (hidden) return null
+  if (plain) {
+    return (
+      <section id={`site-section-${id}`} data-site-section={id} className={styles.siteDialogSection}>
+        <h2 className={styles.siteDialogSectionTitle}>{title}</h2>
+        <p className={styles.siteDialogSectionSummary}>{summary}</p>
+        {children}
+      </section>
+    )
+  }
   return (
     <details
       id={`site-section-${id}`}
@@ -263,6 +277,7 @@ export function SiteSettingsBody({
   onAddTickerText,
   onLinkTickerWords,
   onResetTickerLinks,
+  sections,
 }: {
   draft: SiteSettingsDraft
   savedSlots?: PublicSiteMediaSlot[]
@@ -296,6 +311,7 @@ export function SiteSettingsBody({
   onAddTickerText: (value: string) => void
   onLinkTickerWords: () => void
   onResetTickerLinks: () => void
+  sections?: readonly SiteSectionId[]
 }) {
   const checklist = buildSiteSetupChecklist(draft)
   const firstGap = checklist.find((item) => !item.done)?.section ?? null
@@ -316,6 +332,8 @@ export function SiteSettingsBody({
   const discountMessage = draft.signupDiscountMessage ?? ''
   const aboutPortrait = slots.find((slot) => slot.key === 'about_1')
 
+  const showSection = (id: SiteSectionId) => !sections || sections.includes(id)
+  const plain = Boolean(sections)
   const slotProps = (slot: PublicSiteMediaSlot) => (
     <HomepageMediaSlot
       key={slot.key}
@@ -335,13 +353,13 @@ export function SiteSettingsBody({
 
   return (
     <div className={styles.siteSectionList}>
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('top-bar')}
         id="top-bar"
         number="1"
         title="Top bar"
         summary="Your name, store link, and announcements"
         status={status('top-bar')}
-        defaultOpen={sectionOpen('top-bar')}
+        defaultOpen={plain || sectionOpen('top-bar')}
       >
         <div className={styles.siteSettingsGrid}>
           <label className={styles.searchField} data-site-field="business-name">
@@ -503,13 +521,13 @@ export function SiteSettingsBody({
         />
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('hero')}
         id="hero"
         number="2"
         title="Hero"
         summary="The headline customers see first"
         status={status('hero')}
-        defaultOpen={sectionOpen('hero')}
+        defaultOpen={plain || sectionOpen('hero')}
       >
         <div className={styles.siteSettingsGrid}>
           <label className={styles.sortFieldWide} data-site-field="hero-headline">
@@ -622,13 +640,13 @@ export function SiteSettingsBody({
         </div>
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('upcoming-shows')}
         id="upcoming-shows"
         number="3"
         title="Upcoming shows"
         summary="Comes from your Calendar"
         status={status('upcoming-shows')}
-        defaultOpen={sectionOpen('upcoming-shows')}
+        defaultOpen={plain || sectionOpen('upcoming-shows')}
       >
         <div data-site-field="upcoming-shows">
           <p className={styles.siteSettingsPreviewNote}>
@@ -646,24 +664,24 @@ export function SiteSettingsBody({
         </div>
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('bomb-party')}
         id="bomb-party"
         number="4"
         title="What is a Bomb Party"
         summary="The live reveal video"
         status={status('bomb-party')}
-        defaultOpen={sectionOpen('bomb-party')}
+        defaultOpen={plain || sectionOpen('bomb-party')}
       >
         {slots.filter((slot) => slot.key === 'showcase').map(slotProps)}
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('about')}
         id="about"
         number="5"
         title="About you"
         summary="About section: your story, photo, and short videos"
         status={status('about')}
-        defaultOpen={sectionOpen('about')}
+        defaultOpen={plain || sectionOpen('about')}
       >
         <p className={styles.siteSettingsPreviewNote}>
           Add a short title and paste your customer-facing story. Keep it concise so it stays balanced beside your photo.
@@ -755,13 +773,13 @@ export function SiteSettingsBody({
         </div>
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('signup')}
         id="signup"
         number="6"
         title="Sign-up & discount"
         summary="A code after customers sign up"
         status={status('signup')}
-        defaultOpen={sectionOpen('signup')}
+        defaultOpen={plain || sectionOpen('signup')}
       >
         <label className={styles.walletToggleRow} data-site-field="signup-switch">
           <span>
@@ -847,13 +865,13 @@ export function SiteSettingsBody({
         <p className={styles.helperNote}>Suite only shows this code. Set up the code itself in Bomb Party first.</p>
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('footer')}
         id="footer"
         number="7"
         title="Footer & socials"
         summary="Tagline, email, social links, and team"
         status={status('footer')}
-        defaultOpen={sectionOpen('footer')}
+        defaultOpen={plain || sectionOpen('footer')}
       >
         <div className={styles.siteSettingsGrid}>
           <label className={styles.searchField} data-site-field="tagline">
@@ -938,12 +956,12 @@ export function SiteSettingsBody({
         />
       </SiteSection>
 
-      <SiteSection
+      <SiteSection plain={plain} hidden={!showSection('other-pages')}
         id="other-pages"
         title="Other pages"
         summary="Dance Floor, Join Team, and Live Lineup"
         status={status('other-pages')}
-        defaultOpen={sectionOpen('other-pages')}
+        defaultOpen={plain || sectionOpen('other-pages')}
       >
         <PublicSiteVisibility
           settings={draft}

@@ -25,6 +25,63 @@ export const DISCOUNT_CODE_ERROR = 'Use 1 to 40 letters, numbers, or hyphens.'
 export const DISCOUNT_MESSAGE_ERROR =
   'Use up to 140 characters of plain text, without < or >.'
 export const SAVED_LABEL = 'Saved'
+export const AUTOSAVE_WAIT_MS = 1500
+
+const DEBOUNCED_SITE_KEYS = new Set([
+  'displayName',
+  'businessName',
+  'email',
+  'phone',
+  'shopLink',
+  'bannerText',
+  'tickerText',
+  'tagline',
+  'heroHeadline',
+  'heroSubtitle',
+  'aboutHeading',
+  'aboutSubheading',
+  'aboutNarrative',
+  'signupDiscountCode',
+  'signupDiscountMessage',
+  'signupDiscountOffer',
+  'memberTeamName',
+  'socialHandles',
+])
+
+/** Text waits until typing pauses. Switches, menus, photos, and themes save immediately. */
+export function autosaveTiming(patch: object): 'now' | 'debounce' {
+  const keys = Object.keys(patch)
+  if (keys.length === 0) return 'debounce'
+  return keys.every((key) => DEBOUNCED_SITE_KEYS.has(key)) ? 'debounce' : 'now'
+}
+
+/** Invalid text stays on screen but is left out of the save, so the other fields can still save. */
+export function draftHoldingInvalidFields(
+  draft: SiteSettingsDraft,
+  saved: SiteSettingsDraft,
+): SiteSettingsDraft {
+  const next: SiteSettingsDraft = {
+    ...draft,
+    socialHandles: { ...(draft.socialHandles ?? {}) },
+  }
+  if (shopLinkFieldError(draft.shopLink)) next.shopLink = saved.shopLink
+  if (emailFieldError(draft.email)) next.email = saved.email
+  if (discountCodeFieldError(draft.signupDiscountCode, draft.signupDiscountEnabled)) {
+    next.signupDiscountCode = saved.signupDiscountCode
+    next.signupDiscountEnabled = saved.signupDiscountEnabled
+  }
+  if (discountMessageFieldError(draft.signupDiscountMessage)) {
+    next.signupDiscountMessage = saved.signupDiscountMessage
+  }
+  const handles = { ...(next.socialHandles ?? {}) }
+  for (const platform of SOCIAL_PLATFORMS) {
+    if (socialLinkFieldError(platform.key, handles[platform.key])) {
+      handles[platform.key] = saved.socialHandles?.[platform.key] ?? ''
+    }
+  }
+  next.socialHandles = handles
+  return next
+}
 
 const HTML_EMAIL =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/

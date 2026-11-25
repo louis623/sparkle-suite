@@ -13,21 +13,17 @@ import {
 import { isMyWebsiteLayoutHarnessEnabled } from '@/app/dev/my-website-layout-harness/access'
 
 const sections = [
-  'header',
   'top-bar',
   'hero',
-  'upcoming-shows',
-  'bomb-party',
   'about',
+  'bomb-party',
+  'upcoming-shows',
   'signup',
   'footer',
   'other-pages',
 ] as const
 
 const controls: Array<{ id: string; section: string; optional?: boolean }> = [
-  { id: 'view-my-site', section: 'header' },
-  { id: 'copy-link', section: 'header' },
-  { id: 'preview-saved-site', section: 'header' },
   { id: 'business-name', section: 'top-bar' },
   { id: 'display-name', section: 'top-bar' },
   { id: 'shop-link', section: 'top-bar' },
@@ -203,10 +199,10 @@ describe('site settings layout map', () => {
     const fields = [...host.querySelectorAll('[data-site-field]')]
     expect(fields.length).toBeGreaterThan(0)
     for (const field of fields) {
-      expect(field.textContent, field.getAttribute('data-site-field') ?? '').toContain('Shows on:')
+      expect(field.textContent, field.getAttribute('data-site-field') ?? '').toContain('Shows on your site:')
     }
-    expect(host.textContent).toContain('Shows on: Every Shop button on your site')
-    expect(host.textContent).toContain('Shows on: Join page Contact')
+    expect(host.textContent).toContain('Shows on your site: Every Shop button on your site')
+    expect(host.textContent).toContain('Shows on your site: Join page Contact')
     expect(host.textContent).toContain('Open Calendar')
     expect(host.querySelector('[data-site-control="open-calendar"]')?.getAttribute('href')).toBe(
       '/nic-nac?section=show-calendar',
@@ -236,17 +232,10 @@ describe('site settings layout map', () => {
     expect(siteSectionStatus({ section: 'about', checklist: items, draft })).toBe('Add photo')
 
     await renderCard(draft)
-    expect(host.textContent).toContain('2 things left to finish')
-    const topBar = host.querySelector('#site-section-top-bar') as HTMLDetailsElement
-    const about = host.querySelector('#site-section-about') as HTMLDetailsElement
-    expect(topBar.open).toBe(true)
-    expect(about.open).toBe(false)
-    const showMe = [...host.querySelectorAll('button')].find((button) => button.textContent === 'Show me')
-    await act(async () => {
-      showMe?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    expect(host.querySelector('#site-section-top-bar')?.hasAttribute('open')).toBe(true)
-    expect(document.activeElement?.id).toBe('my-website-shop-link')
+    expect(host.textContent).toContain('2 of 4 ready')
+    expect(host.textContent).toContain('Needs 1 thing')
+    expect(host.querySelector('#site-section-top-bar #my-website-shop-link')).not.toBeNull()
+    expect(host.querySelector('#site-section-about')).not.toBeNull()
   })
 
   it('hides the plain-text cleanup until an old link exists, and keeps the Britt switch Britt-only', async () => {

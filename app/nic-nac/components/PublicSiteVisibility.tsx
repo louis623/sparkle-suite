@@ -54,7 +54,7 @@ export function PublicSiteVisibility({
           <span>
             <strong>{item.label}</strong>
             <span id={`visibility-${item.key}-help`} className={styles.description}>{item.description}</span>
-            <span id={`visibility-${item.key}-shows`} className={styles.showsOn} data-shows-on="">Shows on: {SHOWS[item.key]}</span>
+            <span id={`visibility-${item.key}-shows`} className={styles.showsOn} data-shows-on="">Shows on your site: {SHOWS[item.key]}</span>
           </span>
           <span className={styles.control}>
             <input type="checkbox" role="switch" data-site-control={CONTROLS[item.key]} aria-label={item.label} aria-describedby={`visibility-${item.key}-help visibility-${item.key}-shows`} checked={item.checked} disabled={'disabled' in item && item.disabled} onChange={(event) => onChange?.({ [item.key]: event.target.checked })} />

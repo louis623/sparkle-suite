@@ -73,11 +73,13 @@ export function SiteLeaveGuard({
   count,
   onDiscard,
   openerRef,
+  message,
 }: {
   active: boolean
   count: number
   onDiscard: () => void
   openerRef?: RefObject<SiteDiscardOpener | null>
+  message?: string | null
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const titleId = useId()
@@ -144,7 +146,7 @@ export function SiteLeaveGuard({
         }
         const href = pendingHref.current
         pendingHref.current = null
-        onDiscard()
+        if (!message) onDiscard()
         if (href) {
           allowUnload.current = true
           window.location.assign(href)
@@ -155,11 +157,11 @@ export function SiteLeaveGuard({
       }}
     >
       <h1 id={titleId} className={styles.dialogTitle}>
-        {discardConfirmMessage(count)}
+        {message ?? discardConfirmMessage(count)}
       </h1>
       <form method="dialog" className={styles.dialogActions}>
         <button type="submit" className={styles.confirmDiscard} value="discard">
-          Discard changes
+          {message ? 'Leave anyway' : 'Discard changes'}
         </button>
         <button type="submit" className={styles.keep} value="keep" autoFocus>
           Keep editing

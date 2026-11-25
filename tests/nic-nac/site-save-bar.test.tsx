@@ -178,15 +178,11 @@ describe('site save bar', () => {
       setValue?.call(shop, 'bombparty.com/x')
       shop.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    const saveButton = [...host.querySelectorAll('button')].find((button) =>
-      button.textContent?.includes('Save & publish'),
-    )
-    expect(saveButton?.hasAttribute('disabled')).toBe(false)
+    expect(host.textContent).not.toContain('Save & publish')
     await act(async () => {
-      saveButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      shop.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
     })
     expect(save).not.toHaveBeenCalled()
-    expect(document.activeElement?.id).toBe('my-website-shop-link')
     expect(host.textContent).toContain(SHOP_LINK_ERROR)
     expect(host.querySelector('#my-website-shop-link')?.getAttribute('aria-describedby')).toContain(
       'my-website-shop-link-error',
@@ -378,15 +374,10 @@ describe('site save bar', () => {
         }),
       )
     })
-    const button = [...host.querySelectorAll('button')].find((item) => item.textContent === 'Copy link')
-    await act(async () => {
-      button?.click()
-    })
-    expect(writeText).toHaveBeenCalledWith('https://custom.example')
-    expect(button?.textContent).toBe('Copied')
-    const view = host.querySelector('a[href="https://custom.example"]')
-    expect(view?.textContent).toContain('View my site')
-    expect(view?.getAttribute('target')).toBe('_blank')
+    expect(host.textContent).not.toContain('Copy link')
+    expect(host.textContent).not.toContain('View my site')
+    expect(host.textContent).toContain('Tap a part of your site to change it')
+    expect(writeText).not.toHaveBeenCalled()
   })
 
   it('puts email constraints on the field and gates the review harness like the theme studio', () => {

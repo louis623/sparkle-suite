@@ -25,7 +25,7 @@ describe('Workspace social handle cards', () => {
     expect(html).toContain('Use a real Facebook link to choose footer and hero.')
     expect(html).not.toContain('Show on site')
     expect(html).not.toContain('aria-label="Show ')
-    expect(html).toContain('Shows on: Footer icons on every page; hero buttons when Show in hero is on')
+    expect(html).toContain('Shows on your site: Footer icons on every page; hero buttons when Show in hero is on')
     expect(html).not.toContain('role="switch"')
     expect(html.match(/data-social-platform="/g)).toHaveLength(5)
   })

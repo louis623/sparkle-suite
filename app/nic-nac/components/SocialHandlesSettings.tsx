@@ -77,7 +77,7 @@ export function SocialHandlesSettings({
                 </span>
               ) : null}
               <span id={`${fieldId}-shows`} className={surface.showsOn} data-shows-on="">
-                Shows on: {SHOWS_ON.social}
+                Shows on your site: {SHOWS_ON.social}
               </span>
             </label>
             {!hasUrl && !error ? <p className={surface.siteSettingsPreviewNote}>{hint}</p> : null}

@@ -34,12 +34,12 @@
   }
 
   .previewColumn {
-    grid-column: 1;
+    grid-column: 2;
     grid-row: 1;
   }
 
   .picker {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 1;
   }
 }
@@ -131,9 +131,10 @@
 }
 
 .card[data-selected='true'] {
-  border-color: transparent;
-  outline: 2px solid #ee2c9b;
-  outline-offset: 0;
+  border-color: #36221d;
+  outline: 3px solid #36221d;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px #f6e7da;
 }
 
 .card:focus-within {
@@ -234,10 +235,30 @@
   color: #5c3b12;
 }
 
-.liveChip {
+.liveChip,
+.onSite {
   background: #e8fff4;
   color: #0d5c3d;
 }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.filter,
+.filterOn {
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(64, 41, 36, 0.16);
+  background: #fff;
+  color: #402924;
+  font: 800 0.85rem/1 var(--font-prelaunch-sans), "DM Sans", sans-serif;
+  padding: 0 12px;
+  cursor: pointer;
+}
+.filterOn { background: #36221d; color: #f6e7da; }
+.currentTheme { margin-bottom: 12px; }
+.currentName { margin: 4px 0 0; font-weight: 800; }
+.seriesTitle { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 8px; font-size: 1rem; }
+.seriesNote { margin: 0 0 6px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #775d57; }
+.inSeason { border-radius: 999px; background: #e7f6ec; color: #0d5c3d; font-size: 0.72rem; padding: 3px 8px; }
 
 .dots {
   display: flex;
@@ -258,6 +279,8 @@
   color: #a10d68;
   font-weight: 800;
 }
+
+.tryOn { min-height: 44px; }
 
 .retry {
   border: 1px solid var(--nic-nac-border-strong, rgba(64, 41, 36, 0.2));
@@ -346,8 +369,14 @@
     top: 12px;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 24px - var(--site-save-bar-stack, 0px));
-    height: calc(100dvh - 24px - var(--site-save-bar-stack, 0px));
+    height: min(640px, calc(100dvh - 180px));
+  }
+
+  :global([data-site-dialog]) .previewColumn,
+  :global([data-site-dialog]) .picker {
+    position: static;
+    height: auto;
+    max-height: none;
   }
 
   .picker {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { SitePreviewFrame } from '@/app/nic-nac/components/SitePreviewFrame'
 import {
   AMETHYST_APPEARANCE_PRESET_IDS,
@@ -10,6 +10,7 @@ import {
   AMETHYST_SKIN_CARDS,
   type AmethystSkinCard,
 } from '@/lib/amethyst/skin-cards'
+import { groupThemeCards } from '@/lib/amethyst/theme-groups'
 import {
   groupThemesBySeason,
   THEME_SEASON_TAG,
@@ -116,7 +117,7 @@ export function ThemeStudio({
   const [armed, setArmed] = useState(false)
   const [chosenId, setChosenId] = useState(draftThemeId)
   const [page, setPage] = useState<PreviewPage>('homepage')
-  const [yearRoundOpen, setYearRoundOpen] = useState(false)
+  const [themeFilter, setThemeFilter] = useState<'all' | 'season' | 'holiday' | 'everyday' | 'yours'>('all')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [view, setView] = useState<PreviewView>({ status: 'idle' })
   const [requestToken, setRequestToken] = useState(0)
@@ -225,29 +226,18 @@ export function ThemeStudio({
     dialogRef.current?.close()
   }
 
-  function useTheme() {
-    if (!chosen) return
-    draftRef.current = chosen.id
-    onDraftThemeChange(chosen.id)
-  }
-
-  function keepTheme() {
-    setChosenId(savedThemeId)
-    draftRef.current = savedThemeId
-    onDraftThemeChange(savedThemeId)
-  }
-
   const savedLabel = savedCard?.label ?? 'your current theme'
   const chosenLabel = chosen?.label ?? savedLabel
   let imageIndex = 0
 
   return (
     <section className={styles.studio} data-testid="theme-studio" aria-busy={status === 'loading'}>
-      <p className={styles.kicker}>Customer-facing site theme</p>
+      <p className={styles.kicker}>Choose your theme</p>
+      <p className={styles.note}>Tap a theme and it&apos;s on your site right away. Changed your mind? Tap Undo.</p>
       <div className={styles.layout}>
         <div className={styles.picker}>
           <p className={styles.notice}>
-            Customers keep seeing {savedLabel} until you save.
+            Tap a theme and it saves onto your site right away.
           </p>
           {!savedOffered && chosenId !== savedThemeId ? (
             <p className={styles.warning}>
@@ -274,64 +264,21 @@ export function ThemeStudio({
           ) : null}
           {status === 'ready' ? (
             <fieldset className={styles.fieldset}>
-              <legend className={styles.legend}>Choose your theme</legend>
-              {groups.inSeason.length > 0 ? (
-                <div>
-                  <h2 className={styles.groupTitle}>In season now</h2>
-                  <div className={styles.grid}>
-                    {groups.inSeason.map((theme) => {
-                      const eager = imageIndex < 4
-                      imageIndex += 1
-                      return renderCard(theme, eager)
-                    })}
-                  </div>
-                </div>
-              ) : null}
-              <div>
-                <h2 className={styles.groupTitle}>Year-round</h2>
-                <div
-                  className={styles.grid}
-                  data-year-round=""
-                  data-expanded={yearRoundOpen ? 'true' : 'false'}
-                >
-                  {groups.yearRound.map((theme) => {
-                    const eager = imageIndex < 4
-                    imageIndex += 1
-                    return renderCard(theme, eager)
-                  })}
-                </div>
-                {groups.yearRound.length > 2 ? (
-                  <button
-                    type="button"
-                    className={styles.showAll}
-                    hidden={yearRoundOpen}
-                    onClick={() => setYearRoundOpen(true)}
-                  >
-                    Show all {groups.yearRound.length} themes
-                  </button>
-                ) : null}
-              </div>
+            <legend className={styles.legend}>Choose your theme</legend>
+            <ThemeGroups
+              themes={themes}
+              ownedPrivateSkinIds={ownedPrivateSkinIds}
+              currentId={draftThemeId}
+              now={now ?? new Date()}
+              filter={themeFilter}
+              onFilter={setThemeFilter}
+              renderCard={(theme) => {
+                const eager = imageIndex < 4
+                imageIndex += 1
+                return renderCard(theme, eager)
+              }}
+            />
             </fieldset>
-          ) : null}
-          {status === 'ready' ? (
-            <div className={styles.actions}>
-              <button
-                type="button"
-                className={styles.use}
-                onClick={useTheme}
-                disabled={!chosen || chosen.id === draftThemeId}
-              >
-                Use {chosenLabel}
-              </button>
-              <button
-                type="button"
-                className={styles.keep}
-                onClick={keepTheme}
-                disabled={chosenId === savedThemeId && draftThemeId === savedThemeId}
-              >
-                Keep {savedLabel}
-              </button>
-            </div>
           ) : null}
           <p className={styles.note}>
             Applies only to your public customer-facing site. Your Sparkle Suite workspace keeps the standard workspace theme.
@@ -389,9 +336,6 @@ export function ThemeStudio({
               <button type="button" className={styles.keep} onClick={closeTryOn}>
                 Back to themes
               </button>
-              <button type="button" className={styles.use} onClick={() => { useTheme(); closeTryOn() }}>
-                Use this theme
-              </button>
             </div>
           </div>
         ) : null}
@@ -400,6 +344,7 @@ export function ThemeStudio({
   )
 
   function renderCard(theme: AmethystSkinCard, eager: boolean) {
+    const applied = theme.id === draftThemeId
     const selected = theme.id === chosenId
     const live = theme.id === savedThemeId
     const offered = offeredIds.has(theme.id)
@@ -417,6 +362,7 @@ export function ThemeStudio({
             onChange={() => {
               setChosenId(theme.id)
               showCachedOrLoading(theme.id, page)
+              if (theme.id !== draftThemeId) onDraftThemeChange(theme.id)
             }}
           />
           <span
@@ -445,6 +391,7 @@ export function ThemeStudio({
             <span className={styles.tag}>Just for you</span>
           ) : null}
           {seasonTag ? <span className={styles.tag}>{seasonTag}</span> : null}
+          {applied ? <span className={styles.onSite}>On your site</span> : null}
           {live ? (
             <span className={styles.liveChip}>
               {offered ? 'Live now' : 'Live now (no longer offered)'}
@@ -463,7 +410,7 @@ export function ThemeStudio({
             id={`try-on-${theme.id}`}
             onClick={() => openTryOn(theme.id)}
           >
-            Try it on
+            Preview
           </button>
         ) : null}
       </article>
@@ -590,6 +537,110 @@ function PreviewSurface({
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+function ThemeGroups({
+  themes,
+  ownedPrivateSkinIds,
+  currentId,
+  now,
+  filter,
+  onFilter,
+  renderCard,
+}: {
+  themes: AmethystSkinCard[]
+  ownedPrivateSkinIds: readonly string[]
+  currentId: string
+  now: Date
+  filter: 'all' | 'season' | 'holiday' | 'everyday' | 'yours'
+  onFilter: (filter: 'all' | 'season' | 'holiday' | 'everyday' | 'yours') => void
+  renderCard: (theme: AmethystSkinCard) => ReactNode
+}) {
+  const grouped = groupThemeCards(themes, ownedPrivateSkinIds, currentId, now)
+  const seasonCount = grouped.holiday.filter((group) => group.inSeason).reduce((sum, group) => sum + group.themes.length, 0)
+  const everydayCount = grouped.gems.length + grouped.roseGold.length + grouped.bombParty.length + grouped.general.length
+  const chips = [
+    ['all', 'All', themes.length],
+    ['season', 'In season now', seasonCount],
+    ['holiday', 'Holiday', grouped.holiday.reduce((sum, group) => sum + group.themes.length, 0)],
+    ['everyday', 'Everyday', everydayCount],
+    ['yours', 'Just for you', grouped.justForYou.length],
+  ] as const
+  const holiday = filter === 'season' ? grouped.holiday.filter((group) => group.inSeason) : grouped.holiday
+  return (
+    <div>
+      {grouped.current ? (
+        <div className={styles.currentTheme} data-testid="theme-on-site">
+          <p className={styles.groupTitle}>On your site now</p>
+          <p className={styles.currentName}>{grouped.current.label}</p>
+        </div>
+      ) : null}
+      <div className={styles.filters} role="group" aria-label="Theme groups">
+        {chips.filter((chip) => chip[0] === 'all' || chip[2] > 0).map(([id, label, count]) => (
+          <button
+            key={id}
+            type="button"
+            className={filter === id ? styles.filterOn : styles.filter}
+            aria-pressed={filter === id}
+            onClick={() => onFilter(id)}
+          >
+            {label} <span>{count}</span>
+          </button>
+        ))}
+      </div>
+      {(filter === 'all' || filter === 'holiday' || filter === 'season') && holiday.length > 0 ? (
+        <section>
+          <h2 className={styles.groupTitle}>Holiday & seasonal</h2>
+          {holiday.map((group) => (
+            <div key={group.series}>
+              <h3 className={styles.seriesTitle}>
+                {group.label}
+                {group.inSeason ? <span className={styles.inSeason}>In season now</span> : null}
+              </h3>
+              <div className={styles.grid}>{group.themes.map((theme) => renderCard(theme))}</div>
+            </div>
+          ))}
+        </section>
+      ) : null}
+      {(filter === 'all' || filter === 'everyday') && everydayCount > 0 ? (
+        <section>
+          <h2 className={styles.groupTitle}>Everyday themes</h2>
+          {grouped.roseGold.length + grouped.gems.length > 0 ? (
+            <div>
+              <h3 className={styles.seriesTitle}>Gems & metals</h3>
+              {grouped.roseGold.length > 0 ? (
+                <>
+                  <p className={styles.seriesNote}>Rose Gold</p>
+                  <div className={styles.grid}>{grouped.roseGold.map((theme) => renderCard(theme))}</div>
+                </>
+              ) : null}
+              {grouped.gems.length > 0 ? (
+                <div className={styles.grid}>{grouped.gems.map((theme) => renderCard(theme))}</div>
+              ) : null}
+            </div>
+          ) : null}
+          {grouped.bombParty.length > 0 ? (
+            <div>
+              <h3 className={styles.seriesTitle}>Bomb Party fun</h3>
+              <div className={styles.grid}>{grouped.bombParty.map((theme) => renderCard(theme))}</div>
+            </div>
+          ) : null}
+          {grouped.general.length > 0 ? (
+            <div>
+              <h3 className={styles.seriesTitle}>General</h3>
+              <div className={styles.grid}>{grouped.general.map((theme) => renderCard(theme))}</div>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+      {(filter === 'all' || filter === 'yours') && grouped.justForYou.length > 0 ? (
+        <section>
+          <h2 className={styles.groupTitle}>Just for you</h2>
+          <div className={styles.grid}>{grouped.justForYou.map((theme) => renderCard(theme))}</div>
+        </section>
+      ) : null}
     </div>
   )
 }

@@ -5,7 +5,12 @@ import {
   SiteSettingsCard,
   type SiteSettingsDraft,
 } from '@/app/nic-nac/components/DashboardPlaceholder'
+import { AMETHYST_SKIN_CARDS } from '@/lib/amethyst/skin-cards'
 import type { SiteSectionId } from '@/app/nic-nac/components/site-settings-layout'
+
+const reviewThemes = AMETHYST_SKIN_CARDS.filter(
+  (card) => card.visibility === 'community' && card.selectable !== false,
+)
 
 const video = 'https://video.example/shorts/sample'
 const shop = 'https://shop.example/sasha'
@@ -90,6 +95,7 @@ function ReviewCard({
         publicSiteUrl="https://sparklebysasha.example"
         publicSiteDisplay="sparklebysasha.example"
         canPreview
+        previewThemeCards={reviewThemes}
         initialOpenSections={openSections}
         onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
         onPreview={() => undefined}
@@ -174,6 +180,7 @@ export function MyWebsiteLayoutHarness({
         publicSiteUrl="https://sparklebysasha.example"
         publicSiteDisplay="sparklebysasha.example"
         canPreview
+        previewThemeCards={reviewThemes}
         initialOpenSection={openSection}
         onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
         onPreview={() => undefined}

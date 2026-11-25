@@ -11,7 +11,7 @@ import { SHOWS_ON, SETUP_FIELD_IDS } from './site-settings-layout'
 function ShowsOn({ id, children }: { id: string; children: string }) {
   return (
     <span id={id} className={styles.showsOn} data-shows-on="">
-      Shows on: {children}
+      Shows on your site: {children}
     </span>
   )
 }

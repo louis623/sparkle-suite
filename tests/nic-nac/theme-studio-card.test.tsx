@@ -136,7 +136,7 @@ describe('theme studio card', () => {
     expect(new Set(radios.map((item) => item.name))).toEqual(new Set(['customer-site-theme']))
     expect(radios.filter((item) => item.checked).map((item) => item.value)).toEqual(['rose_champagne'])
     expect(host.textContent).toContain('In season now')
-    expect(host.textContent).toContain('Year-round')
+    expect(host.textContent).toContain('Everyday themes')
     const witchRadios = host.querySelectorAll('input[value="halloween_pumpkin_witch"]')
     expect(witchRadios).toHaveLength(1)
     expect(witchRadios[0]?.closest('article')?.textContent).toContain('Halloween')
@@ -158,23 +158,16 @@ describe('theme studio card', () => {
     expect(css).toContain('prefers-reduced-motion: no-preference')
   })
 
-  it('changes the draft only from Use and Keep', async () => {
+  it('applies a theme as soon as its card is chosen', async () => {
     const drafts: string[] = []
     await renderStudio({ onDraftThemeChange: (themeId) => drafts.push(themeId) })
     await act(async () => {
       radio('rose_gold').click()
     })
     expect(radio('rose_gold').checked).toBe(true)
-    expect(drafts).toEqual([])
-    await act(async () => {
-      buttonNamed('Use Rose Gold').click()
-    })
     expect(drafts).toEqual(['rose_gold'])
-    await act(async () => {
-      buttonNamed('Keep Rose Champagne').click()
-    })
-    expect(drafts).toEqual(['rose_gold', 'rose_champagne'])
-    expect(radio('rose_champagne').checked).toBe(true)
+    expect(host.textContent).not.toContain('Use Rose Gold')
+    expect(host.textContent).toContain('On your site')
   })
 
   it('shows a retired saved theme without Try it on or a preview request', async () => {
@@ -324,7 +317,7 @@ describe('theme studio card', () => {
     const dialog = host.querySelector('dialog') as HTMLDialogElement
     expect(dialog.open).toBe(true)
     expect(host.textContent).toContain('Back to themes')
-    expect(host.textContent).toContain('Use this theme')
+    expect(host.textContent).not.toContain('Use this theme')
     await act(async () => {
       buttonNamed('Close').click()
     })

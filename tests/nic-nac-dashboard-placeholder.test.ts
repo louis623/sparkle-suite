@@ -3658,7 +3658,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Sparkle rise')
     expect(html).toContain('Soft glow')
     expect(html).toContain('Still')
-    expect(html).toContain('Customer-facing site theme')
+    expect(html).toContain('Choose your theme')
     expect(html).not.toContain('Customer Site Looks')
     expect(html).not.toContain('Morganite is locked in for every Sparkle Suite workspace and Amethyst customer site.')
     expect(html).not.toContain('Reference polished customer-site looks')
@@ -3706,7 +3706,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('maxLength="180"')
     expect(html.match(/Upload photo/g)).toHaveLength(1)
     expect(html).toContain('Video links and embeds')
-    expect(html).toContain('<summary')
+    expect(html).toContain('About you')
     expect(html).toContain('public TikTok, YouTube Short, Instagram Reel, or Facebook Reel/video')
     expect(html).toContain('TikTok and YouTube play muted, loop, and do not show a pause control.')
     expect(html).toContain('Instagram')
@@ -3718,9 +3718,9 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('aria-label="Show Facebook in hero"')
     expect(html).toContain('Add a link to choose footer and hero.')
     expect(html).not.toContain('Show Facebook VIP button in the landing hero')
-    expect(html).toContain('My Website')
-    expect(html).toContain('Preview saved site')
-    expect(html).toContain('View my site')
+    expect(html).toContain('Tap a part of your site to change it')
+    expect(html).not.toContain('Preview saved site')
+    expect(html).not.toContain('View my site')
     expect(html).not.toContain('Save site settings')
     expect(html).not.toContain('data-testid="site-save-bar"')
     expect(html).not.toContain('Brittany custom media')
@@ -3880,16 +3880,12 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(html).not.toContain('Changes will auto-save.')
-    expect(html).toContain('1 unsaved change')
+    expect(html).toContain('Everything saves on its own as you go.')
+    expect(html).toContain('All changes saved')
     expect(html).toContain('Footer tagline')
-    expect(html).toContain('Preview saved site')
-    expect(html).toContain('Save &amp; publish')
+    expect(html).not.toContain('Preview saved site')
+    expect(html).not.toContain('Save &amp; publish')
     expect(html).not.toContain('Save site settings')
-    expect(html).not.toContain('No unsaved changes')
-    expect(html).not.toMatch(/siteSettingsPreviewButton[^"]*" disabled/)
-    const saveAt = html.indexOf('Save &amp; publish')
-    expect(html.slice(Math.max(0, saveAt - 220), saveAt)).not.toContain('disabled')
   })
 
   it('derives manual site settings save status text', () => {
@@ -3957,14 +3953,13 @@ describe('DashboardPlaceholder', () => {
         }),
       )
 
-      expect(html).toContain('My Website')
-      expect(html).toContain('Preview saved site')
-      expect(html).toContain('View my site ↗')
+      expect(html).toContain('Tap a part of your site to change it')
+      expect(html).not.toContain('Preview saved site')
+      expect(html).not.toContain('View my site ↗')
       expect(html).toContain('yoursparklesuite.com/sparkle-test')
       expect(html).not.toContain('Save site settings')
       expect(html).not.toContain('data-testid="site-save-bar"')
-      expect(html).toContain('siteSettingsSaveActions')
-      expect(html).not.toContain('siteSettingsAutoSaveStatus')
+      expect(html).toContain('All changes saved')
     } finally {
       Object.defineProperty(globalThis, 'window', {
         configurable: true,
@@ -3990,20 +3985,13 @@ describe('DashboardPlaceholder', () => {
     )
 
     expect(styles).not.toContain('.workspaceSaveDock')
-    expect(styles).toContain('.siteSettingsSaveActions')
-    expect(styles).toContain('.siteSettingsPreviewButton')
-    expect(styles).not.toContain('.siteSettingsSaveFooter')
-    expect(styles).not.toContain('.siteSettingsAutoSaveStatus')
+    expect(styles).toContain('.siteSavePill')
     expect(styles).not.toContain('.siteSettingsSaveBar')
-    expect(styles).not.toContain('calc(96px + env(safe-area-inset-bottom))')
-    expect(source).not.toContain('siteSettingsAutosaveTimerRef')
-    expect(source).not.toContain('void saveSiteSettingsDraft(normalizedDraft)')
-    expect(source).toContain('function handleSaveSiteSettings()')
-    expect(source).toContain('function handleDiscardSiteSettings()')
+    expect(source).toContain('autosaveTimerRef')
+    expect(source).toContain('function runSiteAutosave()')
+    expect(source).toContain('function undoLastSiteChange()')
+    expect(source).not.toContain('<SiteSaveBar')
     expect(source).not.toContain('Save site settings')
-    expect(
-      readFileSync(resolve(process.cwd(), 'app/nic-nac/components/SiteSaveBar.tsx'), 'utf8'),
-    ).toContain('Save & publish')
   })
 
   it('routes active account billing to Stripe without duplicating billing details', () => {

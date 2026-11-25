@@ -117,17 +117,13 @@ describe('workspace control hover tips', () => {
     expect(board).toContain("'Deny'")
     expect(home).toContain("section.key === 'jewelry-library' || section.key === 'wispr-flow'")
     expect(home).toContain('tip={section.key} block listItem')
-    expect(source('app/nic-nac/components/SiteSaveBar.tsx')).toContain('tip="save-site-settings"')
+    expect(home).not.toContain('<SiteSaveBar')
     expect(home).not.toContain('tip="collection-intake"')
+    expect(home).toContain('Everything saves on its own as you go.')
 
     expect(source('app/nic-nac/components/TradeBoardWorkspaceCard.tsx')).not.toContain('AddDancers')
     expect(home).not.toContain('id="dance-floor-bulk-intake-title"')
-
-    const preview = home.indexOf('Preview saved site')
-    const previewButton = home.lastIndexOf('<button', preview)
-    const previewEnd = home.indexOf('</button>', preview)
-    expect(home.slice(previewButton, previewEnd)).not.toContain('ControlTip')
-    expect(home.indexOf('<SiteSaveBar')).toBeGreaterThan(previewEnd)
+    expect(home).not.toContain('Preview saved site')
   })
 
   it('keeps the tip text off the resting controls', () => {
@@ -193,11 +189,11 @@ describe('workspace control hover tips', () => {
         changes: ['Footer tagline'],
       }),
     )
-    expect(settings).toContain('data-control-tip="save-site-settings"')
-    expect(settings).toContain('Save &amp; publish')
-    expect(settings).toContain('Preview saved site')
+    expect(settings).not.toContain('data-control-tip="save-site-settings"')
+    expect(settings).not.toContain('Save &amp; publish')
+    expect(settings).toContain('Tap a part of your site to change it')
     expect(settings).not.toContain(EXACT_TIPS['save-site-settings'])
-    expect(settings.match(/data-control-tip=/g)).toHaveLength(1)
+    expect(settings.match(/data-control-tip=/g) ?? []).toHaveLength(0)
 
     const board = renderToStaticMarkup(
       createElement(TradeBoardWorkspaceCard, {
