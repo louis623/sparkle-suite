@@ -3763,7 +3763,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Sparkle moment 3')
     expect(html).toContain('Show the About Brittany and Sparkle Moments section')
     expect(html).toContain('Hero and “The Rise of Her” stay managed for this custom site.')
-    expect(html).toContain('Customer-facing site theme')
+    expect(html).toContain('Choose your theme')
     expect(html).toContain('Loading your available themes…')
     expect(html).toContain('Remove video')
     expect(html).toContain('7602795836380073229')
