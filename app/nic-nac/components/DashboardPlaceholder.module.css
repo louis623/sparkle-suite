@@ -9206,45 +9206,45 @@
 }
 
 @media (min-width: 880px) {
-  .siteHomeGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .siteHomeGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
   .siteTile { display: flex; flex-direction: column; min-height: 0; }
   .siteTileArt {
     width: 100%;
     height: auto;
     aspect-ratio: 4 / 3;
-    min-height: 220px;
+    min-height: 0;
     flex: none;
-    padding: 18px;
+    padding: 10px;
   }
-  .siteTileCopy { flex: none; padding: 14px 16px 16px; }
-  .sitePortraitRing { width: 120px; height: 120px; padding: 5px; }
-  .sitePortraitRing .sitePortraitMark { font-size: 2.6rem; }
-  .siteAboutName { font-size: 1.8rem; }
-  .siteArtPill { font-size: 0.85rem; padding: 6px 12px; }
-  .siteShowScene { flex-direction: row; align-items: stretch; gap: 20px; }
+  .siteTileCopy { flex: none; padding: 10px 12px 12px; }
+  .siteTileTitle { font-size: 1.15rem; padding-right: 96px; }
+  .sitePortraitRing { width: 64px; height: 64px; padding: 3px; }
+  .sitePortraitRing .sitePortraitMark { font-size: 1.6rem; }
+  .siteAboutName { font-size: 1.05rem; }
+  .siteArtPill { font-size: 0.72rem; padding: 4px 8px; }
+  .siteShowScene { flex-direction: row; align-items: stretch; gap: 8px; }
   .siteCalendar,
-  .siteCodeCard { width: 220px; min-height: 300px; }
-  .siteCalMonth { font-size: 0.9rem; padding: 12px 0; }
-  .siteCalDay { font-size: 4.6rem; padding: 22px 0 8px; }
+  .siteCodeCard { width: 46%; min-height: 0; }
+  .siteCalMonth { font-size: 0.62rem; padding: 4px 0; }
+  .siteCalDay { font-size: 1.6rem; padding: 6px 0 2px; }
   .siteCalName,
-  .siteCalTime { font-size: 0.85rem; padding-inline: 10px; }
-  .siteCalTime { padding-bottom: 14px; }
-  .siteCodeCard { min-height: 300px; padding: 18px 16px; }
-  .siteCodeLabel { font-size: 0.72rem; }
-  .siteCodeValue { font-size: 2rem; }
+  .siteCalTime { font-size: 0.62rem; padding-inline: 4px; }
+  .siteCalTime { padding-bottom: 6px; }
+  .siteCodeCard { padding: 8px 6px; }
+  .siteCodeLabel { font-size: 0.55rem; }
+  .siteCodeValue { font-size: 0.95rem; }
   .siteCodeCard::before,
-  .siteCodeCard::after { width: 18px; height: 18px; }
-  .siteCodeCard::before { left: -9px; }
-  .siteCodeCard::after { right: -9px; }
-  .siteLinkScene { gap: 18px; padding: 36px 40px; border-radius: 28px; }
-  .siteBrand { width: 72px; height: 72px; }
-  .siteBrandIcon { width: 30px; height: 30px; }
-  .sitePagePills { gap: 10px; }
-  .sitePagePills span { font-size: 0.95rem; padding: 8px 14px; }
-  .siteTileTitle { padding-right: 108px; }
-  .siteTileSummary { -webkit-line-clamp: 1; }
+  .siteCodeCard::after { width: 10px; height: 10px; }
+  .siteCodeCard::before { left: -5px; }
+  .siteCodeCard::after { right: -5px; }
+  .siteLinkScene { gap: 8px; padding: 10px; border-radius: 16px; }
+  .siteBrand { width: 32px; height: 32px; }
+  .siteBrandIcon { width: 16px; height: 16px; }
+  .sitePagePills { gap: 4px; }
+  .sitePagePills span { font-size: 0.62rem; padding: 3px 6px; }
+  .siteTileSummary { -webkit-line-clamp: 1; padding-right: 96px; }
   .siteChipDone,
-  .siteChipNeeds { position: absolute; top: 14px; right: 14px; }
+  .siteChipNeeds { position: absolute; top: 8px; right: 8px; }
 }
 
 @container tile-art (max-width: 140px) {
