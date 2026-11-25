@@ -10317,28 +10317,42 @@ export function SiteSettingsCard({
                   themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : <span className={styles.sitePaletteName}>{themeCard.label}</span>
                 ) : null}
                 {group.id === 'about' ? (
-                  <>
-                    {group.art ? <img src={group.art} alt="" /> : <span className={styles.sitePortraitMark}>{(draft.displayName || 'You').slice(0, 1)}</span>}
-                    <span className={styles.siteArtPill}>What is a Bomb Party</span>
-                  </>
+                  group.art ? (
+                    <>
+                      <img src={group.art} alt="" />
+                      <span className={styles.siteArtPill}>What is a Bomb Party</span>
+                    </>
+                  ) : (
+                    <span className={styles.siteAboutScene}>
+                      <span className={styles.sitePortraitMark}>{(draft.displayName || 'You').slice(0, 1)}</span>
+                      <span className={styles.siteAboutName}>{draft.displayName?.trim() || 'Your name'}</span>
+                      <span className={styles.siteArtPill}>What is a Bomb Party</span>
+                    </span>
+                  )
                 ) : null}
                 {group.id === 'shows' ? (
-                  <>
-                    <span className={styles.siteDateChip}>Shows</span>
-                    <span className={styles.siteCodeCard}>{draft.signupDiscountCode?.trim() || 'Sign-up'}</span>
-                  </>
+                  <span className={styles.siteShowScene}>
+                    <span className={styles.siteCalendar}>
+                      <span className={styles.siteDateChip}>Shows</span>
+                      <span className={styles.siteCalendarMark} aria-hidden="true">✦</span>
+                    </span>
+                    <span className={styles.siteCodeCard}>
+                      <span className={styles.siteCodeLabel}>Sign-up code</span>
+                      {draft.signupDiscountCode?.trim() || 'Your code'}
+                    </span>
+                  </span>
                 ) : null}
                 {group.id === 'links' ? (
-                  <>
+                  <span className={styles.siteLinkScene}>
                     <span className={styles.siteSocialRow}>
                       {['I', 'F', 'T', 'Y', 'W'].map((mark) => <span key={mark}>{mark}</span>)}
                     </span>
                     <span className={styles.sitePagePills}>
                       <span>Dance Floor</span>
                       <span>Join</span>
-                      <span>Live</span>
+                      <span>Live Lineup</span>
                     </span>
-                  </>
+                  </span>
                 ) : null}
               </span>
               <span className={styles.siteTileCopy}>
