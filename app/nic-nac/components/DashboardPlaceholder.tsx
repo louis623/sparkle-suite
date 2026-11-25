@@ -380,6 +380,49 @@ export function formatHeaderRepName(displayName?: string | null) {
   return displayName?.trim() || 'Rep info loading'
 }
 
+function hostFirstName(displayName?: string | null) {
+  const name = displayName?.trim()
+  if (!name) return 'You'
+  return name.split(/\s+/)[0] || 'You'
+}
+
+function hexLuminance(hex: string) {
+  const raw = hex.trim().replace('#', '')
+  const full = raw.length === 3 ? raw.split('').map((part) => part + part).join('') : raw
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return 1
+  const channels = [0, 2, 4].map((index) => {
+    const value = parseInt(full.slice(index, index + 2), 16) / 255
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+}
+
+function mixTowardBlack(hex: string, amount: number) {
+  const raw = hex.trim().replace('#', '')
+  const full = raw.length === 3 ? raw.split('').map((part) => part + part).join('') : raw.padEnd(6, '0').slice(0, 6)
+  const mixed = [0, 2, 4].map((index) =>
+    Math.round(parseInt(full.slice(index, index + 2), 16) * (1 - amount))
+      .toString(16)
+      .padStart(2, '0'),
+  )
+  return `#${mixed.join('')}`
+}
+
+/** Theme swatches, darkened until white type on the cover fade stays readable. */
+export function magazineCoverColors(card: AmethystSkinCard) {
+  const swatch = (label: string, fallback: string) =>
+    card.swatches.find((item) => item.label === label)?.value ?? fallback
+  const accent = swatch('Accent', '#ff1ac2')
+  const candidates = [swatch('Primary', '#5c0eff'), accent, swatch('Ground', '#120616')]
+  let deep = candidates.reduce((darkest, color) =>
+    hexLuminance(color) < hexLuminance(darkest) ? color : darkest,
+  )
+  for (let guard = 0; hexLuminance(deep) > 0.12 && guard < 8; guard += 1) {
+    deep = mixTowardBlack(deep, 0.22)
+  }
+  return { accent, deep }
+}
+
 export function formatHeaderShowName(
   businessName?: string | null,
   displayName?: string | null,
@@ -10192,6 +10235,15 @@ export function SiteSettingsCard({
   const savePhase = actionState?.pending ? 'saving' : saveError ? 'error' : 'saved'
   const checklist = buildSiteSetupChecklist(draft)
   const themeCard = getAmethystSkinCard(draft.appearancePreset)
+  const aboutSlot = draft.homepageMediaSlots?.find((slot) => slot.key === 'about_1')
+  const aboutPhoto = aboutSlot?.imageUrl?.trim() || ''
+  const aboutCaption = aboutSlot?.caption?.trim() || draft.tagline?.trim() || ''
+  const aboutName = hostFirstName(draft.displayName)
+  const aboutCover = magazineCoverColors(themeCard)
+  const aboutCoverStyle = {
+    '--mag-accent': aboutCover.accent,
+    '--mag-deep': aboutCover.deep,
+  } as CSSProperties
   const siteGroups = [
     {
       id: 'look',
@@ -10334,16 +10386,30 @@ export function SiteSettingsCard({
                   themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : <span className={styles.sitePaletteName}>{themeCard.label}</span>
                 ) : null}
                 {group.id === 'about' ? (
-                  <span className={styles.siteAboutScene}>
-                    <span className={styles.sitePortraitRing}>
-                      {group.art ? (
-                        <img className={styles.siteAboutPhoto} src={group.art} alt="" />
-                      ) : (
-                        <span className={styles.sitePortraitMark}>{(draft.displayName || 'You').slice(0, 1)}</span>
-                      )}
+                  <span
+                    className={styles.siteMag}
+                    data-about-cover={aboutPhoto ? 'photo' : 'fallback'}
+                    style={aboutCoverStyle}
+                  >
+                    {aboutPhoto ? (
+                      <img
+                        key={aboutPhoto}
+                        className={styles.siteMagPhoto}
+                        src={aboutPhoto}
+                        alt=""
+                        style={{
+                          objectPosition: `${aboutSlot?.portraitFocusX ?? 50}% ${aboutSlot?.portraitFocusY ?? 25}%`,
+                        }}
+                      />
+                    ) : (
+                      <span className={styles.siteMagWatermark}>{aboutName.slice(0, 1)}</span>
+                    )}
+                    <span className={styles.siteMagOverlay}>
+                      <span className={styles.siteMagMast}>Meet your host</span>
+                      <span className={styles.siteMagName}>{aboutName}</span>
+                      {aboutCaption ? <span className={styles.siteMagTag}>{aboutCaption}</span> : null}
+                      {aboutPhoto ? null : <span className={styles.siteMagHint}>Add your photo</span>}
                     </span>
-                    <span className={styles.siteAboutName}>{draft.displayName?.trim() || 'Your name'}</span>
-                    <span className={styles.siteArtPill}>What is a Bomb Party</span>
                   </span>
                 ) : null}
                 {group.id === 'shows' ? (

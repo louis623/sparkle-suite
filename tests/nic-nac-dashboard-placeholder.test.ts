@@ -3726,6 +3726,64 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Brittany custom media')
   })
 
+  it('renders the About magazine cover from the saved photo, caption, or tagline', () => {
+    const photo = 'https://cdn.example.com/sasha-portrait.jpg'
+    const withPhoto = getSiteSettingsDraft({
+      ...SITE_SETTINGS_READY_STATE.settings,
+      displayName: 'Sasha Sample',
+      tagline: 'Live jewelry, real sparkle.',
+      homepageMediaSlots: [
+        { key: 'about_1', caption: 'Come sparkle with me.', imageUrl: photo, videoUrl: '' },
+      ],
+    })
+    const photoHtml = renderToStaticMarkup(
+      createElement(SiteSettingsCard, {
+        state: { status: 'ready', settings: { ...SITE_SETTINGS_READY_STATE.settings, ...withPhoto } },
+        draft: withPhoto,
+      }),
+    )
+    expect(photoHtml).toContain('data-about-cover="photo"')
+    expect(photoHtml).toContain('Meet your host')
+    expect(photoHtml).toContain('>Sasha<')
+    expect(photoHtml).toContain('Come sparkle with me.')
+    expect(photoHtml).toContain(`src="${photo}"`)
+    expect(photoHtml).not.toContain('Add your photo')
+
+    const nextPhoto = 'https://cdn.example.com/sasha-new.jpg'
+    const nextHtml = renderToStaticMarkup(
+      createElement(SiteSettingsCard, {
+        state: { status: 'ready', settings: SITE_SETTINGS_READY_STATE.settings },
+        draft: {
+          ...withPhoto,
+          homepageMediaSlots: withPhoto.homepageMediaSlots?.map((slot) =>
+            slot.key === 'about_1' ? { ...slot, imageUrl: nextPhoto, caption: 'New caption' } : slot,
+          ),
+        },
+      }),
+    )
+    expect(nextHtml).toContain(`src="${nextPhoto}"`)
+    expect(nextHtml).toContain('New caption')
+    expect(nextHtml).not.toContain(photo)
+
+    const fallback = getSiteSettingsDraft({
+      ...SITE_SETTINGS_READY_STATE.settings,
+      displayName: 'Sasha Sample',
+      tagline: 'Live jewelry, real sparkle.',
+      homepageMediaSlots: [{ key: 'about_1', caption: '', imageUrl: '', videoUrl: '' }],
+    })
+    const fallbackHtml = renderToStaticMarkup(
+      createElement(SiteSettingsCard, {
+        state: { status: 'ready', settings: SITE_SETTINGS_READY_STATE.settings },
+        draft: fallback,
+      }),
+    )
+    expect(fallbackHtml).toContain('data-about-cover="fallback"')
+    expect(fallbackHtml).toContain('>Sasha<')
+    expect(fallbackHtml).toContain('Live jewelry, real sparkle.')
+    expect(fallbackHtml).toContain('Add your photo')
+    expect(fallbackHtml).not.toContain(photo)
+  })
+
   it('renders Brittany custom media controls without removing standard theme controls', () => {
     const settings = {
       ...SITE_SETTINGS_READY_STATE.settings,

@@ -17,7 +17,7 @@ export default async function MyWebsiteLayoutHarnessPage({
 }) {
   if (!isMyWebsiteLayoutHarnessEnabled()) notFound()
   const query = searchParams ? await searchParams : {}
-  const mode = query.case === 'full' || query.case === 'states' || query.case === 'load-error'
+  const mode = query.case === 'full' || query.case === 'states' || query.case === 'load-error' || query.case === 'no-photo'
     ? query.case
     : 'gaps'
   return (

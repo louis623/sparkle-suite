@@ -139,17 +139,24 @@ export function MyWebsiteLayoutHarness({
   mode = 'gaps',
   openSection = null,
 }: {
-  mode?: 'gaps' | 'full' | 'states' | 'load-error'
+  mode?: 'gaps' | 'full' | 'states' | 'load-error' | 'no-photo'
   openSection?: SiteSectionId | null
 }) {
   const [reloaded, setReloaded] = useState(false)
   const saved: SiteSettingsDraft =
     mode === 'full' || mode === 'states'
       ? sample
-      : {
-          ...sample,
-          shopLink: 'shop.example/sasha',
-        }
+      : mode === 'no-photo'
+        ? {
+            ...sample,
+            homepageMediaSlots: sample.homepageMediaSlots?.map((slot) =>
+              slot.key === 'about_1' ? { ...slot, imageUrl: '', caption: '' } : slot,
+            ),
+          }
+        : {
+            ...sample,
+            shopLink: 'shop.example/sasha',
+          }
   const [draft, setDraft] = useState(saved)
   if (mode === 'load-error') {
     return (

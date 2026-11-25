@@ -8784,8 +8784,8 @@
     linear-gradient(160deg, #5c3d4a, #34252f 70%);
 }
 .siteTileArt[data-tile-art='about'] {
-  background:
-    radial-gradient(circle at 50% 38%, #ffe4f2 0%, #c98aa8 42%, #5c3d4a 100%);
+  padding: 0;
+  background: var(--mag-deep, #120616);
 }
 .siteTileArt[data-tile-art='shows'] {
   background:
@@ -8914,6 +8914,86 @@
   line-height: 1.1;
   text-align: center;
   color: #402924;
+}
+.siteMag {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 80% 20%, color-mix(in srgb, var(--mag-accent, #ff1ac2) 40%, transparent), transparent 50%),
+    linear-gradient(160deg, color-mix(in srgb, var(--mag-deep, #120616) 78%, #120616), var(--mag-deep, #120616));
+  color: #fff;
+  color: contrast-color(var(--mag-deep, #120616));
+}
+.siteTileArt .siteMagPhoto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+}
+.siteMagWatermark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-size: clamp(72px, 48cqi, 140px);
+  color: rgba(255, 255, 255, 0.16);
+  color: color-mix(in srgb, contrast-color(var(--mag-deep, #120616)) 16%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+.siteMagOverlay {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 22% 10% 8%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--mag-deep, #120616) 55%, transparent) 32%,
+    color-mix(in srgb, var(--mag-deep, #120616) 94%, transparent) 100%
+  );
+  text-align: left;
+}
+.siteMagMast {
+  font-size: clamp(8px, 3.6cqi, 11px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.siteMagName,
+.siteMagTag {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.siteMagName {
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  line-height: 0.95;
+  font-size: clamp(22px, 13.5cqi, 40px);
+}
+.siteMagTag,
+.siteMagHint {
+  font-size: clamp(9px, 4.2cqi, 13px);
+  line-height: 1.25;
+}
+.siteMagHint {
+  font-size: clamp(8px, 3.2cqi, 11px);
+  letter-spacing: 0.04em;
+  opacity: 0.82;
 }
 .siteShowScene { flex-direction: column; align-items: center; gap: 8px; }
 .siteCalendar {
@@ -9250,6 +9330,9 @@
 @container tile-art (max-width: 140px) {
   .siteAboutName,
   .siteAboutScene .siteArtPill,
+  .siteMagMast,
+  .siteMagTag,
+  .siteMagHint,
   .siteCodeCard,
   .siteCalName,
   .siteCalTime,
@@ -9259,6 +9342,14 @@
   .siteShowScene,
   .siteLinkScene { gap: 0; padding: 0; background: transparent; box-shadow: none; }
   .sitePortraitRing { width: 64px; height: 64px; }
+  .siteMagOverlay {
+    height: 100%;
+    box-sizing: border-box;
+    justify-content: flex-end;
+    padding: 0 6px 8px;
+  }
+  .siteMagName { font-size: 13px; line-height: 1.2; }
+  .siteMagWatermark { font-size: 56px; align-content: start; padding-top: 6px; }
   .siteCalendar { width: 76px; }
   .siteCalMonth { font-size: 0.55rem; padding: 3px 0; }
   .siteCalDay { font-size: 1.45rem; padding: 4px 0 6px; }
