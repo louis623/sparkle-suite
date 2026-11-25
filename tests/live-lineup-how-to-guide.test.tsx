@@ -8,14 +8,25 @@ import { LIVE_LINEUP_RELEASE } from '@/lib/live-lineup/release'
 import {
   LIVE_LINEUP_GUIDE_IMAGES,
   LIVE_LINEUP_HELP_BUTTON_LABEL,
+  LIVE_LINEUP_HELP_RESOURCE_ID,
   LIVE_LINEUP_NEED_A_HAND,
+  LIVE_LINEUP_STAY_AWAKE_IF_ASLEEP,
+  LIVE_LINEUP_STAY_AWAKE_INTRO,
+  LIVE_LINEUP_STAY_AWAKE_MAC_LINK,
+  LIVE_LINEUP_STAY_AWAKE_MAC_STEPS,
+  LIVE_LINEUP_STAY_AWAKE_NOTE,
+  LIVE_LINEUP_STAY_AWAKE_TITLE,
+  LIVE_LINEUP_STAY_AWAKE_WINDOWS_LINK,
+  LIVE_LINEUP_STAY_AWAKE_WINDOWS_STEPS,
   LIVE_LINEUP_UPDATE_AUTOMATIC_NOTE,
   LIVE_LINEUP_UPDATE_DELAY_NOTE,
   LIVE_LINEUP_UPDATE_WARNING,
   liveLineupExtensionVersionLabel,
   liveLineupGuideContent,
+  liveLineupHelpSteps,
   parseLiveLineupHelpDeepLink,
 } from '@/lib/live-lineup/how-to-guide'
+import { getHelpResources } from '@/lib/services/help-resources'
 
 const PUBLISHED_AT = Date.parse('2026-11-22T13:13:00.000Z')
 
@@ -23,6 +34,8 @@ function visibleText(html: string) {
   return html
     .replace(/&#x27;|&#39;|&apos;/g, "'")
     .replace(/&quot;/g, '"')
+    .replace(/&gt;/g, '>')
+    .replace(/&lt;/g, '<')
     .replace(/&amp;/g, '&')
 }
 
@@ -40,7 +53,10 @@ describe('Live Lineup how-to guide', () => {
     expect(html).toContain("What's new")
     expect(html).toContain('Before you go live')
     expect(html).toContain('During your show')
+    expect(html).toContain(LIVE_LINEUP_STAY_AWAKE_TITLE)
     expect(html).toContain("When you're done")
+    expect(html.indexOf('During your show')).toBeLessThan(html.indexOf(LIVE_LINEUP_STAY_AWAKE_TITLE))
+    expect(html.indexOf(LIVE_LINEUP_STAY_AWAKE_TITLE)).toBeLessThan(html.indexOf("When you're done"))
     expect(html).toContain('If your Workspace says your extension is out of date')
     expect(html).toContain('Need a hand?')
     expect(html).toContain(LIVE_LINEUP_UPDATE_WARNING)
@@ -64,6 +80,57 @@ describe('Live Lineup how-to guide', () => {
       expect(html).toContain(encodeURIComponent(image.src))
       expect(html).toContain('loading="lazy"')
     }
+  })
+
+  it('tells the rep how to keep the computer awake, with official steps in a new tab', () => {
+    const html = visibleText(
+      renderToStaticMarkup(createElement(LiveLineupHowToGuide, { now: PUBLISHED_AT })),
+    )
+
+    expect(html).toContain(LIVE_LINEUP_STAY_AWAKE_INTRO)
+    expect(html).toContain(LIVE_LINEUP_STAY_AWAKE_NOTE)
+    expect(html).toContain('On a Mac:')
+    expect(html).toContain('On Windows:')
+    expect(html).toContain(LIVE_LINEUP_STAY_AWAKE_IF_ASLEEP)
+    expect(html).toContain('Connected + Updating')
+    expect(html).toContain('Live Party Orders')
+    for (const step of [...LIVE_LINEUP_STAY_AWAKE_MAC_STEPS, ...LIVE_LINEUP_STAY_AWAKE_WINDOWS_STEPS]) {
+      expect(html).toContain(step)
+    }
+
+    for (const link of [LIVE_LINEUP_STAY_AWAKE_MAC_LINK, LIVE_LINEUP_STAY_AWAKE_WINDOWS_LINK]) {
+      expect(html).toContain(
+        `href="${link.href}" target="_blank" rel="noopener"`,
+      )
+      expect(html).toContain(`${link.label}<span`)
+      expect(html).toContain('(opens in a new tab)')
+    }
+
+    const duringDone = liveLineupGuideContent(PUBLISHED_AT)
+    const doneStart = duringDone.beforeYouGoLive.length + duringDone.duringYourShow.length + 1
+    expect(html).toContain(`start="${doneStart}"`)
+
+    const helpSteps = liveLineupHelpSteps(PUBLISHED_AT)
+    const duringIndex = helpSteps.indexOf(duringDone.duringYourShow.at(-1) ?? '')
+    const doneIndex = helpSteps.indexOf(duringDone.whenYouAreDone[0])
+    expect(duringIndex).toBeGreaterThanOrEqual(0)
+    expect(doneIndex).toBeGreaterThan(duringIndex)
+    for (const step of [
+      LIVE_LINEUP_STAY_AWAKE_INTRO,
+      LIVE_LINEUP_STAY_AWAKE_NOTE,
+      ...LIVE_LINEUP_STAY_AWAKE_MAC_STEPS,
+      ...LIVE_LINEUP_STAY_AWAKE_WINDOWS_STEPS,
+      LIVE_LINEUP_STAY_AWAKE_IF_ASLEEP,
+    ]) {
+      const index = helpSteps.indexOf(step)
+      expect(index).toBeGreaterThan(duringIndex)
+      expect(index).toBeLessThan(doneIndex)
+    }
+
+    const resource = getHelpResources('', PUBLISHED_AT).find(
+      (item) => item.id === LIVE_LINEUP_HELP_RESOURCE_ID,
+    )
+    expect(resource?.steps).toEqual(helpSteps)
   })
 
   it('renders Need a hand as text with no button in the support view', () => {

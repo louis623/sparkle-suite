@@ -39,6 +39,43 @@ function StepText({ step }: { step: string }) {
   )
 }
 
+function OfficialLink({ label, href }: { label: string; href: string }) {
+  return (
+    <a className={styles.externalLink} href={href} target="_blank" rel="noopener">
+      {label}
+      <span className={styles.visuallyHidden}> (opens in a new tab)</span>
+    </a>
+  )
+}
+
+function PlatformSteps({
+  title,
+  titleId,
+  steps,
+  link,
+}: {
+  title: string
+  titleId: string
+  steps: readonly string[]
+  link: { label: string; href: string }
+}) {
+  return (
+    <div className={styles.platform}>
+      <h3 id={titleId} className={styles.platformTitle}>
+        {title}
+      </h3>
+      <ol className={styles.list}>
+        {steps.map((step) => (
+          <li key={step}>{step}</li>
+        ))}
+      </ol>
+      <p className={styles.copy}>
+        <OfficialLink label={link.label} href={link.href} />
+      </p>
+    </div>
+  )
+}
+
 function GuideFigure({ image }: { image: LiveLineupGuideImage }) {
   return (
     <figure className={styles.figure}>
@@ -110,6 +147,29 @@ export function LiveLineupHowToGuide({
           <GuideFigure image={LIVE_LINEUP_GUIDE_IMAGES.workspaceLive} />
           <GuideFigure image={LIVE_LINEUP_GUIDE_IMAGES.needsAttention} />
         </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="live-lineup-stay-awake">
+        <h2 id="live-lineup-stay-awake" className={styles.sectionTitle}>
+          {content.stayAwake.title}
+        </h2>
+        <p className={styles.copy}>{content.stayAwake.intro}</p>
+        <p className={styles.copy}>{content.stayAwake.note}</p>
+        <div className={styles.platforms}>
+          <PlatformSteps
+            title="On a Mac:"
+            titleId="live-lineup-stay-awake-mac"
+            steps={content.stayAwake.macSteps}
+            link={content.stayAwake.macLink}
+          />
+          <PlatformSteps
+            title="On Windows:"
+            titleId="live-lineup-stay-awake-windows"
+            steps={content.stayAwake.windowsSteps}
+            link={content.stayAwake.windowsLink}
+          />
+        </div>
+        <p className={styles.copy}>{content.stayAwake.ifAsleep}</p>
       </section>
 
       <section className={styles.section} aria-labelledby="live-lineup-done">
