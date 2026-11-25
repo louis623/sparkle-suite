@@ -8777,6 +8777,8 @@
   min-height: 100%;
   padding: 8px;
   overflow: hidden;
+  container-type: inline-size;
+  container-name: tile-art;
   background:
     radial-gradient(circle at 20% 20%, #ffd4ea, transparent 55%),
     linear-gradient(160deg, #5c3d4a, #34252f 70%);
@@ -9243,6 +9245,31 @@
   .siteTileSummary { -webkit-line-clamp: 1; }
   .siteChipDone,
   .siteChipNeeds { position: absolute; top: 14px; right: 14px; }
+}
+
+@container tile-art (max-width: 140px) {
+  .siteAboutName,
+  .siteAboutScene .siteArtPill,
+  .siteCodeCard,
+  .siteCalName,
+  .siteCalTime,
+  .sitePagePills,
+  .siteBrand:nth-child(n + 5) { display: none; }
+  .siteAboutScene,
+  .siteShowScene,
+  .siteLinkScene { gap: 0; padding: 0; background: transparent; box-shadow: none; }
+  .sitePortraitRing { width: 64px; height: 64px; }
+  .siteCalendar { width: 76px; }
+  .siteCalMonth { font-size: 0.55rem; padding: 3px 0; }
+  .siteCalDay { font-size: 1.45rem; padding: 4px 0 6px; }
+  .siteSocialRow {
+    display: grid;
+    grid-template-columns: repeat(2, 32px);
+    gap: 6px;
+    width: auto;
+  }
+  .siteBrand { width: 32px; height: 32px; }
+  .siteBrandIcon { width: 16px; height: 16px; }
 }
 
 @media (max-width: 879px) {
