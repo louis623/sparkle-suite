@@ -69,6 +69,7 @@
     "cursor/my-website-save-bar-1c57",
     "cursor/my-website-customer-scroll-cd8d",
     "cursor/my-website-hero-motion-583b",
+    "cursor/look-real-screenshot",
     "codex/ssr-chunk1-fizzfest-home",
     "codex/release-ssr-finder",
     "codex/ssr-per-rep-allowlist",
@@ -222,6 +223,10 @@
       "environment": "preview"
     },
     "cursor/my-website-hero-motion-583b": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/look-real-screenshot": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },

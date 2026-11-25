@@ -8787,6 +8787,30 @@
   padding: 0;
   background: var(--mag-deep, #120616);
 }
+.siteTileArt[data-tile-art='look'] { padding: 0; }
+.siteLookPicture,
+.siteTileArt[data-tile-art='look'] img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.siteTileArt[data-tile-art='look'] img {
+  object-fit: cover;
+  object-position: top center;
+}
+.siteLookUpdating {
+  position: absolute;
+  z-index: 2;
+  left: 8px;
+  bottom: 8px;
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: rgba(26, 18, 48, 0.82);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
 .siteTileArt[data-tile-art='shows'] {
   background:
     radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.7), transparent 28%),
