@@ -44,7 +44,7 @@ const sample: SiteSettingsDraft = {
   signupDiscountEnabled: true,
   signupDiscountCode: 'WELCOME10',
   signupDiscountOffer: '10% off',
-  signupDiscountMessage: 'Ten dollars off your first box.',
+  signupDiscountMessage: "Thanks for joining! Here's 10% off your next order.",
   aboutHeading: 'Meet Sasha',
   aboutNarrative:
     'Sasha hosts live jewelry reveals from her living room. She started with one Friday night show and now her regulars plan their week around the next box.',

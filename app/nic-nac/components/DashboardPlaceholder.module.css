@@ -8812,9 +8812,11 @@
   font-weight: 700;
 }
 .siteTileArt[data-tile-art='shows'] {
-  display: grid;
-  place-items: center;
-  padding: 7%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4% 3%;
   background:
     radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.82), transparent 32%),
     radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--ticket-accent, #ff4cae) 18%, transparent), transparent 28%),
@@ -8824,7 +8826,9 @@
 .siteTicket {
   position: relative;
   z-index: 1;
-  width: min(96%, 16.2em);
+  width: 92%;
+  max-width: 92%;
+  flex: none;
   overflow: hidden;
   border-radius: 12px;
   background: linear-gradient(180deg, #fffdfa 0%, #fff6f8 100%);
@@ -8843,15 +8847,18 @@
   text-align: center;
   padding: 5px 14px 4px;
 }
-.siteTicketBody { display: block; padding: 7px 16px 9px; text-align: center; }
+.siteTicketBody { display: block; padding: 8px 12px 10px; text-align: center; min-width: 0; }
 .siteTicketOffer {
   display: block;
+  max-width: 100%;
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
   font-weight: 600;
-  font-size: clamp(18px, 10cqi, 32px);
-  line-height: 0.95;
+  font-size: clamp(16px, 7cqi, 26px);
+  line-height: 1;
   letter-spacing: -0.02em;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .siteTicket[data-coupon='off'] .siteTicketOffer,
 .siteTicket[data-coupon='need'] .siteTicketOffer { font-size: clamp(14px, 7cqi, 22px); }
@@ -8863,9 +8870,9 @@
   color: #6f5650;
 }
 .siteTicketCode {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
   max-width: 100%;
   margin-top: 6px;
   border: 1px dashed color-mix(in srgb, var(--ticket-deep, #911b5e) 40%, transparent);
@@ -8874,12 +8881,13 @@
   background: rgba(255, 255, 255, 0.7);
   color: var(--ticket-deep, #911b5e);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: clamp(8px, 3.4cqi, 12px);
+  font-size: clamp(11px, 5.2cqi, 14px);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 @media (prefers-reduced-motion: reduce) {
   .siteTicket { transform: none; }
@@ -9415,7 +9423,7 @@
   .siteBrandIcon { width: 16px; height: 16px; }
   .sitePagePills { gap: 4px; }
   .sitePagePills span { font-size: 0.62rem; padding: 3px 6px; }
-  .siteTileSummary { -webkit-line-clamp: 1; padding-right: 96px; }
+  .siteTileSummary { -webkit-line-clamp: 2; padding-right: 0; }
 .siteChipDone,
 .siteChipNeeds,
 .siteChipOff { position: absolute; top: 8px; right: 8px; }
@@ -9444,10 +9452,11 @@
     padding: 0 6px 8px;
   }
   .siteMagName { font-size: 13px; line-height: 1.2; }
-  .siteTicket { transform: none; width: 94%; }
+  .siteTicket { transform: none; width: 96%; }
+  .siteTicketBody { padding: 4px 5px 5px; }
   .siteTicketFor { display: none; }
-  .siteTicketOffer { font-size: 13px; }
-  .siteTicketCode { font-size: 8px; letter-spacing: 0.02em; margin-top: 4px; }
+  .siteTicketOffer { font-size: 11px; letter-spacing: 0; }
+  .siteTicketCode { font-size: 8px; letter-spacing: 0; margin-top: 3px; padding: 2px 3px; }
   .siteMagWatermark { font-size: 56px; align-content: start; padding-top: 6px; }
   .siteCalendar { width: 76px; }
   .siteCalMonth { font-size: 0.55rem; padding: 3px 0; }
@@ -9463,6 +9472,11 @@
 }
 
 @media (max-width: 879px) {
+  .siteTileSummary {
+    -webkit-line-clamp: 2;
+    font-size: 12.5px;
+    line-height: 1.3;
+  }
   .themeRow { grid-template-columns: 72px minmax(0, 1fr); }
   .siteChangeTheme { grid-column: 1 / -1; justify-self: start; }
   .siteDialog[open] {

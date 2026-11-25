@@ -63,6 +63,7 @@ export function SiteSection({
   defaultOpen,
   plain = false,
   hidden = false,
+  hideHeading = false,
   children,
 }: {
   id: SiteSectionId
@@ -73,6 +74,7 @@ export function SiteSection({
   defaultOpen: boolean
   plain?: boolean
   hidden?: boolean
+  hideHeading?: boolean
   children: ReactNode
 }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -87,8 +89,12 @@ export function SiteSection({
   if (plain) {
     return (
       <section id={`site-section-${id}`} data-site-section={id} className={styles.siteDialogSection}>
-        <h2 className={styles.siteDialogSectionTitle}>{title}</h2>
-        <p className={styles.siteDialogSectionSummary}>{summary}</p>
+        {hideHeading ? null : (
+          <>
+            <h2 className={styles.siteDialogSectionTitle}>{title}</h2>
+            <p className={styles.siteDialogSectionSummary}>{summary}</p>
+          </>
+        )}
         {children}
       </section>
     )
@@ -782,6 +788,7 @@ export function SiteSettingsBody({
         summary="Customers can choose to join your list and get a one-time code."
         status={status('signup')}
         defaultOpen={plain || sectionOpen('signup')}
+        hideHeading={plain}
       >
         <label className={styles.walletToggleRow} data-site-field="signup-switch">
           <span>
