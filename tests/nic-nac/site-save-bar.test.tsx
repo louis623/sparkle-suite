@@ -274,9 +274,38 @@ describe('site save bar', () => {
       source.indexOf("if (topic === 'site' && activeSection === 'recipes')"),
     )
     expect(refresh).toContain('siteSettingsSavePendingRef.current')
-    expect(refresh).toContain('shouldApplyNicNacSiteRefresh')
+    expect(refresh).toContain('queuedNicNacSiteRefreshRef.current = true')
+    expect(refresh).toContain('refreshSiteSettingsFromNicNac()')
+    const guarded = source.slice(
+      source.indexOf('function refreshSiteSettingsFromNicNac()'),
+      source.indexOf('function flushQueuedNicNacSiteRefresh()'),
+    )
+    expect(guarded).toContain("fetch('/api/nic-nac/site-settings'")
+    expect(guarded).toContain('shouldApplyNicNacSiteRefresh')
     expect(source).toContain('siteSettingsVersionRef.current += 1')
     expect(source).toContain('siteSettingsSavePendingRef.current = true')
+  })
+
+  it('runs one queued Nic-Nac site refresh after the save finally clears the pending flag', () => {
+    const source = readFileSync('app/nic-nac/components/DashboardPlaceholder.tsx', 'utf8')
+    const save = source.slice(
+      source.indexOf('async function saveSiteSettingsDraft'),
+      source.indexOf('function acceptSiteSettingsSnapshot'),
+    )
+    const finallyBody = save.slice(save.lastIndexOf('finally'))
+    const cleared = finallyBody.indexOf('siteSettingsSavePendingRef.current = false')
+    const flushed = finallyBody.indexOf('flushQueuedNicNacSiteRefresh()')
+    expect(cleared).toBeGreaterThan(-1)
+    expect(flushed).toBeGreaterThan(cleared)
+    const flush = source.slice(
+      source.indexOf('function flushQueuedNicNacSiteRefresh()'),
+      source.indexOf('async function saveSiteSettingsDraft'),
+    )
+    expect(flush).toContain('if (!queuedNicNacSiteRefreshRef.current) return')
+    expect(flush).toContain('queuedNicNacSiteRefreshRef.current = false')
+    expect(flush.indexOf('queuedNicNacSiteRefreshRef.current = false')).toBeLessThan(
+      flush.indexOf('refreshSiteSettingsFromNicNac()'),
+    )
   })
 
   it('announces a field error that appears on blur', async () => {

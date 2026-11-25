@@ -1,7 +1,12 @@
 .section { margin-top: 1.25rem; padding: 1.25rem; border: 1px solid #e5dced; border-radius: 16px; background: #fff; color: #24163f; }
 .section h3 { margin: 0 0 .5rem; font-size: 1rem; }
 .section > p { margin: 0 0 1rem; font-size: .875rem; line-height: 1.5; color: #65567b; }
+.inline { display: flex; flex-direction: column; gap: .75rem; }
+.inline .grid { grid-template-columns: 1fr; }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.item { display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+.showsOn { display: block; margin-top: .35rem; font-size: .8rem; font-weight: 700; line-height: 1.35; color: #65567b; }
+.teamLink { align-self: flex-start; min-height: 44px; display: inline-flex; align-items: center; color: #7136bd; font-weight: 800; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border: 1px solid #e5dced; padding: 1rem; border-radius: 12px; cursor: pointer; }
 .row strong { display: block; font-size: .9rem; }
 .description { display: block; margin-top: .3rem; font-size: .8rem; line-height: 1.45; color: #65567b; }
