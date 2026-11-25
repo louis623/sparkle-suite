@@ -915,28 +915,15 @@ export function SiteSettingsBody({
         summary="Tagline, email, social links, and team"
         status={status('footer')}
         defaultOpen={plain || sectionOpen('footer')}
+        hideHeading={plain}
       >
+        {plain ? (
+          <>
+            <h2 className={styles.siteDialogSectionTitle}>Contact</h2>
+            <p className={styles.siteDialogSectionSummary}>This is what customers use to reach you, plus the short line under your site.</p>
+          </>
+        ) : null}
         <div className={styles.siteSettingsGrid}>
-          <label className={styles.searchField} data-site-field="tagline">
-            <span className={styles.searchLabel}>Footer tagline</span>
-            <input
-              id="my-website-tagline"
-              className={styles.searchInput}
-              data-site-control="tagline"
-              value={draft.tagline}
-              aria-describedby={describedBy(
-                draft.grandfatheredHeadlineFallback ? 'tagline-grandfathered' : null,
-                'tagline-shows',
-              )}
-              onChange={(event) => onDraftChange?.({ tagline: event.target.value })}
-            />
-            {draft.grandfatheredHeadlineFallback ? (
-              <span id="tagline-grandfathered" className={styles.siteSettingsPreviewNote}>
-                Also shows under your headline if that line is empty.
-              </span>
-            ) : null}
-            <ShowsOn id="tagline-shows">{SHOWS_ON.tagline}</ShowsOn>
-          </label>
           <label className={styles.searchField} data-site-field="email">
             <span className={styles.searchLabel}>Email</span>
             <input
@@ -962,6 +949,26 @@ export function SiteSettingsBody({
             ) : null}
             <ShowsOn id="email-shows">{SHOWS_ON.email}</ShowsOn>
           </label>
+          <label className={styles.searchField} data-site-field="tagline">
+            <span className={styles.searchLabel}>Footer tagline</span>
+            <input
+              id="my-website-tagline"
+              className={styles.searchInput}
+              data-site-control="tagline"
+              value={draft.tagline}
+              aria-describedby={describedBy(
+                draft.grandfatheredHeadlineFallback ? 'tagline-grandfathered' : null,
+                'tagline-shows',
+              )}
+              onChange={(event) => onDraftChange?.({ tagline: event.target.value })}
+            />
+            {draft.grandfatheredHeadlineFallback ? (
+              <span id="tagline-grandfathered" className={styles.siteSettingsPreviewNote}>
+                Also shows under your headline if that line is empty.
+              </span>
+            ) : null}
+            <ShowsOn id="tagline-shows">{SHOWS_ON.tagline}</ShowsOn>
+          </label>
           <label className={styles.searchField} data-site-field="member-team">
             <span className={styles.searchLabel}>Team I belong to (shown in small print)</span>
             <input
@@ -975,8 +982,9 @@ export function SiteSettingsBody({
             <ShowsOn id="member-team-shows">{SHOWS_ON.memberTeam}</ShowsOn>
           </label>
           <div className={styles.sortFieldWide} data-site-field="team-i-manage">
+            <span className={styles.searchLabel}>Team I manage</span>
             <p className={styles.managedTeamLine} data-site-control="team-i-manage" data-chunk="4">
-              Team I manage: {draft.teamName.trim() || 'Not set yet'}
+              {draft.teamName.trim() || 'Not set yet'}
               {' · '}
               <a
                 className={styles.managedTeamLink}
@@ -989,6 +997,12 @@ export function SiteSettingsBody({
             <ShowsOn id="team-manage-shows">{SHOWS_ON.managedTeam}</ShowsOn>
           </div>
         </div>
+        {plain ? (
+          <>
+            <h2 className={styles.siteDialogSectionTitle}>Social links</h2>
+            <p className={styles.siteDialogSectionSummary}>Paste a real link, then choose whether it shows in the footer and in your hero.</p>
+          </>
+        ) : null}
         <SocialHandlesSettings
           socialHandles={draft.socialHandles}
           socialVisibility={draft.socialVisibility}
