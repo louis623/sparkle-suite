@@ -70,6 +70,7 @@
   overflow-x: hidden;
   overflow-y: auto;
   container-type: inline-size;
+  scroll-padding-bottom: var(--site-save-bar-height, 0px);
 }
 
 :global([data-workspace-skin='black_diamond']) .tabsWrap {

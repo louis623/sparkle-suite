@@ -1,3 +1,7 @@
+## November 24, 2026 — My Website save bar, Chunk 3a
+
+Louis approved the My Website redesign build on November 23, 2026. `cursor/my-website-save-bar-1c57` is allowlisted only so Chunk 3a can build on Smoke, stacked on `cursor/my-website-theme-studio-7731`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
 ## November 24, 2026 — My Website theme studio, Chunk 2
 
 Louis approved the My Website redesign build on November 23, 2026. `cursor/my-website-theme-studio-7731` is allowlisted only so Chunk 2 can build on Smoke, stacked on `cursor/my-website-theme-preview-2217`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.

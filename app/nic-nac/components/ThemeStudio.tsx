@@ -99,6 +99,7 @@ export function ThemeStudio({
   onDraftThemeChange,
   now,
   loadPreview = loadThemePreview,
+  onRetry,
 }: {
   status: 'loading' | 'ready' | 'error'
   cards: readonly AmethystSkinCard[]
@@ -107,6 +108,7 @@ export function ThemeStudio({
   onDraftThemeChange: (themeId: string) => void
   now?: Date
   loadPreview?: (request: ThemePreviewRequest) => Promise<ThemePreviewResult>
+  onRetry?: () => void
 }) {
   const wide = useMediaQuery('(min-width: 880px)')
   const [armed, setArmed] = useState(false)
@@ -149,6 +151,7 @@ export function ThemeStudio({
   const groups = groupThemesBySeason(themes, savedCard?.id ?? savedThemeId, now ?? new Date())
   const chosen = themes.find((theme) => theme.id === chosenId) ?? savedCard
   const chosenOffered = chosen ? offeredIds.has(chosen.id) : false
+  const themeRetired = status === 'ready' && !chosenOffered
   const shouldLoad = Boolean(chosen && chosenOffered && (dialogOpen || (armed && wide)))
   const cacheKey = chosen ? `${chosen.id}:${page}` : ''
 
@@ -261,7 +264,10 @@ export function ThemeStudio({
           ) : null}
           {status === 'error' ? (
             <p className={styles.warning} role="alert">
-              Themes unavailable — refresh and try again
+              Themes unavailable{' '}
+              <button type="button" className={styles.retry} onClick={onRetry}>
+                Retry
+              </button>
             </p>
           ) : null}
           {status === 'ready' ? (
@@ -339,7 +345,7 @@ export function ThemeStudio({
               view={view}
               themeLabel={chosenLabel}
               onRetry={retryPreview}
-              retired={!chosenOffered}
+              retired={themeRetired}
             />
           </div>
         ) : null}
@@ -372,7 +378,7 @@ export function ThemeStudio({
               view={view}
               themeLabel={chosenLabel}
               onRetry={retryPreview}
-              retired={!chosenOffered}
+              retired={themeRetired}
               framed
             />
             <div className={styles.dialogActions}>
