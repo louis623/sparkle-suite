@@ -117,7 +117,7 @@ export function ThemeStudio({
   const [armed, setArmed] = useState(false)
   const [chosenId, setChosenId] = useState(draftThemeId)
   const [page, setPage] = useState<PreviewPage>('homepage')
-  const [themeFilter, setThemeFilter] = useState<'all' | 'season' | 'holiday' | 'everyday' | 'yours'>('all')
+  const [themeFilter, setThemeFilter] = useState<'all' | 'holiday' | 'gems' | 'bomb' | 'general' | 'yours'>('all')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [view, setView] = useState<PreviewView>({ status: 'idle' })
   const [requestToken, setRequestToken] = useState(0)
@@ -232,13 +232,8 @@ export function ThemeStudio({
 
   return (
     <section className={styles.studio} data-testid="theme-studio" aria-busy={status === 'loading'}>
-      <p className={styles.kicker}>Choose your theme</p>
-      <p className={styles.note}>Tap a theme and it&apos;s on your site right away. Changed your mind? Tap Undo.</p>
       <div className={styles.layout}>
         <div className={styles.picker}>
-          <p className={styles.notice}>
-            Tap a theme and it saves onto your site right away.
-          </p>
           {!savedOffered && chosenId !== savedThemeId ? (
             <p className={styles.warning}>
               You can&apos;t switch back to {savedLabel} after saving.
@@ -264,7 +259,7 @@ export function ThemeStudio({
           ) : null}
           {status === 'ready' ? (
             <fieldset className={styles.fieldset}>
-            <legend className={styles.legend}>Choose your theme</legend>
+            <legend className={styles.legendSr}>Choose your theme</legend>
             <ThemeGroups
               themes={themes}
               ownedPrivateSkinIds={ownedPrivateSkinIds}
@@ -286,6 +281,7 @@ export function ThemeStudio({
         </div>
         <div className={styles.previewColumn}>
           {wide ? (
+            <div className={styles.phoneFrame}>
             <PreviewSurface
               scope="panel"
               page={page}
@@ -298,6 +294,7 @@ export function ThemeStudio({
               onRetry={retryPreview}
               retired={themeRetired}
             />
+            </div>
           ) : null}
         </div>
       </div>
@@ -383,7 +380,9 @@ export function ThemeStudio({
                   event.currentTarget.hidden = true
                 }}
               />
-            ) : null}
+            ) : (
+              <span className={styles.paletteName}>{theme.label}</span>
+            )}
           </span>
           <span className={styles.check} aria-hidden="true" data-check="">✓</span>
           <span className={styles.name}>{theme.label}</span>
@@ -406,11 +405,15 @@ export function ThemeStudio({
         {offered ? (
           <button
             type="button"
-            className={styles.tryOn}
+            className={styles.eye}
             id={`try-on-${theme.id}`}
+            aria-label={`Preview ${theme.label}`}
             onClick={() => openTryOn(theme.id)}
           >
-            Preview
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
+              <circle cx="12" cy="12" r="2.5" />
+            </svg>
           </button>
         ) : null}
       </article>
@@ -554,27 +557,36 @@ function ThemeGroups({
   ownedPrivateSkinIds: readonly string[]
   currentId: string
   now: Date
-  filter: 'all' | 'season' | 'holiday' | 'everyday' | 'yours'
-  onFilter: (filter: 'all' | 'season' | 'holiday' | 'everyday' | 'yours') => void
+  filter: 'all' | 'holiday' | 'gems' | 'bomb' | 'general' | 'yours'
+  onFilter: (filter: 'all' | 'holiday' | 'gems' | 'bomb' | 'general' | 'yours') => void
   renderCard: (theme: AmethystSkinCard) => ReactNode
 }) {
   const grouped = groupThemeCards(themes, ownedPrivateSkinIds, currentId, now)
-  const seasonCount = grouped.holiday.filter((group) => group.inSeason).reduce((sum, group) => sum + group.themes.length, 0)
-  const everydayCount = grouped.gems.length + grouped.roseGold.length + grouped.bombParty.length + grouped.general.length
+  const current = themes.find((theme) => theme.id === currentId) ?? null
+  const holidayCount = grouped.holiday.reduce((sum, group) => sum + group.themes.length, 0)
+  const gemsCount = grouped.roseGold.length + grouped.gems.length
   const chips = [
     ['all', 'All', themes.length],
-    ['season', 'In season now', seasonCount],
-    ['holiday', 'Holiday', grouped.holiday.reduce((sum, group) => sum + group.themes.length, 0)],
-    ['everyday', 'Everyday', everydayCount],
+    ['holiday', 'Holiday & Seasonal', holidayCount],
+    ['gems', 'Gems & Metals', gemsCount],
+    ['bomb', 'Bomb Party Fun', grouped.bombParty.length],
+    ['general', 'General', grouped.general.length],
     ['yours', 'Just for you', grouped.justForYou.length],
   ] as const
-  const holiday = filter === 'season' ? grouped.holiday.filter((group) => group.inSeason) : grouped.holiday
+  const showHoliday = (filter === 'all' || filter === 'holiday') && holidayCount > 0
+  const showEveryday = filter === 'all' || filter === 'gems' || filter === 'bomb' || filter === 'general'
   return (
     <div>
-      {grouped.current ? (
+      {current ? (
         <div className={styles.currentTheme} data-testid="theme-on-site">
-          <p className={styles.groupTitle}>On your site now</p>
-          <p className={styles.currentName}>{grouped.current.label}</p>
+          <span className={styles.currentThumb} style={{ background: colorBlock(current.previewColors) }}>
+            {current.thumb ? <img src={current.thumb} alt="" width={480} height={300} /> : <span className={styles.paletteName}>{current.label}</span>}
+          </span>
+          <span>
+            <p className={styles.groupKicker}>On your site now</p>
+            <p className={styles.currentName}>{current.label}</p>
+          </span>
+          <span className={styles.savedMark}>Saved ✓</span>
         </div>
       ) : null}
       <div className={styles.filters} role="group" aria-label="Theme groups">
@@ -590,13 +602,14 @@ function ThemeGroups({
           </button>
         ))}
       </div>
-      {(filter === 'all' || filter === 'holiday' || filter === 'season') && holiday.length > 0 ? (
+      {showHoliday ? (
         <section>
-          <h2 className={styles.groupTitle}>Holiday & seasonal</h2>
-          {holiday.map((group) => (
+          <h2 className={styles.groupTitle}>Holiday & Seasonal</h2>
+          {grouped.holiday.map((group) => (
             <div key={group.series}>
               <h3 className={styles.seriesTitle}>
                 {group.label}
+                <span className={styles.seriesCount}>{group.themes.length}</span>
                 {group.inSeason ? <span className={styles.inSeason}>In season now</span> : null}
               </h3>
               <div className={styles.grid}>{group.themes.map((theme) => renderCard(theme))}</div>
@@ -604,15 +617,15 @@ function ThemeGroups({
           ))}
         </section>
       ) : null}
-      {(filter === 'all' || filter === 'everyday') && everydayCount > 0 ? (
+      {showEveryday && (gemsCount + grouped.bombParty.length + grouped.general.length) > 0 ? (
         <section>
           <h2 className={styles.groupTitle}>Everyday themes</h2>
-          {grouped.roseGold.length + grouped.gems.length > 0 ? (
+          {(filter === 'all' || filter === 'gems') && gemsCount > 0 ? (
             <div>
-              <h3 className={styles.seriesTitle}>Gems & metals</h3>
+              <h3 className={styles.seriesTitle}>Gems & metals <span className={styles.seriesCount}>{gemsCount}</span></h3>
               {grouped.roseGold.length > 0 ? (
                 <>
-                  <p className={styles.seriesNote}>Rose Gold</p>
+                  <p className={styles.seriesNote}>Rose Gold <span className={styles.seriesCount}>{grouped.roseGold.length}</span></p>
                   <div className={styles.grid}>{grouped.roseGold.map((theme) => renderCard(theme))}</div>
                 </>
               ) : null}
@@ -621,15 +634,15 @@ function ThemeGroups({
               ) : null}
             </div>
           ) : null}
-          {grouped.bombParty.length > 0 ? (
+          {(filter === 'all' || filter === 'bomb') && grouped.bombParty.length > 0 ? (
             <div>
-              <h3 className={styles.seriesTitle}>Bomb Party fun</h3>
+              <h3 className={styles.seriesTitle}>Bomb Party fun <span className={styles.seriesCount}>{grouped.bombParty.length}</span></h3>
               <div className={styles.grid}>{grouped.bombParty.map((theme) => renderCard(theme))}</div>
             </div>
           ) : null}
-          {grouped.general.length > 0 ? (
+          {(filter === 'all' || filter === 'general') && grouped.general.length > 0 ? (
             <div>
-              <h3 className={styles.seriesTitle}>General</h3>
+              <h3 className={styles.seriesTitle}>General <span className={styles.seriesCount}>{grouped.general.length}</span></h3>
               <div className={styles.grid}>{grouped.general.map((theme) => renderCard(theme))}</div>
             </div>
           ) : null}

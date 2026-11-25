@@ -8722,14 +8722,14 @@
 .siteFinished,
 .siteDialogClose {
   min-height: 44px;
+  min-width: 44px;
   border-radius: 999px;
   font: 800 0.95rem/1 var(--font-prelaunch-sans), "DM Sans", sans-serif;
   cursor: pointer;
 }
 
 .siteRetry,
-.siteUndo,
-.siteDialogClose {
+.siteUndo {
   border: 0;
   background: transparent;
   color: inherit;
@@ -8737,20 +8737,27 @@
   padding: 0 4px;
 }
 
+.siteReady { display: inline-flex; align-items: center; gap: 8px; }
 .siteProgressLabel { margin: 0; font-size: 0.85rem; font-weight: 800; color: #775d57; }
-.siteProgress { height: 8px; border-radius: 999px; background: rgba(64, 41, 36, 0.08); overflow: hidden; }
-.siteProgress span { display: block; height: 100%; background: #1f8a4c; }
+.siteSegments { display: inline-flex; gap: 4px; }
+.siteSegments span {
+  width: 18px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(64, 41, 36, 0.12);
+}
+.siteSegments span[data-on='true'] { background: #1f8a4c; }
 
-.siteHomeGrid { display: flex; flex-direction: column; gap: 10px; }
+.siteHomeGrid { display: flex; flex-direction: column; gap: 12px; width: 100%; }
 
 .siteTile {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: center;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: stretch;
   width: 100%;
-  min-height: 88px;
-  padding: 10px;
+  min-height: 124px;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid rgba(64, 41, 36, 0.12);
   border-radius: 22px;
   background: #fffdfb;
@@ -8760,19 +8767,101 @@
   cursor: pointer;
 }
 
-.siteTileArt,
-.siteTileSwatch {
-  width: 72px;
-  height: 54px;
-  border-radius: 12px;
+.siteTileArt {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  min-height: 100%;
+  padding: 8px;
   overflow: hidden;
-  background: linear-gradient(135deg, #36221d, #ee2c9b);
+  background:
+    radial-gradient(circle at 20% 20%, #ffd4ea, transparent 55%),
+    linear-gradient(160deg, #5c3d4a, #34252f 70%);
 }
-
-.siteTileArt img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.siteTileCopy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.siteTileTitle { font-weight: 800; font-size: 1rem; }
-.siteTileChevron { font-size: 1.6rem; color: #b91673; }
+.siteTileArt[data-tile-art='shows'] {
+  background: linear-gradient(160deg, #f6e7da, #e7cbb8);
+}
+.siteTileArt[data-tile-art='links'] {
+  background: linear-gradient(160deg, #fff6fb, #f3d5e6);
+}
+.siteTileArt img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.sitePaletteName,
+.sitePortraitMark {
+  position: relative;
+  z-index: 1;
+  color: #fff6fb;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-style: italic;
+  font-size: 1.1rem;
+}
+.sitePortraitMark {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #34252f;
+  font-style: normal;
+}
+.siteArtPill,
+.siteDateChip,
+.siteCodeCard,
+.sitePagePills span {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: #fffdfb;
+  color: #402924;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+.siteDateChip { background: #34252f; color: #f6e7da; }
+.siteCodeCard {
+  border-radius: 12px;
+  padding: 8px;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.siteSocialRow { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 4px; }
+.siteSocialRow span {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #fff;
+  color: #b91673;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+.sitePagePills { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 4px; }
+.siteTileCopy {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 14px;
+}
+.siteTileIcon { color: #b91673; font-size: 0.95rem; }
+.siteTileTitle {
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+.siteTileSummary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
 .siteChipDone,
 .siteChipNeeds {
   width: fit-content;
@@ -8805,20 +8894,35 @@
 .siteDialog::backdrop { overscroll-behavior: contain; }
 .siteDialog::backdrop { background: rgba(54, 34, 29, 0.5); }
 
+.siteDialogWide { width: min(1080px, calc(100vw - 32px)); }
+
 .siteDialogBand {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
   padding: 18px 18px 16px;
   background: var(--suite-plum-surface);
   color: var(--suite-cream);
+  text-align: left;
 }
 
-.siteDialogBand .siteDialogKicker,
-.siteDialogBand .siteDialogTitle,
-.siteDialogClose { color: var(--suite-cream); }
+.siteDialogHeading { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.siteDialogBand .siteDialogKicker { color: var(--suite-soft-pink); }
+.siteDialogBand .siteDialogTitle { color: var(--suite-cream); font-size: clamp(1.8rem, 3vw, 2.4rem); }
+.siteDialogSubtitle { margin: 0; color: var(--suite-soft-pink); font-size: 0.95rem; line-height: 1.35; }
+.siteDialogClose {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(246, 231, 218, 0.55);
+  background: transparent;
+  color: var(--suite-cream);
+  font-size: 1.5rem;
+  line-height: 1;
+  text-decoration: none;
+}
 
 .siteDialogBand,
 .siteDialogFoot { flex: none; }
@@ -8832,7 +8936,17 @@
   padding: 12px 18px 16px;
   border-top: 1px solid rgba(64, 41, 36, 0.1);
 }
-.siteDialogFoot p { margin: 0; font-weight: 800; }
+.siteDialogFoot p { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-weight: 800; }
+.siteSavedMark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #1f8a4c;
+  color: #fff;
+  font-size: 0.8rem;
+}
 .siteFinished {
   border: 0;
   padding: 0 18px;
@@ -8846,16 +8960,83 @@
   padding: 0 14px;
 }
 .themeRow {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid rgba(64, 41, 36, 0.1);
+  border-radius: 18px;
+  background: #fff;
 }
-
-.themeRow .siteTileTitle,
-.themeRow .siteTileSummary { display: block; }
-.siteDialogSection { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+.siteThemeThumb {
+  width: 100%;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #34252f, #ee2c9b);
+}
+.siteThemeThumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.themeRow > span { min-width: 0; }
+.themeRowKicker {
+  display: block;
+  color: #b91673;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.themeRowName {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+.siteDialogBody .siteSectionList { display: flex; flex-direction: column; gap: 14px; }
+.siteDialogSection {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid rgba(64, 41, 36, 0.1);
+  border-radius: 18px;
+  background: #fff;
+}
+.siteDialogBody .searchLabel { font-size: 0.78rem; font-weight: 800; color: #402924; }
+.siteDialogBody .showsOn {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #775d57;
+}
+.siteDialogBody .showsOn::before { content: "ⓘ"; flex: none; }
+.siteDialogBody input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.siteDialogBody textarea,
+.siteDialogBody select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(64, 41, 36, 0.28);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  min-height: 44px;
+  color: #402924;
+  font: 500 0.95rem/1.3 var(--font-prelaunch-sans), "DM Sans", sans-serif;
+}
+.siteDialogBody textarea { min-height: 96px; }
+.siteDialogBody input:focus-visible,
+.siteDialogBody textarea:focus-visible,
+.siteDialogBody select:focus-visible {
+  outline: 3px solid #b91673;
+  outline-offset: 2px;
+  border-color: #b91673;
+}
 .siteDialogSectionTitle {
   margin: 0;
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
@@ -8864,10 +9045,19 @@
 }
 
 @media (min-width: 880px) {
-  .siteHomeGrid { display: grid; grid-template-columns: 1fr 1fr; }
+  .siteHomeGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .siteTile { display: flex; flex-direction: column; min-height: 280px; }
+  .siteTileArt { width: 100%; height: 140px; min-height: 140px; flex: none; }
+  .siteTileCopy { flex: 1; padding: 14px 16px 16px; }
+  .siteTileTitle { padding-right: 108px; }
+  .siteTileSummary { -webkit-line-clamp: 1; }
+  .siteChipDone,
+  .siteChipNeeds { position: absolute; top: 14px; right: 14px; }
 }
 
 @media (max-width: 879px) {
+  .themeRow { grid-template-columns: 72px minmax(0, 1fr); }
+  .siteChangeTheme { grid-column: 1 / -1; justify-self: start; }
   .siteDialog[open] {
     width: 100vw;
     height: 100dvh;

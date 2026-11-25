@@ -10024,6 +10024,11 @@ export function SiteSettingsCard({
   previewThemeCards?: readonly AmethystSkinCard[] | null
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const lookRef = useRef<HTMLDialogElement>(null)
+  const aboutRef = useRef<HTMLDialogElement>(null)
+  const showsRef = useRef<HTMLDialogElement>(null)
+  const linksRef = useRef<HTMLDialogElement>(null)
+  const themeRef = useRef<HTMLDialogElement>(null)
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
   const [localFieldErrors, setLocalFieldErrors] = useState(false)
   const [fieldAnnouncement, setFieldAnnouncement] = useState('')
@@ -10170,11 +10175,6 @@ export function SiteSettingsCard({
   const savePhase = actionState?.pending ? 'saving' : saveError ? 'error' : 'saved'
   const checklist = buildSiteSetupChecklist(draft)
   const themeCard = getAmethystSkinCard(draft.appearancePreset)
-  const lookRef = useRef<HTMLDialogElement>(null)
-  const aboutRef = useRef<HTMLDialogElement>(null)
-  const showsRef = useRef<HTMLDialogElement>(null)
-  const linksRef = useRef<HTMLDialogElement>(null)
-  const themeRef = useRef<HTMLDialogElement>(null)
   const siteGroups = [
     {
       id: 'look',
@@ -10188,9 +10188,7 @@ export function SiteSettingsCard({
       id: 'about',
       title: 'About you',
       art: draft.homepageMediaSlots?.find((slot) => slot.key === 'about_1')?.imageUrl || null,
-      summary: draft.aboutNarrative?.trim()
-        ? draft.aboutNarrative.trim().slice(0, 90)
-        : 'Your story, photo, and the Bomb Party video.',
+      summary: draft.aboutNarrative?.trim() || 'Your story, photo, and the Bomb Party video.',
       sections: ['about', 'bomb-party'] as SiteSectionId[],
       dialog: aboutRef,
     },
@@ -10295,10 +10293,14 @@ export function SiteSettingsCard({
             <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button>
           ) : null}
         </p>
-        <p className={styles.siteProgressLabel}>{readyGroups} of 4 ready</p>
-      </div>
-      <div className={styles.siteProgress} aria-hidden="true">
-        <span style={{ width: `${(readyGroups / 4) * 100}%` }} />
+        <span className={styles.siteReady}>
+          <span className={styles.siteProgressLabel}>{readyGroups} of 4 ready</span>
+          <span className={styles.siteSegments} aria-hidden="true">
+            {[0, 1, 2, 3].map((index) => (
+              <span key={index} data-on={index < readyGroups ? 'true' : 'false'} />
+            ))}
+          </span>
+        </span>
       </div>
       <div className={styles.siteHomeGrid}>
         {siteGroups.map((group) => {
@@ -10310,83 +10312,128 @@ export function SiteSettingsCard({
               className={styles.siteTile}
               onClick={() => group.dialog.current?.showModal()}
             >
-              <span className={styles.siteTileArt} aria-hidden="true">
-                {group.art ? <img src={group.art} alt="" /> : <span className={styles.siteTileSwatch} />}
+              <span className={styles.siteTileArt} data-tile-art={group.id} aria-hidden="true">
+                {group.id === 'look' ? (
+                  themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : <span className={styles.sitePaletteName}>{themeCard.label}</span>
+                ) : null}
+                {group.id === 'about' ? (
+                  <>
+                    {group.art ? <img src={group.art} alt="" /> : <span className={styles.sitePortraitMark}>{(draft.displayName || 'You').slice(0, 1)}</span>}
+                    <span className={styles.siteArtPill}>What is a Bomb Party</span>
+                  </>
+                ) : null}
+                {group.id === 'shows' ? (
+                  <>
+                    <span className={styles.siteDateChip}>Shows</span>
+                    <span className={styles.siteCodeCard}>{draft.signupDiscountCode?.trim() || 'Sign-up'}</span>
+                  </>
+                ) : null}
+                {group.id === 'links' ? (
+                  <>
+                    <span className={styles.siteSocialRow}>
+                      {['I', 'F', 'T', 'Y', 'W'].map((mark) => <span key={mark}>{mark}</span>)}
+                    </span>
+                    <span className={styles.sitePagePills}>
+                      <span>Dance Floor</span>
+                      <span>Join</span>
+                      <span>Live</span>
+                    </span>
+                  </>
+                ) : null}
               </span>
               <span className={styles.siteTileCopy}>
-                <span className={styles.siteTileTitle}>{group.title}</span>
-                <span className={styles.siteTileSummary}>{group.summary}</span>
+                <span className={styles.siteTileIcon} aria-hidden="true">{group.id === 'look' ? '✦' : group.id === 'about' ? '☺' : group.id === 'shows' ? '▦' : '⤷'}</span>
                 <span className={needs > 0 ? styles.siteChipNeeds : styles.siteChipDone}>
                   {needs > 0 ? `Needs ${needs} ${needs === 1 ? 'thing' : 'things'}` : 'Done'}
                 </span>
+                <span className={styles.siteTileTitle}>{group.title}</span>
+                <span className={styles.siteTileSummary}>{group.summary}</span>
               </span>
-              <span className={styles.siteTileChevron} aria-hidden="true">›</span>
             </button>
           )
         })}
       </div>
       <dialog ref={lookRef} className={styles.siteDialog} data-site-dialog="" aria-labelledby="site-look-title">
         <div className={styles.siteDialogBand}>
-          <p className={styles.siteDialogKicker}>Your customer site</p>
-          <h1 id="site-look-title" className={styles.siteDialogTitle}>Look</h1>
-          <button type="button" className={styles.siteDialogClose} onClick={() => lookRef.current?.close()}>Close</button>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Look</p>
+            <h1 id="site-look-title" className={styles.siteDialogTitle}>Look</h1>
+            <p className={styles.siteDialogSubtitle}>Theme, top bar, and hero</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => lookRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
         <div className={styles.siteDialogBody}>
           <div className={styles.themeRow}>
-            <span className={styles.siteTileArt}>{themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : null}</span>
+            <span className={styles.siteThemeThumb}>{themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : null}</span>
             <span>
-              <span className={styles.siteTileTitle}>{themeCard.label}</span>
-              <span className={styles.siteTileSummary}>Theme, top bar, and hero</span>
+              <span className={styles.themeRowKicker}>On your site now</span>
+              <span className={styles.themeRowName}>{themeCard.label}</span>
             </span>
             <button type="button" className={styles.siteChangeTheme} onClick={() => themeRef.current?.showModal()}>Change theme</button>
           </div>
           {settingsBody(['top-bar', 'hero'])}
         </div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{saveLine}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
       <dialog ref={aboutRef} className={styles.siteDialog} aria-labelledby="site-about-title">
         <div className={styles.siteDialogBand}>
-          <h1 id="site-about-title" className={styles.siteDialogTitle}>About you</h1>
-          <button type="button" className={styles.siteDialogClose} onClick={() => aboutRef.current?.close()}>Close</button>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>About you</p>
+            <h1 id="site-about-title" className={styles.siteDialogTitle}>About you</h1>
+            <p className={styles.siteDialogSubtitle}>Your story, photo, and the Bomb Party video</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => aboutRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
         <div className={styles.siteDialogBody}>
           {settingsBody(['about'])}
           {settingsBody(['bomb-party'])}
         </div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{saveLine}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
       <dialog ref={showsRef} className={styles.siteDialog} aria-labelledby="site-shows-title">
         <div className={styles.siteDialogBand}>
-          <h1 id="site-shows-title" className={styles.siteDialogTitle}>Shows & sign-ups</h1>
-          <button type="button" className={styles.siteDialogClose} onClick={() => showsRef.current?.close()}>Close</button>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Shows</p>
+            <h1 id="site-shows-title" className={styles.siteDialogTitle}>Shows & sign-ups</h1>
+            <p className={styles.siteDialogSubtitle}>Upcoming shows, sign-up, and discount code</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => showsRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
         <div className={styles.siteDialogBody}>{settingsBody(['upcoming-shows', 'signup'])}</div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{saveLine}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
       <dialog ref={linksRef} className={styles.siteDialog} aria-labelledby="site-links-title">
         <div className={styles.siteDialogBand}>
-          <h1 id="site-links-title" className={styles.siteDialogTitle}>Links & other pages</h1>
-          <button type="button" className={styles.siteDialogClose} onClick={() => linksRef.current?.close()}>Close</button>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Links</p>
+            <h1 id="site-links-title" className={styles.siteDialogTitle}>Links & other pages</h1>
+            <p className={styles.siteDialogSubtitle}>Footer, socials, and your other pages</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => linksRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
         <div className={styles.siteDialogBody}>{settingsBody(['footer', 'other-pages'])}</div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{saveLine}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
-      <dialog ref={themeRef} className={styles.siteDialog} data-site-dialog="" aria-labelledby="site-theme-title">
+      <dialog ref={themeRef} className={`${styles.siteDialog} ${styles.siteDialogWide}`} data-site-dialog="" aria-labelledby="site-theme-title">
         <div className={styles.siteDialogBand}>
-          <h1 id="site-theme-title" className={styles.siteDialogTitle}>Choose your theme</h1>
-          <button type="button" className={styles.siteDialogClose} onClick={() => themeRef.current?.close()}>Close</button>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Themes</p>
+            <h1 id="site-theme-title" className={styles.siteDialogTitle}>Choose your theme</h1>
+            <p className={styles.siteDialogSubtitle}>Tap a theme and it&apos;s on your site right away. Changed your mind? Tap Undo.</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => themeRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
         <div className={styles.siteDialogBody}>
           <ThemeStudio
@@ -10402,8 +10449,7 @@ export function SiteSettingsCard({
           />
         </div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{saveLine}</p>
-          {undoReady ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>

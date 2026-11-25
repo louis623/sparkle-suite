@@ -74,6 +74,34 @@ const sample: SiteSettingsDraft = {
   ],
 }
 
+function SampleNotice() {
+  const [open, setOpen] = useState(true)
+  if (!open) return null
+  return (
+    <p data-testid="harness-notice" style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 8,
+      margin: '0 0 8px',
+      padding: '4px 8px 4px 12px',
+      borderRadius: 999,
+      background: '#fff3d4',
+      color: '#7a4b12',
+      font: '700 0.78rem/1.2 "DM Sans", sans-serif',
+    }}>
+      Sample only. Nothing here saves.
+      <button type="button" aria-label="Dismiss sample notice" onClick={() => setOpen(false)} style={{
+        width: 32,
+        height: 32,
+        border: 0,
+        borderRadius: 999,
+        background: 'transparent',
+        cursor: 'pointer',
+      }}>×</button>
+    </p>
+  )
+}
+
 function ReviewCard({
   title,
   saved,
@@ -128,9 +156,7 @@ export function MyWebsiteLayoutHarness({
   if (mode === 'load-error') {
     return (
       <div data-testid="my-website-layout-harness" style={{ padding: '16px 16px 120px' }}>
-        <p style={{ marginTop: 0, fontFamily: 'DM Sans, sans-serif' }}>
-          Signed-out review harness. Sample content only. It does not save, publish, or call a signed-in preview.
-        </p>
+        <SampleNotice />
         {reloaded ? (
           <p data-testid="settings-reloaded">Settings loaded.</p>
         ) : (
@@ -145,9 +171,7 @@ export function MyWebsiteLayoutHarness({
   if (mode === 'states') {
     return (
       <div data-testid="my-website-layout-harness" style={{ padding: '16px 16px 120px' }}>
-        <p style={{ marginTop: 0, fontFamily: 'DM Sans, sans-serif' }}>
-          Signed-out review harness. Sample content only. It does not save, publish, or call a signed-in preview.
-        </p>
+        <SampleNotice />
         <ReviewCard
           title="Listed standard rep: no Hero control"
           saved={{ ...sample, heroMotionMode: 'theme', grandfatheredHeadlineFallback: false }}
@@ -171,9 +195,7 @@ export function MyWebsiteLayoutHarness({
   }
   return (
     <div data-testid="my-website-layout-harness" style={{ padding: '16px 16px 120px' }}>
-      <p style={{ marginTop: 0, fontFamily: 'DM Sans, sans-serif' }}>
-        Signed-out review harness. Sample content only. It does not save, publish, or call a signed-in preview.
-      </p>
+      <SampleNotice />
       <SiteSettingsCard
         state={{ status: 'ready', settings: saved }}
         draft={draft}
