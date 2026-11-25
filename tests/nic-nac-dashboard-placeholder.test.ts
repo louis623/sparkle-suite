@@ -3782,6 +3782,34 @@ describe('DashboardPlaceholder', () => {
     expect(fallbackHtml).toContain('Live jewelry, real sparkle.')
     expect(fallbackHtml).toContain('Add your photo')
     expect(fallbackHtml).not.toContain(photo)
+
+    for (const stock of [
+      '/dev/sample-portrait.svg',
+      'https://sparkle-suite-smoke.vercel.app/amethyst/skins/pie-please/sample-portrait.webp',
+    ]) {
+      const stockDraft = getSiteSettingsDraft({
+        ...SITE_SETTINGS_READY_STATE.settings,
+        displayName: 'Sasha Sample',
+        tagline: 'Live jewelry, real sparkle.',
+        homepageMediaSlots: [
+          { key: 'about_1', caption: 'Sasha before a Friday show', imageUrl: stock, videoUrl: '' },
+        ],
+      })
+      const stockHtml = renderToStaticMarkup(
+        createElement(SiteSettingsCard, {
+          state: { status: 'ready', settings: SITE_SETTINGS_READY_STATE.settings },
+          draft: stockDraft,
+        }),
+      )
+      const aboutArt = stockHtml.slice(
+        stockHtml.indexOf('data-tile-art="about"'),
+        stockHtml.indexOf('data-tile-art="shows"'),
+      )
+      expect(aboutArt).toContain('data-about-cover="fallback"')
+      expect(aboutArt).toContain('Add your photo')
+      expect(aboutArt).not.toContain('sample-portrait')
+      expect(aboutArt).not.toContain('<img')
+    }
   })
 
   it('renders Brittany custom media controls without removing standard theme controls', () => {

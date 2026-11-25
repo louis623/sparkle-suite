@@ -14,6 +14,8 @@ const reviewThemes = AMETHYST_SKIN_CARDS.filter(
 
 const video = 'https://video.example/shorts/sample'
 const shop = 'https://shop.example/sasha'
+/** Browser-only stand-in. The test browser fulfills this URL; nothing is stored. */
+export const STAND_IN_PORTRAIT_URL = 'https://stand-in.test/portrait.jpg'
 
 const sample: SiteSettingsDraft = {
   displayName: 'Sasha Sample',
@@ -138,9 +140,12 @@ function ReviewCard({
 export function MyWebsiteLayoutHarness({
   mode = 'gaps',
   openSection = null,
+  coverPhoto = false,
 }: {
   mode?: 'gaps' | 'full' | 'states' | 'load-error' | 'no-photo'
   openSection?: SiteSectionId | null
+  /** Test browser only. Points the About photo at STAND_IN_PORTRAIT_URL. */
+  coverPhoto?: boolean
 }) {
   const [reloaded, setReloaded] = useState(false)
   const saved: SiteSettingsDraft =
@@ -156,6 +161,15 @@ export function MyWebsiteLayoutHarness({
         : {
             ...sample,
             shopLink: 'shop.example/sasha',
+            ...(coverPhoto
+              ? {
+                  homepageMediaSlots: sample.homepageMediaSlots?.map((slot) =>
+                    slot.key === 'about_1'
+                      ? { ...slot, imageUrl: STAND_IN_PORTRAIT_URL, portraitFocusX: 50, portraitFocusY: 18 }
+                      : slot,
+                  ),
+                }
+              : {}),
           }
   const [draft, setDraft] = useState(saved)
   if (mode === 'load-error') {

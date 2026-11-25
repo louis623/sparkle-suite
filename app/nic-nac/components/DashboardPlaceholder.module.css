@@ -8955,12 +8955,12 @@
   flex-direction: column;
   align-items: stretch;
   gap: 2px;
-  padding: 22% 10% 8%;
+  padding: 12% 10% 7%;
   background: linear-gradient(
     180deg,
     transparent 0%,
-    color-mix(in srgb, var(--mag-deep, #120616) 55%, transparent) 32%,
-    color-mix(in srgb, var(--mag-deep, #120616) 94%, transparent) 100%
+    color-mix(in srgb, var(--mag-deep, #120616) 28%, transparent) 48%,
+    color-mix(in srgb, var(--mag-deep, #120616) 92%, transparent) 100%
   );
   text-align: left;
 }

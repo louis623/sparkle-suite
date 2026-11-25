@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function MyWebsiteLayoutHarnessPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ case?: string; open?: string }>
+  searchParams?: Promise<{ case?: string; open?: string; cover?: string }>
 }) {
   if (!isMyWebsiteLayoutHarnessEnabled()) notFound()
   const query = searchParams ? await searchParams : {}
@@ -25,6 +25,7 @@ export default async function MyWebsiteLayoutHarnessPage({
       <MyWebsiteLayoutHarness
         mode={mode}
         openSection={query.open === 'about' ? 'about' : null}
+        coverPhoto={query.cover === 'photo'}
       />
     </main>
   )

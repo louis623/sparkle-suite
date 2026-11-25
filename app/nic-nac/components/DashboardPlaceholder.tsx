@@ -380,6 +380,31 @@ export function formatHeaderRepName(displayName?: string | null) {
   return displayName?.trim() || 'Rep info loading'
 }
 
+/** Shipped illustration and sample portraits. Matched by path, never by how the picture looks. */
+const BUILT_IN_STOCK_AVATARS = new Set([
+  '/dev/sample-portrait.svg',
+  '/amethyst/skins/gobble-and-fizz/sample-portrait.webp',
+  '/amethyst/skins/pie-please/sample-portrait.webp',
+])
+
+export function isBuiltInStockAvatar(url: string | null | undefined) {
+  const raw = url?.trim()
+  if (!raw) return false
+  let pathname = raw
+  try {
+    pathname = new URL(raw, 'https://local.invalid').pathname
+  } catch {
+    pathname = raw.split(/[?#]/)[0]
+  }
+  try {
+    pathname = decodeURIComponent(pathname)
+  } catch {
+    // Keep the raw pathname when it is not valid encoding.
+  }
+  if (!pathname.startsWith('/')) pathname = `/${pathname}`
+  return BUILT_IN_STOCK_AVATARS.has(pathname)
+}
+
 function hostFirstName(displayName?: string | null) {
   const name = displayName?.trim()
   if (!name) return 'You'
@@ -10236,7 +10261,8 @@ export function SiteSettingsCard({
   const checklist = buildSiteSetupChecklist(draft)
   const themeCard = getAmethystSkinCard(draft.appearancePreset)
   const aboutSlot = draft.homepageMediaSlots?.find((slot) => slot.key === 'about_1')
-  const aboutPhoto = aboutSlot?.imageUrl?.trim() || ''
+  const aboutSavedPhoto = aboutSlot?.imageUrl?.trim() || ''
+  const aboutPhoto = isBuiltInStockAvatar(aboutSavedPhoto) ? '' : aboutSavedPhoto
   const aboutCaption = aboutSlot?.caption?.trim() || draft.tagline?.trim() || ''
   const aboutName = hostFirstName(draft.displayName)
   const aboutCover = magazineCoverColors(themeCard)
