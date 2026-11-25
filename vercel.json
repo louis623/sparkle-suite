@@ -43,6 +43,16 @@
     {
       "path": "/api/internal/live-lineup/monitor",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/internal/look-previews/queue",
+      "schedule": "*/5 * * * *"
     }
-  ]
+  ],
+  "functions": {
+    "app/api/internal/look-previews/queue/route.ts": {
+      "maxDuration": 60,
+      "memory": 2048
+    }
+  }
 }

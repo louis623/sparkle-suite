@@ -5056,6 +5056,22 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     runSiteAutosave()
   }
 
+  async function flushLookPreviewEditor() {
+    if (autosaveTimerRef.current != null) {
+      window.clearTimeout(autosaveTimerRef.current)
+      autosaveTimerRef.current = null
+      runSiteAutosave()
+    }
+    const started = Date.now()
+    while (siteSettingsSavePendingRef.current && Date.now() - started < 8000) {
+      await new Promise((resolve) => window.setTimeout(resolve, 50))
+    }
+    await fetch('/api/nic-nac/site-settings/look-preview', {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => undefined)
+  }
+
   function handleRecipeDraftChange(patch: Partial<RecipeDraft>) {
     setRecipeActionState((current) => ({
       pendingKey: current.pendingKey,
@@ -7664,6 +7680,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             onPreview={handleOpenCustomerSitePreview}
             onDiscard={() => discardOpenerRef.current?.open()}
             onSave={handleSaveSiteSettings}
+            onLookClose={() => { void flushLookPreviewEditor() }}
             onCommit={() => scheduleSiteAutosave('now')}
             onUndo={undoLastSiteChange}
             undoReady={undoReady}
@@ -10060,6 +10077,7 @@ export function SiteSettingsCard({
   onPreview,
   onDiscard,
   onSave,
+  onLookClose,
   onRetry,
   onCommit,
   onUndo,
@@ -10101,6 +10119,7 @@ export function SiteSettingsCard({
   onPreview?: () => void
   onDiscard?: () => void
   onSave?: () => void
+  onLookClose?: () => void
   onRetry?: () => void
   onCommit?: () => void
   onUndo?: () => void
@@ -10260,6 +10279,10 @@ export function SiteSettingsCard({
   const savePhase = actionState?.pending ? 'saving' : saveError ? 'error' : 'saved'
   const checklist = buildSiteSetupChecklist(draft)
   const themeCard = getAmethystSkinCard(draft.appearancePreset)
+  const lookPreview = settings.lookPreview ?? null
+  const lookDesktop = lookPreview?.desktopUrl || ''
+  const lookPhone = lookPreview?.phoneUrl || ''
+  const lookShot = Boolean(lookDesktop || lookPhone)
   const aboutSlot = draft.homepageMediaSlots?.find((slot) => slot.key === 'about_1')
   const aboutSavedPhoto = aboutSlot?.imageUrl?.trim() || ''
   const aboutPhoto = isBuiltInStockAvatar(aboutSavedPhoto) ? '' : aboutSavedPhoto
@@ -10407,9 +10430,22 @@ export function SiteSettingsCard({
               className={styles.siteTile}
               onClick={() => group.dialog.current?.showModal()}
             >
-              <span className={styles.siteTileArt} data-tile-art={group.id} aria-hidden="true">
+              <span
+                className={styles.siteTileArt}
+                data-tile-art={group.id}
+                data-look-source={group.id === 'look' ? (lookShot ? 'shot' : 'poster') : undefined}
+                aria-hidden="true"
+              >
                 {group.id === 'look' ? (
-                  themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : <span className={styles.sitePaletteName}>{themeCard.label}</span>
+                  themeCard.thumb || lookShot ? (
+                    <>
+                      <picture className={styles.siteLookPicture}>
+                        {lookPhone ? <source media="(max-width: 879px)" srcSet={lookPhone} /> : null}
+                        <img src={lookDesktop || lookPhone || themeCard.thumb || ''} alt="" decoding="async" />
+                      </picture>
+                      {lookPreview?.status === 'updating' ? <span className={styles.siteLookUpdating}>Updating preview</span> : null}
+                    </>
+                  ) : <span className={styles.sitePaletteName}>{themeCard.label}</span>
                 ) : null}
                 {group.id === 'about' ? (
                   <span
@@ -10486,7 +10522,7 @@ export function SiteSettingsCard({
           )
         })}
       </div>
-      <dialog ref={lookRef} className={styles.siteDialog} data-site-dialog="" aria-labelledby="site-look-title">
+      <dialog ref={lookRef} className={styles.siteDialog} data-site-dialog="" aria-labelledby="site-look-title" onClose={() => onLookClose?.()}>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Look</p>

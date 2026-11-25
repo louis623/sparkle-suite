@@ -736,6 +736,15 @@ export interface SiteSettingsDashboardResult {
    * Read-only. True when an empty line under the headline falls back to the footer tagline.
    */
   grandfatheredHeadlineFallback?: boolean
+  /**
+   * Read-only. Cached first-screen shots for the Look tile.
+   * Absent when site_look_previews is not on this database yet.
+   */
+  lookPreview?: {
+    status: 'missing' | 'updating' | 'ready' | 'failed'
+    desktopUrl: string | null
+    phoneUrl: string | null
+  } | null
 }
 
 export interface UpdateSiteSettingsDashboardInput {

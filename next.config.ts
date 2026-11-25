@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  serverExternalPackages: ['@resvg/resvg-js'],
+  serverExternalPackages: ['@resvg/resvg-js', 'puppeteer-core', '@sparticuz/chromium-min'],
   outputFileTracingIncludes: {
     '/api/public/client-error': ['./lib/monitoring/generated/client-scripts.json'],
     '/*': ['./lib/amethyst/generated/homepage-server.cjs', './lib/amethyst/legacy/assets/**/*', './public/amethyst/compiled/*.js'],
