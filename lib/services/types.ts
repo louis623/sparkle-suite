@@ -741,7 +741,7 @@ export interface SiteSettingsDashboardResult {
    * Absent when site_look_previews is not on this database yet.
    */
   lookPreview?: {
-    status: 'missing' | 'updating' | 'ready' | 'failed'
+    status: 'missing' | 'updating' | 'ready' | 'failed' | 'skipped'
     desktopUrl: string | null
     phoneUrl: string | null
   } | null

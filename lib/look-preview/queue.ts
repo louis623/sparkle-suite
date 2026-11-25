@@ -5,6 +5,7 @@ import {
   LOOK_PREVIEW_MAX_ATTEMPTS,
   SMOKE_PUBLIC_ORIGIN,
   applyLookPreviewFailure,
+  applyLookPreviewSkip,
   buildLookPreviewCaptureUrl,
   isMissingLookPreviewTable,
   lookPreviewFingerprint,
@@ -14,7 +15,7 @@ import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 
 type PreviewRow = {
   rep_id: string
-  status: 'missing' | 'updating' | 'ready' | 'failed'
+  status: 'missing' | 'updating' | 'ready' | 'failed' | 'skipped'
   version: number
   desktop_path: string | null
   desktop_url: string | null
@@ -146,6 +147,7 @@ export async function processLookPreview(repId: string, options: { flush?: boole
   const row = loaded.row
   const queuedAt = new Date(String(row.queued_at)).getTime()
   if (!options.flush && Date.now() - queuedAt < LOOK_PREVIEW_DEBOUNCE_MS) return { status: 'waiting' as const }
+  if (row.status === 'skipped') return { status: 'skipped' as const }
   if (row.status === 'failed' && row.attempt_count >= LOOK_PREVIEW_MAX_ATTEMPTS) return { status: 'stopped' as const }
   const busy = row.processing_started_at && Date.now() - new Date(row.processing_started_at).getTime() < 70_000
   if (busy) return { status: 'in-flight' as const }
@@ -177,6 +179,11 @@ export async function processLookPreview(repId: string, options: { flush?: boole
       allowedHosts: [host, new URL(SMOKE_PUBLIC_ORIGIN).hostname, 'www.yoursparklesuite.com'],
     })
     if (!('desktop' in shots)) {
+      if (shots.reason === 'page-missing' || shots.reason === 'blank') {
+        await markSkipped(repId, claimed, shots.reason)
+        console.info(JSON.stringify({ scope: 'look-preview', slug: rep.data.public_site_slug, status: 'skipped', reason: shots.reason, durationMs: Date.now() - started }))
+        return { status: 'skipped' as const }
+      }
       await markFailed(repId, claimed)
       console.info(JSON.stringify({ scope: 'look-preview', slug: rep.data.public_site_slug, status: 'page-not-ready', durationMs: Date.now() - started }))
       return { status: 'failed' as const }
@@ -227,6 +234,37 @@ export async function processLookPreview(repId: string, options: { flush?: boole
     }))
     return { status: 'failed' as const }
   }
+}
+
+async function markSkipped(repId: string, claimed: PreviewRow, reason: 'page-missing' | 'blank') {
+  const skipped = applyLookPreviewSkip({
+    desktopUrl: claimed.desktop_url,
+    phoneUrl: claimed.phone_url,
+  }, reason)
+  const admin = createAdminClient()
+  const saved = await admin.from('site_look_previews').update({
+    status: skipped.status,
+    desktop_url: skipped.desktopUrl,
+    phone_url: skipped.phoneUrl,
+    desktop_path: claimed.desktop_path,
+    phone_path: claimed.phone_path,
+    attempt_count: skipped.attemptCount,
+    last_error: skipped.lastError,
+    processing_started_at: null,
+    updated_at: new Date().toISOString(),
+  }).eq('rep_id', repId)
+  if (!saved.error) return
+  await admin.from('site_look_previews').update({
+    status: 'failed',
+    desktop_url: claimed.desktop_url,
+    phone_url: claimed.phone_url,
+    desktop_path: claimed.desktop_path,
+    phone_path: claimed.phone_path,
+    attempt_count: LOOK_PREVIEW_MAX_ATTEMPTS,
+    last_error: `skipped: ${reason}`,
+    processing_started_at: null,
+    updated_at: new Date().toISOString(),
+  }).eq('rep_id', repId)
 }
 
 async function markFailed(repId: string, claimed: PreviewRow) {

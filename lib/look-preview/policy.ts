@@ -43,6 +43,56 @@ export function lookPreviewDelayElapsed(queuedAtMs: number, nowMs: number, flush
   return nowMs - queuedAtMs >= LOOK_PREVIEW_DEBOUNCE_MS
 }
 
+export const LOOK_PREVIEW_MARKER_WAIT_MS = 12_000
+export const LOOK_PREVIEW_SETTLE_MS = 700
+const BLANK_TEXT_LENGTH = 40
+
+export type LookPreviewPageSignals = {
+  httpStatus: number
+  hasHpHeader: boolean
+  hasHpHero: boolean
+  hasTemplateSrc: boolean
+  fontsReady: boolean
+  heroDecoded: boolean
+  settled: boolean
+  textLength: number
+}
+
+export type LookPreviewReadyDecision =
+  | { action: 'capture'; mode: 'markers' | 'settled' }
+  | { action: 'wait' }
+  | { action: 'skip'; reason: 'page-missing' | 'blank' }
+
+/** Ready when this page's own header and hero are painted, or the 200 page has settled with real content. */
+export function decideLookPreviewReady(signals: LookPreviewPageSignals): LookPreviewReadyDecision {
+  if (signals.httpStatus === 404 || signals.httpStatus === 410) {
+    return { action: 'skip', reason: 'page-missing' }
+  }
+  if (signals.httpStatus !== 200) return { action: 'wait' }
+  const hasMarkers = signals.hasHpHeader && signals.hasHpHero
+  if (hasMarkers) {
+    if (!signals.fontsReady || !signals.heroDecoded) return { action: 'wait' }
+    return { action: 'capture', mode: 'markers' }
+  }
+  if (!signals.settled) return { action: 'wait' }
+  if (signals.textLength < BLANK_TEXT_LENGTH) return { action: 'skip', reason: 'blank' }
+  return { action: 'capture', mode: 'settled' }
+}
+
+export function applyLookPreviewSkip<T extends { desktopUrl: string | null; phoneUrl: string | null }>(
+  row: T,
+  reason: 'page-missing' | 'blank',
+) {
+  return {
+    ...row,
+    status: 'skipped' as const,
+    desktopUrl: row.desktopUrl,
+    phoneUrl: row.phoneUrl,
+    attemptCount: LOOK_PREVIEW_MAX_ATTEMPTS,
+    lastError: reason,
+  }
+}
+
 export function applyLookPreviewFailure<T extends { desktopUrl: string | null; phoneUrl: string | null; attemptCount: number }>(row: T) {
   return {
     ...row,
