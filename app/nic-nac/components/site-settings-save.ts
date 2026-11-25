@@ -2,6 +2,7 @@ import { resolveSocialPlatformUrl } from '@/lib/public-site/social-hero'
 import {
   normalizeSignupDiscountCode,
   normalizeSignupDiscountMessage,
+  normalizeSignupDiscountOffer,
 } from '@/lib/public-site/signup-discount'
 import {
   SOCIAL_PLATFORMS,
@@ -12,6 +13,7 @@ import type { PublicSiteMediaSlot } from '@/lib/services/types'
 
 export const SITE_FIELD_IDS = {
   discountCode: 'my-website-discount-code',
+  discountOffer: 'my-website-discount-offer',
   discountMessage: 'my-website-discount-message',
   email: 'my-website-email',
   shopLink: 'my-website-shop-link',
@@ -24,6 +26,8 @@ export const EMAIL_ERROR = 'Enter an email address in the format you@example.com
 export const DISCOUNT_CODE_ERROR = 'Use 1 to 40 letters, numbers, or hyphens.'
 export const DISCOUNT_MESSAGE_ERROR =
   'Use up to 140 characters of plain text, without < or >.'
+export const DISCOUNT_OFFER_ERROR =
+  'Use up to 40 characters of plain text, without < or >.'
 export const SAVED_LABEL = 'Saved'
 export const AUTOSAVE_WAIT_MS = 1500
 
@@ -72,6 +76,9 @@ export function draftHoldingInvalidFields(
   }
   if (discountMessageFieldError(draft.signupDiscountMessage)) {
     next.signupDiscountMessage = saved.signupDiscountMessage
+  }
+  if (discountOfferFieldError(draft.signupDiscountOffer)) {
+    next.signupDiscountOffer = saved.signupDiscountOffer
   }
   const handles = { ...(next.socialHandles ?? {}) }
   for (const platform of SOCIAL_PLATFORMS) {
@@ -139,6 +146,12 @@ export function discountMessageFieldError(message: string | null | undefined) {
   return null
 }
 
+export function discountOfferFieldError(offer: string | null | undefined) {
+  const value = offer ?? ''
+  if (value.trim() && !normalizeSignupDiscountOffer(value)) return DISCOUNT_OFFER_ERROR
+  return null
+}
+
 export function socialLinkFieldError(platform: SocialPlatformKey, value: string | null | undefined) {
   const trimmed = value?.trim() ?? ''
   if (!trimmed) return null
@@ -159,6 +172,14 @@ export function collectSiteSettingsFieldErrors(draft: SiteSettingsDraft): SiteSe
       id: SITE_FIELD_IDS.discountMessage,
       label: 'Discount message',
       message: discountMessage,
+    })
+  }
+  const discountOffer = discountOfferFieldError(draft.signupDiscountOffer)
+  if (discountOffer) {
+    errors.push({
+      id: SITE_FIELD_IDS.discountOffer,
+      label: 'What they get',
+      message: discountOffer,
     })
   }
   const email = emailFieldError(draft.email)

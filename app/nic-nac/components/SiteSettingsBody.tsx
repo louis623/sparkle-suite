@@ -27,6 +27,7 @@ import {
 import {
   discountCodeFieldError,
   discountMessageFieldError,
+  discountOfferFieldError,
   emailFieldError,
   shopLinkFieldError,
   SITE_FIELD_IDS,
@@ -129,7 +130,7 @@ const SECTION_SHELLS = [
   ['3', 'upcoming-shows', 'Upcoming shows', 'Shows on your homepage'],
   ['4', 'bomb-party', 'What is a Bomb Party', 'The live reveal explanation'],
   ['5', 'about', 'About you', 'Your photo and story'],
-  ['6', 'signup', 'Sign-up & discount', 'How customers join'],
+  ['6', 'signup', 'Sign-up discount', 'Customers can choose to join your list and get a one-time code.'],
   ['7', 'footer', 'Footer & socials', 'Tagline, email, social links, and team'],
   ['8', 'other-pages', 'Other pages', 'Dance Floor, Join, and Live Lineup'],
 ] as const
@@ -215,7 +216,7 @@ export function SiteMapRail() {
     ['site-section-upcoming-shows', '3 Upcoming shows'],
     ['site-section-bomb-party', '4 What is a Bomb Party'],
     ['site-section-about', '5 About you'],
-    ['site-section-signup', '6 Sign-up & discount'],
+    ['site-section-signup', '6 Sign-up discount'],
     ['site-section-footer', '7 Footer & socials'],
   ] as const
   return (
@@ -330,6 +331,7 @@ export function SiteSettingsBody({
   })
   const discountCode = draft.signupDiscountCode ?? ''
   const discountMessage = draft.signupDiscountMessage ?? ''
+  const discountOfferError = discountOfferFieldError(draft.signupDiscountOffer)
   const aboutPortrait = slots.find((slot) => slot.key === 'about_1')
 
   const showSection = (id: SiteSectionId) => !sections || sections.includes(id)
@@ -776,8 +778,8 @@ export function SiteSettingsBody({
       <SiteSection plain={plain} hidden={!showSection('signup')}
         id="signup"
         number="6"
-        title="Sign-up & discount"
-        summary="A code after customers sign up"
+        title="Sign-up discount"
+        summary="Customers can choose to join your list and get a one-time code."
         status={status('signup')}
         defaultOpen={plain || sectionOpen('signup')}
       >
@@ -827,6 +829,40 @@ export function SiteSettingsBody({
               </span>
             ) : null}
             <ShowsOn id="discount-code-shows">{SHOWS_ON.discountCode}</ShowsOn>
+          </label>
+          <label className={styles.searchField} data-site-field="discount-offer">
+            <span className={styles.searchLabel}>What they get</span>
+            <input
+              id={SITE_FIELD_IDS.discountOffer}
+              className={styles.searchInput}
+              data-site-control="discount-offer"
+              value={draft.signupDiscountOffer ?? ''}
+              maxLength={40}
+              placeholder="Free shipping"
+              aria-invalid={discountOfferError ? 'true' : 'false'}
+              aria-describedby={describedBy(
+                'discount-offer-example',
+                discountOfferError ? `${SITE_FIELD_IDS.discountOffer}-error` : null,
+                'discount-offer-shows',
+              )}
+              onBlur={() =>
+                onFieldBlur(
+                  SITE_FIELD_IDS.discountOffer,
+                  'What they get',
+                  discountOfferFieldError(draft.signupDiscountOffer),
+                )
+              }
+              onChange={(event) => onDraftChange?.({ signupDiscountOffer: event.target.value })}
+            />
+            <span id="discount-offer-example" className={styles.helperNote}>
+              For example, 15% off your next order.
+            </span>
+            {discountOfferError ? (
+              <span id={`${SITE_FIELD_IDS.discountOffer}-error`} className={styles.fieldError}>
+                <span role="img" aria-label="Error">!</span> {discountOfferError}
+              </span>
+            ) : null}
+            <ShowsOn id="discount-offer-shows">{SHOWS_ON.discountOffer}</ShowsOn>
           </label>
           <label className={styles.searchField} data-site-field="discount-message">
             <span className={styles.searchLabel}>Message shown with your code</span>
