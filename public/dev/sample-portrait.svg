@@ -1,4 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="480" height="640" viewBox="0 0 480 640" role="img" aria-label="Sample portrait placeholder">
-  <rect width="480" height="640" fill="#f6efe8"/>
-  <polygon points="240,90 390,250 240,550 90,250" fill="#b91673"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="640" viewBox="0 0 480 640" role="img" aria-label="Sample portrait of Sasha">
+  <rect width="480" height="640" fill="#f6e7da"/>
+  <ellipse cx="240" cy="560" rx="190" ry="210" fill="#34252f"/>
+  <circle cx="240" cy="250" r="118" fill="#e7b89a"/>
+  <path d="M150 250c8-90 52-140 90-140s82 50 90 140c-20 18-50 28-90 28s-70-10-90-28z" fill="#5c3d4a"/>
+  <ellipse cx="200" cy="248" rx="10" ry="12" fill="#402924"/>
+  <ellipse cx="280" cy="248" rx="10" ry="12" fill="#402924"/>
+  <path d="M214 292c16 14 36 14 52 0" fill="none" stroke="#402924" stroke-width="6" stroke-linecap="round"/>
 </svg>

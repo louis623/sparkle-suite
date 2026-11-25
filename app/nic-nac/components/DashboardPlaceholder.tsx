@@ -10334,18 +10334,17 @@ export function SiteSettingsCard({
                   themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : <span className={styles.sitePaletteName}>{themeCard.label}</span>
                 ) : null}
                 {group.id === 'about' ? (
-                  group.art ? (
-                    <>
-                      <img src={group.art} alt="" />
-                      <span className={styles.siteArtPill}>What is a Bomb Party</span>
-                    </>
-                  ) : (
-                    <span className={styles.siteAboutScene}>
-                      <span className={styles.sitePortraitMark}>{(draft.displayName || 'You').slice(0, 1)}</span>
-                      <span className={styles.siteAboutName}>{draft.displayName?.trim() || 'Your name'}</span>
-                      <span className={styles.siteArtPill}>What is a Bomb Party</span>
+                  <span className={styles.siteAboutScene}>
+                    <span className={styles.sitePortraitRing}>
+                      {group.art ? (
+                        <img className={styles.siteAboutPhoto} src={group.art} alt="" />
+                      ) : (
+                        <span className={styles.sitePortraitMark}>{(draft.displayName || 'You').slice(0, 1)}</span>
+                      )}
                     </span>
-                  )
+                    <span className={styles.siteAboutName}>{draft.displayName?.trim() || 'Your name'}</span>
+                    <span className={styles.siteArtPill}>What is a Bomb Party</span>
+                  </span>
                 ) : null}
                 {group.id === 'shows' ? (
                   <span className={styles.siteShowScene}>

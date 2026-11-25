@@ -280,22 +280,30 @@ export function ThemeStudio({
           </p>
         </div>
         <div className={styles.previewColumn}>
-          {wide ? (
-            <div className={styles.phoneFrame}>
-            <PreviewSurface
-              scope="panel"
-              page={page}
-              onPage={(nextPage) => {
-                setPage(nextPage)
-                if (chosen) showCachedOrLoading(chosen.id, nextPage)
-              }}
-              view={view}
-              themeLabel={chosenLabel}
-              onRetry={retryPreview}
-              retired={themeRetired}
-            />
-            </div>
-          ) : null}
+          <div className={styles.phoneFrame}>
+            {view.status === 'ready' ? (
+              <PreviewSurface
+                scope="panel"
+                page={page}
+                onPage={(nextPage) => {
+                  setPage(nextPage)
+                  if (chosen) showCachedOrLoading(chosen.id, nextPage)
+                }}
+                view={view}
+                themeLabel={chosenLabel}
+                onRetry={retryPreview}
+                retired={themeRetired}
+              />
+            ) : (
+              <div
+                className={styles.phoneSkin}
+                style={{ background: colorBlock(chosen?.previewColors ?? ['#34252f', '#ee2c9b', '#ffd4ea']) }}
+              >
+                <p className={styles.phoneSkinName}>{chosenLabel}</p>
+                <p className={styles.phoneSkinNote}>Preview shows here when you are signed in.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <dialog

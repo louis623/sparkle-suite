@@ -8771,7 +8771,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
+  align-items: center;
   gap: 6px;
   min-height: 100%;
   padding: 8px;
@@ -8780,11 +8781,33 @@
     radial-gradient(circle at 20% 20%, #ffd4ea, transparent 55%),
     linear-gradient(160deg, #5c3d4a, #34252f 70%);
 }
+.siteTileArt[data-tile-art='about'] {
+  background:
+    radial-gradient(circle at 50% 38%, #ffe4f2 0%, #c98aa8 42%, #5c3d4a 100%);
+}
 .siteTileArt[data-tile-art='shows'] {
-  background: linear-gradient(160deg, #f6e7da, #e7cbb8);
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.7), transparent 28%),
+    radial-gradient(circle at 84% 78%, rgba(185, 22, 115, 0.16), transparent 32%),
+    linear-gradient(160deg, #f6e7da, #e7cbb8);
 }
 .siteTileArt[data-tile-art='links'] {
-  background: linear-gradient(160deg, #fff6fb, #f3d5e6);
+  background:
+    radial-gradient(circle at 12% 80%, rgba(238, 44, 155, 0.18), transparent 30%),
+    radial-gradient(circle at 88% 18%, rgba(255, 255, 255, 0.8), transparent 26%),
+    linear-gradient(160deg, #fff6fb, #f3d5e6);
+}
+.siteTileArt[data-tile-art='shows']::before,
+.siteTileArt[data-tile-art='links']::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 253, 251, 0.7);
+  box-shadow: 70px 36px 0 -4px rgba(255, 253, 251, 0.45), 28px 90px 0 -6px rgba(185, 22, 115, 0.2);
+  top: 14%;
+  left: 12%;
 }
 .siteTileArt img {
   position: absolute;
@@ -8858,12 +8881,37 @@
   height: auto;
   max-width: 100%;
 }
+.sitePortraitRing {
+  position: relative;
+  z-index: 1;
+  width: 72px;
+  height: 72px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 999px;
+  padding: 4px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(54, 34, 29, 0.18);
+}
+.siteTileArt .siteAboutPhoto {
+  position: absolute;
+  inset: 4px;
+  width: auto;
+  height: auto;
+  border-radius: 999px;
+  object-fit: cover;
+  object-position: center;
+}
+.siteAboutName,
+.siteAboutScene .siteArtPill { position: relative; z-index: 1; }
+.sitePortraitRing .sitePortraitMark { width: 100%; height: 100%; font-size: 1.6rem; }
+.siteAboutScene { gap: 10px; }
 .siteAboutName {
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
   font-size: 0.95rem;
   line-height: 1.1;
   text-align: center;
-  color: #fff6fb;
+  color: #402924;
 }
 .siteShowScene { flex-direction: column; align-items: center; gap: 8px; }
 .siteCalendar {
@@ -9167,26 +9215,27 @@
     padding: 18px;
   }
   .siteTileCopy { flex: none; padding: 14px 16px 16px; }
-  .sitePortraitMark { width: 112px; height: 112px; font-size: 2.4rem; }
-  .siteAboutName { font-size: 1.7rem; }
+  .sitePortraitRing { width: 120px; height: 120px; padding: 5px; }
+  .sitePortraitRing .sitePortraitMark { font-size: 2.6rem; }
+  .siteAboutName { font-size: 1.8rem; }
   .siteArtPill { font-size: 0.85rem; padding: 6px 12px; }
   .siteShowScene { flex-direction: row; align-items: stretch; gap: 20px; }
   .siteCalendar,
-  .siteCodeCard { width: 176px; }
-  .siteCalMonth { font-size: 0.8rem; padding: 8px 0; }
-  .siteCalDay { font-size: 3.4rem; padding: 14px 0 6px; }
+  .siteCodeCard { width: 220px; min-height: 300px; }
+  .siteCalMonth { font-size: 0.9rem; padding: 12px 0; }
+  .siteCalDay { font-size: 4.6rem; padding: 22px 0 8px; }
   .siteCalName,
   .siteCalTime { font-size: 0.85rem; padding-inline: 10px; }
   .siteCalTime { padding-bottom: 14px; }
-  .siteCodeCard { min-height: 0; padding: 18px 16px; }
+  .siteCodeCard { min-height: 300px; padding: 18px 16px; }
   .siteCodeLabel { font-size: 0.72rem; }
-  .siteCodeValue { font-size: 1.7rem; }
+  .siteCodeValue { font-size: 2rem; }
   .siteCodeCard::before,
   .siteCodeCard::after { width: 18px; height: 18px; }
   .siteCodeCard::before { left: -9px; }
   .siteCodeCard::after { right: -9px; }
-  .siteLinkScene { gap: 16px; padding: 28px 32px; border-radius: 28px; }
-  .siteBrand { width: 64px; height: 64px; }
+  .siteLinkScene { gap: 18px; padding: 36px 40px; border-radius: 28px; }
+  .siteBrand { width: 72px; height: 72px; }
   .siteBrandIcon { width: 30px; height: 30px; }
   .sitePagePills { gap: 10px; }
   .sitePagePills span { font-size: 0.95rem; padding: 8px 14px; }
@@ -9207,5 +9256,5 @@
     margin: 0;
     border-radius: 0;
   }
-  .siteDialogBody { max-height: none; }
+  .siteDialogBody { max-height: none; padding: 16px; }
 }

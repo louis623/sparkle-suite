@@ -25,11 +25,15 @@
 .layout {
   display: grid;
   gap: 16px;
+  min-width: 0;
 }
+.studio,
+.picker,
+.fieldset { min-width: 0; max-width: 100%; }
 
 @media (min-width: 880px) {
   .layout {
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 1fr);
+    grid-template-columns: minmax(0, 1fr) 300px;
     align-items: start;
   }
 
@@ -44,10 +48,23 @@
   }
 }
 
-@media (min-width: 1024px) {
-  .layout {
-    grid-template-columns: minmax(0, 3fr) minmax(240px, 2fr);
+@media (max-width: 879px) {
+  .studio {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
   }
+  .grid { gap: 12px; }
+  .name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .currentTheme { grid-template-columns: 72px minmax(0, 1fr); }
+  .currentName { overflow-wrap: anywhere; }
 }
 
 .notice,
@@ -247,9 +264,12 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 8px;
+  max-width: 100%;
   margin: 12px 0;
   overflow-x: auto;
   overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 36px), transparent);
 }
 .filter,
 .filterOn {
@@ -323,7 +343,8 @@
   .savedMark { grid-column: 2; justify-self: start; }
 }
 .phoneFrame {
-  width: min(280px, 100%);
+  width: 280px;
+  max-width: 100%;
   margin-inline: auto;
   padding: 14px 12px 18px;
   border: 10px solid #34252f;
@@ -331,6 +352,22 @@
   background: #fffdfb;
   min-height: 460px;
 }
+.phoneSkin {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 420px;
+  border-radius: 18px;
+  padding: 16px;
+}
+.phoneSkinName {
+  margin: 0;
+  color: #fff6fb;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: 1.7rem;
+  line-height: 1.1;
+}
+.phoneSkinNote { margin: 8px 0 0; color: #fff6fb; font-size: 0.85rem; }
 .phoneFrame .stageBody {
   background: linear-gradient(180deg, #f6e7da 0%, #fffdfb 42%, #ffd4ea 100%);
   min-height: 320px;
