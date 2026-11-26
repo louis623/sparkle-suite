@@ -339,6 +339,7 @@ export function SiteSettingsBody({
   onDraftChange,
   onSocialHandleChange,
   onHomepageMediaChange,
+  onMediaCommit,
   onHomepageMediaUpload,
   onHomepageVideoRemove,
   onFieldBlur,
@@ -375,6 +376,7 @@ export function SiteSettingsBody({
   onDraftChange?: (patch: Partial<SiteSettingsDraft>) => void
   onSocialHandleChange?: (platform: string, value: string) => void
   onHomepageMediaChange?: (key: PublicSiteMediaSlotKey, patch: Partial<PublicSiteMediaSlot>) => void
+  onMediaCommit?: () => void
   onHomepageMediaUpload?: (key: PublicSiteMediaSlotKey, file: File) => void
   onHomepageVideoRemove?: (key: PublicSiteMediaSlotKey, expectedUrl: string) => void
   onFieldBlur: (id: string, label: string, message: string | null) => void
@@ -419,6 +421,7 @@ export function SiteSettingsBody({
       feedback={mediaUploadFeedback?.key === slot.key ? mediaUploadFeedback : null}
       actionPending={actionPending}
       onChange={onHomepageMediaChange}
+      onCommit={onMediaCommit}
       onUpload={onHomepageMediaUpload}
       onRemoveVideo={onHomepageVideoRemove}
     />
@@ -869,15 +872,15 @@ export function SiteSettingsBody({
                         <p>Face detection set the starting crop. You can fine‑tune it.</p>
                         <label>
                           <span>Zoom</span>
-                          <input type="range" min="1" max="1.5" step="0.01" value={aboutPortrait.portraitZoom ?? 1.18} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitZoom: Number(event.target.value) })} />
+                          <input type="range" min="1" max="1.5" step="0.01" value={aboutPortrait.portraitZoom ?? 1.18} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitZoom: Number(event.target.value) })} onPointerUp={() => onMediaCommit?.()} />
                         </label>
                         <label>
                           <span>Move subject up or down</span>
-                          <input type="range" min="0" max="60" step="1" value={aboutPortrait.portraitFocusY ?? 20} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitFocusY: Number(event.target.value) })} />
+                          <input type="range" min="0" max="60" step="1" value={aboutPortrait.portraitFocusY ?? 20} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitFocusY: Number(event.target.value) })} onPointerUp={() => onMediaCommit?.()} />
                         </label>
                         <label>
                           <span>Move subject left or right</span>
-                          <input type="range" min="0" max="100" step="1" value={aboutPortrait.portraitFocusX ?? 50} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitFocusX: Number(event.target.value) })} />
+                          <input type="range" min="0" max="100" step="1" value={aboutPortrait.portraitFocusX ?? 50} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitFocusX: Number(event.target.value) })} onPointerUp={() => onMediaCommit?.()} />
                         </label>
                       </fieldset>
                     </details>

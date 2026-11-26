@@ -26,6 +26,7 @@ export function HomepageMediaSlot({
   feedback,
   actionPending,
   onChange,
+  onCommit,
   onUpload,
   onRemoveVideo,
 }: {
@@ -37,6 +38,7 @@ export function HomepageMediaSlot({
   isUploading: boolean
   feedback?: { message: string; tone: 'error' | 'success' } | null
   actionPending?: boolean
+  onCommit?: () => void
   onChange?: (
     key: PublicSiteMediaSlotKey,
     patch: Partial<PublicSiteMediaSlot>,
@@ -235,6 +237,7 @@ export function HomepageMediaSlot({
               onChange={(event) =>
                 onChange?.(slot.key, { portraitZoom: Number(event.target.value) })
               }
+              onPointerUp={() => onCommit?.()}
             />
           </label>
           <label>
@@ -248,6 +251,7 @@ export function HomepageMediaSlot({
               onChange={(event) =>
                 onChange?.(slot.key, { portraitFocusY: Number(event.target.value) })
               }
+              onPointerUp={() => onCommit?.()}
             />
           </label>
           <label>
@@ -261,6 +265,7 @@ export function HomepageMediaSlot({
               onChange={(event) =>
                 onChange?.(slot.key, { portraitFocusX: Number(event.target.value) })
               }
+              onPointerUp={() => onCommit?.()}
             />
           </label>
           <ShowsOn id="smart-frame-shows">{SHOWS_ON.smartFrame}</ShowsOn>

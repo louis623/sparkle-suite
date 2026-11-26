@@ -10467,6 +10467,7 @@ export function SiteSettingsCard({
       onDraftChange={onDraftChange}
       onSocialHandleChange={onSocialHandleChange}
       onHomepageMediaChange={onHomepageMediaChange}
+      onMediaCommit={onCommit}
       onHomepageMediaUpload={onHomepageMediaUpload}
       onHomepageVideoRemove={onHomepageVideoRemove}
       onFieldBlur={reportFieldBlur}
