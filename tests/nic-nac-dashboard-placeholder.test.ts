@@ -4542,13 +4542,13 @@ describe('DashboardPlaceholder', () => {
       includeCardQr: true,
     }).map((section) => section.label)
     expect(labels).toEqual([
+      'My Website',
       'Account',
       'Business Calculator',
       'Customer List',
       'Jewelry Library',
       'Live Lineup',
       'Message Center',
-      'My Website',
       'QR codes, QR flyers, business cards',
       'Recipes',
       'Resources & Help',
@@ -4595,7 +4595,8 @@ describe('DashboardPlaceholder', () => {
     expect(hub).not.toContain('Business Tools')
     expect(hub).not.toContain('>Recipes<')
     expect(hub.indexOf('>Dashboard<')).toBeGreaterThan(-1)
-    expect(hub.indexOf('>Dashboard<')).toBeLessThan(hub.indexOf('>Account<'))
+    expect(hub.indexOf('>Dashboard<')).toBeLessThan(hub.indexOf('>My Website<'))
+    expect(hub.indexOf('>My Website<')).toBeLessThan(hub.indexOf('>Account<'))
     expect(toolsHubButtonMarkup(hub, 'Dashboard')).not.toContain('aria-current="page"')
     expect(toolsHubButtonMarkup(hub, 'Wispr Flow')).toContain('aria-current="page"')
   })
@@ -4615,7 +4616,8 @@ describe('DashboardPlaceholder', () => {
         reviewMode: true,
       }),
     )
-    expect(dashboard.indexOf('>Dashboard<')).toBeLessThan(dashboard.indexOf('>Account<'))
+    expect(dashboard.indexOf('>Dashboard<')).toBeLessThan(dashboard.indexOf('>My Website<'))
+    expect(dashboard.indexOf('>My Website<')).toBeLessThan(dashboard.indexOf('>Account<'))
     expect(toolsHubButtonMarkup(dashboard, 'Dashboard')).toContain('aria-current="page"')
     expect(toolsHubButtonMarkup(dashboard, 'Dashboard')).not.toContain('Coming Soon')
     expect(toolsHubButtonMarkup(dashboard, 'Account')).not.toContain('aria-current="page"')

@@ -656,7 +656,7 @@ export function getWorkspaceToolSections(options: {
 } = {}) {
   const includeRecipes = options.includeRecipes ?? true
   const includeCardQr = options.includeCardQr ?? isCardQrToolEnabled()
-  return SECONDARY_WORKSPACE_SECTIONS.filter((section) => {
+  const sections = SECONDARY_WORKSPACE_SECTIONS.filter((section) => {
     if (DANCE_FLOOR_SUBPAGE_SECTIONS.has(section.key)) return false
     if (section.key === 'recipes') return includeRecipes
     if (section.key === CARD_QR_WORKSPACE_SECTION) return includeCardQr
@@ -664,6 +664,12 @@ export function getWorkspaceToolSections(options: {
   })
     .slice()
     .sort((a, b) => a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }))
+  const websiteIndex = sections.findIndex((section) => section.key === 'site-settings')
+  if (websiteIndex > 0) {
+    const [website] = sections.splice(websiteIndex, 1)
+    sections.unshift(website)
+  }
+  return sections
 }
 
 export function getWorkspaceBackDestination(
