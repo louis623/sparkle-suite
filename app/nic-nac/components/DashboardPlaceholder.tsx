@@ -14,7 +14,8 @@ import Link from 'next/link'
 import { flushSync } from 'react-dom'
 import { SiteLeaveGuard, SiteSaveBar, type SiteDiscardOpener } from './SiteSaveBar'
 import { SiteSettingsBody, SiteSettingsLoadingShell } from './SiteSettingsBody'
-import { buildSiteSetupChecklist, SIGNUP_TILE_SUMMARY, signupDiscountTile, type SiteSectionId } from './site-settings-layout'
+import { buildSiteSetupChecklist, openWorkspaceSection, SIGNUP_TILE_SUMMARY, signupDiscountTile, type SiteSectionId } from './site-settings-layout'
+import { CustomerPageStrip } from './PublicSiteVisibility'
 import { myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-client'
 import { getAmethystSkinCard, type AmethystSkinCard } from '@/lib/amethyst/skin-cards'
 import { SocialMark } from '@/lib/amethyst/social-mark-icon'
@@ -10126,7 +10127,7 @@ export function SiteSettingsCard({
   undoReady?: boolean
   previewThemeCards?: readonly AmethystSkinCard[] | null
   nextShow?: { month: string; day: string; name: string; time: string } | null
-  initialDialog?: 'signup' | null
+  initialDialog?: 'signup' | 'links' | null
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
   const lookRef = useRef<HTMLDialogElement>(null)
@@ -10152,8 +10153,7 @@ export function SiteSettingsCard({
   }, [fieldEpoch])
 
   useEffect(() => {
-    if (initialDialog !== 'signup') return
-    const dialog = showsRef.current
+    const dialog = initialDialog === 'signup' ? showsRef.current : initialDialog === 'links' ? linksRef.current : null
     if (dialog && !dialog.open) dialog.showModal()
   }, [initialDialog])
 
@@ -10327,14 +10327,23 @@ export function SiteSettingsCard({
     },
     {
       id: 'links',
-      title: 'Links & other pages',
+      title: 'Socials and Contact Info',
       art: null,
-      summary: draft.tagline.trim() || 'Footer, socials, Dance Floor, Join, and Live Lineup.',
-      sections: ['footer', 'other-pages'] as SiteSectionId[],
+      summary: 'Your email, tagline, and social links.',
+      sections: ['footer'] as SiteSectionId[],
       dialog: linksRef,
     },
   ]
   const signupTile = signupDiscountTile(draft)
+  const contactLine = [
+    draft.email.trim() ? 'Email' : '',
+    ...SOCIAL_PLATFORMS.filter((platform) => draft.socialHandles?.[platform.key]?.trim()).map((platform) => platform.label),
+  ].filter(Boolean).slice(0, 3).join(' · ')
+  const followPageLink = (event: ReactMouseEvent<HTMLAnchorElement>) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    openWorkspaceSection(event.currentTarget.getAttribute('href') || event.currentTarget.href)
+  }
   const ticketStyle = {
     '--ticket-primary': themeCard.swatches.find((swatch) => swatch.label === 'Primary')?.value ?? aboutCover.accent,
     '--ticket-accent': aboutCover.accent,
@@ -10432,6 +10441,13 @@ export function SiteSettingsCard({
           </span>
         </span>
       </div>
+      <div className={styles.siteHomeStage}>
+      <CustomerPageStrip
+        settings={draft}
+        joinTeamAccessEnabled={settings.joinTeamAccessEnabled === true}
+        onChange={onDraftChange}
+        onWorkspaceLink={followPageLink}
+      />
       <div className={styles.siteHomeGrid}>
         {siteGroups.map((group) => {
           const needs = group.id === 'shows'
@@ -10508,23 +10524,13 @@ export function SiteSettingsCard({
                 {group.id === 'links' ? (
                   <span className={styles.siteLinkScene}>
                     <span className={styles.siteSocialRow}>
-                      {([
-                        ['instagram', 'Instagram'],
-                        ['facebook', 'Facebook'],
-                        ['tiktok', 'TikTok'],
-                        ['youtube', 'YouTube'],
-                        ['website', 'Website'],
-                      ] as const).map(([platform, label]) => (
-                        <span key={platform} className={styles.siteBrand} data-brand={platform} title={label}>
-                          <SocialMark platform={platform} className={styles.siteBrandIcon} />
+                      {SOCIAL_PLATFORMS.map((platform) => (
+                        <span key={platform.key} className={styles.siteBrand} data-brand={platform.key} title={platform.label}>
+                          <SocialMark platform={platform.key} className={styles.siteBrandIcon} />
                         </span>
                       ))}
                     </span>
-                    <span className={styles.sitePagePills}>
-                      <span>Dance Floor</span>
-                      <span>Join</span>
-                      <span>Live Lineup</span>
-                    </span>
+                    {contactLine ? <span className={styles.siteContactLine}>{contactLine}</span> : null}
                   </span>
                 ) : null}
               </span>
@@ -10532,12 +10538,15 @@ export function SiteSettingsCard({
                 <span className={chipClass}>
                   {chipLabel}
                 </span>
-                <span className={styles.siteTileTitle}>{group.title}</span>
+                <span className={styles.siteTileTitle}>
+                  {group.id === 'links' ? <><span className={styles.siteTitleKeep}>Socials and</span> <span className={styles.siteTitleKeep}>Contact Info</span></> : group.title}
+                </span>
                 <span className={styles.siteTileSummary}>{group.summary}</span>
               </span>
             </button>
           )
         })}
+      </div>
       </div>
       <dialog ref={lookRef} className={styles.siteDialog} data-site-dialog="" aria-labelledby="site-look-title" onClose={() => onLookClose?.()}>
         <div className={styles.siteDialogBand}>
@@ -10600,13 +10609,13 @@ export function SiteSettingsCard({
       <dialog ref={linksRef} className={styles.siteDialog} aria-labelledby="site-links-title">
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
-            <p className={styles.siteDialogKicker}>Links</p>
-            <h1 id="site-links-title" className={styles.siteDialogTitle}>Links & other pages</h1>
-            <p className={styles.siteDialogSubtitle}>Footer, socials, and your other pages</p>
+            <p className={styles.siteDialogKicker}>Your customer site</p>
+            <h1 id="site-links-title" className={styles.siteDialogTitle}><span className={styles.siteTitleKeep}>Socials and</span> <span className={styles.siteTitleKeep}>Contact Info</span></h1>
+            <p className={styles.siteDialogSubtitle}>Your email, footer tagline, and social links.</p>
           </div>
           <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => linksRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
-        <div className={styles.siteDialogBody}>{settingsBody(['footer', 'other-pages'])}</div>
+        <div className={styles.siteDialogBody}>{settingsBody(['footer'])}</div>
         <footer className={styles.siteDialogFoot}>
           <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>

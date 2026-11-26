@@ -19,7 +19,6 @@ const sections = [
   'bomb-party',
   'signup',
   'footer',
-  'other-pages',
 ] as const
 
 const controls: Array<{ id: string; section: string; optional?: boolean }> = [
@@ -56,10 +55,6 @@ const controls: Array<{ id: string; section: string; optional?: boolean }> = [
   { id: 'social-show-on-site', section: 'footer' },
   { id: 'social-show-in-hero', section: 'footer' },
   { id: 'member-team', section: 'footer' },
-  { id: 'dance-floor', section: 'other-pages' },
-  { id: 'join-team', section: 'other-pages' },
-  { id: 'live-lineup', section: 'other-pages' },
-  { id: 'team-settings', section: 'other-pages' },
 ]
 
 const video = 'https://www.youtube.com/shorts/abcdefghijk'
@@ -210,6 +205,32 @@ describe('site settings layout map', () => {
     )
     expect(host.textContent).toContain('Make existing links plain text')
     expect(host.textContent).toContain('This fixes an older ticker link that made a whole message clickable.')
+    expect(host.textContent).toContain('Pages on your site')
+    expect(host.textContent).toContain('Live pages show on your website. Hidden pages stay in your workspace until you turn them back on.')
+    expect(host.textContent).toContain('Socials and Contact Info')
+    expect(host.textContent).toContain('Your email, tagline, and social links.')
+    expect(host.textContent).toContain('Your email, footer tagline, and social links.')
+    expect(host.textContent).toContain('This is what customers use to reach you, plus the short line under your site.')
+    expect(host.textContent).toContain('Paste a real link, then choose whether it shows in the footer and in your hero.')
+    expect(host.textContent).not.toContain('Links & other pages')
+
+    const linksDialog = host.querySelector('#site-links-title')?.closest('dialog')
+    const lookDialog = host.querySelector('#site-look-title')?.closest('dialog')
+    expect(linksDialog?.querySelector('[data-site-control="dance-floor"]')).toBeNull()
+    expect(linksDialog?.querySelector('[data-site-control="join-team"]')).toBeNull()
+    expect(linksDialog?.querySelector('[data-site-control="live-lineup"]')).toBeNull()
+    expect(linksDialog?.querySelector('[data-site-control="show-announcements"]')).toBeNull()
+    expect(lookDialog?.querySelector('[data-site-control="show-announcements"]')).not.toBeNull()
+    for (const id of ['dance-floor', 'join-team', 'live-lineup', 'team-settings']) {
+      const nodes = [...host.querySelectorAll(`[data-site-control="${id}"]`)]
+      expect(nodes.length, id).toBeGreaterThan(0)
+      for (const node of nodes) expect(node.closest('[data-page-strip]'), id).not.toBeNull()
+    }
+    const css = readFileSync('app/nic-nac/components/DashboardPlaceholder.module.css', 'utf8')
+    expect(css).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))')
+    expect(css).toContain('@media (min-width: 640px)')
+    expect(css).toContain('grid-template-columns: 110px minmax(0, 1fr)')
+    expect(css).not.toMatch(/\.siteHomeGrid \{ display: grid; grid-template-columns: repeat\(4/)
   })
 
   it('counts seven checklist items and opens the store link when two are left', async () => {

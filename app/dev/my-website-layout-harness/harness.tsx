@@ -146,7 +146,7 @@ export function MyWebsiteLayoutHarness({
 }: {
   mode?: 'gaps' | 'full' | 'states' | 'load-error' | 'no-photo'
   openSection?: SiteSectionId | null
-  openDialog?: 'signup' | null
+  openDialog?: 'signup' | 'links' | null
   /** Test browser only. Points the About photo at STAND_IN_PORTRAIT_URL. */
   coverPhoto?: boolean
 }) {

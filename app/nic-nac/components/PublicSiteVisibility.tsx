@@ -69,3 +69,78 @@ export function PublicSiteVisibility({
     </div>
   </section>
 }
+
+type CustomerPageSettings = Pick<SiteSettingsDashboardResult, 'showJoinPage' | 'danceFloorVisible' | 'liveLineupVisible'>
+
+const PAGE_STRIP = [
+  {
+    key: 'danceFloorVisible' as const,
+    label: 'Dance Floor',
+    control: 'dance-floor',
+    live: (settings: CustomerPageSettings, _access: boolean) => settings.danceFloorVisible !== false,
+  },
+  {
+    key: 'showJoinPage' as const,
+    label: 'Join Team',
+    control: 'join-team',
+    live: (settings: CustomerPageSettings, access: boolean) => access && settings.showJoinPage === true,
+  },
+  {
+    key: 'liveLineupVisible' as const,
+    label: 'Live Lineup',
+    control: 'live-lineup',
+    live: (settings: CustomerPageSettings, _access: boolean) => settings.liveLineupVisible !== false,
+  },
+]
+
+type CustomerPageStripProps = {
+  settings: CustomerPageSettings
+  joinTeamAccessEnabled: boolean
+  onChange?: (patch: Partial<CustomerPageSettings>) => void
+  onWorkspaceLink?: (event: MouseEvent<HTMLAnchorElement>) => void
+}
+
+export function CustomerPageStrip({
+  settings,
+  joinTeamAccessEnabled,
+  onChange,
+  onWorkspaceLink,
+}: CustomerPageStripProps) {
+  return (
+    <section className={styles.pageStrip} data-page-strip="" aria-labelledby="pages-on-your-site">
+      <h2 id="pages-on-your-site" className={styles.pageStripTitle}>Pages on your site</h2>
+      <p className={styles.pageStripLine}>Live pages show on your website. Hidden pages stay in your workspace until you turn them back on.</p>
+      <div className={styles.pageStripGrid}>
+        {PAGE_STRIP.map((item) => {
+          const locked = item.key === 'showJoinPage' && !joinTeamAccessEnabled
+          const live = item.live(settings, joinTeamAccessEnabled)
+          return (
+            <div key={item.key} className={styles.pageCell}>
+              <label className={styles.pageLabel}>
+                <span className={styles.pageName}>{item.label}</span>
+                <span className={live ? styles.pageChipLive : styles.pageChipHidden} aria-hidden="true">{live ? 'Live' : 'Hidden'}</span>
+                <span className={styles.control}>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    data-site-control={item.control}
+                    aria-label={item.label}
+                    aria-describedby={locked ? 'join-team-early-access' : undefined}
+                    checked={live}
+                    disabled={locked}
+                    onChange={(event) => onChange?.({ [item.key]: event.target.checked })}
+                  />
+                  <span className={styles.track} aria-hidden="true" />
+                </span>
+              </label>
+              {locked ? <p id="join-team-early-access" className={styles.pageHint}>Available to selected early-access team leaders.</p> : null}
+              {item.key === 'showJoinPage' ? (
+                <a className={styles.teamLink} data-site-control="team-settings" href="/nic-nac?section=team-management" onClick={onWorkspaceLink}>Team settings</a>
+              ) : null}
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}

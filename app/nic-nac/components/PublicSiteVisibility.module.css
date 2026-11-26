@@ -20,5 +20,34 @@
 .row:has(input:disabled) { opacity: .65; cursor: default; }
 .control input:disabled { cursor: default; }
 .status { font-size: .75rem; }
+.pageStrip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(64, 41, 36, 0.12);
+  border-radius: 22px;
+  background: #fffdfb;
+  color: #402924;
+}
+.pageStripTitle {
+  margin: 0;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+.pageStripLine { margin: 0; color: #775d57; font-size: 0.92rem; line-height: 1.4; }
+.pageStripGrid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.pageCell { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding: 10px 12px; border: 1px solid rgba(64, 41, 36, 0.12); border-radius: 16px; background: #fff; }
+.pageLabel { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name switch" "chip switch"; align-items: center; column-gap: 12px; row-gap: 4px; width: 100%; min-height: 44px; cursor: pointer; }
+.pageName { grid-area: name; font-weight: 800; }
+.pageChipLive, .pageChipHidden { grid-area: chip; justify-self: start; border-radius: 999px; padding: 2px 8px; font-size: 0.75rem; font-weight: 800; }
+.pageChipLive { background: #e5f6ec; color: #146c3a; }
+.pageChipHidden { background: #f3e8e3; color: #6b4a43; }
+.pageLabel .control { grid-area: switch; }
+.pageHint { margin: 0; color: #775d57; font-size: 0.8rem; line-height: 1.4; }
+.pageLabel:has(input:disabled) { opacity: 0.72; cursor: default; }
+@media (min-width: 640px) { .pageStripGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
 @media (forced-colors: active) { .track { border-color: ButtonText; } .control input:checked + .track { background: Highlight; } .track::after { background: ButtonText; } }
