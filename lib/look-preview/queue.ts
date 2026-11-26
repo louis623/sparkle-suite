@@ -54,6 +54,12 @@ async function readRow(repId: string) {
   return { missingTable: false as const, row: (result.data as PreviewRow | null) ?? null }
 }
 
+export async function readLookPreview(repId: string) {
+  const loaded = await readRow(repId)
+  if (loaded.missingTable) return null
+  return publicPreview(loaded.row)
+}
+
 export async function attachLookPreview(repId: string, settings: SiteSettingsDashboardResult) {
   try {
     const loaded = await readRow(repId)

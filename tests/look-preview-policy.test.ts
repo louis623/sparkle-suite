@@ -10,6 +10,8 @@ import {
   isMissingLookPreviewTable,
   lookPreviewDelayElapsed,
   lookPreviewFingerprint,
+  lookPreviewStillPending,
+  nextLookPreviewPollDelay,
   shouldQueueLookPreview,
 } from '@/lib/look-preview/policy'
 
@@ -116,5 +118,15 @@ describe('look preview policy', () => {
     expect(details.errorMessage).toContain('404')
     expect(details.errorMessage).not.toContain('https://')
     expect(details.errorMessage).toContain('[url]')
+  })
+
+  it('checks a pending cover for about two minutes, then backs off', () => {
+    expect(lookPreviewStillPending('updating')).toBe(true)
+    expect(lookPreviewStillPending('missing')).toBe(true)
+    expect(lookPreviewStillPending('ready')).toBe(false)
+    expect(lookPreviewStillPending('failed')).toBe(false)
+    expect(nextLookPreviewPollDelay(0)).toBe(3000)
+    expect(nextLookPreviewPollDelay(1)).toBeGreaterThan(3000)
+    expect(nextLookPreviewPollDelay(8)).toBe(12_000)
   })
 })

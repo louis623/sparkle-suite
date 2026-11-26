@@ -18,6 +18,11 @@ import { SiteSettingsBody, SiteSettingsLoadingShell } from './SiteSettingsBody'
 import { buildSiteSetupChecklist, openWorkspaceSection, SIGNUP_TILE_SUMMARY, signupDiscountTile, type SiteSectionId } from './site-settings-layout'
 import { CustomerPageStrip } from './PublicSiteVisibility'
 import { myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-client'
+import {
+  LOOK_PREVIEW_POLL_WINDOW_MS,
+  lookPreviewStillPending,
+  nextLookPreviewPollDelay,
+} from '@/lib/look-preview/policy'
 import { getAmethystSkinCard, type AmethystSkinCard } from '@/lib/amethyst/skin-cards'
 import { SocialMark } from '@/lib/amethyst/social-mark-icon'
 import { ThemeStudio } from './ThemeStudio'
@@ -5577,6 +5582,69 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }, [])
 
+  const lookPreviewStatus = siteSettingsState.status === 'ready'
+    ? siteSettingsState.settings?.lookPreview?.status ?? null
+    : null
+  useEffect(() => {
+    if (!lookPreviewStillPending(lookPreviewStatus)) return
+    let stopped = false
+    let timer = 0
+    let attempt = 0
+    const started = Date.now()
+    const schedule = (wait: number) => {
+      if (stopped) return
+      timer = window.setTimeout(() => { void tick() }, wait)
+    }
+    const tick = async () => {
+      if (stopped || Date.now() - started >= LOOK_PREVIEW_POLL_WINDOW_MS) return
+      if (document.hidden) return
+      if (siteSettingsSavePendingRef.current) {
+        schedule(1000)
+        return
+      }
+      try {
+        const response = await fetch('/api/nic-nac/site-settings/look-preview', { credentials: 'include' })
+        if (response.ok) {
+          const payload = (await response.json()) as {
+            lookPreview?: NonNullable<SiteSettingsDashboardResult['lookPreview']> | null
+          }
+          const next = payload.lookPreview
+          if (next && !siteSettingsSavePendingRef.current) {
+            setSiteSettingsState((current) => {
+              if (current.status !== 'ready' || !current.settings) return current
+              const currentPreview = current.settings.lookPreview
+              if (
+                currentPreview?.status === next.status
+                && currentPreview.desktopUrl === next.desktopUrl
+                && currentPreview.phoneUrl === next.phoneUrl
+              ) return current
+              return { status: 'ready', settings: { ...current.settings, lookPreview: next } }
+            })
+            if (!lookPreviewStillPending(next.status)) return
+          }
+        }
+      } catch {
+        // The last picture stays up. The next check tries again.
+      }
+      if (stopped || Date.now() - started >= LOOK_PREVIEW_POLL_WINDOW_MS) return
+      const wait = nextLookPreviewPollDelay(attempt)
+      attempt += 1
+      schedule(wait)
+    }
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      window.clearTimeout(timer)
+      void tick()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    if (!document.hidden) schedule(nextLookPreviewPollDelay(0))
+    return () => {
+      stopped = true
+      window.clearTimeout(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [lookPreviewStatus])
+
   useEffect(() => {
     if (activeSection !== 'trade-board') return
     if (reviewWorkspaceMode) return
@@ -10172,6 +10240,39 @@ function ShareMySite({ url }: { url: string | null }) {
   )
 }
 
+function LookCoverImage({
+  desktop,
+  phone,
+  fallback,
+}: {
+  desktop: string
+  phone: string
+  fallback: string
+}) {
+  const nextKey = `${desktop}|${phone}|${fallback}`
+  const [shown, setShown] = useState({ desktop, phone, fallback, key: nextKey })
+  useEffect(() => {
+    if (!nextKey || nextKey === shown.key) return
+    let cancel = false
+    const image = new Image()
+    image.decoding = 'async'
+    const reveal = () => {
+      if (!cancel) setShown({ desktop, phone, fallback, key: nextKey })
+    }
+    image.onload = reveal
+    image.onerror = reveal
+    image.src = desktop || phone || fallback
+    return () => { cancel = true }
+  }, [desktop, fallback, nextKey, phone, shown.key])
+  const src = shown.desktop || shown.phone || shown.fallback
+  return (
+    <picture className={styles.siteLookPicture}>
+      {shown.phone ? <source media="(max-width: 879px)" srcSet={shown.phone} /> : null}
+      <img src={src} alt="" decoding="async" />
+    </picture>
+  )
+}
+
 export function SiteSettingsCard({
   repId,
   state,
@@ -10618,11 +10719,8 @@ export function SiteSettingsCard({
                 {group.id === 'look' ? (
                   themeCard.thumb || lookShot ? (
                     <>
-                      <picture className={styles.siteLookPicture}>
-                        {lookPhone ? <source media="(max-width: 879px)" srcSet={lookPhone} /> : null}
-                        <img src={lookDesktop || lookPhone || themeCard.thumb || ''} alt="" decoding="async" />
-                      </picture>
-                      {lookPreview?.status === 'updating' ? <span className={styles.siteLookUpdating}>Updating preview</span> : null}
+                      <LookCoverImage desktop={lookDesktop} phone={lookPhone} fallback={themeCard.thumb || ''} />
+                      {lookPreviewStillPending(lookPreview?.status) ? <span className={styles.siteLookUpdating}>Updating preview</span> : null}
                     </>
                   ) : <span className={styles.sitePaletteName}>{themeCard.label}</span>
                 ) : null}
