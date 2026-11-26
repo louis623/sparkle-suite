@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   LOOK_PREVIEW_DEBOUNCE_MS,
@@ -96,5 +97,15 @@ describe('look preview policy', () => {
     expect(failed.attemptCount).toBe(2)
     expect(isMissingLookPreviewTable({ code: 'PGRST205', message: 'schema cache' })).toBe(true)
     expect(isMissingLookPreviewTable({ code: '42501', message: 'permission denied' })).toBe(false)
+  })
+
+  it('uses the bundled Chromium binary instead of a GitHub download', () => {
+    const capture = readFileSync('lib/look-preview/capture.ts', 'utf8')
+    const manifest = readFileSync('package.json', 'utf8')
+    expect(capture).toContain("import('@sparticuz/chromium')")
+    expect(capture).not.toContain('chromium-min')
+    expect(capture).not.toContain('github.com/Sparticuz/chromium')
+    expect(manifest).toContain('"@sparticuz/chromium": "158.0.0"')
+    expect(manifest).not.toContain('chromium-min')
   })
 })
