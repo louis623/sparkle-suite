@@ -10351,10 +10351,10 @@ export function SiteSettingsCard({
 
   const discountCode = draft.signupDiscountCode ?? ''
   const discountMessage = draft.signupDiscountMessage ?? ''
-  const discountCodeError = showFieldError(
-    SITE_FIELD_IDS.discountCode,
-    discountCodeFieldError(discountCode, draft.signupDiscountEnabled),
-  )
+  const discountCodeProblem = discountCodeFieldError(discountCode, draft.signupDiscountEnabled)
+  const discountCodeError = draft.signupDiscountEnabled
+    ? discountCodeProblem
+    : showFieldError(SITE_FIELD_IDS.discountCode, discountCodeProblem)
   const discountMessageError = showFieldError(
     SITE_FIELD_IDS.discountMessage,
     discountMessageFieldError(discountMessage),
@@ -10370,7 +10370,7 @@ export function SiteSettingsCard({
       ),
     ]),
   )
-  const saveError = actionState?.error ?? null
+  const saveError = actionState?.error ?? (draft.signupDiscountEnabled ? discountCodeProblem : null)
   const savePhase = actionState?.pending ? 'saving' : saveError ? 'error' : 'saved'
   const checklist = buildSiteSetupChecklist(draft)
   const themeCard = getAmethystSkinCard(draft.appearancePreset)
