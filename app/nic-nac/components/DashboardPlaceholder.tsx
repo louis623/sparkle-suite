@@ -10519,11 +10519,24 @@ export function SiteSettingsCard({
     />
   )
   const exceptNote = actionState?.error ? null : actionState?.helperMessage?.startsWith('Saved, except ') ? actionState.helperMessage : null
-  const saveLine = savePhase === 'saving'
-    ? 'Saving…'
-    : savePhase === 'error'
-      ? "Couldn't save — Retry"
-      : exceptNote ?? 'All changes saved'
+  const heldDialog = (id: string | null | undefined) => {
+    if (!id) return null
+    if (id.includes('discount')) return 'signup'
+    if (id === SITE_FIELD_IDS.shopLink) return 'look'
+    if (id === SITE_FIELD_IDS.email || id.startsWith('my-website-social-')) return 'socials'
+    if (id.endsWith('-video')) return 'about'
+    return null
+  }
+  const heldName = { signup: 'Sign-up', look: 'Look', socials: 'Socials', about: 'About you' } as const
+  const statusFor = (dialog: 'home' | 'look' | 'about' | 'signup' | 'socials' | 'theme') => {
+    if (savePhase === 'saving') return 'Saving…'
+    if (savePhase === 'error') return "Couldn't save — Retry"
+    const owner = heldDialog(actionState?.heldFieldId)
+    if (exceptNote && owner && dialog === 'home') return `Saved, except ${heldName[owner]}`
+    if (exceptNote && owner === dialog) return exceptNote
+    return 'All changes saved'
+  }
+  const saveLine = statusFor('home')
 
   return (
     <div className={styles.siteHome} data-testid="my-website-home">
@@ -10554,7 +10567,7 @@ export function SiteSettingsCard({
                 field?.focus()
               }}
             >
-              {exceptNote}
+              {statusFor('home')}
             </button>
           ) : saveLine}
           {undoReady && savePhase === 'saved' ? (
@@ -10733,7 +10746,7 @@ export function SiteSettingsCard({
           {settingsBody(['top-bar', 'hero'], { magazine: true })}
         </div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('look')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
@@ -10752,7 +10765,7 @@ export function SiteSettingsCard({
           {settingsBody(['bomb-party'])}
         </div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('about')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
@@ -10768,7 +10781,7 @@ export function SiteSettingsCard({
         </div>
         <div className={styles.siteDialogBody}>{settingsBody(['signup'])}</div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('signup')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
@@ -10784,7 +10797,7 @@ export function SiteSettingsCard({
         </div>
         <div className={styles.siteDialogBody}>{settingsBody(['footer'])}</div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('socials')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
@@ -10812,7 +10825,7 @@ export function SiteSettingsCard({
           />
         </div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('theme')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
