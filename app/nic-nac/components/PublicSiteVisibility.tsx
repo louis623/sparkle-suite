@@ -24,12 +24,14 @@ export function PublicSiteVisibility({
   joinTeamAccessEnabled,
   onChange,
   part = 'all',
+  toolbar = false,
   onWorkspaceLink,
 }: {
   settings: Pick<SiteSettingsDashboardResult, 'tickerVisible' | 'showJoinPage' | 'danceFloorVisible' | 'liveLineupVisible'>
   joinTeamAccessEnabled: boolean
   onChange?: (patch: Partial<Pick<SiteSettingsDashboardResult, 'tickerVisible' | 'showJoinPage' | 'danceFloorVisible' | 'liveLineupVisible'>>) => void
   part?: 'all' | 'announcements' | 'pages'
+  toolbar?: boolean
   onWorkspaceLink?: (event: MouseEvent<HTMLAnchorElement>) => void
 }) {
   const switches = [
@@ -43,7 +45,7 @@ export function PublicSiteVisibility({
     return true
   })
 
-  return <section className={part === 'announcements' ? styles.inline : styles.section} aria-labelledby={part === 'announcements' ? undefined : 'public-site-visibility-title'}>
+  return <section className={toolbar ? styles.toolbar : part === 'announcements' ? styles.inline : styles.section} aria-labelledby={part === 'announcements' ? undefined : 'public-site-visibility-title'}>
     {part === 'announcements' ? null : <>
       <h3 id="public-site-visibility-title">Show on your website</h3>
       <p>Turning a section off only hides it from your website. Your saved content and Workspace tools stay available. Turn it back on whenever you’re ready.</p>
@@ -53,8 +55,8 @@ export function PublicSiteVisibility({
         <label className={styles.row}>
           <span>
             <strong>{item.label}</strong>
-            <span id={`visibility-${item.key}-help`} className={styles.description}>{item.description}</span>
-            <span id={`visibility-${item.key}-shows`} className={styles.showsOn} data-shows-on="">Shows on your site: {SHOWS[item.key]}</span>
+            <span id={`visibility-${item.key}-help`} className={toolbar ? styles.quiet : styles.description}>{item.description}</span>
+            <span id={`visibility-${item.key}-shows`} className={toolbar ? styles.quiet : styles.showsOn} data-shows-on="">Shows on your site: {SHOWS[item.key]}</span>
           </span>
           <span className={styles.control}>
             <input type="checkbox" role="switch" data-site-control={CONTROLS[item.key]} aria-label={item.label} aria-describedby={`visibility-${item.key}-help visibility-${item.key}-shows`} checked={item.checked} disabled={'disabled' in item && item.disabled} onChange={(event) => onChange?.({ [item.key]: event.target.checked })} />

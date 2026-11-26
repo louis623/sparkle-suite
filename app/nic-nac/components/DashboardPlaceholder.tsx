@@ -10363,7 +10363,7 @@ export function SiteSettingsCard({
   const settingsBody = (sections: SiteSectionId[], options?: { magazine?: boolean }) => (
     <SiteSettingsBody
       magazine={options?.magazine}
-      heroBackdrop={options?.magazine ? { image: themeCard.thumb, colors: themeCard.previewColors } : undefined}
+      heroBackdrop={options?.magazine ? { image: themeCard.thumb?.replace(/thumb\.webp$/, 'hero-poster.webp') ?? null, colors: themeCard.previewColors } : undefined}
       draft={draft}
       sections={sections}
       savedSlots={settings.homepageMediaSlots}

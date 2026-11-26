@@ -42,10 +42,29 @@ const EMPTY_SLOTS: PublicSiteMediaSlot[] = [
   { key: 'about_4', caption: '', imageUrl: '', videoUrl: '' },
 ]
 
-function ShowsOn({ id, children }: { id: string; children: string }) {
+function LookHeroArt({ image, colors }: { image?: string | null; colors?: readonly string[] }) {
+  const [failed, setFailed] = useState(false)
+  const gradient = `linear-gradient(160deg, ${colors?.[0] ?? '#f6a9c8'}, ${colors?.[1] ?? '#e0458f'} 55%, ${colors?.[2] ?? '#7a1f55'})`
+  const showImage = Boolean(image) && !failed
   return (
-    <span id={id} className={styles.showsOn} data-shows-on="">
-      Shows on your site: {children}
+    <div className={styles.lookHeroArt} style={{ backgroundImage: showImage ? `url(${image})` : gradient }}>
+      {image && !failed ? <img src={image} alt="" hidden onError={() => setFailed(true)} /> : null}
+    </div>
+  )
+}
+
+function ShowsOn({ id, children, legend, caption }: { id: string; children: string; legend?: boolean; caption?: string }) {
+  if (!legend) {
+    return (
+      <span id={id} className={styles.showsOn} data-shows-on="">
+        Shows on your site: {children}
+      </span>
+    )
+  }
+  return (
+    <span id={id} className={styles.lookShows} data-shows-on="">
+      <span className={styles.visuallyHidden}>Shows on your site: {children}</span>
+      <span aria-hidden="true">{caption ?? children}</span>
     </span>
   )
 }
@@ -395,7 +414,7 @@ export function SiteSettingsBody({
               autoComplete="organization"
               onChange={(event) => onDraftChange?.({ businessName: event.target.value })}
             />
-            <ShowsOn id="business-name-shows">{SHOWS_ON.businessName}</ShowsOn>
+            <ShowsOn id="business-name-shows" legend={magazine}>{SHOWS_ON.businessName}</ShowsOn>
           </label>
           <label className={styles.searchField} data-site-field="display-name">
             <span className={styles.searchLabel}>Your first name</span>
@@ -408,11 +427,11 @@ export function SiteSettingsBody({
               autoComplete="given-name"
               onChange={(event) => onDraftChange?.({ displayName: event.target.value })}
             />
-            <ShowsOn id="display-name-shows">{SHOWS_ON.displayName}</ShowsOn>
+            <ShowsOn id="display-name-shows" legend={magazine}>{SHOWS_ON.displayName}</ShowsOn>
           </label>
           <label className={styles.searchField} data-site-field="shop-link">
             <span className={styles.searchLabel}>Bomb Party rep store link</span>
-            <span id={`${SITE_FIELD_IDS.shopLink}-hint`} className={styles.helperNote}>
+            <span id={`${SITE_FIELD_IDS.shopLink}-hint`} className={`${styles.helperNote} ${styles.lookKeepHint}`}>
               This powers the Shop buttons across your customer-facing site. Use the full store URL.
             </span>
             <input
@@ -447,52 +466,29 @@ export function SiteSettingsBody({
                 <span role="img" aria-label="Error">!</span> {shopLinkError}
               </span>
             ) : null}
-            <ShowsOn id="shop-link-shows">{SHOWS_ON.shopLink}</ShowsOn>
+            <ShowsOn id="shop-link-shows" legend={magazine}>{SHOWS_ON.shopLink}</ShowsOn>
           </label>
               </div>
             </div>
           </article>
         ) : null}
-        <div className={magazine ? styles.lookTickerStack : styles.siteSettingsGrid}>
-          {magazine ? (
-            <article className={styles.lookChapter}>
-              <span className={styles.lookNum} aria-hidden="true">III</span>
-              <div className={styles.lookCard}>
-                <header className={styles.lookHead}>
-                  <p className={styles.lookEyebrow}>Announcements</p>
-                  <h2 className={styles.lookTitle}>Your scrolling news</h2>
-                  <p className={styles.lookLede}>One announcement per line. Add emojis, then highlight only the words you want to link.</p>
-                </header>
-              </div>
-            </article>
-          ) : null}
-          <label className={`${styles.sortFieldWide} ${magazine ? styles.lookTickerField : ''}`} data-site-field="ticker-text">
-            <span className={styles.searchLabel}>Announcement ticker messages</span>
-            <textarea
-              ref={tickerRef}
-              id="my-website-ticker"
-              className={styles.siteSettingsTextarea}
-              data-site-control="ticker-text"
-              value={draft.tickerText}
-              aria-describedby="ticker-shows"
-              onChange={(event) => onTickerChange(event.target.value)}
-              onSelect={(event) => {
-                const textarea = event.currentTarget
-                const start = textarea.selectionStart
-                const end = textarea.selectionEnd
-                onTickerSelect(start === end ? null : { start, end, text: textarea.value.slice(start, end) })
-              }}
-            />
-            <span className={styles.helperNote}>
-              Use one announcement per line. Add emojis, then highlight only the words you want to link.
-            </span>
-            <div className={styles.tickerComposer}>
-              <div>
-                <span className={styles.searchLabel}>Add an emoji</span>
-                <LookEmojiPicker onInsert={onAddTickerText} />
-              </div>
-              <div>
-                <span className={styles.searchLabel}>Link selected words</span>
+        <div className={magazine ? styles.lookChapter : styles.siteSettingsGrid}>
+          {magazine ? <span className={styles.lookNum} aria-hidden="true">III</span> : null}
+          <div className={magazine ? styles.lookCard : undefined}>
+            {magazine ? (
+              <header className={styles.lookHead}>
+                <p className={styles.lookEyebrow}>Announcements</p>
+                <h2 className={styles.lookTitle}>Your scrolling news</h2>
+                <p className={styles.lookLede}>One announcement per line. Add emojis, then highlight only the words you want to link.</p>
+              </header>
+            ) : null}
+            <div className={magazine ? styles.lookToolRow : styles.tickerComposer}>
+              <LookEmojiPicker onInsert={onAddTickerText} />
+              <button type="button" className={styles.lookTool} popoverTarget="look-link-words">
+                <span aria-hidden="true">🔗</span> Link words
+              </button>
+              <div id="look-link-words" popover="auto" className={styles.lookLinkPop}>
+                <span className={styles.visuallyHidden}>Link selected words</span>
                 <span className={styles.tickerLinkHint}>
                   {tickerLinkSelection?.text.trim()
                     ? `Ready to link: “${tickerLinkSelection.text}”`
@@ -518,7 +514,51 @@ export function SiteSettingsBody({
                     Link selected words
                   </button>
                 </div>
-                {hasTickerLinks ? (
+                {tickerLinkError ? <span className={styles.tickerLinkError}>{tickerLinkError}</span> : null}
+              </div>
+              <div className={magazine ? styles.lookToolSwitch : undefined}>
+                <PublicSiteVisibility
+                  settings={draft}
+                  joinTeamAccessEnabled={joinTeamAccessEnabled}
+                  onChange={onDraftChange}
+                  part="announcements"
+                  toolbar={magazine}
+                />
+              </div>
+            </div>
+            <label className={`${styles.sortFieldWide} ${magazine ? styles.lookTickerField : ''}`} data-site-field="ticker-text">
+              <span className={magazine ? styles.visuallyHidden : styles.searchLabel}>Announcement ticker messages</span>
+              <span className={magazine ? styles.lookPad : undefined}>
+                {magazine ? (
+                  <ol className={styles.lookPadNums} aria-hidden="true">
+                    {(draft.tickerText.length > 0 ? draft.tickerText.split('\n') : ['']).map((_, index) => (
+                      <li key={index}>{index + 1}</li>
+                    ))}
+                  </ol>
+                ) : null}
+                <textarea
+                  ref={tickerRef}
+                  id="my-website-ticker"
+                  className={styles.siteSettingsTextarea}
+                  data-site-control="ticker-text"
+                  value={draft.tickerText}
+                  aria-describedby="ticker-shows"
+                  rows={Math.max(3, draft.tickerText.split('\n').length)}
+                  onChange={(event) => onTickerChange(event.target.value)}
+                  onSelect={(event) => {
+                    const textarea = event.currentTarget
+                    const start = textarea.selectionStart
+                    const end = textarea.selectionEnd
+                    onTickerSelect(start === end ? null : { start, end, text: textarea.value.slice(start, end) })
+                  }}
+                />
+              </span>
+              <span className={magazine ? styles.visuallyHidden : styles.helperNote}>
+                Use one announcement per line. Add emojis, then highlight only the words you want to link.
+              </span>
+              {hasTickerLinks ? (
+                <p className={styles.lookPlainNote}>
+                  <span>This fixes an older ticker link that made a whole message clickable. Your words stay; only the old link is removed.</span>
                   <button
                     type="button"
                     className={styles.tickerLinkResetButton}
@@ -527,23 +567,17 @@ export function SiteSettingsBody({
                   >
                     Make existing links plain text
                   </button>
-                ) : null}
-                {hasTickerLinks ? (
-                  <span className={styles.tickerLinkHint}>
-                    This fixes an older ticker link that made a whole message clickable. Your words stay; only the old link is removed.
-                  </span>
-                ) : null}
-                {tickerLinkError ? <span className={styles.tickerLinkError}>{tickerLinkError}</span> : null}
-              </div>
-            </div>
-            <ShowsOn id="ticker-shows">{SHOWS_ON.ticker}</ShowsOn>
-          </label>
-          <PublicSiteVisibility
-            settings={draft}
-            joinTeamAccessEnabled={joinTeamAccessEnabled}
-            onChange={onDraftChange}
-            part="announcements"
-          />
+                </p>
+              ) : null}
+              <ShowsOn
+                id="ticker-shows"
+                legend={magazine}
+                caption="The scrolling announcements at the top of your site · the bar shows while Show announcements is on"
+              >
+                {SHOWS_ON.ticker}
+              </ShowsOn>
+            </label>
+          </div>
         </div>
       </SiteSection>
 
@@ -557,27 +591,19 @@ export function SiteSettingsBody({
         hideHeading={magazine}
         className={magazine ? styles.lookChapters : undefined}
       >
-        {magazine ? (
-          <article className={styles.lookChapter}>
-            <span className={styles.lookNum} aria-hidden="true">IV</span>
-            <div className={styles.lookCard}>
+        <div className={magazine ? styles.lookChapter : undefined}>
+          {magazine ? <span className={styles.lookNum} aria-hidden="true">IV</span> : null}
+          <div className={magazine ? styles.lookCard : undefined}>
+            {magazine ? (
               <header className={styles.lookHead}>
                 <p className={styles.lookEyebrow}>Hero</p>
                 <h2 className={styles.lookTitle}>Your first hello</h2>
                 <p className={styles.lookLede}>Write right on top of your theme, just like customers will see it.</p>
               </header>
-              <div
-                className={styles.lookHero}
-                style={{
-                  backgroundImage: heroBackdrop?.image
-                    ? `linear-gradient(180deg, rgba(11, 32, 57, 0.05), rgba(11, 32, 57, 0.45)), url(${heroBackdrop.image})`
-                    : `linear-gradient(150deg, ${heroBackdrop?.colors?.[0] ?? '#f6a9c8'}, ${heroBackdrop?.colors?.[1] ?? '#e0458f'} 55%, ${heroBackdrop?.colors?.[2] ?? '#7a1f55'})`,
-                }}
-              />
-            </div>
-          </article>
-        ) : null}
-        <div className={magazine ? styles.lookHeroFields : styles.siteSettingsGrid}>
+            ) : null}
+            <div className={magazine ? styles.lookHeroStage : undefined}>
+              {magazine ? <LookHeroArt image={heroBackdrop?.image} colors={heroBackdrop?.colors} /> : null}
+              <div className={magazine ? styles.lookFrost : styles.siteSettingsGrid}>
           <label className={styles.sortFieldWide} data-site-field="hero-headline">
             <span className={styles.searchLabel}>Big headline <span className={styles.lookCount}>{(draft.heroHeadline ?? '').length} / 180</span></span>
             <input
@@ -589,8 +615,8 @@ export function SiteSettingsBody({
               aria-describedby="hero-headline-shows"
               onChange={(event) => onDraftChange?.({ heroHeadline: event.target.value })}
             />
-            <span className={styles.siteSettingsPreviewNote}>This is the large heading customers see first on your homepage.</span>
-            <ShowsOn id="hero-headline-shows">{SHOWS_ON.heroTitle}</ShowsOn>
+            <span className={magazine ? styles.visuallyHidden : styles.siteSettingsPreviewNote}>This is the large heading customers see first on your homepage.</span>
+            <ShowsOn id="hero-headline-shows" legend={magazine}>{SHOWS_ON.heroTitle}</ShowsOn>
           </label>
           <label className={styles.sortFieldWide} data-site-field="hero-subtitle">
             <span className={styles.searchLabel}>Line under the headline <span className={styles.lookCount}>{(draft.heroSubtitle ?? '').length} / 240</span></span>
@@ -603,17 +629,35 @@ export function SiteSettingsBody({
               aria-describedby="hero-subtitle-shows"
               onChange={(event) => onDraftChange?.({ heroSubtitle: event.target.value })}
             />
-            <span className={styles.siteSettingsPreviewNote}>This supporting sentence appears directly beneath the big headline.</span>
-            <ShowsOn id="hero-subtitle-shows">{SHOWS_ON.heroSubtitle}</ShowsOn>
+            <span className={magazine ? styles.visuallyHidden : styles.siteSettingsPreviewNote}>This supporting sentence appears directly beneath the big headline.</span>
+            <ShowsOn id="hero-subtitle-shows" legend={magazine}>{SHOWS_ON.heroSubtitle}</ShowsOn>
           </label>
           <div className={styles.sortFieldWide} data-site-field="hero-socials">
             <span className={styles.searchLabel}>Socials in the hero</span>
-            <p className={styles.siteSettingsPreviewNote}>
+            <p className={styles.visuallyHidden}>
               {heroSocials.length > 0
                 ? `Showing in the hero: ${heroSocials.map((link) => link.label).join(', ')}.`
                 : 'No social buttons are set to show in the hero yet.'}
             </p>
-            <ShowsOn id="hero-socials-shows">{SHOWS_ON.heroSocials}</ShowsOn>
+            {magazine ? (
+              <span className={styles.lookSocials}>
+                {heroSocials.length > 0
+                  ? heroSocials.map((link) => (
+                    <span key={link.key} className={styles.lookSocialChip}>{link.label}</span>
+                  ))
+                  : <span className={styles.lookSocialChip}>No hero buttons yet</span>}
+              </span>
+            ) : (
+              <p className={styles.siteSettingsPreviewNote}>
+                {heroSocials.length > 0
+                  ? `Showing in the hero: ${heroSocials.map((link) => link.label).join(', ')}.`
+                  : 'No social buttons are set to show in the hero yet.'}
+              </p>
+            )}
+            <ShowsOn id="hero-socials-shows" legend={magazine} caption="Hero buttons · set in Socials and Contact Info">{SHOWS_ON.heroSocials}</ShowsOn>
+          </div>
+              </div>
+            </div>
           </div>
         </div>
       </SiteSection>
