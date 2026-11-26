@@ -370,7 +370,6 @@ describe('site save bar', () => {
           state: { status: 'ready', settings: base },
           draft: base,
           publicSiteUrl: 'https://custom.example',
-          publicSiteDisplay: 'custom.example',
         }),
       )
     })

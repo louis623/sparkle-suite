@@ -208,8 +208,10 @@
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
   font-style: italic;
   font-size: 1rem;
-  line-height: 1.15;
+  line-height: 1.2;
   text-align: left;
+  text-wrap: balance;
+  overflow-wrap: normal;
 }
 
 .check {

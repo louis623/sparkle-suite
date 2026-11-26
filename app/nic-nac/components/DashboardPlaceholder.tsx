@@ -7731,7 +7731,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             forceFieldErrors={forceSiteFieldErrors}
             fieldEpoch={siteSettingsFieldEpoch}
             publicSiteUrl={customerSparkleSiteUrl}
-            publicSiteDisplay={customerSparkleSiteDisplay}
             onDraftChange={handleSiteSettingsDraftChange}
             onSocialHandleChange={handleSocialHandleChange}
             onHomepageMediaChange={handleHomepageMediaChange}
@@ -7740,8 +7739,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             mediaUploadKey={siteSettingsMediaUploadKey}
             mediaUploadFeedback={siteSettingsMediaUploadFeedback}
             isBrittWithBling={isBrittWithBlingWorkspace}
-            canPreview={Boolean(customerSparkleSiteHref)}
-            onPreview={handleOpenCustomerSitePreview}
             onDiscard={() => discardOpenerRef.current?.open()}
             onSave={handleSaveSiteSettings}
             onLookClose={() => { void flushLookPreviewEditor() }}
@@ -10160,7 +10157,6 @@ export function SiteSettingsCard({
   forceFieldErrors = false,
   fieldEpoch = 0,
   publicSiteUrl = null,
-  publicSiteDisplay = 'Site address not set',
   onDraftChange,
   onSocialHandleChange,
   onHomepageMediaChange,
@@ -10169,10 +10165,8 @@ export function SiteSettingsCard({
   mediaUploadKey,
   mediaUploadFeedback,
   isBrittWithBling = false,
-  canPreview,
   initialOpenSection = null,
   initialOpenSections = null,
-  onPreview,
   onDiscard,
   onSave,
   onLookClose,
@@ -10192,7 +10186,6 @@ export function SiteSettingsCard({
   forceFieldErrors?: boolean
   fieldEpoch?: number
   publicSiteUrl?: string | null
-  publicSiteDisplay?: string | null
   onDraftChange?: (patch: Partial<SiteSettingsDraft>) => void
   onSocialHandleChange?: (platform: string, value: string) => void
   onHomepageMediaChange?: (
@@ -10211,10 +10204,8 @@ export function SiteSettingsCard({
     tone: 'error' | 'success'
   } | null
   isBrittWithBling?: boolean
-  canPreview?: boolean
   initialOpenSection?: SiteSectionId | null
   initialOpenSections?: SiteSectionId[] | null
-  onPreview?: () => void
   onDiscard?: () => void
   onSave?: () => void
   onLookClose?: () => void

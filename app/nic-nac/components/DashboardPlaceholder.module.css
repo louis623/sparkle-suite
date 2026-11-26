@@ -8880,9 +8880,10 @@
   font-size: clamp(16px, 7cqi, 26px);
   line-height: 1;
   letter-spacing: -0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-wrap: balance;
+  line-height: 1.15;
 }
 .siteTicket[data-coupon='off'] .siteTicketOffer,
 .siteTicket[data-coupon='need'] .siteTicketOffer { font-size: clamp(14px, 7cqi, 22px); }
@@ -9473,6 +9474,7 @@
 .siteDialog::backdrop { background: rgba(54, 34, 29, 0.5); }
 
 .siteDialogWide { width: min(1080px, calc(100vw - 32px)); }
+.siteDialogWide[open] { height: min(86dvh, 920px); }
 
 .siteDialogBand {
   display: flex;
@@ -9805,7 +9807,7 @@
   box-shadow: 0 1px 0 0 #ee2c9b;
 }
 .aboutSheetRow input { width: 100%; box-sizing: border-box; min-height: 44px; border: 1px solid rgba(64, 41, 36, 0.14); border-radius: 12px; background: #fff; padding: 8px 12px; font-weight: 500; }
-.aboutCount { align-self: flex-end; color: #6f5650; font-size: 11px; font-weight: 700; }
+.aboutCount { margin-inline-start: 6px; color: #6f5650; font-size: 11px; font-weight: 700; white-space: nowrap; }
 .aboutHeroTools, .aboutPhotoActions, .aboutSheet { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .aboutHeroTools { flex-direction: column; align-items: stretch; }
 .aboutAction, .aboutDanger, .aboutEdit summary, .aboutCrop summary {
@@ -9912,7 +9914,7 @@
 .aboutEdit summary { list-style: none; }
 .aboutEdit summary::-webkit-details-marker { display: none; }
 .aboutSheet { display: none; }
-.aboutEdit[open] .aboutSheet { display: flex; flex-direction: column; align-items: stretch; margin-top: 8px; }
+.aboutEdit[open] .aboutSheet { display: flex; flex-direction: column; align-items: stretch; margin-top: 8px; position: relative; z-index: 2; width: min(420px, calc(100vw - 48px)); padding: 12px; border-radius: 14px; background: #fffdfb; box-shadow: 0 12px 30px -18px rgba(52, 37, 47, 0.45); }
 .aboutSheetRow { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 800; }
 .aboutSheetHelp { margin: 0; color: #6f5650; font-size: 13px; }
 .aboutSmart { border: 0; padding: 8px 0 0; display: grid; gap: 8px; }
