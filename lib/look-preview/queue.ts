@@ -1,8 +1,10 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { captureLookPreviewShots } from '@/lib/look-preview/capture'
 import {
+  LOOK_PREVIEW_BUSY_MS,
   LOOK_PREVIEW_DEBOUNCE_MS,
   LOOK_PREVIEW_MAX_ATTEMPTS,
+  chooseLookPreviewCandidate,
   SMOKE_PUBLIC_ORIGIN,
   applyLookPreviewFailure,
   applyLookPreviewSkip,
@@ -155,13 +157,14 @@ export async function processLookPreview(repId: string, options: { flush?: boole
   const queuedAt = new Date(String(row.queued_at)).getTime()
   if (!options.flush && Date.now() - queuedAt < LOOK_PREVIEW_DEBOUNCE_MS) return { status: 'waiting' as const }
   if (row.status === 'skipped') return { status: 'skipped' as const }
-  if (row.status === 'failed' && row.attempt_count >= LOOK_PREVIEW_MAX_ATTEMPTS) return { status: 'stopped' as const }
-  const busy = row.processing_started_at && Date.now() - new Date(row.processing_started_at).getTime() < 70_000
+  if (row.attempt_count >= LOOK_PREVIEW_MAX_ATTEMPTS) return { status: 'stopped' as const }
+  const busy = row.processing_started_at && Date.now() - new Date(row.processing_started_at).getTime() < LOOK_PREVIEW_BUSY_MS
   if (busy) return { status: 'in-flight' as const }
 
   const admin = createAdminClient()
   const claim = await admin.from('site_look_previews').update({
     status: 'updating',
+    attempt_count: row.attempt_count + 1,
     processing_started_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }).eq('rep_id', repId).eq('queued_at', row.queued_at).select('*').maybeSingle()
@@ -279,7 +282,7 @@ async function markFailed(repId: string, claimed: PreviewRow) {
   const failed = applyLookPreviewFailure({
     desktopUrl: claimed.desktop_url,
     phoneUrl: claimed.phone_url,
-    attemptCount: claimed.attempt_count,
+    attemptCount: Math.max(0, claimed.attempt_count - 1),
   })
   await createAdminClient().from('site_look_previews').update({
     status: failed.status,
@@ -296,20 +299,26 @@ async function markFailed(repId: string, claimed: PreviewRow) {
 
 export async function processDueLookPreviews(limit = 1) {
   const admin = createAdminClient()
-  const dueBefore = new Date(Date.now() - LOOK_PREVIEW_DEBOUNCE_MS).toISOString()
+  const now = Date.now()
+  const dueBefore = new Date(now - LOOK_PREVIEW_DEBOUNCE_MS).toISOString()
   const result = await admin.from('site_look_previews')
-    .select('rep_id, attempt_count, status')
+    .select('rep_id, attempt_count, status, updated_at, processing_started_at')
     .in('status', ['updating', 'failed', 'missing'])
     .lte('queued_at', dueBefore)
     .lt('attempt_count', LOOK_PREVIEW_MAX_ATTEMPTS)
-    .order('queued_at', { ascending: true })
-    .limit(limit)
+    .order('attempt_count', { ascending: true })
+    .order('updated_at', { ascending: true })
+    .limit(20)
   if (isMissingLookPreviewTable(result.error)) return { processed: 0, missingTable: true }
   if (result.error) throw result.error
-  let processed = 0
-  for (const row of result.data ?? []) {
-    await processLookPreview(row.rep_id, { flush: true })
-    processed += 1
-  }
-  return { processed, missingTable: false }
+  const ranked = (result.data ?? []).map((row) => ({
+    repId: row.rep_id as string,
+    attemptCount: row.attempt_count as number,
+    updatedAtMs: new Date(row.updated_at as string).getTime(),
+    processingStartedAtMs: row.processing_started_at ? new Date(row.processing_started_at as string).getTime() : null,
+  }))
+  const next = chooseLookPreviewCandidate(ranked, now)
+  if (!next) return { processed: 0, missingTable: false }
+  await processLookPreview(next.repId, { flush: true })
+  return { processed: Math.min(1, limit), missingTable: false }
 }
