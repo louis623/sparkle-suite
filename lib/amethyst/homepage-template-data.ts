@@ -289,7 +289,7 @@ export const defaultAmethystHomepageTemplateData: AmethystHomepageTemplateData =
     },
   ],
   signupTitle: 'Never miss a show.',
-  signupSub: 'Get a heads-up when Sasha goes live, plus first dibs on new drops.',
+  signupSub: "Help me build shows around what you love. Share a few details and I'll send you show reminders, new drop alerts and updates, and I'll never share your info.",
   signupConsent:
     'Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from Sparkle by Sasha. Msg & data rates may apply. Reply STOP to unsubscribe.',
   joinTeamTitle: 'Want to do this too?',
