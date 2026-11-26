@@ -55,6 +55,14 @@ function hostMatchesPlatform(platform: SocialPlatformKey, hostname: string) {
  * platform's public URL. Empty, hash, credentialed, off-domain, and
  * domain-only links return '' so heroes never render a dead button.
  */
+const HANDLE_PATTERN = /^[a-zA-Z0-9._]{1,40}$/
+
+function withProtocol(value: string) {
+  if (/^https?:\/\//i.test(value)) return value
+  if (/^[a-z0-9.-]+\.[a-z]{2,}(?:[/:?#]|$)/i.test(value)) return `https://${value}`
+  return ''
+}
+
 export function resolveSocialPlatformUrl(
   platform: SocialPlatformKey,
   value: string | null | undefined,
@@ -62,17 +70,25 @@ export function resolveSocialPlatformUrl(
   const cleaned = value?.trim() ?? ''
   if (!cleaned || cleaned === '#') return ''
 
-  const handle = cleaned.replace(/^@/, '').replace(/^\/+/, '')
-  const candidate = /^https?:\/\//i.test(cleaned)
-    ? cleaned
-    : HANDLE_URL[platform](handle)
+  const explicit = withProtocol(cleaned.replace(/^@/, ''))
+  if (explicit) {
+    try {
+      const url = new URL(explicit)
+      if (url.username || url.password) return ''
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') return ''
+      if (!hostMatchesPlatform(platform, url.hostname)) return ''
+      if ((url.pathname === '/' || url.pathname === '') && !url.search) return ''
+      return url.toString()
+    } catch {
+      return ''
+    }
+  }
 
+  const handle = cleaned.replace(/^@/, '').replace(/^\/+/, '')
+  if (!HANDLE_PATTERN.test(handle)) return ''
   try {
-    const url = new URL(candidate)
-    if (url.username || url.password) return ''
-    if (url.protocol !== 'https:' && url.protocol !== 'http:') return ''
+    const url = new URL(HANDLE_URL[platform](handle))
     if (!hostMatchesPlatform(platform, url.hostname)) return ''
-    if ((url.pathname === '/' || url.pathname === '') && !url.search) return ''
     return url.toString()
   } catch {
     return ''
