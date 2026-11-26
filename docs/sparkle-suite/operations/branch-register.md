@@ -1,7 +1,3 @@
-## November 26, 2026 — Look preview claim race
-
-`cursor/look-preview-claim-race` is allowlisted only so the double-screenshot claim fix can build on Smoke, stacked on `codex/nic-nac-trade-hardening` at `7526db02`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`, so this branch name cannot be deployed to Live. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
-
 ## November 26, 2026 — My Website Live ship
 
 `cursor/live-ship-my-website-1126` is the one ship branch for My Website, stacked from `codex/nic-nac-trade-hardening` at `c7913ed5`. It merges #235, then #232, then #236. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`, so this branch name cannot be deployed to Live. Louis merges it into `codex/nic-nac-trade-hardening` and deploys that production branch himself. `cursor/signup-about-smoke-583b` is not on this branch.
