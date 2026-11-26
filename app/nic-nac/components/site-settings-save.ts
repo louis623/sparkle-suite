@@ -1,3 +1,4 @@
+import { isTikTokShortVideoUrl, normalizePublicMediaUrl, publicVideoDraftUrl } from '@/lib/public-site/media-url'
 import { queueVideoLink } from '@/lib/public-site/queue-video-link'
 import { resolveSocialPlatformUrl } from '@/lib/public-site/social-hero'
 import {
@@ -99,7 +100,10 @@ export function draftHoldingInvalidFields(
 export function videoLinkFieldError(value: string | null | undefined) {
   const trimmed = value?.trim() ?? ''
   if (!trimmed) return null
-  const link = queueVideoLink(trimmed.startsWith('<') ? trimmed : trimmed)
+  if (isTikTokShortVideoUrl(trimmed)) return null
+  const normalized = normalizePublicMediaUrl(trimmed) || trimmed
+  if (publicVideoDraftUrl(normalized)) return null
+  const link = queueVideoLink(normalized)
   return link.id === null ? link.error : null
 }
 
