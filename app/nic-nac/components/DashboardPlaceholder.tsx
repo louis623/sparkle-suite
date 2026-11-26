@@ -10134,7 +10134,7 @@ function ShareMySite({ url }: { url: string | null }) {
   }
   return (
     <div className={styles.shareSite}>
-      <button type="button" className={styles.shareSiteButton} {...{ commandfor: 'share-my-site', command: 'toggle-popover' }}>Share my site</button>
+      <button type="button" className={styles.shareSiteButton} popoverTarget="share-my-site">Share my site</button>
       <dialog id="share-my-site" popover="auto" className={styles.shareSheet} aria-labelledby="share-my-site-title">
         <span className={styles.shareGrab} aria-hidden="true" />
         <div className={styles.shareSheetHead}>
@@ -10142,7 +10142,7 @@ function ShareMySite({ url }: { url: string | null }) {
             <p className={styles.lookEyebrow}>Share</p>
             <h2 id="share-my-site-title" className={styles.lookTitle}>Share my site</h2>
           </div>
-          <button type="button" className={styles.shareClose} aria-label="Close" {...{ commandfor: 'share-my-site', command: 'hide-popover' }}><span aria-hidden="true">×</span></button>
+          <button type="button" className={styles.shareClose} aria-label="Close" popoverTarget="share-my-site" popoverTargetAction="hide"><span aria-hidden="true">×</span></button>
         </div>
         <div className={styles.shareLinkRow}>
           <p className={styles.shareLink} title={url}>{url}</p>
