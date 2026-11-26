@@ -10133,7 +10133,7 @@ export function SiteSettingsCard({
   undoReady?: boolean
   previewThemeCards?: readonly AmethystSkinCard[] | null
   nextShow?: { month: string; day: string; name: string; time: string } | null
-  initialDialog?: 'signup' | 'links' | 'about' | null
+  initialDialog?: 'signup' | 'links' | 'about' | 'look' | 'theme' | null
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
   const lookRef = useRef<HTMLDialogElement>(null)
@@ -10159,7 +10159,7 @@ export function SiteSettingsCard({
   }, [fieldEpoch])
 
   useEffect(() => {
-    const dialog = initialDialog === 'signup' ? showsRef.current : initialDialog === 'links' ? linksRef.current : initialDialog === 'about' ? aboutRef.current : null
+    const dialog = initialDialog === 'signup' ? showsRef.current : initialDialog === 'links' ? linksRef.current : initialDialog === 'about' ? aboutRef.current : initialDialog === 'look' ? lookRef.current : initialDialog === 'theme' ? themeRef.current : null
     if (dialog && !dialog.open) dialog.showModal()
   }, [initialDialog])
 
@@ -10360,8 +10360,10 @@ export function SiteSettingsCard({
     if (group.id === 'shows') return signupTile.chip === 'Done'
     return checklist.filter((item) => group.sections.includes(item.section) && !item.done).length === 0
   }).length
-  const settingsBody = (sections: SiteSectionId[]) => (
+  const settingsBody = (sections: SiteSectionId[], options?: { magazine?: boolean }) => (
     <SiteSettingsBody
+      magazine={options?.magazine}
+      heroBackdrop={options?.magazine ? { image: themeCard.thumb, colors: themeCard.previewColors } : undefined}
       draft={draft}
       sections={sections}
       savedSlots={settings.homepageMediaSlots}
@@ -10574,22 +10576,40 @@ export function SiteSettingsCard({
       <dialog ref={lookRef} className={styles.siteDialog} data-site-dialog="" aria-labelledby="site-look-title" onClose={() => onLookClose?.()}>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
-            <p className={styles.siteDialogKicker}>Look</p>
+            <p className={styles.siteDialogKicker}>Your customer site</p>
             <h1 id="site-look-title" className={styles.siteDialogTitle}>Look</h1>
-            <p className={styles.siteDialogSubtitle}>Theme, top bar, and hero</p>
+            <p className={styles.siteDialogSubtitle}>Four little chapters: theme, your name, announcements, and your hello.</p>
           </div>
           <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => lookRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
-        <div className={styles.siteDialogBody}>
-          <div className={styles.themeRow}>
-            <span className={styles.siteThemeThumb}>{themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : null}</span>
-            <span>
-              <span className={styles.themeRowKicker}>On your site now</span>
-              <span className={styles.themeRowName}>{themeCard.label}</span>
-            </span>
-            <button type="button" className={styles.siteChangeTheme} onClick={() => themeRef.current?.showModal()}>Change theme</button>
-          </div>
-          {settingsBody(['top-bar', 'hero'])}
+        <div className={`${styles.siteDialogBody} ${styles.lookMagazine}`}>
+          <article className={styles.lookChapter}>
+            <span className={styles.lookNum} aria-hidden="true">I</span>
+            <div className={styles.lookCard}>
+              <header className={styles.lookHead}>
+                <p className={styles.lookEyebrow}>Theme</p>
+                <h2 className={styles.lookTitle}>The mood of your site</h2>
+                <p className={styles.lookLede}>Tap Change theme to see every theme with a picture of how it looks.</p>
+              </header>
+              <div className={styles.themeRow}>
+                <span className={styles.siteThemeThumb}>{themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : <span className={styles.sitePaletteName}>{themeCard.label}</span>}</span>
+                <span>
+                  <span className={styles.themeRowKicker}>On your site now</span>
+                  <span className={styles.themeRowName}>{themeCard.label}</span>
+                  <span className={styles.lookThemeMeta}>
+                    <span className={styles.lookDots} aria-hidden="true">
+                      {themeCard.previewColors.slice(0, 3).map((color) => (
+                        <i key={color} style={{ background: color }} />
+                      ))}
+                    </span>
+                    {savePhase === 'saved' ? <b>Saved ✓</b> : savePhase === 'error' ? <b>Not saved</b> : <b>Saving…</b>}
+                  </span>
+                </span>
+                <button type="button" className={`${styles.siteChangeTheme} ${styles.lookChangeTheme}`} onClick={() => themeRef.current?.showModal()}>Change theme</button>
+              </div>
+            </div>
+          </article>
+          {settingsBody(['top-bar', 'hero'], { magazine: true })}
         </div>
         <footer className={styles.siteDialogFoot}>
           <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>

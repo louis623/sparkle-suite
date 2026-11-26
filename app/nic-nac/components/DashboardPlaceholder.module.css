@@ -9950,3 +9950,196 @@
   .aboutMarquee { width: 100%; }
   .aboutShort { flex: 1 1 0; width: auto; max-width: none; }
 }
+
+.lookMagazine {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: linear-gradient(180deg, #fff8f5, #fffdfb 40%);
+}
+.lookMagazine .siteSectionList,
+.lookChapters { display: contents; }
+.lookChapter {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 0 18px;
+}
+.lookNum {
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-style: italic;
+  font-size: 40px;
+  line-height: 1;
+  color: #c9a25b;
+  text-align: right;
+  padding-top: 18px;
+}
+.lookCard {
+  min-width: 0;
+  background: #fff;
+  border-radius: 22px;
+  padding: 22px;
+  border: 1px solid rgba(201, 162, 91, 0.18);
+  box-shadow: 0 1px 2px rgba(52, 37, 47, 0.06), 0 10px 26px -14px rgba(52, 37, 47, 0.28);
+}
+.lookEyebrow {
+  margin: 0;
+  color: #c0156f;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.lookTitle {
+  margin: 4px 0;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.15;
+  color: #34252f;
+  text-wrap: pretty;
+}
+.lookLede { margin: 0 0 14px; color: #6f5650; font-size: 14px; text-wrap: pretty; }
+.lookMagazine .themeRow {
+  grid-template-columns: minmax(120px, 200px) minmax(0, 1fr) auto;
+  padding: 14px;
+  border: 0;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #fff6f9, #fffaf4);
+  box-shadow: inset 0 0 0 1px rgba(201, 162, 91, 0.28);
+}
+.lookMagazine .siteThemeThumb { height: auto; aspect-ratio: 16 / 10; border-radius: 14px; }
+.lookMagazine .themeRowName { font-size: 1.5rem; overflow-wrap: anywhere; }
+.lookThemeMeta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; color: #6f5650; font-size: 13px; }
+.lookThemeMeta b { color: #17794a; font-weight: 700; }
+.lookDots { display: inline-flex; gap: 4px; }
+.lookDots i { width: 12px; height: 12px; border-radius: 99px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); }
+.lookMagazine .lookChangeTheme {
+  min-height: 46px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: #ee2c9b;
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.lookNameGrid { grid-template-columns: 1fr 1fr; }
+.lookTickerStack { display: block; }
+.lookTickerStack .lookChapter { display: grid; grid-template-columns: 64px minmax(0, 1fr); }
+.lookTickerStack .lookCard { padding-bottom: 0; border-radius: 22px 22px 0 0; box-shadow: none; }
+.lookTickerStack .lookTickerField,
+.lookTickerStack > :last-child {
+  margin-left: 82px;
+  background: #fff;
+  border-left: 1px solid rgba(201, 162, 91, 0.18);
+  border-right: 1px solid rgba(201, 162, 91, 0.18);
+  padding: 0 22px;
+}
+.lookTickerStack > :last-child {
+  border-bottom: 1px solid rgba(201, 162, 91, 0.18);
+  border-radius: 0 0 22px 22px;
+  padding-bottom: 18px;
+}
+.lookCount { float: right; color: #9b827b; font-size: 11.5px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.lookHero { min-height: 220px; border-radius: 20px; background-position: center; background-size: cover; }
+.lookHeroFields {
+  grid-column: 2;
+  position: relative;
+  z-index: 1;
+  margin: -168px 18px 18px 82px;
+  padding: 6px 16px 8px;
+  border-radius: 16px;
+  background: rgba(255, 253, 251, 0.94);
+}
+.siteDialogBody.lookMagazine input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.siteDialogBody.lookMagazine textarea {
+  border: 0;
+  border-bottom: 1px solid rgba(64, 41, 36, 0.2);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+}
+.siteDialogBody.lookMagazine input[type='url'],
+.siteDialogBody.lookMagazine textarea {
+  font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
+  overflow-wrap: anywhere;
+}
+.siteDialogBody.lookMagazine textarea {
+  min-height: 140px;
+  border: 1px solid rgba(64, 41, 36, 0.12);
+  border-radius: 16px;
+  background: #fff;
+  padding: 12px 16px;
+  line-height: 1.7;
+}
+.lookToolOn, .lookEmojiTab, .lookEmojiTabOn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.lookToolOn { background: #34252f; color: #fff6fb; }
+.lookEmojiPop {
+  width: min(560px, calc(100vw - 24px));
+  max-height: min(70dvh, 520px);
+  overflow: auto;
+  border: 0;
+  border-radius: 20px;
+  padding: 0;
+  background: #fff;
+  box-shadow: 0 24px 50px -24px rgba(52, 37, 47, 0.45);
+}
+.lookEmojiSearch { display: block; margin: 14px; }
+.lookEmojiSearch input {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 0;
+  background: #fff7f4;
+  padding: 0 16px;
+}
+.lookEmojiTabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 0 10px 8px;
+  scrollbar-width: thin;
+}
+.lookEmojiTab { background: transparent; color: #6f5650; }
+.lookEmojiTabOn { background: #34252f; color: #fff6fb; }
+.lookEmojiSection { content-visibility: auto; contain-intrinsic-size: auto 120px; padding: 0 14px 8px; }
+.lookEmojiSection h4 {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 2px 6px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6f5650;
+}
+.lookEmojiGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 2px; }
+.lookEmojiGrid button {
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 24px;
+  background: transparent;
+}
+.lookEmojiFoot { margin: 0; padding: 10px 16px; border-top: 1px solid rgba(64, 41, 36, 0.12); color: #6f5650; font-size: 12.5px; }
+.lookEmojiEmpty { margin: 8px 16px 16px; color: #6f5650; }
+@media (max-width: 640px) {
+  .lookChapter, .lookTickerStack { grid-template-columns: minmax(0, 1fr); }
+  .lookNum { text-align: left; padding: 0 0 6px 4px; font-size: 30px; }
+  .lookTickerStack .lookChapter { grid-template-columns: minmax(0, 1fr); }
+  .lookTickerStack .lookTickerField,
+  .lookTickerStack > :last-child { margin-left: 0; }
+  .lookMagazine .themeRow { grid-template-columns: minmax(0, 1fr); }
+  .lookMagazine .lookChangeTheme { width: 100%; }
+  .lookNameGrid { grid-template-columns: minmax(0, 1fr); }
+  .lookHeroFields { margin: -120px 12px 12px; }
+  .lookTitle { font-size: 22px; }
+}

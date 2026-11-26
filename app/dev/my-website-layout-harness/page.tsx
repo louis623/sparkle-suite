@@ -25,7 +25,7 @@ export default async function MyWebsiteLayoutHarnessPage({
       <MyWebsiteLayoutHarness
         mode={mode}
         openSection={query.open === 'about' ? 'about' : null}
-        openDialog={query.open === 'signup' ? 'signup' : query.open === 'links' ? 'links' : query.open === 'about' ? 'about' : null}
+        openDialog={query.open === 'signup' ? 'signup' : query.open === 'links' ? 'links' : query.open === 'about' ? 'about' : query.open === 'look' ? 'look' : query.open === 'theme' ? 'theme' : null}
         coverPhoto={query.cover === 'photo'}
       />
     </main>
