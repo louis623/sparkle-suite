@@ -260,15 +260,15 @@ export function AboutShortRail({
         return (
           <article key={slot.key} className={hidden ? styles.aboutShortHidden : styles.aboutShort} role="listitem">
             {filled ? (
-              <>
-                <VideoPoster slot={slot} variant="short" status={status} />
-                {slot.caption ? <p className={styles.aboutVideoCaption}>{slot.caption}</p> : null}
-              </>
+              <VideoPoster slot={slot} variant="short" status={status} />
             ) : (
               <div className={styles.aboutShortPoster}>
                 <span className={styles.aboutPlus} aria-hidden="true">+</span>
               </div>
             )}
+            <div className={styles.aboutShortCaption}>
+              <p className={styles.aboutVideoCaption}>{filled ? slot.caption : ''}</p>
+            </div>
             <details className={styles.aboutEdit}>
               <summary>{filled ? 'Edit' : 'Add a video'}</summary>
               <VideoFields

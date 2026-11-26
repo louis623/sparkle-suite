@@ -9880,8 +9880,19 @@
 }
 .aboutMark svg { width: 12px; height: 12px; fill: #fff; display: block; }
 .aboutPlus { position: absolute; inset: 0; display: grid; place-items: center; color: #c0156f; font-size: 32px; }
-.aboutShortRail { display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: flex-start; gap: 12px; }
-.aboutShort { flex: 0 0 160px; width: 160px; max-width: 160px; min-width: 0; }
+.aboutShortRail { display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: stretch; gap: 12px; list-style: none; }
+.aboutShort { display: flex; flex-direction: column; align-items: stretch; flex: 0 0 160px; width: 160px; max-width: 160px; min-width: 0; list-style: none; }
+.aboutShortCaption { min-block-size: calc(2 * 1.3em); margin-block-start: 8px; font-size: 13px; font-weight: 700; }
+.aboutShort .aboutVideoCaption {
+  margin: 0;
+  line-height: 1.3;
+  line-clamp: 2;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.aboutShort .aboutEdit { margin-top: auto; padding-top: 8px; }
 .aboutShortHidden { display: none; }
 .aboutPosterFilled {
   background:
