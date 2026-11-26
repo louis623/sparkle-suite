@@ -10024,12 +10024,22 @@
   white-space: nowrap;
 }
 .lookNameGrid { grid-template-columns: 1fr 1fr; }
-.lookTickerStack { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 0 18px; }
-.lookTickerStack .lookChapter { display: contents; }
-.lookTickerStack .lookNum { grid-row: 1 / span 3; }
-.lookTickerStack .lookCard { grid-column: 2; grid-row: 1 / span 3; border-radius: 22px; }
-.lookTickerStack .lookTickerField { grid-column: 2; grid-row: 2; z-index: 1; margin: 0 22px; }
-.lookTickerStack > :last-child { grid-column: 2; grid-row: 3; z-index: 1; margin: 0 22px 18px; }
+.lookTickerStack { display: block; }
+.lookTickerStack .lookChapter { display: grid; grid-template-columns: 64px minmax(0, 1fr); }
+.lookTickerStack .lookCard { padding-bottom: 0; border-radius: 22px 22px 0 0; box-shadow: none; }
+.lookTickerStack .lookTickerField,
+.lookTickerStack > :last-child {
+  margin-left: 82px;
+  background: #fff;
+  border-left: 1px solid rgba(201, 162, 91, 0.18);
+  border-right: 1px solid rgba(201, 162, 91, 0.18);
+  padding: 0 22px;
+}
+.lookTickerStack > :last-child {
+  border-bottom: 1px solid rgba(201, 162, 91, 0.18);
+  border-radius: 0 0 22px 22px;
+  padding-bottom: 18px;
+}
 .lookCount { float: right; color: #9b827b; font-size: 11.5px; font-weight: 600; letter-spacing: 0; text-transform: none; }
 .lookHero { min-height: 220px; border-radius: 20px; background-position: center; background-size: cover; }
 .lookHeroFields {
@@ -10124,7 +10134,9 @@
 @media (max-width: 640px) {
   .lookChapter, .lookTickerStack { grid-template-columns: minmax(0, 1fr); }
   .lookNum { text-align: left; padding: 0 0 6px 4px; font-size: 30px; }
-  .lookTickerStack .lookNum, .lookTickerStack .lookCard, .lookTickerStack .lookTickerField, .lookTickerStack > :last-child { grid-column: 1; grid-row: auto; }
+  .lookTickerStack .lookChapter { grid-template-columns: minmax(0, 1fr); }
+  .lookTickerStack .lookTickerField,
+  .lookTickerStack > :last-child { margin-left: 0; }
   .lookMagazine .themeRow { grid-template-columns: minmax(0, 1fr); }
   .lookMagazine .lookChangeTheme { width: 100%; }
   .lookNameGrid { grid-template-columns: minmax(0, 1fr); }
