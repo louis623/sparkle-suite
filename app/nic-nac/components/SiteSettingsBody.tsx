@@ -771,7 +771,7 @@ export function SiteSettingsBody({
             <div className={styles.aboutPhotoBlock}>
               <p className={styles.aboutWhisper}>Your first name is set in Look. It shows in the title if you leave the placeholder as is.</p>
               <h2 className={styles.siteDialogSectionTitle}>Your photo</h2>
-              <p className={styles.aboutLegend}>This portrait is the first thing guests see. Your title, story, and caption sit with it. JPG, PNG, or WebP, under about <span className={styles.aboutNowrap}>2.5 MB</span>.</p>
+              <p className={styles.aboutLegend}>On a phone her story comes before this photo. On a wide screen they sit side by side. JPG, PNG, or WebP, under about <span className={styles.aboutNowrap}>2.5 MB</span>.</p>
               <div className={styles.aboutHero}>
                 <div className={styles.aboutPhotoFrame}>
                   {aboutPortrait?.imageUrl ? (

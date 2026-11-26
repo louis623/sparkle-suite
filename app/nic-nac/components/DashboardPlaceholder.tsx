@@ -10711,7 +10711,7 @@ export function SiteSettingsCard({
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Your customer site</p>
             <h1 id="site-about-title" className={styles.siteDialogTitle}>About you</h1>
-            <p className={styles.siteDialogSubtitle}>Watch a Live Reveal sits above About. Her story and photo are in About, then the short videos.</p>
+            <p className={styles.siteDialogSubtitle}>Watch a Live Reveal sits above About. On a phone her story comes before the photo. Short videos follow.</p>
           </div>
           <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => aboutRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
