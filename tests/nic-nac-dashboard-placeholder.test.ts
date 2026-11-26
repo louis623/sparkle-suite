@@ -3956,8 +3956,6 @@ describe('DashboardPlaceholder', () => {
         hasUnsavedChanges: true,
         changes: ['Footer tagline'],
         publicSiteUrl: 'https://www.example.com',
-        canPreview: true,
-        onPreview: () => undefined,
         onSave: () => undefined,
       }),
     )

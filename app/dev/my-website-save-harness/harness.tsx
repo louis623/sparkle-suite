@@ -56,10 +56,7 @@ export function MyWebsiteSaveHarness({ clean = false }: { clean?: boolean }) {
         draft={draft}
         changes={changes}
         publicSiteUrl="https://fizzfestival.example"
-        publicSiteDisplay="fizzfestival.example"
-        canPreview
         onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
-        onPreview={() => undefined}
         onDiscard={() => setDraft(saved)}
         onSave={() => undefined}
       />
