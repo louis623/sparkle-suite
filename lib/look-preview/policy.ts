@@ -93,6 +93,15 @@ export function applyLookPreviewSkip<T extends { desktopUrl: string | null; phon
   }
 }
 
+export function lookPreviewFailureDetails(error: unknown) {
+  const raw = error instanceof Error ? error.message : 'capture failed'
+  const errorMessage = raw.replace(/https?:\/\/\S+/gi, '[url]').replace(/\s+/g, ' ').trim().slice(0, 240)
+  return {
+    errorName: error instanceof Error ? error.name : 'Error',
+    errorMessage: errorMessage || 'capture failed',
+  }
+}
+
 export function applyLookPreviewFailure<T extends { desktopUrl: string | null; phoneUrl: string | null; attemptCount: number }>(row: T) {
   return {
     ...row,

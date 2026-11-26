@@ -4,6 +4,7 @@ import {
   LOOK_PREVIEW_DEBOUNCE_MS,
   LOOK_PREVIEW_FIELDS,
   applyLookPreviewFailure,
+  lookPreviewFailureDetails,
   assertAllowedLookPreviewUrl,
   buildLookPreviewCaptureUrl,
   isMissingLookPreviewTable,
@@ -107,5 +108,13 @@ describe('look preview policy', () => {
     expect(capture).not.toContain('github.com/Sparticuz/chromium')
     expect(manifest).toContain('"@sparticuz/chromium": "158.0.0"')
     expect(manifest).not.toContain('chromium-min')
+  })
+
+  it('logs a capture failure without the page address', () => {
+    const details = lookPreviewFailureDetails(new Error('Unexpected status code: 404 for https://github.com/example/pack.tar'))
+    expect(details.errorName).toBe('Error')
+    expect(details.errorMessage).toContain('404')
+    expect(details.errorMessage).not.toContain('https://')
+    expect(details.errorMessage).toContain('[url]')
   })
 })

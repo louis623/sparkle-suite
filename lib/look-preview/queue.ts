@@ -8,6 +8,7 @@ import {
   applyLookPreviewSkip,
   buildLookPreviewCaptureUrl,
   isMissingLookPreviewTable,
+  lookPreviewFailureDetails,
   lookPreviewFingerprint,
   shouldQueueLookPreview,
 } from '@/lib/look-preview/policy'
@@ -224,12 +225,13 @@ export async function processLookPreview(repId: string, options: { flush?: boole
       phoneBytes: shots.phoneBytes,
     }))
     return { status: 'ready' as const, followUp: saved.data?.queued_at !== claimed.queued_at }
-  } catch {
+  } catch (error) {
     await markFailed(repId, claimed)
-    console.info(JSON.stringify({
+    console.error(JSON.stringify({
       scope: 'look-preview',
       slug: rep.data.public_site_slug,
       status: 'capture-failed',
+      ...lookPreviewFailureDetails(error),
       durationMs: Date.now() - started,
     }))
     return { status: 'failed' as const }
