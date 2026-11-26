@@ -36,6 +36,7 @@
     "codex/tiktok-link-queue",
     "codex/nic-nac-signature-home",
     "codex/nic-nac-trade-hardening",
+    "cursor/look-preview-claim-race",
     "cursor/live-ship-my-website-1126",
     "cursor/fix-duplicate-sb-01-theme-code-86cd",
     "cursor/pantry-blingkitchen-only-dcf4",
@@ -108,6 +109,10 @@
       "environment": "preview"
     },
     "codex/nic-nac-signature-home": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/look-preview-claim-race": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },

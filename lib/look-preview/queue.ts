@@ -1,7 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { captureLookPreviewShots } from '@/lib/look-preview/capture'
 import {
-  LOOK_PREVIEW_BUSY_MS,
   LOOK_PREVIEW_DEBOUNCE_MS,
   LOOK_PREVIEW_MAX_ATTEMPTS,
   chooseLookPreviewCandidate,
@@ -9,7 +8,9 @@ import {
   applyLookPreviewFailure,
   applyLookPreviewSkip,
   buildLookPreviewCaptureUrl,
+  canClaimLookPreview,
   isMissingLookPreviewTable,
+  lookPreviewClaimOrFilter,
   lookPreviewFailureDetails,
   lookPreviewFingerprint,
   shouldQueueLookPreview,
@@ -158,18 +159,20 @@ export async function processLookPreview(repId: string, options: { flush?: boole
   if (!options.flush && Date.now() - queuedAt < LOOK_PREVIEW_DEBOUNCE_MS) return { status: 'waiting' as const }
   if (row.status === 'skipped') return { status: 'skipped' as const }
   if (row.attempt_count >= LOOK_PREVIEW_MAX_ATTEMPTS) return { status: 'stopped' as const }
-  const busy = row.processing_started_at && Date.now() - new Date(row.processing_started_at).getTime() < LOOK_PREVIEW_BUSY_MS
-  if (busy) return { status: 'in-flight' as const }
+  const nowMs = Date.now()
+  if (!canClaimLookPreview(row.processing_started_at, nowMs)) return { status: 'in-flight' as const }
 
   const admin = createAdminClient()
+  const claimStartedAt = new Date(nowMs).toISOString()
   const claim = await admin.from('site_look_previews').update({
     status: 'updating',
     attempt_count: row.attempt_count + 1,
-    processing_started_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }).eq('rep_id', repId).eq('queued_at', row.queued_at).select('*').maybeSingle()
+    processing_started_at: claimStartedAt,
+    updated_at: claimStartedAt,
+  }).eq('rep_id', repId).eq('queued_at', row.queued_at).or(lookPreviewClaimOrFilter(nowMs)).select('*').maybeSingle()
   if (claim.error || !claim.data) return { status: 'in-flight' as const }
   const claimed = claim.data as PreviewRow
+  if (!claimed.processing_started_at) return { status: 'in-flight' as const }
 
   const rep = await admin.from('reps').select('public_site_slug, custom_domain').eq('id', repId).maybeSingle()
   if (rep.error || !rep.data?.public_site_slug) {
@@ -221,8 +224,17 @@ export async function processLookPreview(repId: string, options: { flush?: boole
       last_error: null,
       processing_started_at: null,
       updated_at: new Date().toISOString(),
-    }).eq('rep_id', repId).select('queued_at').maybeSingle()
+    }).eq('rep_id', repId).eq('processing_started_at', claimed.processing_started_at).select('queued_at').maybeSingle()
     if (saved.error) throw saved.error
+    if (!saved.data) {
+      console.info(JSON.stringify({
+        scope: 'look-preview',
+        slug: rep.data.public_site_slug,
+        status: 'claim-lost',
+        durationMs: Date.now() - started,
+      }))
+      return { status: 'in-flight' as const }
+    }
     const previous = [claimed.desktop_path, claimed.phone_path].filter((path): path is string => Boolean(path))
     if (previous.length) await bucket.remove(previous)
     console.info(JSON.stringify({
@@ -263,7 +275,7 @@ async function markSkipped(repId: string, claimed: PreviewRow, reason: 'page-mis
     last_error: skipped.lastError,
     processing_started_at: null,
     updated_at: new Date().toISOString(),
-  }).eq('rep_id', repId)
+  }).eq('rep_id', repId).eq('processing_started_at', claimed.processing_started_at)
   if (!saved.error) return
   await admin.from('site_look_previews').update({
     status: 'failed',
@@ -275,7 +287,7 @@ async function markSkipped(repId: string, claimed: PreviewRow, reason: 'page-mis
     last_error: `skipped: ${reason}`,
     processing_started_at: null,
     updated_at: new Date().toISOString(),
-  }).eq('rep_id', repId)
+  }).eq('rep_id', repId).eq('processing_started_at', claimed.processing_started_at)
 }
 
 async function markFailed(repId: string, claimed: PreviewRow) {
@@ -294,7 +306,7 @@ async function markFailed(repId: string, claimed: PreviewRow) {
     last_error: failed.lastError,
     processing_started_at: null,
     updated_at: new Date().toISOString(),
-  }).eq('rep_id', repId)
+  }).eq('rep_id', repId).eq('processing_started_at', claimed.processing_started_at)
 }
 
 export async function processDueLookPreviews(limit = 1) {
