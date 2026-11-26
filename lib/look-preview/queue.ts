@@ -1,7 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { captureLookPreviewShots } from '@/lib/look-preview/capture'
 import {
-  LOOK_PREVIEW_BUSY_MS,
   LOOK_PREVIEW_DEBOUNCE_MS,
   LOOK_PREVIEW_MAX_ATTEMPTS,
   chooseLookPreviewCandidate,
@@ -9,7 +8,10 @@ import {
   applyLookPreviewFailure,
   applyLookPreviewSkip,
   buildLookPreviewCaptureUrl,
+  canClaimLookPreview,
   isMissingLookPreviewTable,
+  lookPreviewAssetPaths,
+  lookPreviewClaimOrFilter,
   lookPreviewFailureDetails,
   lookPreviewFingerprint,
   shouldQueueLookPreview,
@@ -155,21 +157,30 @@ export async function processLookPreview(repId: string, options: { flush?: boole
   if (loaded.missingTable || !loaded.row?.queued_at) return { status: 'skipped' as const }
   const row = loaded.row
   const queuedAt = new Date(String(row.queued_at)).getTime()
-  if (!options.flush && Date.now() - queuedAt < LOOK_PREVIEW_DEBOUNCE_MS) return { status: 'waiting' as const }
+  const nowMs = started
+  if (!options.flush && nowMs - queuedAt < LOOK_PREVIEW_DEBOUNCE_MS) return { status: 'waiting' as const }
   if (row.status === 'skipped') return { status: 'skipped' as const }
-  if (row.attempt_count >= LOOK_PREVIEW_MAX_ATTEMPTS) return { status: 'stopped' as const }
-  const busy = row.processing_started_at && Date.now() - new Date(row.processing_started_at).getTime() < LOOK_PREVIEW_BUSY_MS
-  if (busy) return { status: 'in-flight' as const }
+  if (row.attempt_count >= LOOK_PREVIEW_MAX_ATTEMPTS) {
+    if (canClaimLookPreview(row.processing_started_at, nowMs)) {
+      await markExhaustedFailed(repId, row, nowMs)
+      return { status: 'failed' as const }
+    }
+    return { status: 'stopped' as const }
+  }
+  if (!canClaimLookPreview(row.processing_started_at, nowMs)) return { status: 'in-flight' as const }
 
   const admin = createAdminClient()
+  const claimStartedAt = new Date(nowMs).toISOString()
   const claim = await admin.from('site_look_previews').update({
     status: 'updating',
     attempt_count: row.attempt_count + 1,
-    processing_started_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }).eq('rep_id', repId).eq('queued_at', row.queued_at).select('*').maybeSingle()
+    processing_started_at: claimStartedAt,
+    updated_at: claimStartedAt,
+  }).eq('rep_id', repId).eq('queued_at', row.queued_at).or(lookPreviewClaimOrFilter(nowMs)).select('*').maybeSingle()
   if (claim.error || !claim.data) return { status: 'in-flight' as const }
   const claimed = claim.data as PreviewRow
+  const claimStamp = claimed.processing_started_at
+  if (!claimStamp) return { status: 'in-flight' as const }
 
   const rep = await admin.from('reps').select('public_site_slug, custom_domain').eq('id', repId).maybeSingle()
   if (rep.error || !rep.data?.public_site_slug) {
@@ -178,6 +189,7 @@ export async function processLookPreview(repId: string, options: { flush?: boole
   }
   const smoke = smokeEnvironment()
   let captureUrl = ''
+  const uploadedPaths: string[] = []
   try {
     captureUrl = buildLookPreviewCaptureUrl({
       slug: rep.data.public_site_slug,
@@ -199,18 +211,19 @@ export async function processLookPreview(repId: string, options: { flush?: boole
       return { status: 'failed' as const }
     }
     const version = (claimed.version ?? 0) + 1
-    const desktopPath = `${repId}/look-preview/desktop-${version}.webp`
-    const phonePath = `${repId}/look-preview/phone-${version}.webp`
+    const { desktopPath, phonePath } = lookPreviewAssetPaths(repId, version, claimStamp)
     const bucket = admin.storage.from('public-site-media')
     const uploaded = await Promise.all([
       bucket.upload(desktopPath, shots.desktop, { contentType: 'image/webp', upsert: false }),
       bucket.upload(phonePath, shots.phone, { contentType: 'image/webp', upsert: false }),
     ])
+    for (const [path, item] of [[desktopPath, uploaded[0]], [phonePath, uploaded[1]]] as const) {
+      if (!item.error) uploadedPaths.push(path)
+    }
     if (uploaded.some((item) => item.error)) throw new Error('upload-failed')
     const desktopUrl = bucket.getPublicUrl(desktopPath).data.publicUrl
     const phoneUrl = bucket.getPublicUrl(phonePath).data.publicUrl
-    const saved = await admin.from('site_look_previews').update({
-      status: 'ready',
+    const stored = {
       version,
       desktop_path: desktopPath,
       desktop_url: desktopUrl,
@@ -221,8 +234,40 @@ export async function processLookPreview(repId: string, options: { flush?: boole
       last_error: null,
       processing_started_at: null,
       updated_at: new Date().toISOString(),
-    }).eq('rep_id', repId).select('queued_at').maybeSingle()
+    }
+    const saved = await admin.from('site_look_previews').update({
+      status: 'ready',
+      ...stored,
+    }).eq('rep_id', repId).eq('processing_started_at', claimed.processing_started_at).eq('queued_at', claimed.queued_at).select('queued_at').maybeSingle()
     if (saved.error) throw saved.error
+    if (!saved.data) {
+      const follow = await admin.from('site_look_previews').update({
+        status: 'updating',
+        ...stored,
+      }).eq('rep_id', repId).eq('processing_started_at', claimed.processing_started_at).select('queued_at').maybeSingle()
+      if (follow.error) throw follow.error
+      if (!follow.data) {
+        console.info(JSON.stringify({
+          scope: 'look-preview',
+          slug: rep.data.public_site_slug,
+          status: 'claim-lost',
+          durationMs: Date.now() - started,
+        }))
+        if (uploadedPaths.length) await bucket.remove(uploadedPaths)
+        return { status: 'in-flight' as const }
+      }
+      const previousFollow = [claimed.desktop_path, claimed.phone_path].filter((path): path is string => Boolean(path))
+      if (previousFollow.length) await bucket.remove(previousFollow)
+      console.info(JSON.stringify({
+        scope: 'look-preview',
+        slug: rep.data.public_site_slug,
+        status: 'queued-again',
+        durationMs: Date.now() - started,
+        desktopBytes: shots.desktopBytes,
+        phoneBytes: shots.phoneBytes,
+      }))
+      return { status: 'ready' as const, followUp: true }
+    }
     const previous = [claimed.desktop_path, claimed.phone_path].filter((path): path is string => Boolean(path))
     if (previous.length) await bucket.remove(previous)
     console.info(JSON.stringify({
@@ -233,8 +278,11 @@ export async function processLookPreview(repId: string, options: { flush?: boole
       desktopBytes: shots.desktopBytes,
       phoneBytes: shots.phoneBytes,
     }))
-    return { status: 'ready' as const, followUp: saved.data?.queued_at !== claimed.queued_at }
+    return { status: 'ready' as const, followUp: false }
   } catch (error) {
+    if (uploadedPaths.length) {
+      await admin.storage.from('public-site-media').remove(uploadedPaths).catch(() => undefined)
+    }
     await markFailed(repId, claimed)
     console.error(JSON.stringify({
       scope: 'look-preview',
@@ -263,7 +311,7 @@ async function markSkipped(repId: string, claimed: PreviewRow, reason: 'page-mis
     last_error: skipped.lastError,
     processing_started_at: null,
     updated_at: new Date().toISOString(),
-  }).eq('rep_id', repId)
+  }).eq('rep_id', repId).eq('processing_started_at', claimed.processing_started_at)
   if (!saved.error) return
   await admin.from('site_look_previews').update({
     status: 'failed',
@@ -275,7 +323,20 @@ async function markSkipped(repId: string, claimed: PreviewRow, reason: 'page-mis
     last_error: `skipped: ${reason}`,
     processing_started_at: null,
     updated_at: new Date().toISOString(),
-  }).eq('rep_id', repId)
+  }).eq('rep_id', repId).eq('processing_started_at', claimed.processing_started_at)
+}
+
+async function markExhaustedFailed(repId: string, row: PreviewRow, nowMs: number) {
+  await createAdminClient().from('site_look_previews').update({
+    status: 'failed',
+    last_error: row.last_error || 'capture-failed',
+    processing_started_at: null,
+    desktop_url: row.desktop_url,
+    phone_url: row.phone_url,
+    desktop_path: row.desktop_path,
+    phone_path: row.phone_path,
+    updated_at: new Date(nowMs).toISOString(),
+  }).eq('rep_id', repId).eq('status', 'updating').eq('attempt_count', row.attempt_count).or(lookPreviewClaimOrFilter(nowMs))
 }
 
 async function markFailed(repId: string, claimed: PreviewRow) {
@@ -294,7 +355,7 @@ async function markFailed(repId: string, claimed: PreviewRow) {
     last_error: failed.lastError,
     processing_started_at: null,
     updated_at: new Date().toISOString(),
-  }).eq('rep_id', repId)
+  }).eq('rep_id', repId).eq('processing_started_at', claimed.processing_started_at)
 }
 
 export async function processDueLookPreviews(limit = 1) {
@@ -318,7 +379,20 @@ export async function processDueLookPreviews(limit = 1) {
     processingStartedAtMs: row.processing_started_at ? new Date(row.processing_started_at as string).getTime() : null,
   }))
   const next = chooseLookPreviewCandidate(ranked, now)
-  if (!next) return { processed: 0, missingTable: false }
-  await processLookPreview(next.repId, { flush: true })
-  return { processed: Math.min(1, limit), missingTable: false }
+  if (next) {
+    await processLookPreview(next.repId, { flush: true })
+    return { processed: Math.min(1, limit), missingTable: false }
+  }
+  const stuck = await admin.from('site_look_previews')
+    .select('rep_id')
+    .eq('status', 'updating')
+    .gte('attempt_count', LOOK_PREVIEW_MAX_ATTEMPTS)
+    .or(lookPreviewClaimOrFilter(now))
+    .limit(1)
+    .maybeSingle()
+  if (isMissingLookPreviewTable(stuck.error)) return { processed: 0, missingTable: true }
+  if (stuck.error) throw stuck.error
+  if (!stuck.data?.rep_id) return { processed: 0, missingTable: false }
+  await processLookPreview(stuck.data.rep_id as string, { flush: true })
+  return { processed: 1, missingTable: false }
 }

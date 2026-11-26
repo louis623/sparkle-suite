@@ -15,6 +15,48 @@ export function chooseLookPreviewCandidate<T extends {
     .filter((row) => row.processingStartedAtMs == null || nowMs - row.processingStartedAtMs >= LOOK_PREVIEW_BUSY_MS)
     .sort((a, b) => a.attemptCount - b.attemptCount || a.updatedAtMs - b.updatedAtMs)[0] ?? null
 }
+
+/** True when no capture is running, or the current stamp is older than the busy window. */
+export function canClaimLookPreview(
+  processingStartedAt: string | null | undefined,
+  nowMs: number,
+  busyMs = LOOK_PREVIEW_BUSY_MS,
+) {
+  if (!processingStartedAt) return true
+  const startedMs = new Date(processingStartedAt).getTime()
+  if (!Number.isFinite(startedMs)) return true
+  return nowMs - startedMs >= busyMs
+}
+
+/** PostgREST `or` clause: claim only when processing_started_at is null or stale. */
+export function lookPreviewClaimOrFilter(nowMs: number, busyMs = LOOK_PREVIEW_BUSY_MS) {
+  const staleBefore = new Date(nowMs - busyMs).toISOString()
+  return `processing_started_at.is.null,processing_started_at.lt."${staleBefore}"`
+}
+
+/** Final writes may apply only while this run still holds the processing stamp it claimed. */
+export function lookPreviewWriteOwnsClaim(
+  currentProcessingStartedAt: string | null | undefined,
+  claimedProcessingStartedAt: string | null | undefined,
+) {
+  return Boolean(claimedProcessingStartedAt) && currentProcessingStartedAt === claimedProcessingStartedAt
+}
+
+/** Filename-safe stamp from the claim time, so two runs never share an object path. */
+export function lookPreviewAssetStamp(processingStartedAt: string) {
+  const startedMs = new Date(processingStartedAt).getTime()
+  if (!Number.isFinite(startedMs)) return 'claim'
+  return new Date(startedMs).toISOString().replace(/[-:]/g, '').replace(/\.(\d{3})Z$/, '$1Z')
+}
+
+export function lookPreviewAssetPaths(repId: string, version: number, processingStartedAt: string) {
+  const stamp = lookPreviewAssetStamp(processingStartedAt)
+  return {
+    desktopPath: `${repId}/look-preview/desktop-${version}-${stamp}.webp`,
+    phonePath: `${repId}/look-preview/phone-${version}-${stamp}.webp`,
+  }
+}
+
 export const SMOKE_PUBLIC_ORIGIN = 'https://sparkle-suite-smoke.vercel.app'
 export const LIVE_PUBLIC_ORIGIN = 'https://www.yoursparklesuite.com'
 
