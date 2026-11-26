@@ -6,7 +6,7 @@ import {
   ABOUT_NARRATIVE_MAX_LENGTH,
   ABOUT_TITLE_MAX_LENGTH,
 } from '@/lib/public-site/about-section'
-import { resolveSocialHeroLinks } from '@/lib/public-site/social-hero'
+import { resolveSocialHeroLinks, resolveSocialPlatformUrl } from '@/lib/public-site/social-hero'
 import type { SocialPlatformKey } from '@/lib/public-site/social-visibility'
 import type { PublicSiteMediaSlot, PublicSiteMediaSlotKey } from '@/lib/services/types'
 import type { SiteSettingsDraft } from '@/app/nic-nac/components/DashboardPlaceholder'
@@ -685,11 +685,14 @@ export function SiteSettingsBody({
             </p>
             {magazine ? (
               <span className={styles.lookSocials}>
+                {resolveSocialPlatformUrl('tiktok', draft.socialHandles?.tiktok) ? (
+                  <span className={styles.lookSocialChip}>Watch on TikTok</span>
+                ) : null}
                 {heroSocials.length > 0
                   ? heroSocials.map((link) => (
                     <span key={link.key} className={styles.lookSocialChip}>{link.label}</span>
                   ))
-                  : <span className={styles.lookSocialChip}>No hero buttons yet</span>}
+                  : resolveSocialPlatformUrl('tiktok', draft.socialHandles?.tiktok) ? null : <span className={styles.lookSocialChip}>No hero buttons yet</span>}
               </span>
             ) : (
               <p className={styles.siteSettingsPreviewNote}>
@@ -698,7 +701,7 @@ export function SiteSettingsBody({
                   : 'No social buttons are set to show in the hero yet.'}
               </p>
             )}
-            <ShowsOn id="hero-socials-shows" legend={magazine} caption="Hero buttons, plus Watch on TikTok when a TikTok link is saved">{SHOWS_ON.heroSocials}</ShowsOn>
+            <ShowsOn id="hero-socials-shows" legend={magazine} caption={resolveSocialPlatformUrl('tiktok', draft.socialHandles?.tiktok) ? 'Hero buttons, plus Watch on TikTok from her TikTok link' : 'Hero buttons'}>{SHOWS_ON.heroSocials}</ShowsOn>
           </div>
               </div>
             </div>
