@@ -10116,33 +10116,43 @@ export function HelpResourcesCard({
 function ShareMySite({ url }: { url: string | null }) {
   const [note, setNote] = useState('')
   const [qr, setQr] = useState('')
+  const [canShare, setCanShare] = useState(false)
+  useEffect(() => {
+    setCanShare(typeof navigator.share === 'function')
+  }, [])
   useEffect(() => {
     if (!url) return
     let cancel = false
-    void QRCode.toDataURL(url, { width: 128, margin: 1 }).then((value) => {
+    void QRCode.toDataURL(url, { width: 320, margin: 1 }).then((value) => {
       if (!cancel) setQr(value)
     }).catch(() => undefined)
     return () => { cancel = true }
   }, [url])
   if (!url) return null
+  const copy = () => {
+    void navigator.clipboard.writeText(url).then(() => setNote('Link copied')).catch(() => setNote('Copy the link from the sheet'))
+  }
   return (
     <div className={styles.shareSite}>
-      <button
-        type="button"
-        className={styles.shareSiteButton}
-        onClick={() => {
-          const share = navigator.share?.bind(navigator)
-          if (share) {
-            void share({ title: 'My site', url }).catch(() => undefined)
-            return
-          }
-          void navigator.clipboard.writeText(url).then(() => setNote('Link copied')).catch(() => setNote('Copy the link from your address bar'))
-        }}
-      >
-        Share my site
-      </button>
-      {note ? <span role="status">{note}</span> : null}
-      {qr ? <img src={qr} alt="" width={72} height={72} /> : null}
+      <button type="button" className={styles.shareSiteButton} popoverTarget="share-my-site">Share my site</button>
+      <div id="share-my-site" popover="auto" className={styles.shareSheet}>
+        <p className={styles.lookEyebrow}>Share</p>
+        <h2 className={styles.lookTitle}>Share my site</h2>
+        <p className={styles.shareLink}>{url}</p>
+        <div className={styles.shareActions}>
+          <button type="button" onClick={copy}>Copy</button>
+          {canShare ? (
+            <button type="button" onClick={() => { void navigator.share?.({ title: 'My site', url }).catch(() => undefined) }}>Share</button>
+          ) : null}
+        </div>
+        {note ? <p role="status">{note}</p> : null}
+        {qr ? (
+          <div className={styles.shareQr}>
+            <img src={qr} alt="" width={180} height={180} />
+            <a href={qr} download="my-site-qr.png">Download</a>
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }

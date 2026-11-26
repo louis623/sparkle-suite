@@ -10239,9 +10239,15 @@
 }
 .lookEmojiFoot { margin: 0; padding: 10px 16px; border-top: 1px solid rgba(64, 41, 36, 0.12); color: #6f5650; font-size: 12.5px; }
 .lookEmojiEmpty { margin: 8px 16px 16px; color: #6f5650; }
-.shareSite { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
+.shareSite { margin: 0 0 14px; }
 .shareSiteButton { min-height: 44px; padding: 0 16px; border: 0; border-radius: 999px; background: #34252f; color: #fff6fb; font-weight: 700; }
-.shareSite img { width: 72px; height: 72px; border-radius: 8px; background: #fff; }
+.shareSheet { width: min(360px, calc(100vw - 32px)); padding: 18px; border: 0; border-radius: 20px; background: #fffdfb; color: #34252f; box-shadow: 0 24px 60px -24px rgba(52, 37, 47, 0.45); }
+.shareSheet::backdrop { background: rgba(52, 37, 47, 0.28); }
+.shareLink { margin: 8px 0 12px; overflow-wrap: anywhere; color: #6f5650; }
+.shareActions { display: flex; flex-wrap: wrap; gap: 8px; }
+.shareActions button, .shareQr a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border: 0; border-radius: 999px; background: #ee2c9b; color: #fff; font-weight: 700; text-decoration: none; }
+.shareQr { display: grid; justify-items: center; gap: 10px; width: min(100%, 220px); margin-top: 14px; padding: 14px; border-radius: 18px; background: #fff; box-shadow: 0 10px 30px rgba(64, 41, 36, 0.1); }
+.shareQr img { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; }
 .signupEditor { display: flex; flex-direction: column; gap: 14px; }
 .signupLiveCard { margin: 0; padding: 18px; border-radius: 20px; background: linear-gradient(160deg, #fff6f9, #fffaf4); box-shadow: inset 0 0 0 1px rgba(201, 162, 91, 0.28); }
 .signupLiveOffer { margin: 12px 0 0; color: #ee2c9b; font-weight: 700; text-wrap: pretty; }
