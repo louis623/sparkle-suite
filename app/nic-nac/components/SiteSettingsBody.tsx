@@ -80,7 +80,7 @@ function TickerChips({ text, onChange }: { text: string; onChange: (next: string
           ) : <span key={partIndex}>{part.text}</span>)}
         </p>
       ))}
-      <div className={styles.lookMarquee} aria-hidden="true"><span>{lines.filter(Boolean).join('   ·   ') || 'Your announcements will scroll here'}</span></div>
+      <div className={styles.lookMarquee} aria-hidden="true"><span>{lines.map((line) => splitTicker(line).map((part) => part.text).join('')).filter(Boolean).join('   ·   ') || 'Your announcements will scroll here'}</span></div>
     </div>
   )
 }
