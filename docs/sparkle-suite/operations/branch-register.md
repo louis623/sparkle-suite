@@ -1,3 +1,7 @@
+## November 26, 2026 — My Website Live ship
+
+`cursor/live-ship-my-website-1126` is the one ship branch for My Website, stacked from `codex/nic-nac-trade-hardening` at `c7913ed5`. It merges #235, then #232, then #236. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`, so this branch name cannot be deployed to Live. Louis merges it into `codex/nic-nac-trade-hardening` and deploys that production branch himself. `cursor/signup-about-smoke-583b` is not on this branch.
+
 ## November 26, 2026 — Socials phone preview
 
 `cursor/socials-phone-preview-583b` is allowlisted only so the Socials and Contact Info phone preview and link-in-bio cover can build on Smoke, stacked on `cursor/my-website-concept-c-583b`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
