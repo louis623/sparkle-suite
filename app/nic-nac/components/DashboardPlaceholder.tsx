@@ -10244,10 +10244,12 @@ function LookCoverImage({
   desktop,
   phone,
   fallback,
+  onGiveUp,
 }: {
   desktop: string
   phone: string
   fallback: string
+  onGiveUp?: () => void
 }) {
   const nextKey = `${desktop}|${phone}|${fallback}`
   const [shown, setShown] = useState({ desktop, phone, fallback, key: nextKey })
@@ -10256,15 +10258,24 @@ function LookCoverImage({
     let cancel = false
     const image = new Image()
     image.decoding = 'async'
+    const giveUp = () => { if (!cancel) onGiveUp?.() }
     const reveal = () => {
-      if (!cancel) setShown({ desktop, phone, fallback, key: nextKey })
+      if (cancel || image.naturalWidth < 1) {
+        giveUp()
+        return
+      }
+      const decoded = typeof image.decode === 'function' ? image.decode() : Promise.resolve()
+      Promise.resolve(decoded).then(() => {
+        if (!cancel) setShown({ desktop, phone, fallback, key: nextKey })
+      }).catch(giveUp)
     }
     image.onload = reveal
-    image.onerror = reveal
+    image.onerror = giveUp
     image.src = desktop || phone || fallback
     return () => { cancel = true }
-  }, [desktop, fallback, nextKey, phone, shown.key])
+  }, [desktop, fallback, nextKey, onGiveUp, phone, shown.key])
   const src = shown.desktop || shown.phone || shown.fallback
+  if (!src) return null
   return (
     <picture className={styles.siteLookPicture}>
       {shown.phone ? <source media="(max-width: 879px)" srcSet={shown.phone} /> : null}
@@ -10360,6 +10371,11 @@ export function SiteSettingsCard({
     end: number
     text: string
   } | null>(null)
+  const [coverQuiet, setCoverQuiet] = useState(false)
+  const coverKey = state.status === 'ready'
+    ? `${state.settings?.lookPreview?.desktopUrl ?? ''}|${state.settings?.lookPreview?.phoneUrl ?? ''}`
+    : ''
+  useEffect(() => { setCoverQuiet(false) }, [coverKey])
 
   useEffect(() => {
     setTouchedFields({})
@@ -10719,8 +10735,13 @@ export function SiteSettingsCard({
                 {group.id === 'look' ? (
                   themeCard.thumb || lookShot ? (
                     <>
-                      <LookCoverImage desktop={lookDesktop} phone={lookPhone} fallback={themeCard.thumb || ''} />
-                      {lookPreviewStillPending(lookPreview?.status) ? <span className={styles.siteLookUpdating}>Updating preview</span> : null}
+                      <LookCoverImage
+                        desktop={lookDesktop}
+                        phone={lookPhone}
+                        fallback={themeCard.thumb || ''}
+                        onGiveUp={() => setCoverQuiet(true)}
+                      />
+                      {lookPreviewStillPending(lookPreview?.status) && !coverQuiet ? <span className={styles.siteLookUpdating}>Updating preview</span> : null}
                     </>
                   ) : <span className={styles.sitePaletteName}>{themeCard.label}</span>
                 ) : null}

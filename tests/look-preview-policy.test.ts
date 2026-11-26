@@ -7,6 +7,7 @@ import {
   lookPreviewFailureDetails,
   assertAllowedLookPreviewUrl,
   buildLookPreviewCaptureUrl,
+  chooseLookPreviewCandidate,
   isMissingLookPreviewTable,
   lookPreviewDelayElapsed,
   lookPreviewFingerprint,
@@ -128,5 +129,16 @@ describe('look preview policy', () => {
     expect(nextLookPreviewPollDelay(0)).toBe(3000)
     expect(nextLookPreviewPollDelay(1)).toBeGreaterThan(3000)
     expect(nextLookPreviewPollDelay(8)).toBe(12_000)
+  })
+
+  it('rotates the cover queue past a rep who already failed', () => {
+    const now = 1_000_000
+    const next = chooseLookPreviewCandidate([
+      { repId: 'stuck', attemptCount: 2, updatedAtMs: now - 5_000, processingStartedAtMs: null },
+      { repId: 'busy', attemptCount: 0, updatedAtMs: now - 80_000, processingStartedAtMs: now - 1_000 },
+      { repId: 'fresh', attemptCount: 0, updatedAtMs: now - 10_000, processingStartedAtMs: null },
+      { repId: 'done-trying', attemptCount: 3, updatedAtMs: now - 90_000, processingStartedAtMs: null },
+    ], now)
+    expect(next?.repId).toBe('fresh')
   })
 })

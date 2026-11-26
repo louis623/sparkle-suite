@@ -3,6 +3,18 @@ import { validatePublicSiteSlug } from '@/lib/public-site/show-link'
 
 export const LOOK_PREVIEW_DEBOUNCE_MS = 8000
 export const LOOK_PREVIEW_MAX_ATTEMPTS = 3
+export const LOOK_PREVIEW_BUSY_MS = 70_000
+
+export function chooseLookPreviewCandidate<T extends {
+  attemptCount: number
+  updatedAtMs: number
+  processingStartedAtMs: number | null
+}>(rows: readonly T[], nowMs: number) {
+  return rows
+    .filter((row) => row.attemptCount < LOOK_PREVIEW_MAX_ATTEMPTS)
+    .filter((row) => row.processingStartedAtMs == null || nowMs - row.processingStartedAtMs >= LOOK_PREVIEW_BUSY_MS)
+    .sort((a, b) => a.attemptCount - b.attemptCount || a.updatedAtMs - b.updatedAtMs)[0] ?? null
+}
 export const SMOKE_PUBLIC_ORIGIN = 'https://sparkle-suite-smoke.vercel.app'
 export const LIVE_PUBLIC_ORIGIN = 'https://www.yoursparklesuite.com'
 
