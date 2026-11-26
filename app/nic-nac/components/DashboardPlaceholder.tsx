@@ -10602,7 +10602,7 @@ export function SiteSettingsCard({
                         <i key={color} style={{ background: color }} />
                       ))}
                     </span>
-                    {savePhase === 'saved' ? <b>Saved ✓</b> : <b>Saving…</b>}
+                    {savePhase === 'saved' ? <b>Saved ✓</b> : savePhase === 'error' ? <b>Not saved</b> : <b>Saving…</b>}
                   </span>
                 </span>
                 <button type="button" className={`${styles.siteChangeTheme} ${styles.lookChangeTheme}`} onClick={() => themeRef.current?.showModal()}>Change theme</button>
