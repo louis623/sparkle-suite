@@ -10530,7 +10530,7 @@ export function SiteSettingsCard({
       <p className={styles.siteHomeKicker}>Your customer site</p>
       <h1 className={styles.siteHomeTitle}>Tap a part of your site to change it</h1>
       <p className={styles.siteHomeLede}>Everything saves on its own as you go.</p>
-      <ShareMySite url={publicSiteUrl} />
+      <ShareMySite url={publicSiteUrl && !publicSiteUrl.includes('/amethyst/Homepage.html') ? publicSiteUrl : null} />
       <div className={styles.siteHomeStatusRow}>
         <p
           className={savePhase === 'error' ? styles.siteSavePillError : savePhase === 'saving' ? styles.siteSavePillBusy : styles.siteSavePill}
