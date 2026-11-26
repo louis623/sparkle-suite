@@ -317,7 +317,7 @@ describe('theme studio card', () => {
     const dialog = host.querySelector('dialog') as HTMLDialogElement
     expect(dialog.open).toBe(true)
     expect(host.textContent).toContain('Back to themes')
-    expect(host.textContent).not.toContain('Use this theme')
+    expect(host.textContent).toContain('Use this theme')
     await act(async () => {
       buttonNamed('Close').click()
     })

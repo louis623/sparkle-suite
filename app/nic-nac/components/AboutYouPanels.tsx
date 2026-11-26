@@ -210,7 +210,7 @@ export function AboutMarquee({
       </article>
       <div className={styles.aboutMarqueeCopy}>
         <p className={styles.aboutKicker}>Marquee video</p>
-        <p className={styles.aboutLegend}>A special portrait video, under her photo and above the short videos.</p>
+        <p className={styles.aboutLegend}>Customers see this as the Watch a Live Reveal card, above the About section.</p>
         {slot.caption ? <p className={styles.aboutVideoCaption}>{slot.caption}</p> : null}
         {status ? <p className={status === 'Queued' ? styles.aboutPillQueue : styles.aboutPillReady}>{status}</p> : null}
         <details className={styles.aboutEdit}>

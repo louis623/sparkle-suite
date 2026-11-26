@@ -214,6 +214,12 @@ export function ThemeStudio({
     setRequestToken((token) => token + 1)
   }
 
+  function chooseTheme(themeId: string) {
+    setChosenId(themeId)
+    showCachedOrLoading(themeId, page)
+    if (themeId !== draftThemeId) onDraftThemeChange(themeId)
+  }
+
   function openTryOn(themeId: string) {
     setChosenId(themeId)
     showCachedOrLoading(themeId, page)
@@ -279,7 +285,7 @@ export function ThemeStudio({
             Applies only to your public customer-facing site. Your Sparkle Suite workspace keeps the standard workspace theme.
           </p>
         </div>
-        <div className={styles.previewColumn}>
+        {wide ? <div className={styles.previewColumn}>
           <div className={styles.tryPanel}>
             <div className={styles.tryHead}>
               <b>Try it on</b>
@@ -299,7 +305,7 @@ export function ThemeStudio({
             />
             <p className={styles.tryFoot}>Preview only. Customers see a new theme once you tap it.</p>
           </div>
-        </div>
+        </div> : null}
       </div>
       <dialog
         ref={dialogRef}
@@ -333,7 +339,17 @@ export function ThemeStudio({
               framed
             />
             <div className={styles.dialogActions}>
-              <button type="button" className={styles.keep} onClick={closeTryOn}>
+              <button
+                type="button"
+                className={styles.keep}
+                onClick={() => {
+                  if (chosen && offeredIds.has(chosen.id)) chooseTheme(chosen.id)
+                  closeTryOn()
+                }}
+              >
+                Use this theme
+              </button>
+              <button type="button" className={styles.back} onClick={closeTryOn}>
                 Back to themes
               </button>
             </div>
@@ -359,11 +375,10 @@ export function ThemeStudio({
             value={theme.id}
             aria-label={live ? `${theme.label}, ${offered ? 'Live now' : 'Live now, no longer offered'}` : theme.label}
             checked={selected}
-            onChange={() => {
-              setChosenId(theme.id)
-              showCachedOrLoading(theme.id, page)
-              if (theme.id !== draftThemeId) onDraftThemeChange(theme.id)
+            onClick={() => {
+              if (selected) chooseTheme(theme.id)
             }}
+            onChange={() => chooseTheme(theme.id)}
           />
           <span
             className={styles.thumbFrame}

@@ -10,6 +10,7 @@ import { isQueuedVideoUrl } from '@/lib/public-site/queue-video-link'
 import { isTikTokCardUrl } from '@/lib/public-site/tiktok-video-id'
 import { SOCIAL_PLATFORMS } from '@/lib/public-site/social-visibility'
 
+import QRCode from 'qrcode'
 import Link from 'next/link'
 import { flushSync } from 'react-dom'
 import { SiteLeaveGuard, SiteSaveBar, type SiteDiscardOpener } from './SiteSaveBar'
@@ -25,6 +26,8 @@ import {
   autosaveTiming,
   discountCodeFieldError,
   discountMessageFieldError,
+  changedSiteSettingsPayload,
+  collectSiteSettingsFieldErrors,
   draftHoldingInvalidFields,
   emailFieldError,
   formatSiteSaveFailure,
@@ -2619,8 +2622,20 @@ export function createTickerLinkFromSelection(input: {
   }
 }
 
+const LEGACY_TICKER_LINE = /^\[[^\]]+\]\([^()\s]+\)$/
+
+export function hasLegacyTickerLink(tickerText: string) {
+  return tickerText.split('\n').some((line) => LEGACY_TICKER_LINE.test(line.trim()))
+}
+
 export function makeTickerLinksPlainText(tickerText: string) {
-  return tickerText.replace(/\[([^\]]+)\]\([^()\s]+\)/g, '$1')
+  return tickerText
+    .split('\n')
+    .map((line) => {
+      const match = line.trim().match(/^\[([^\]]+)\]\([^()\s]+\)$/)
+      return match ? line.replace(LEGACY_TICKER_LINE, match[1]) : line
+    })
+    .join('\n')
 }
 
 export function updateHomepageMediaSlot(
@@ -3577,6 +3592,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const undoSnapshotRef = useRef<SiteSettingsDraft | null>(null)
   const undoTimerRef = useRef<number | null>(null)
   const [undoReady, setUndoReady] = useState(false)
+  const [autosaveWaiting, setAutosaveWaiting] = useState(false)
   const runSiteAutosaveRef = useRef<() => void>(() => {})
   const siteSettingsSaveRequestRef = useRef(0)
   const siteSettingsVersionRef = useRef(0)
@@ -4671,11 +4687,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (autosaveTimerRef.current != null) window.clearTimeout(autosaveTimerRef.current)
     if (mode === 'now') {
       autosaveTimerRef.current = null
+      setAutosaveWaiting(false)
       runSiteAutosaveRef.current()
       return
     }
+    setAutosaveWaiting(true)
     autosaveTimerRef.current = window.setTimeout(() => {
       autosaveTimerRef.current = null
+      setAutosaveWaiting(false)
       runSiteAutosaveRef.current()
     }, AUTOSAVE_WAIT_MS)
   }
@@ -4733,7 +4752,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     const current = siteSettingsDraftRef.current
     if (!current) return
     rememberSiteDraft(updateHomepageMediaSlot(current, key, patch))
-    const textOnly = Object.keys(patch).every((field) => field === 'caption' || field === 'videoUrl')
+    const textOnly = Object.keys(patch).every((field) =>
+      field === 'caption' || field === 'videoUrl' || field === 'portraitZoom' || field === 'portraitFocusX' || field === 'portraitFocusY',
+    )
     scheduleSiteAutosave(textOnly ? 'debounce' : 'now')
   }
 
@@ -4939,13 +4960,19 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
+      const savedDraft = siteSettingsStateRef.current.status === 'ready' && siteSettingsStateRef.current.settings
+        ? getNormalizedSiteSettingsDraft(getSiteSettingsDraft(siteSettingsStateRef.current.settings, {
+          isBrittWithBling: isBrittWithBlingWorkspace,
+        }))
+        : normalizedDraft
+      const patch = changedSiteSettingsPayload(savedDraft, normalizedDraft)
+      if (heroAnimationTouchedRef.current) patch.heroAnimationType = normalizedDraft.heroAnimationType
       const response = await fetch('/api/nic-nac/site-settings', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(myWebsiteSavePayload(normalizedDraft, {
-          includeHeroAnimation: heroAnimationTouchedRef.current,
-        })),
+        keepalive: true,
+        body: JSON.stringify(patch),
       })
 
       const payload = (await response.json().catch(() => null)) as
@@ -4972,10 +4999,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         setSiteSettingsDraft(nextDraft)
       }
       if (siteSettingsSaveRequestRef.current === requestId) {
+        const blocked = siteSettingsDraftRef.current
+          ? collectSiteSettingsFieldErrors(siteSettingsDraftRef.current)
+          : []
+        setForceSiteFieldErrors(blocked.length > 0)
         setSiteSettingsActionState({
           pending: false,
-          error: null,
-          helperMessage: SAVED_LABEL,
+          error: blocked[0]?.message ?? null,
+          helperMessage: blocked.length > 0 ? null : SAVED_LABEL,
         })
         if (!autosaveAgainRef.current) {
           setUndoReady(true)
@@ -5032,13 +5063,20 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       isBrittWithBling: isBrittWithBlingWorkspace,
     })
     const ready = draftHoldingInvalidFields(draft, saved)
-    if (
-      !hasSiteSettingsUnsavedChanges({
-        settings: state.settings,
-        draft: ready,
-        isBrittWithBling: isBrittWithBlingWorkspace,
-      })
-    ) {
+    const blocked = collectSiteSettingsFieldErrors(draft)
+    const patch = changedSiteSettingsPayload(
+      getNormalizedSiteSettingsDraft(saved),
+      getNormalizedSiteSettingsDraft(ready),
+    )
+    if (Object.keys(patch).length === 0) {
+      setForceSiteFieldErrors(blocked.length > 0)
+      if (blocked.length > 0) {
+        setSiteSettingsActionState({
+          pending: false,
+          error: blocked[0]?.message ?? null,
+          helperMessage: null,
+        })
+      }
       return
     }
     if (siteSettingsSavePendingRef.current) {
@@ -5510,6 +5548,25 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     tradeBoardState.board?.listings.length,
     tradeBoardState.hasMoreListings,
   ])
+
+  useEffect(() => {
+    const flush = () => {
+      if (autosaveTimerRef.current == null) return
+      window.clearTimeout(autosaveTimerRef.current)
+      autosaveTimerRef.current = null
+      setAutosaveWaiting(false)
+      runSiteAutosaveRef.current()
+    }
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flush()
+    }
+    window.addEventListener('pagehide', flush)
+    document.addEventListener('visibilitychange', onHide)
+    return () => {
+      window.removeEventListener('pagehide', flush)
+      document.removeEventListener('visibilitychange', onHide)
+    }
+  }, [])
 
   useEffect(() => {
     if (activeSection !== 'trade-board') return
@@ -7220,7 +7277,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         ? ['Site details']
         : []
   const siteSettingsLeaveActive =
-    siteSettingsActionState.pending || Boolean(siteSettingsActionState.error)
+    siteSettingsActionState.pending || Boolean(siteSettingsActionState.error) || autosaveWaiting
   const discardOpenerRef = useRef<SiteDiscardOpener | null>(null)
   const activeWorkspaceShellSection = WORKSPACE_SECTIONS.some(
     (section) => section.key === activeSection,
@@ -10059,6 +10116,40 @@ export function HelpResourcesCard({
   )
 }
 
+function ShareMySite({ url }: { url: string | null }) {
+  const [note, setNote] = useState('')
+  const [qr, setQr] = useState('')
+  useEffect(() => {
+    if (!url) return
+    let cancel = false
+    void QRCode.toDataURL(url, { width: 128, margin: 1 }).then((value) => {
+      if (!cancel) setQr(value)
+    }).catch(() => undefined)
+    return () => { cancel = true }
+  }, [url])
+  if (!url) return null
+  return (
+    <div className={styles.shareSite}>
+      <button
+        type="button"
+        className={styles.shareSiteButton}
+        onClick={() => {
+          const share = navigator.share?.bind(navigator)
+          if (share) {
+            void share({ title: 'My site', url }).catch(() => undefined)
+            return
+          }
+          void navigator.clipboard.writeText(url).then(() => setNote('Link copied')).catch(() => setNote('Copy the link from your address bar'))
+        }}
+      >
+        Share my site
+      </button>
+      {note ? <span role="status">{note}</span> : null}
+      {qr ? <img src={qr} alt="" width={72} height={72} /> : null}
+    </div>
+  )
+}
+
 export function SiteSettingsCard({
   repId,
   state,
@@ -10245,7 +10336,7 @@ export function SiteSettingsCard({
     window.requestAnimationFrame(() => tickerTextareaRef.current?.focus())
   }
 
-  const hasTickerLinks = /\[[^\]]+\]\([^()\s]+\)/.test(draft?.tickerText ?? '')
+  const hasTickerLinks = hasLegacyTickerLink(draft?.tickerText ?? '')
   const liveSkinOptions = useAvailableAmethystSkinCards(previewThemeCards ? null : repId)
   const skinOptions = previewThemeCards
     ? { status: 'ready' as const, cards: previewThemeCards, ownedPrivateSkinIds: [] as string[], retry: () => undefined }
@@ -10414,8 +10505,6 @@ export function SiteSettingsCard({
     ? 'Saving…'
     : savePhase === 'error'
       ? "Couldn't save — Retry"
-      : undoReady
-        ? 'Saved · Undo'
         : 'All changes saved'
 
   return (
@@ -10424,6 +10513,7 @@ export function SiteSettingsCard({
       <p className={styles.siteHomeKicker}>Your customer site</p>
       <h1 className={styles.siteHomeTitle}>Tap a part of your site to change it</h1>
       <p className={styles.siteHomeLede}>Everything saves on its own as you go.</p>
+      <ShareMySite url={publicSiteUrl} />
       <div className={styles.siteHomeStatusRow}>
         <p
           className={savePhase === 'error' ? styles.siteSavePillError : savePhase === 'saving' ? styles.siteSavePillBusy : styles.siteSavePill}
@@ -10621,7 +10711,7 @@ export function SiteSettingsCard({
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Your customer site</p>
             <h1 id="site-about-title" className={styles.siteDialogTitle}>About you</h1>
-            <p className={styles.siteDialogSubtitle}>Her photo leads, then the marquee, then the short videos.</p>
+            <p className={styles.siteDialogSubtitle}>Watch a Live Reveal sits above About. Her story and photo are in About, then the short videos.</p>
           </div>
           <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => aboutRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
