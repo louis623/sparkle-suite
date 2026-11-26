@@ -450,3 +450,7 @@ Louis authorized codex/live-lineup-208-reporting from PR198 aa74f2db, integratin
 
 Louis explicitly approved registering `C:\Users\louis\.codex\visualizations\2026\11\17\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\silver-bells-release` for the existing active branch `codex/nic-nac-trade-hardening`, cloned from verified GitHub tip `b007bb065609a3037a5899a26681310a4a6152f5`. Scope: implement and release the approved Community Silver Bells customer-site theme, animation, independent music, QR flyer and business cards. No branch-status, default-branch, production-branch, or guard logic change.
 
+## November 26, 2026 — duplicate SB-01 theme code
+
+Louis approved a small code fix on `cursor/fix-duplicate-sb-01-theme-code-86cd` from `codex/nic-nac-trade-hardening`. Silver Bells uses `SV-01`; Sunset Beach keeps `SB-01`. Preview only on Sparkle Suite Smoke (`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`). No production-branch, default-branch, database, or Live change.
+

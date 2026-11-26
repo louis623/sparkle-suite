@@ -1400,11 +1400,6 @@
     "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
   },
   {
-    "file": "tests/nic-nac/site-customization-tools.test.ts",
-    "fullName": "site customization tools update_site_setting saves SB-01 as the supported customer-facing skin code",
-    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
-  },
-  {
     "file": "tests/nic-nac/trade-board-intake-route-context.test.ts",
     "fullName": "Dance Floor intake route context extracts rep-typed ER13229 product truth before asking for more intake details",
     "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"

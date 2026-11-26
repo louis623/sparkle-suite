@@ -339,6 +339,8 @@ describe('site customization tools', () => {
     ['RG-02', 'midnight_rose'],
     ['RG-03', 'pearl_rose'],
     ['Pearl Rose', 'pearl_rose'],
+    ['SV-01', 'silver_bells'],
+    ['Silver Bells', 'silver_bells'],
     ['SB-01', 'sunset_beach'],
     ['Sunset Beach', 'sunset_beach'],
     ['RG-04', 'rose_champagne'],
