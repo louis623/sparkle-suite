@@ -10260,11 +10260,12 @@
 .signupCodeChip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 12px; padding: 0 14px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px rgba(201, 162, 91, 0.45); }
 .signupCodeChip input { min-height: 44px; width: 14ch; border: 0; background: transparent; color: #34252f; font-weight: 700; letter-spacing: 0.06em; }
 .signupSwitchRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
-.signupSwitch { position: relative; width: 52px; min-width: 44px; height: 44px; border: 0; border-radius: 999px; background: transparent; }
+.signupSwitch { appearance: none; position: relative; width: 52px; min-width: 44px; height: 44px; margin: 0; border: 0; border-radius: 999px; background: transparent; cursor: pointer; }
 .signupSwitch::before { content: ""; position: absolute; left: 0; top: 6px; width: 52px; height: 32px; border-radius: 999px; background: #e7d5dc; }
-.signupSwitch[aria-checked='true']::before { background: #ee2c9b; }
-.signupSwitch span { position: absolute; top: 12px; left: 6px; width: 20px; height: 20px; border-radius: 99px; background: #fff; transition: transform 160ms ease; }
-.signupSwitch[aria-checked='true'] span { transform: translateX(20px); }
+.signupSwitch:checked::before { background: #ee2c9b; }
+.signupSwitch::after { content: ""; position: absolute; top: 12px; left: 6px; width: 20px; height: 20px; border-radius: 99px; background: #fff; transition: transform 160ms ease; }
+.signupSwitch:checked::after { transform: translateX(20px); }
+.signupSwitch:focus-visible { outline: 3px solid #0b57d0; outline-offset: 4px; }
 .lookTickerSource { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .lookChip { display: inline-flex; align-items: center; min-height: 44px; margin: 0 4px; padding: 0 12px; border: 0; border-radius: 999px; background: #ffd6ea; color: #c0156f; font-weight: 700; }
 .lookChipText { min-height: 44px; border: 0; background: transparent; color: inherit; font: inherit; }

@@ -1125,17 +1125,16 @@ export function SiteSettingsBody({
                 <span className={styles.searchLabel}>Sign-up discount</span>
                 <ShowsOn id="signup-switch-shows" legend caption="On when the card offers a one-time code">{SHOWS_ON.signupSwitch}</ShowsOn>
               </span>
-              <button
-                type="button"
+              <input
+                type="checkbox"
                 role="switch"
                 className={styles.signupSwitch}
                 data-site-control="signup-switch"
-                aria-checked={draft.signupDiscountEnabled === true}
+                checked={draft.signupDiscountEnabled === true}
                 aria-describedby="signup-switch-shows"
-                onClick={() => onDraftChange?.({ signupDiscountEnabled: draft.signupDiscountEnabled !== true })}
-              >
-                <span />
-              </button>
+                onChange={(event) => onDraftChange?.({ signupDiscountEnabled: event.target.checked })}
+                {...{ switch: '' }}
+              />
             </div>
             <p className={styles.helperNote}>Suite only shows this code. Set up the code itself in Bomb Party first.</p>
           </div>

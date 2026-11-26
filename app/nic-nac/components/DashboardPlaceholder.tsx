@@ -10134,7 +10134,7 @@ function ShareMySite({ url }: { url: string | null }) {
   }
   return (
     <div className={styles.shareSite}>
-      <button type="button" className={styles.shareSiteButton} popoverTarget="share-my-site">Share my site</button>
+      <button type="button" className={styles.shareSiteButton} {...{ commandfor: 'share-my-site', command: 'toggle-popover' }}>Share my site</button>
       <div id="share-my-site" popover="auto" className={styles.shareSheet}>
         <p className={styles.lookEyebrow}>Share</p>
         <h2 className={styles.lookTitle}>Share my site</h2>
