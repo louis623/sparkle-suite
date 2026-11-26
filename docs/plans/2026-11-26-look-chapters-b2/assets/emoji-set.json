@@ -1,0 +1,1070 @@
+[
+{
+"key": "recent",
+"label": "Recently used",
+"icon": "🕘",
+"items": [
+{
+"e": "✨",
+"n": "sparkles"
+},
+{
+"e": "💎",
+"n": "gem stone"
+},
+{
+"e": "🎥",
+"n": "movie camera"
+},
+{
+"e": "🛍️",
+"n": "shopping bags"
+},
+{
+"e": "🎉",
+"n": "party popper"
+},
+{
+"e": "📣",
+"n": "cheering megaphone"
+},
+{
+"e": "⏰",
+"n": "alarm clock"
+},
+{
+"e": "💖",
+"n": "sparkling heart"
+}
+]
+},
+{
+"key": "announce",
+"label": "Announcements & celebrations",
+"icon": "🎉",
+"items": [
+{
+"e": "🎉",
+"n": "party popper"
+},
+{
+"e": "📣",
+"n": "cheering megaphone"
+},
+{
+"e": "📢",
+"n": "public address loudspeaker"
+},
+{
+"e": "✨",
+"n": "sparkles"
+},
+{
+"e": "🎊",
+"n": "confetti ball"
+},
+{
+"e": "🔔",
+"n": "bell"
+},
+{
+"e": "🎈",
+"n": "balloon"
+},
+{
+"e": "🥳",
+"n": "face with party horn and party hat"
+},
+{
+"e": "🎁",
+"n": "wrapped present"
+},
+{
+"e": "🌟",
+"n": "glowing star"
+},
+{
+"e": "⭐",
+"n": "white medium star"
+},
+{
+"e": "💥",
+"n": "collision symbol"
+},
+{
+"e": "🔥",
+"n": "fire"
+},
+{
+"e": "🙌",
+"n": "person raising both hands in celebration"
+},
+{
+"e": "👏",
+"n": "clapping hands sign"
+},
+{
+"e": "🍾",
+"n": "bottle with popping cork"
+},
+{
+"e": "🥂",
+"n": "clinking glasses"
+},
+{
+"e": "🎀",
+"n": "ribbon"
+},
+{
+"e": "🎆",
+"n": "fireworks"
+},
+{
+"e": "🎇",
+"n": "firework sparkler"
+},
+{
+"e": "🆕",
+"n": "squared new"
+},
+{
+"e": "‼️",
+"n": "double exclamation mark"
+},
+{
+"e": "💯",
+"n": "hundred points symbol"
+},
+{
+"e": "🏆",
+"n": "trophy"
+},
+{
+"e": "🥇",
+"n": "first place medal"
+},
+{
+"e": "🎯",
+"n": "direct hit"
+}
+]
+},
+{
+"key": "jewelry",
+"label": "Jewelry & sparkle",
+"icon": "💎",
+"items": [
+{
+"e": "💎",
+"n": "gem stone"
+},
+{
+"e": "💍",
+"n": "ring"
+},
+{
+"e": "👑",
+"n": "crown"
+},
+{
+"e": "💫",
+"n": "dizzy symbol"
+},
+{
+"e": "🪩",
+"n": "mirror ball"
+},
+{
+"e": "📿",
+"n": "prayer beads"
+},
+{
+"e": "👸",
+"n": "princess"
+},
+{
+"e": "🦄",
+"n": "unicorn face"
+},
+{
+"e": "🌙",
+"n": "crescent moon"
+},
+{
+"e": "🌠",
+"n": "shooting star"
+},
+{
+"e": "🔮",
+"n": "crystal ball"
+},
+{
+"e": "🪞",
+"n": "mirror"
+},
+{
+"e": "🧚‍♀️",
+"n": "fairy"
+},
+{
+"e": "🦋",
+"n": "butterfly"
+},
+{
+"e": "💠",
+"n": "diamond shape with a dot inside"
+},
+{
+"e": "⚜️",
+"n": "fleur-de-lis"
+},
+{
+"e": "🪙",
+"n": "coin"
+},
+{
+"e": "🌈",
+"n": "rainbow"
+},
+{
+"e": "🤩",
+"n": "grinning face with star eyes"
+},
+{
+"e": "😍",
+"n": "smiling face with heart-shaped eyes"
+},
+{
+"e": "🫧",
+"n": "bubbles"
+},
+{
+"e": "⚡",
+"n": "high voltage sign"
+},
+{
+"e": "🔆",
+"n": "high brightness symbol"
+},
+{
+"e": "🎐",
+"n": "wind chime"
+}
+]
+},
+{
+"key": "business",
+"label": "Business & shop",
+"icon": "🛍️",
+"items": [
+{
+"e": "🛍️",
+"n": "shopping bags"
+},
+{
+"e": "📦",
+"n": "package"
+},
+{
+"e": "💸",
+"n": "money with wings"
+},
+{
+"e": "🏷️",
+"n": "label"
+},
+{
+"e": "📅",
+"n": "calendar"
+},
+{
+"e": "⏰",
+"n": "alarm clock"
+},
+{
+"e": "🛒",
+"n": "shopping trolley"
+},
+{
+"e": "💳",
+"n": "credit card"
+},
+{
+"e": "💰",
+"n": "money bag"
+},
+{
+"e": "🧾",
+"n": "receipt"
+},
+{
+"e": "📈",
+"n": "chart with upwards trend"
+},
+{
+"e": "🗓️",
+"n": "spiral calendar pad"
+},
+{
+"e": "⌛",
+"n": "hourglass"
+},
+{
+"e": "🚚",
+"n": "delivery truck"
+},
+{
+"e": "📬",
+"n": "open mailbox with raised flag"
+},
+{
+"e": "✉️",
+"n": "envelope"
+},
+{
+"e": "📲",
+"n": "mobile phone with rightwards arrow at left"
+},
+{
+"e": "💻",
+"n": "personal computer"
+},
+{
+"e": "🔗",
+"n": "link symbol"
+},
+{
+"e": "🤝",
+"n": "handshake"
+},
+{
+"e": "✅",
+"n": "white heavy check mark"
+},
+{
+"e": "📍",
+"n": "round pushpin"
+},
+{
+"e": "🎟️",
+"n": "admission tickets"
+},
+{
+"e": "🔖",
+"n": "bookmark"
+},
+{
+"e": "📌",
+"n": "pushpin"
+},
+{
+"e": "🆓",
+"n": "squared free"
+}
+]
+},
+{
+"key": "shows",
+"label": "Shows & social",
+"icon": "🎥",
+"items": [
+{
+"e": "🎥",
+"n": "movie camera"
+},
+{
+"e": "📹",
+"n": "video camera"
+},
+{
+"e": "🎬",
+"n": "clapper board"
+},
+{
+"e": "📸",
+"n": "camera with flash"
+},
+{
+"e": "🎙️",
+"n": "studio microphone"
+},
+{
+"e": "🎤",
+"n": "microphone"
+},
+{
+"e": "📱",
+"n": "mobile phone"
+},
+{
+"e": "💬",
+"n": "speech balloon"
+},
+{
+"e": "👀",
+"n": "eyes"
+},
+{
+"e": "🤳",
+"n": "selfie"
+},
+{
+"e": "📺",
+"n": "television"
+},
+{
+"e": "🎧",
+"n": "headphone"
+},
+{
+"e": "🗣️",
+"n": "speaking head in silhouette"
+},
+{
+"e": "📝",
+"n": "memo"
+},
+{
+"e": "🔊",
+"n": "speaker with three sound waves"
+},
+{
+"e": "🫶",
+"n": "heart hands"
+}
+]
+},
+{
+"key": "glam",
+"label": "Self-care & glam",
+"icon": "💅",
+"items": [
+{
+"e": "🛁",
+"n": "bathtub"
+},
+{
+"e": "💅",
+"n": "nail polish"
+},
+{
+"e": "💄",
+"n": "lipstick"
+},
+{
+"e": "🌸",
+"n": "cherry blossom"
+},
+{
+"e": "🧖‍♀️",
+"n": "person in steamy room"
+},
+{
+"e": "💆‍♀️",
+"n": "face massage"
+},
+{
+"e": "👗",
+"n": "dress"
+},
+{
+"e": "👠",
+"n": "high-heeled shoe"
+},
+{
+"e": "👜",
+"n": "handbag"
+},
+{
+"e": "👛",
+"n": "purse"
+},
+{
+"e": "🕶️",
+"n": "dark sunglasses"
+},
+{
+"e": "💋",
+"n": "kiss mark"
+},
+{
+"e": "🧴",
+"n": "lotion bottle"
+},
+{
+"e": "🪷",
+"n": "lotus"
+},
+{
+"e": "🍵",
+"n": "teacup without handle"
+},
+{
+"e": "☕",
+"n": "hot beverage"
+},
+{
+"e": "📖",
+"n": "open book"
+},
+{
+"e": "🧸",
+"n": "teddy bear"
+},
+{
+"e": "💐",
+"n": "bouquet"
+},
+{
+"e": "👒",
+"n": "womans hat"
+},
+{
+"e": "🕯️",
+"n": "candle"
+},
+{
+"e": "🪮",
+"n": "hair pick"
+},
+{
+"e": "👙",
+"n": "bikini"
+},
+{
+"e": "🩱",
+"n": "one-piece swimsuit"
+}
+]
+},
+{
+"key": "love",
+"label": "Love & hearts",
+"icon": "💖",
+"items": [
+{
+"e": "💖",
+"n": "sparkling heart"
+},
+{
+"e": "💗",
+"n": "growing heart"
+},
+{
+"e": "💓",
+"n": "beating heart"
+},
+{
+"e": "💞",
+"n": "revolving hearts"
+},
+{
+"e": "💕",
+"n": "two hearts"
+},
+{
+"e": "💘",
+"n": "heart with arrow"
+},
+{
+"e": "💝",
+"n": "heart with ribbon"
+},
+{
+"e": "❤️",
+"n": "heavy black heart"
+},
+{
+"e": "🩷",
+"n": "pink heart"
+},
+{
+"e": "🧡",
+"n": "orange heart"
+},
+{
+"e": "💛",
+"n": "yellow heart"
+},
+{
+"e": "💚",
+"n": "green heart"
+},
+{
+"e": "🩵",
+"n": "light blue heart"
+},
+{
+"e": "💙",
+"n": "blue heart"
+},
+{
+"e": "💜",
+"n": "purple heart"
+},
+{
+"e": "🤍",
+"n": "white heart"
+},
+{
+"e": "🖤",
+"n": "black heart"
+},
+{
+"e": "❣️",
+"n": "heavy heart exclamation mark ornament"
+},
+{
+"e": "💌",
+"n": "love letter"
+},
+{
+"e": "😘",
+"n": "face throwing a kiss"
+},
+{
+"e": "🥰",
+"n": "smiling face with smiling eyes and three hearts"
+},
+{
+"e": "💟",
+"n": "heart decoration"
+}
+]
+},
+{
+"key": "seasonal",
+"label": "Seasonal & holidays",
+"icon": "🎄",
+"items": [
+{
+"e": "🎄",
+"n": "christmas tree"
+},
+{
+"e": "🎅",
+"n": "father christmas"
+},
+{
+"e": "🤶",
+"n": "mother christmas"
+},
+{
+"e": "⛄",
+"n": "snowman without snow"
+},
+{
+"e": "❄️",
+"n": "snowflake"
+},
+{
+"e": "🕎",
+"n": "menorah with nine branches"
+},
+{
+"e": "🎃",
+"n": "jack-o-lantern"
+},
+{
+"e": "👻",
+"n": "ghost"
+},
+{
+"e": "🦇",
+"n": "bat"
+},
+{
+"e": "🍁",
+"n": "maple leaf"
+},
+{
+"e": "🍂",
+"n": "fallen leaf"
+},
+{
+"e": "🦃",
+"n": "turkey"
+},
+{
+"e": "🥧",
+"n": "pie"
+},
+{
+"e": "🍀",
+"n": "four leaf clover"
+},
+{
+"e": "☘️",
+"n": "shamrock"
+},
+{
+"e": "🐰",
+"n": "rabbit face"
+},
+{
+"e": "🥚",
+"n": "egg"
+},
+{
+"e": "🌷",
+"n": "tulip"
+},
+{
+"e": "🇺🇸",
+"n": "regional indicator symbol letter u regional indicator symbol letter s"
+},
+{
+"e": "☀️",
+"n": "black sun with rays"
+},
+{
+"e": "🏖️",
+"n": "beach with umbrella"
+},
+{
+"e": "🎓",
+"n": "graduation cap"
+},
+{
+"e": "🎒",
+"n": "school satchel"
+},
+{
+"e": "🧧",
+"n": "red gift envelope"
+},
+{
+"e": "🪔",
+"n": "diya lamp"
+},
+{
+"e": "🌞",
+"n": "sun with face"
+}
+]
+},
+{
+"key": "nature",
+"label": "Nature & florals",
+"icon": "🌹",
+"items": [
+{
+"e": "🌹",
+"n": "rose"
+},
+{
+"e": "🌺",
+"n": "hibiscus"
+},
+{
+"e": "🌻",
+"n": "sunflower"
+},
+{
+"e": "🌼",
+"n": "blossom"
+},
+{
+"e": "🥀",
+"n": "wilted flower"
+},
+{
+"e": "🌿",
+"n": "herb"
+},
+{
+"e": "🍃",
+"n": "leaf fluttering in wind"
+},
+{
+"e": "🌱",
+"n": "seedling"
+},
+{
+"e": "🪴",
+"n": "potted plant"
+},
+{
+"e": "🌵",
+"n": "cactus"
+},
+{
+"e": "🌊",
+"n": "water wave"
+},
+{
+"e": "🐚",
+"n": "spiral shell"
+},
+{
+"e": "🦢",
+"n": "swan"
+},
+{
+"e": "🕊️",
+"n": "dove of peace"
+},
+{
+"e": "🐝",
+"n": "honeybee"
+},
+{
+"e": "🐞",
+"n": "lady beetle"
+},
+{
+"e": "🌤️",
+"n": "white sun with small cloud"
+}
+]
+},
+{
+"key": "treats",
+"label": "Food & treats",
+"icon": "🧁",
+"items": [
+{
+"e": "🍓",
+"n": "strawberry"
+},
+{
+"e": "🍒",
+"n": "cherries"
+},
+{
+"e": "🍑",
+"n": "peach"
+},
+{
+"e": "🍋",
+"n": "lemon"
+},
+{
+"e": "🍉",
+"n": "watermelon"
+},
+{
+"e": "🧁",
+"n": "cupcake"
+},
+{
+"e": "🍰",
+"n": "shortcake"
+},
+{
+"e": "🎂",
+"n": "birthday cake"
+},
+{
+"e": "🍩",
+"n": "doughnut"
+},
+{
+"e": "🍪",
+"n": "cookie"
+},
+{
+"e": "🍫",
+"n": "chocolate bar"
+},
+{
+"e": "🍬",
+"n": "candy"
+},
+{
+"e": "🍭",
+"n": "lollipop"
+},
+{
+"e": "🍦",
+"n": "soft ice cream"
+},
+{
+"e": "🍷",
+"n": "wine glass"
+},
+{
+"e": "🍹",
+"n": "tropical drink"
+},
+{
+"e": "🍸",
+"n": "cocktail glass"
+},
+{
+"e": "🧋",
+"n": "bubble tea"
+},
+{
+"e": "🥐",
+"n": "croissant"
+},
+{
+"e": "🍿",
+"n": "popcorn"
+},
+{
+"e": "🫖",
+"n": "teapot"
+}
+]
+},
+{
+"key": "feels",
+"label": "Faces & gestures",
+"icon": "🥹",
+"items": [
+{
+"e": "😊",
+"n": "smiling face with smiling eyes"
+},
+{
+"e": "😉",
+"n": "winking face"
+},
+{
+"e": "🥹",
+"n": "face holding back tears"
+},
+{
+"e": "😂",
+"n": "face with tears of joy"
+},
+{
+"e": "🤭",
+"n": "smiling face with smiling eyes and hand covering mouth"
+},
+{
+"e": "💁‍♀️",
+"n": "information desk person"
+},
+{
+"e": "🙋‍♀️",
+"n": "happy person raising one hand"
+},
+{
+"e": "🤗",
+"n": "hugging face"
+},
+{
+"e": "😎",
+"n": "smiling face with sunglasses"
+},
+{
+"e": "🙏",
+"n": "person with folded hands"
+},
+{
+"e": "👋",
+"n": "waving hand sign"
+},
+{
+"e": "✌️",
+"n": "victory hand"
+},
+{
+"e": "💪",
+"n": "flexed biceps"
+},
+{
+"e": "👯‍♀️",
+"n": "woman with bunny ears"
+},
+{
+"e": "🫰",
+"n": "hand with index finger and thumb crossed"
+},
+{
+"e": "🤞",
+"n": "hand with index and middle fingers crossed"
+},
+{
+"e": "👌",
+"n": "ok hand sign"
+},
+{
+"e": "😇",
+"n": "smiling face with halo"
+},
+{
+"e": "🤫",
+"n": "face with finger covering closed lips"
+},
+{
+"e": "😱",
+"n": "face screaming in fear"
+}
+]
+},
+{
+"key": "symbols",
+"label": "Pointers & symbols",
+"icon": "👉",
+"items": [
+{
+"e": "👉",
+"n": "white right pointing backhand index"
+},
+{
+"e": "👇",
+"n": "white down pointing backhand index"
+},
+{
+"e": "☝️",
+"n": "white up pointing index"
+},
+{
+"e": "➡️",
+"n": "black rightwards arrow"
+},
+{
+"e": "⬇️",
+"n": "downwards black arrow"
+},
+{
+"e": "✔️",
+"n": "heavy check mark"
+},
+{
+"e": "❗",
+"n": "heavy exclamation mark symbol"
+},
+{
+"e": "❓",
+"n": "black question mark ornament"
+},
+{
+"e": "🔝",
+"n": "top with upwards arrow above"
+},
+{
+"e": "🔜",
+"n": "soon with rightwards arrow above"
+},
+{
+"e": "➕",
+"n": "heavy plus sign"
+},
+{
+"e": "💲",
+"n": "heavy dollar sign"
+},
+{
+"e": "🔸",
+"n": "small orange diamond"
+},
+{
+"e": "🔹",
+"n": "small blue diamond"
+},
+{
+"e": "⭕",
+"n": "heavy large circle"
+},
+{
+"e": "〰️",
+"n": "wavy dash"
+}
+]
+}
+]
