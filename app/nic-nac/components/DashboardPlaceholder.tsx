@@ -10133,7 +10133,7 @@ export function SiteSettingsCard({
   undoReady?: boolean
   previewThemeCards?: readonly AmethystSkinCard[] | null
   nextShow?: { month: string; day: string; name: string; time: string } | null
-  initialDialog?: 'signup' | 'links' | null
+  initialDialog?: 'signup' | 'links' | 'about' | null
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
   const lookRef = useRef<HTMLDialogElement>(null)
@@ -10159,7 +10159,7 @@ export function SiteSettingsCard({
   }, [fieldEpoch])
 
   useEffect(() => {
-    const dialog = initialDialog === 'signup' ? showsRef.current : initialDialog === 'links' ? linksRef.current : null
+    const dialog = initialDialog === 'signup' ? showsRef.current : initialDialog === 'links' ? linksRef.current : initialDialog === 'about' ? aboutRef.current : null
     if (dialog && !dialog.open) dialog.showModal()
   }, [initialDialog])
 
@@ -10596,16 +10596,16 @@ export function SiteSettingsCard({
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
-      <dialog ref={aboutRef} className={styles.siteDialog} aria-labelledby="site-about-title">
+      <dialog ref={aboutRef} className={`${styles.siteDialog} ${styles.siteDialogAbout}`} aria-labelledby="site-about-title">
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
-            <p className={styles.siteDialogKicker}>About you</p>
+            <p className={styles.siteDialogKicker}>Your customer site</p>
             <h1 id="site-about-title" className={styles.siteDialogTitle}>About you</h1>
-            <p className={styles.siteDialogSubtitle}>Your story, photo, and the Bomb Party video</p>
+            <p className={styles.siteDialogSubtitle}>Her photo leads, then the marquee, then the short videos.</p>
           </div>
           <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => aboutRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
-        <div className={styles.siteDialogBody}>
+        <div className={`${styles.siteDialogBody} ${styles.aboutMagazine}`}>
           {settingsBody(['about'])}
           {settingsBody(['bomb-party'])}
         </div>

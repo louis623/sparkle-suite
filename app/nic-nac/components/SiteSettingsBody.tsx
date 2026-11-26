@@ -12,6 +12,7 @@ import type { HeroAnimationType, PublicSiteMediaSlot, PublicSiteMediaSlotKey, Si
 import { applyHeroMotionSwitch } from '@/lib/amethyst/hero-motion-client'
 import visibility from './PublicSiteVisibility.module.css'
 import type { SiteSettingsDraft } from '@/app/nic-nac/components/DashboardPlaceholder'
+import { AboutMarquee, AboutShortRail, aboutPhotoStyle } from './AboutYouPanels'
 import { HomepageMediaSlot } from './HomepageMediaSlot'
 import { PublicSiteVisibility } from './PublicSiteVisibility'
 import { SocialHandlesSettings } from './SocialHandlesSettings'
@@ -65,6 +66,7 @@ export function SiteSection({
   plain = false,
   hidden = false,
   hideHeading = false,
+  className,
   children,
 }: {
   id: SiteSectionId
@@ -76,6 +78,7 @@ export function SiteSection({
   plain?: boolean
   hidden?: boolean
   hideHeading?: boolean
+  className?: string
   children: ReactNode
 }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -89,7 +92,7 @@ export function SiteSection({
   if (hidden) return null
   if (plain) {
     return (
-      <section id={`site-section-${id}`} data-site-section={id} className={styles.siteDialogSection}>
+      <section id={`site-section-${id}`} data-site-section={id} className={className ? `${styles.siteDialogSection} ${className}` : styles.siteDialogSection}>
         {hideHeading ? null : (
           <>
             <h2 className={styles.siteDialogSectionTitle}>{title}</h2>
@@ -680,8 +683,23 @@ export function SiteSettingsBody({
         summary="The live reveal video"
         status={status('bomb-party')}
         defaultOpen={plain || sectionOpen('bomb-party')}
+        hideHeading={plain && !isBrittWithBling}
+        className={plain && !isBrittWithBling ? styles.aboutMarqueeBlock : undefined}
       >
-        {slots.filter((slot) => slot.key === 'showcase').map(slotProps)}
+        {plain && !isBrittWithBling ? (
+          slots.filter((slot) => slot.key === 'showcase').map((slot) => (
+            <AboutMarquee
+              key={slot.key}
+              slot={slot}
+              savedVideoUrl={savedSlots?.find((saved) => saved.key === slot.key)?.videoUrl ?? ''}
+              allSourcesEnabled={draft.allSourcesEnabled === true}
+              tiktokQueueEnabled={draft.tiktokQueueEnabled === true}
+              actionPending={actionPending}
+              onChange={onHomepageMediaChange}
+              onRemoveVideo={onHomepageVideoRemove}
+            />
+          ))
+        ) : slots.filter((slot) => slot.key === 'showcase').map(slotProps)}
       </SiteSection>
 
       <SiteSection plain={plain} hidden={!showSection('about')}
@@ -691,7 +709,139 @@ export function SiteSettingsBody({
         summary="About section: your story, photo, and short videos"
         status={status('about')}
         defaultOpen={plain || sectionOpen('about')}
+        hideHeading={plain && !isBrittWithBling}
+        className={plain && !isBrittWithBling ? styles.aboutSectionContents : undefined}
       >
+        {plain && !isBrittWithBling ? (
+          <>
+            <div className={styles.aboutPhotoBlock}>
+              <p className={styles.aboutWhisper}>Your first name is set in Look. It shows in the title if you leave the placeholder as is.</p>
+              <h2 className={styles.siteDialogSectionTitle}>Your photo</h2>
+              <p className={styles.aboutLegend}>This portrait is the first thing guests see. Your title, story, and caption sit with it. JPG, PNG, or WebP, under about <span className={styles.aboutNowrap}>2.5 MB</span>.</p>
+              <div className={styles.aboutHero}>
+                <div className={styles.aboutPhotoFrame}>
+                  {aboutPortrait?.imageUrl ? (
+                    <img
+                      className={styles.aboutPhoto}
+                      src={aboutPortrait.imageUrl}
+                      alt=""
+                      style={aboutPhotoStyle(aboutPortrait)}
+                    />
+                  ) : (
+                    <div className={styles.aboutPhotoEmpty}>Add your photo</div>
+                  )}
+                  <div className={styles.aboutStoryCard}>
+                    <label className={styles.aboutField} data-site-field="about-title">
+                      <span>Title</span>
+                      <input
+                        id="my-website-about-heading"
+                        data-site-control="about-title"
+                        maxLength={ABOUT_TITLE_MAX_LENGTH}
+                        placeholder="Meet Brianna"
+                        value={draft.aboutHeading ?? ''}
+                        onChange={(event) => onDraftChange?.({ aboutHeading: event.target.value })}
+                      />
+                      <span className={styles.aboutCount}>{(draft.aboutHeading ?? '').length} / {ABOUT_TITLE_MAX_LENGTH}</span>
+                    </label>
+                    <label className={styles.aboutField} data-site-field="about-story">
+                      <span>Your story</span>
+                      <textarea
+                        id={SETUP_FIELD_IDS.aboutStory}
+                        className={styles.siteSettingsTextarea}
+                        data-site-control="about-story"
+                        maxLength={ABOUT_NARRATIVE_MAX_LENGTH}
+                        rows={4}
+                        placeholder="Paste the story you want customers to read."
+                        value={draft.aboutNarrative ?? ''}
+                        onChange={(event) => onDraftChange?.({ aboutNarrative: event.target.value })}
+                      />
+                      <span className={styles.aboutCount}>{(draft.aboutNarrative ?? '').length} / {ABOUT_NARRATIVE_MAX_LENGTH} characters</span>
+                    </label>
+                  </div>
+                </div>
+                <div className={styles.aboutHeroTools}>
+                  <label className={styles.aboutField} data-site-field="photo-caption">
+                    <span>Photo caption</span>
+                    <input
+                      data-site-control="photo-caption"
+                      maxLength={240}
+                      value={aboutPortrait?.caption ?? ''}
+                      onChange={(event) => onHomepageMediaChange?.('about_1', { caption: event.target.value })}
+                    />
+                    <span className={styles.aboutCount}>{(aboutPortrait?.caption ?? '').length} / 240</span>
+                  </label>
+                  <div data-site-field="about-photo" className={styles.aboutPhotoActions}>
+                    <label className={styles.aboutAction}>
+                      {mediaUploadKey === 'about_1' ? 'Uploading...' : aboutPortrait?.imageUrl ? 'Replace photo' : 'Upload photo'}
+                      <input
+                        id={SETUP_FIELD_IDS.aboutPhoto}
+                        data-site-control="about-photo"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        disabled={mediaUploadKey === 'about_1'}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0]
+                          if (file) onHomepageMediaUpload?.('about_1', file)
+                          event.target.value = ''
+                        }}
+                      />
+                    </label>
+                    {aboutPortrait?.imageUrl ? (
+                      <button
+                        type="button"
+                        className={styles.aboutDanger}
+                        data-site-control="remove-photo"
+                        onClick={() => onHomepageMediaChange?.('about_1', { imageUrl: '' })}
+                      >
+                        Remove photo
+                      </button>
+                    ) : null}
+                  </div>
+                  {mediaUploadFeedback?.key === 'about_1' ? (
+                    <p role="status" className={mediaUploadFeedback.tone === 'success' ? styles.homepageMediaUploadSuccess : styles.homepageMediaUploadError}>
+                      {mediaUploadFeedback.message}
+                    </p>
+                  ) : null}
+                  {aboutPortrait?.imageUrl ? (
+                    <details className={styles.aboutCrop}>
+                      <summary>Adjust crop</summary>
+                      <fieldset className={styles.aboutSmart} data-site-field="smart-frame" data-site-control="smart-frame">
+                        <legend>Smart Frame</legend>
+                        <p>Face detection set the starting crop. You can fine‑tune it.</p>
+                        <label>
+                          <span>Zoom</span>
+                          <input type="range" min="1" max="1.5" step="0.01" value={aboutPortrait.portraitZoom ?? 1.18} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitZoom: Number(event.target.value) })} />
+                        </label>
+                        <label>
+                          <span>Move subject up or down</span>
+                          <input type="range" min="0" max="60" step="1" value={aboutPortrait.portraitFocusY ?? 20} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitFocusY: Number(event.target.value) })} />
+                        </label>
+                        <label>
+                          <span>Move subject left or right</span>
+                          <input type="range" min="0" max="100" step="1" value={aboutPortrait.portraitFocusX ?? 50} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitFocusX: Number(event.target.value) })} />
+                        </label>
+                      </fieldset>
+                    </details>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+            <div className={styles.aboutShortsBlock}>
+              <h2 className={styles.siteDialogSectionTitle}>More to watch</h2>
+              <p className={styles.aboutLegend}>The marquee sits under her photo, above these short videos. Up to three more. Public TikTok, YouTube, Instagram, or Facebook links work, up to 3 minutes.</p>
+              <AboutShortRail
+                slots={slots}
+                savedSlots={savedSlots}
+                allSourcesEnabled={draft.allSourcesEnabled === true}
+                tiktokQueueEnabled={draft.tiktokQueueEnabled === true}
+                actionPending={actionPending}
+                onChange={onHomepageMediaChange}
+                onRemoveVideo={onHomepageVideoRemove}
+              />
+            </div>
+          </>
+        ) : (
+        <>
         <p className={styles.siteSettingsPreviewNote}>
           Add a short title and paste your customer-facing story. Keep it concise so it stays balanced beside your photo.
         </p>
@@ -780,6 +930,8 @@ export function SiteSettingsBody({
           </aside>}
           {slots.filter((slot) => slot.key !== 'showcase').map(slotProps)}
         </div>
+        </>
+        )}
       </SiteSection>
 
       <SiteSection plain={plain} hidden={!showSection('signup')}

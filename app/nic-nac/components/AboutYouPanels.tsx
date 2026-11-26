@@ -1,0 +1,242 @@
+'use client'
+
+import type { CSSProperties } from 'react'
+import { isQueuedVideoUrl } from '@/lib/public-site/queue-video-link'
+import { isTikTokCardUrl } from '@/lib/public-site/tiktok-video-id'
+import { publicVideoDraftUrl } from '@/lib/public-site/media-url'
+import type { PublicSiteMediaSlot, PublicSiteMediaSlotKey } from '@/lib/services/types'
+import styles from './DashboardPlaceholder.module.css'
+
+type Change = (key: PublicSiteMediaSlotKey, patch: Partial<PublicSiteMediaSlot>) => void
+
+function platformName(url: string) {
+  const value = url.toLowerCase()
+  if (value.includes('tiktok')) return 'TikTok'
+  if (value.includes('youtu')) return 'YouTube'
+  if (value.includes('instagram')) return 'Instagram'
+  if (value.includes('facebook') || value.includes('fb.watch')) return 'Facebook'
+  return ''
+}
+
+function statusLabel(slot: PublicSiteMediaSlot, queued: boolean) {
+  if (!publicVideoDraftUrl(slot.videoUrl)) return null
+  if (!queued || !slot.tiktokVideoStatus) return 'Ready'
+  if (slot.tiktokVideoStatus === 'live') return 'Ready'
+  if (slot.tiktokVideoStatus === 'unavailable') return 'Unavailable'
+  return 'Queued'
+}
+
+function VideoFields({
+  slot,
+  savedVideoUrl,
+  allSourcesEnabled,
+  tiktokQueueEnabled,
+  actionPending,
+  onChange,
+  onRemoveVideo,
+}: {
+  slot: PublicSiteMediaSlot
+  savedVideoUrl: string
+  allSourcesEnabled: boolean
+  tiktokQueueEnabled: boolean
+  actionPending?: boolean
+  onChange?: Change
+  onRemoveVideo?: (key: PublicSiteMediaSlotKey, expectedUrl: string) => void
+}) {
+  const lockedTikTok = Boolean(
+    tiktokQueueEnabled &&
+      !slot.videoPreserved &&
+      (allSourcesEnabled ? isQueuedVideoUrl(savedVideoUrl) : isTikTokCardUrl(savedVideoUrl)),
+  )
+  const videoControl = slot.key === 'showcase' ? 'reveal-video' : 'about-video'
+  const captionControl = slot.key === 'showcase' ? 'reveal-caption' : 'video-caption'
+  const status = statusLabel(slot, tiktokQueueEnabled)
+  return (
+    <div className={styles.aboutSheet}>
+      <label className={styles.aboutSheetRow} data-site-field={videoControl}>
+        <span>{allSourcesEnabled ? 'Video link' : 'Video link or embed'}</span>
+        <input
+          data-site-control={videoControl}
+          type="url"
+          inputMode="url"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          value={slot.videoUrl}
+          readOnly={lockedTikTok}
+          placeholder={allSourcesEnabled ? 'Paste a public TikTok, YouTube, Instagram, or Facebook video link' : 'Paste a public video link or embed code'}
+          aria-describedby={lockedTikTok ? `remove-video-help-${slot.key}` : undefined}
+          onChange={(event) => {
+            const videoUrl = event.target.value
+            onChange?.(slot.key, {
+              videoUrl,
+              tiktokVideoStatus: null,
+              ...(tiktokQueueEnabled ? { isVisible: Boolean(videoUrl.trim()) } : {}),
+            })
+          }}
+        />
+      </label>
+      {lockedTikTok ? <p id={`remove-video-help-${slot.key}`}>Remove this video before adding a new link.</p> : null}
+      <label className={styles.aboutSheetRow} data-site-field={captionControl}>
+        <span>
+          {allSourcesEnabled ? 'Caption' : 'Video caption (optional)'}
+          <span className={styles.aboutCount}>{slot.caption.length} / 180</span>
+        </span>
+        <input
+          data-site-control={captionControl}
+          type="text"
+          maxLength={180}
+          value={slot.caption}
+          placeholder={allSourcesEnabled ? 'A short line under the video' : 'Add a short caption shown below the video'}
+          onChange={(event) => onChange?.(slot.key, { caption: event.target.value })}
+        />
+      </label>
+      {status === 'Queued' ? (
+        <p className={styles.aboutSheetHelp} role="status">Your video is queued. This can take <span className={styles.aboutNowrap}>24–48 hours</span>.</p>
+      ) : null}
+      {status === 'Unavailable' ? (
+        <p className={styles.aboutSheetHelp} role="status">We couldn&apos;t use this video. It may be private or too long. Remove it and try another link, or contact us.</p>
+      ) : null}
+      {status === 'Ready' && tiktokQueueEnabled && slot.tiktokVideoStatus === 'live' ? (
+        <p className={styles.aboutSheetHelp} role="status">Your video is ready. Visitors can tap Play to watch.</p>
+      ) : null}
+      {lockedTikTok || slot.videoPreserved ? (
+        <button
+          type="button"
+          className={styles.aboutDanger}
+          data-site-control={slot.key === 'showcase' ? 'reveal-video-remove' : 'remove-video'}
+          disabled={actionPending}
+          onClick={() => {
+            if (window.confirm('Remove this video from your site?')) onRemoveVideo?.(slot.key, savedVideoUrl)
+          }}
+        >
+          Remove video
+        </button>
+      ) : null}
+    </div>
+  )
+}
+
+export function AboutMarquee({
+  slot,
+  savedVideoUrl,
+  allSourcesEnabled,
+  tiktokQueueEnabled,
+  actionPending,
+  onChange,
+  onRemoveVideo,
+}: {
+  slot: PublicSiteMediaSlot
+  savedVideoUrl: string
+  allSourcesEnabled: boolean
+  tiktokQueueEnabled: boolean
+  actionPending?: boolean
+  onChange?: Change
+  onRemoveVideo?: (key: PublicSiteMediaSlotKey, expectedUrl: string) => void
+}) {
+  const filled = Boolean(publicVideoDraftUrl(slot.videoUrl))
+  const status = statusLabel(slot, tiktokQueueEnabled)
+  const platform = platformName(slot.videoUrl)
+  return (
+    <div className={styles.aboutMarqueeRow}>
+      <article className={styles.aboutMarquee}>
+        <div className={styles.aboutMarqueePoster}>
+          <span className={styles.aboutMarqueeBadge}>Marquee</span>
+          {status ? <span className={status === 'Queued' ? styles.aboutPillQueue : styles.aboutPillReady}>{status}</span> : null}
+          <span className={styles.aboutPlay} aria-hidden="true">▶</span>
+          {platform ? <span className={styles.aboutPlatform}>{platform}</span> : null}
+        </div>
+        <div className={styles.aboutMarqueeMeta}>
+          {slot.caption ? <p className={styles.aboutVideoCaption}>{slot.caption}</p> : null}
+          <details className={styles.aboutEdit}>
+            <summary>{filled ? 'Edit' : 'Add a video'}</summary>
+            <VideoFields
+              slot={slot}
+              savedVideoUrl={savedVideoUrl}
+              allSourcesEnabled={allSourcesEnabled}
+              tiktokQueueEnabled={tiktokQueueEnabled}
+              actionPending={actionPending}
+              onChange={onChange}
+              onRemoveVideo={onRemoveVideo}
+            />
+          </details>
+        </div>
+      </article>
+      <div>
+        <p className={styles.aboutKicker}>Marquee video</p>
+        <p className={styles.aboutLegend}>A special portrait video, under her photo and above the short videos.</p>
+      </div>
+    </div>
+  )
+}
+
+export function AboutShortRail({
+  slots,
+  savedSlots,
+  allSourcesEnabled,
+  tiktokQueueEnabled,
+  actionPending,
+  onChange,
+  onRemoveVideo,
+}: {
+  slots: PublicSiteMediaSlot[]
+  savedSlots?: PublicSiteMediaSlot[] | null
+  allSourcesEnabled: boolean
+  tiktokQueueEnabled: boolean
+  actionPending?: boolean
+  onChange?: Change
+  onRemoveVideo?: (key: PublicSiteMediaSlotKey, expectedUrl: string) => void
+}) {
+  const ordered = ['about_2', 'about_3', 'about_4']
+    .map((key) => slots.find((slot) => slot.key === key))
+    .filter((slot): slot is PublicSiteMediaSlot => Boolean(slot))
+  const firstEmpty = ordered.find((slot) => !publicVideoDraftUrl(slot.videoUrl))?.key
+  return (
+    <div className={styles.aboutShortRail} role="list">
+      {ordered.map((slot) => {
+        const filled = Boolean(publicVideoDraftUrl(slot.videoUrl))
+        const hidden = !filled && slot.key !== firstEmpty
+        const status = statusLabel(slot, tiktokQueueEnabled)
+        const platform = platformName(slot.videoUrl)
+        return (
+          <article key={slot.key} className={hidden ? styles.aboutShortHidden : styles.aboutShort} role="listitem">
+            {filled ? (
+              <>
+                <div className={styles.aboutShortPoster}>
+                  {status ? <span className={status === 'Queued' ? styles.aboutPillQueue : styles.aboutPillReady}>{status}</span> : null}
+                  <span className={styles.aboutPlay} aria-hidden="true">▶</span>
+                  {platform ? <span className={styles.aboutPlatform}>{platform}</span> : null}
+                </div>
+                {slot.caption ? <p className={styles.aboutVideoCaption}>{slot.caption}</p> : null}
+              </>
+            ) : (
+              <div className={styles.aboutShortPoster}>
+                <span className={styles.aboutPlus} aria-hidden="true">+</span>
+              </div>
+            )}
+            <details className={styles.aboutEdit}>
+              <summary>{filled ? 'Edit' : 'Add a video'}</summary>
+              <VideoFields
+                slot={slot}
+                savedVideoUrl={savedSlots?.find((saved) => saved.key === slot.key)?.videoUrl ?? ''}
+                allSourcesEnabled={allSourcesEnabled}
+                tiktokQueueEnabled={tiktokQueueEnabled}
+                actionPending={actionPending}
+                onChange={onChange}
+                onRemoveVideo={onRemoveVideo}
+              />
+            </details>
+          </article>
+        )
+      })}
+    </div>
+  )
+}
+
+export function aboutPhotoStyle(slot: PublicSiteMediaSlot): CSSProperties {
+  return {
+    '--homepage-portrait-focus-x': `${slot.portraitFocusX ?? 50}%`,
+    '--homepage-portrait-focus-y': `${slot.portraitFocusY ?? 20}%`,
+    '--homepage-portrait-zoom': String(slot.portraitZoom ?? 1.18),
+  } as CSSProperties
+}

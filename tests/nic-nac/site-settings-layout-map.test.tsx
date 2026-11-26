@@ -190,7 +190,7 @@ describe('site settings layout map', () => {
       expect(nodes[0]?.getAttribute('data-chunk')).toBe('4')
     }
 
-    const legendFields = new Set(['email', 'tagline', 'member-team', 'team-i-manage'])
+    const legendFields = new Set(['email', 'tagline', 'member-team', 'team-i-manage', 'about-title', 'about-story', 'about-photo', 'photo-caption', 'smart-frame', 'reveal-video', 'reveal-caption', 'about-video', 'video-caption'])
     const fields = [...host.querySelectorAll('[data-site-field]')]
     expect(fields.length).toBeGreaterThan(0)
     for (const field of fields) {
