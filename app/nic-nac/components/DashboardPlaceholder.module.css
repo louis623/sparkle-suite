@@ -10187,18 +10187,21 @@
   font-weight: 700;
   white-space: nowrap;
 }
-.lookEmojiWrap, .lookTool { anchor-name: --look-pop; }
 .lookEmojiWrap { anchor-name: --look-emoji; }
 .lookTool { anchor-name: --look-link; }
-.lookToolOn { background: #34252f; color: #fff6fb; anchor-name: --look-emoji; }
-.lookEmojiPop, .lookLinkPop {
-  position: absolute;
-  position-anchor: --look-emoji;
-  position-area: bottom span-right;
-  margin: 8px 0 0;
-  inset: unset;
+.lookToolOn { background: #34252f; color: #fff6fb; }
+.lookEmojiPop, .lookLinkPop { margin: auto; }
+@supports (position-area: block-end) {
+  .lookEmojiPop, .lookLinkPop {
+    position: absolute;
+    position-area: block-end span-inline-end;
+    position-try-fallbacks: flip-block, flip-inline;
+    margin: 8px 0 0;
+    inset: auto;
+  }
+  .lookEmojiPop { position-anchor: --look-emoji; }
+  .lookLinkPop { position-anchor: --look-link; }
 }
-.lookLinkPop { position-anchor: --look-link; }
 .lookEmojiPop {
   width: min(560px, calc(100vw - 24px));
   max-height: min(70dvh, 520px);
