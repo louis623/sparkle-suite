@@ -215,13 +215,9 @@ export function HomepageMediaSlot({
           </a>
         </div>
       ) : null}
-      {isBrittWithBling &&
-      allowsVideo &&
-      slot.isVisible !== false &&
-      slot.videoUrl.trim() &&
-      !hasVisibleVideo ? (
+      {allowsVideo && slot.videoUrl.trim() && !hasVisibleVideo ? (
         <p className={styles.homepageMediaUploadError} role="status">
-          This link is not a playable public video. Replace it before saving.
+          This link is not a playable public video. Replace it so your other changes can save.
         </p>
       ) : null}
       {hasVisiblePhoto ? (

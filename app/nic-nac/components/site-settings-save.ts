@@ -1,3 +1,4 @@
+import { queueVideoLink } from '@/lib/public-site/queue-video-link'
 import { resolveSocialPlatformUrl } from '@/lib/public-site/social-hero'
 import {
   normalizeSignupDiscountCode,
@@ -87,7 +88,35 @@ export function draftHoldingInvalidFields(
     }
   }
   next.socialHandles = handles
+  next.homepageMediaSlots = (draft.homepageMediaSlots ?? []).map((slot) => {
+    if (!videoLinkFieldError(slot.videoUrl)) return slot
+    const previous = saved.homepageMediaSlots?.find((item) => item.key === slot.key)
+    return { ...slot, videoUrl: previous?.videoUrl ?? '' }
+  })
   return next
+}
+
+export function videoLinkFieldError(value: string | null | undefined) {
+  const trimmed = value?.trim() ?? ''
+  if (!trimmed) return null
+  const link = queueVideoLink(trimmed.startsWith('<') ? trimmed : trimmed)
+  return link.id === null ? link.error : null
+}
+
+/** Only the fields that differ go to the server, so a stale tab cannot rewrite the rest. */
+export function changedSiteSettingsPayload(
+  saved: SiteSettingsDraft,
+  next: SiteSettingsDraft,
+) {
+  const patch: Record<string, unknown> = {}
+  const keys = new Set([...Object.keys(saved), ...Object.keys(next)])
+  for (const key of keys) {
+    if (key === 'teamName' || key === 'recruitingLink' || key === 'heroMotionApplies' || key === 'heroMotionMode' || key === 'grandfatheredHeadlineFallback' || key === 'heroAnimationType') continue
+    const before = saved[key as keyof SiteSettingsDraft]
+    const after = next[key as keyof SiteSettingsDraft]
+    if (JSON.stringify(before) !== JSON.stringify(after)) patch[key] = after
+  }
+  return patch
 }
 
 const HTML_EMAIL =
@@ -196,6 +225,12 @@ export function collectSiteSettingsFieldErrors(draft: SiteSettingsDraft): SiteSe
         label: platform.label,
         message: social,
       })
+    }
+  }
+  for (const slot of draft.homepageMediaSlots ?? []) {
+    const video = videoLinkFieldError(slot.videoUrl)
+    if (video) {
+      errors.push({ id: `${slot.key}-video`, label: 'Video link', message: video })
     }
   }
   return errors
