@@ -42,6 +42,21 @@ export function lookPreviewWriteOwnsClaim(
   return Boolean(claimedProcessingStartedAt) && currentProcessingStartedAt === claimedProcessingStartedAt
 }
 
+/** Filename-safe stamp from the claim time, so two runs never share an object path. */
+export function lookPreviewAssetStamp(processingStartedAt: string) {
+  const startedMs = new Date(processingStartedAt).getTime()
+  if (!Number.isFinite(startedMs)) return 'claim'
+  return new Date(startedMs).toISOString().replace(/[-:]/g, '').replace(/\.(\d{3})Z$/, '$1Z')
+}
+
+export function lookPreviewAssetPaths(repId: string, version: number, processingStartedAt: string) {
+  const stamp = lookPreviewAssetStamp(processingStartedAt)
+  return {
+    desktopPath: `${repId}/look-preview/desktop-${version}-${stamp}.webp`,
+    phonePath: `${repId}/look-preview/phone-${version}-${stamp}.webp`,
+  }
+}
+
 export const SMOKE_PUBLIC_ORIGIN = 'https://sparkle-suite-smoke.vercel.app'
 export const LIVE_PUBLIC_ORIGIN = 'https://www.yoursparklesuite.com'
 
