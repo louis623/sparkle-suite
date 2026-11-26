@@ -825,6 +825,7 @@ type SiteSettingsActionState = {
   pending: boolean
   error: string | null
   helperMessage: string | null
+  heldFieldId?: string | null
 }
 
 type RecipesState = {
@@ -5003,11 +5004,16 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           ? collectSiteSettingsFieldErrors(siteSettingsDraftRef.current)
           : []
         setForceSiteFieldErrors(blocked.length > 0)
+        const held = blocked[0]
         setSiteSettingsActionState({
           pending: false,
-          error: blocked[0]?.message ?? null,
-          helperMessage: blocked.length > 0 ? null : SAVED_LABEL,
+          error: null,
+          helperMessage: held ? `Saved, except ${held.label}` : SAVED_LABEL,
+          heldFieldId: held?.id ?? null,
         })
+        if (held) {
+          window.requestAnimationFrame(() => document.getElementById(held.id)?.focus())
+        }
         if (!autosaveAgainRef.current) {
           setUndoReady(true)
           if (undoTimerRef.current != null) window.clearTimeout(undoTimerRef.current)
@@ -5071,11 +5077,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (Object.keys(patch).length === 0) {
       setForceSiteFieldErrors(blocked.length > 0)
       if (blocked.length > 0) {
+        const held = blocked[0]
         setSiteSettingsActionState({
           pending: false,
-          error: blocked[0]?.message ?? null,
-          helperMessage: null,
+          error: null,
+          helperMessage: `Saved, except ${held.label}`,
+          heldFieldId: held.id,
         })
+        window.requestAnimationFrame(() => document.getElementById(held.id)?.focus())
       }
       return
     }
@@ -10509,11 +10518,12 @@ export function SiteSettingsCard({
       onResetTickerLinks={resetTickerLinksToPlainText}
     />
   )
+  const exceptNote = actionState?.error ? null : actionState?.helperMessage?.startsWith('Saved, except ') ? actionState.helperMessage : null
   const saveLine = savePhase === 'saving'
     ? 'Saving…'
     : savePhase === 'error'
       ? "Couldn't save — Retry"
-        : 'All changes saved'
+      : exceptNote ?? 'All changes saved'
 
   return (
     <div className={styles.siteHome} data-testid="my-website-home">
@@ -10533,6 +10543,19 @@ export function SiteSettingsCard({
               {saveError ?? "Couldn't save — Retry"}{' '}
               <button type="button" className={styles.siteRetry} onClick={() => onSave?.()}>Retry</button>
             </>
+          ) : exceptNote ? (
+            <button
+              type="button"
+              className={styles.siteExcept}
+              onClick={() => {
+                const field = document.getElementById(actionState?.heldFieldId ?? '')
+                const dialog = field?.closest('dialog')
+                if (dialog instanceof HTMLDialogElement && !dialog.open) dialog.showModal()
+                field?.focus()
+              }}
+            >
+              {exceptNote}
+            </button>
           ) : saveLine}
           {undoReady && savePhase === 'saved' ? (
             <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button>
