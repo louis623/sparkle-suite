@@ -206,26 +206,25 @@ export function AboutMarquee({
   return (
     <div className={styles.aboutMarqueeRow}>
       <article className={styles.aboutMarquee}>
-        <VideoPoster slot={slot} variant="marquee" badge="Marquee" status={status} />
-        <div className={styles.aboutMarqueeMeta}>
-          {slot.caption ? <p className={styles.aboutVideoCaption}>{slot.caption}</p> : null}
-          <details className={styles.aboutEdit}>
-            <summary>{filled ? 'Edit' : 'Add a video'}</summary>
-            <VideoFields
-              slot={slot}
-              savedVideoUrl={savedVideoUrl}
-              allSourcesEnabled={allSourcesEnabled}
-              tiktokQueueEnabled={tiktokQueueEnabled}
-              actionPending={actionPending}
-              onChange={onChange}
-              onRemoveVideo={onRemoveVideo}
-            />
-          </details>
-        </div>
+        <VideoPoster slot={slot} variant="marquee" badge="Marquee" status={null} />
       </article>
-      <div>
+      <div className={styles.aboutMarqueeCopy}>
         <p className={styles.aboutKicker}>Marquee video</p>
         <p className={styles.aboutLegend}>A special portrait video, under her photo and above the short videos.</p>
+        {slot.caption ? <p className={styles.aboutVideoCaption}>{slot.caption}</p> : null}
+        {status ? <p className={status === 'Queued' ? styles.aboutPillQueue : styles.aboutPillReady}>{status}</p> : null}
+        <details className={styles.aboutEdit}>
+          <summary>{filled ? 'Edit' : 'Add a video'}</summary>
+          <VideoFields
+            slot={slot}
+            savedVideoUrl={savedVideoUrl}
+            allSourcesEnabled={allSourcesEnabled}
+            tiktokQueueEnabled={tiktokQueueEnabled}
+            actionPending={actionPending}
+            onChange={onChange}
+            onRemoveVideo={onRemoveVideo}
+          />
+        </details>
       </div>
     </div>
   )

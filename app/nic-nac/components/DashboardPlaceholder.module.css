@@ -9730,7 +9730,6 @@
     border-radius: 0;
   }
   .siteDialogBody { max-height: none; padding: 16px; }
-  .aboutShortRail { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 .siteDialogAbout { width: min(840px, calc(100vw - 32px)); }
@@ -9821,7 +9820,13 @@
 .aboutAction { position: relative; }
 .aboutAction input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
 .aboutDanger { color: #9d123f; background: transparent; }
-.aboutMarqueeRow { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 14px; align-items: end; }
+.aboutMarqueeRow { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 18px; align-items: center; }
+.aboutMarquee { width: 240px; max-width: 100%; }
+.aboutMarqueeCopy { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; min-width: 0; }
+.aboutMarqueeCopy .aboutPillReady,
+.aboutMarqueeCopy .aboutPillQueue { position: static; }
+.aboutMarqueeCopy .aboutLegend,
+.aboutMarqueeCopy .aboutVideoCaption { margin: 0; }
 .aboutMarqueePoster, .aboutShortPoster {
   position: relative;
   aspect-ratio: 9 / 16;
@@ -9875,7 +9880,8 @@
 }
 .aboutMark svg { width: 12px; height: 12px; fill: #fff; display: block; }
 .aboutPlus { position: absolute; inset: 0; display: grid; place-items: center; color: #c0156f; font-size: 32px; }
-.aboutShortRail { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.aboutShortRail { display: flex; flex-wrap: nowrap; justify-content: flex-start; align-items: flex-start; gap: 12px; }
+.aboutShort { flex: 0 0 160px; width: 160px; max-width: 160px; min-width: 0; }
 .aboutShortHidden { display: none; }
 .aboutPosterFilled {
   background:
@@ -9910,4 +9916,7 @@
     border-radius: 0;
   }
   .siteDialogBody.aboutMagazine .aboutField input.aboutHeadline { font-size: 24px; }
+  .aboutMarqueeRow { grid-template-columns: min(220px, 62%) minmax(0, 1fr); }
+  .aboutMarquee { width: 100%; }
+  .aboutShort { flex: 1 1 0; width: auto; max-width: none; }
 }
