@@ -488,6 +488,18 @@ function buildPublicRuntimeContext(runtimeContext: AmethystRuntimeContext) {
   }
 }
 
+export const PUBLIC_SIGNUP_SUBTITLE =
+  "Help me build shows around what you love. Share a few details and I'll send you show reminders, new drop alerts and updates, and I'll never share your info."
+
+const LEGACY_SIGNUP_SUBTITLE = /^Get a heads-up when .+ goes live, plus first dibs on new drops\.?$/
+
+/** Empty and the old first-name default show the new subtitle. A custom subtitle stays. */
+export function publicSignupSubtitle(value: string | null | undefined) {
+  const text = value?.replace(/\s+/g, ' ').trim() ?? ''
+  if (!text || LEGACY_SIGNUP_SUBTITLE.test(text)) return PUBLIC_SIGNUP_SUBTITLE
+  return text
+}
+
 export function buildAmethystHomepageBootstrapScript(
   data: AmethystHomepageTemplateData = defaultAmethystHomepageTemplateData,
   events: AmethystHomepageEventCard[] = defaultAmethystHomepageEvents,
@@ -511,7 +523,7 @@ export function buildAmethystHomepageBootstrapScript(
     ).map((paragraph) =>
       redactPublicRepFullName(paragraph, data.repName),
     ),
-    signupSub: redactPublicRepFullName(data.signupSub, data.repName),
+    signupSub: publicSignupSubtitle(redactPublicRepFullName(data.signupSub, data.repName)),
   }
   const defaults = {
     ...buildAmethystHomepageTweakDefaults(publicData, appearancePreset),
@@ -547,7 +559,7 @@ export function buildAmethystHomepageBootstrapScript(
     `  text('[data-slot="about subheading"]', content.aboutSubheading);`,
     `  (content.aboutParagraphs || []).forEach(function (paragraph, index) { text('[data-slot="about paragraph ' + (index + 1) + '"]', paragraph); });`,
     `  text('.hp-signup-title', content.signupTitle);`,
-    `  text('.hp-signup-sub', content.signupSub);`,
+    `  (function () { var value = content.signupSub; var node = document.querySelector('.hp-signup-sub'); if (!node || typeof value !== 'string' || !value) return; var keep = 'your info.'; var at = value.lastIndexOf(keep); if (at < 0) { node.textContent = value; return; } node.textContent = ''; node.appendChild(document.createTextNode(value.slice(0, at))); var held = document.createElement('span'); held.className = 'hp-signup-keep'; held.textContent = keep; node.appendChild(held); if (at + keep.length < value.length) node.appendChild(document.createTextNode(value.slice(at + keep.length))); })();`,
     `  html('.hp-signup-consent', (content.signupConsent || '') + ' <a href="' + (footerLinks.privacy || '#') + '">Privacy policy</a>.');`,
     `  text('.hp-footer-tag', content.footerTagline);`,
     `  html('.hp-footer-bottom p', content.legalDisclaimer);`,

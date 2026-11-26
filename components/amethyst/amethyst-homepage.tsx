@@ -5,6 +5,7 @@ import {
   getPublicRepName,
   redactPublicRepFullName,
 } from '@/lib/amethyst/public-rep-name'
+import { publicSignupSubtitle } from '@/lib/amethyst/homepage-template-data'
 
 import {
   AmethystSiteShell,
@@ -324,7 +325,7 @@ function StepCard({
 }
 
 function SignupSection({ content }: { content: AmethystSiteContent }) {
-  const signupSub = redactPublicRepFullName(content.signupSub, content.repName)
+  const signupSub = publicSignupSubtitle(redactPublicRepFullName(content.signupSub, content.repName))
 
   return (
     <section className="px-6 py-24" id="signup">

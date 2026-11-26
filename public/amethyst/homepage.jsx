@@ -2409,8 +2409,8 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-discount-copy:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 3px; }
 .hp-signup-sub { text-wrap: pretty; }
 .hp-signup-keep { white-space: nowrap; }
-.hp-signup-offer { margin: 14px auto 0; max-width: 36em; font-size: 15px; line-height: 1.5; color: var(--hp-card-fg); text-wrap: pretty; }
-.hp-signup-offer-highlight { color: var(--hp-card-accent); font-weight: 700; }
+.hp-signup-offer { margin: 14px auto 0; max-width: 100%; font-size: 15px; line-height: 1.5; color: var(--hp-card-fg); text-wrap: pretty; overflow-wrap: anywhere; }
+.hp-signup-offer-highlight { display: inline-block; max-width: 100%; width: max-content; color: var(--hp-card-accent); font-weight: 700; vertical-align: baseline; overflow-wrap: anywhere; }
 @media (max-width: 600px) {
   #signup .hp-signup-card.is-success { padding: 36px 24px 32px; }
   #signup .hp-signup-card:not(.is-success) {
@@ -2785,9 +2785,8 @@ function Signup({ repName, businessName }) {
   }, []);
   const signupTitle = CONTENT.signupTitle || "Never miss a show.";
   const signupSubDefault = "Help me build shows around what you love. Share a few details and I'll send you show reminders, new drop alerts and updates, and I'll never share your info.";
-  const legacySignupSub = `Get a heads-up when ${repName} goes live, plus first dibs on new drops.`;
-  const rawSignupSub = typeof CONTENT.signupSub === "string" ? CONTENT.signupSub.trim() : "";
-  const signupSub = !rawSignupSub || rawSignupSub === legacySignupSub || rawSignupSub === "Get a heads-up when Sasha goes live, plus first dibs on new drops." ? signupSubDefault : rawSignupSub;
+  const rawSignupSub = typeof CONTENT.signupSub === "string" ? CONTENT.signupSub.replace(/\s+/g, " ").trim() : "";
+  const signupSub = !rawSignupSub || /^Get a heads-up when .+ goes live, plus first dibs on new drops\.?$/.test(rawSignupSub) ? signupSubDefault : rawSignupSub;
   const signupOffer = normalizeSignupDiscountOffer(CONTENT.signupDiscountOffer);
   const signupDiscountOn = CONTENT.signupDiscountEnabled === true && Boolean(normalizeSignupDiscountCode(CONTENT.signupDiscountCode));
   const stepWhy = [
@@ -3083,7 +3082,7 @@ function Signup({ repName, businessName }) {
             <p className="hp-signup-sub">{signupSub.endsWith("your info.") ? <>{signupSub.slice(0, -"your info.".length)}<span className="hp-signup-keep">your info.</span></> : signupSub}</p>
             {signupDiscountOn ? (
               <p className="hp-signup-offer">
-                Sign up today for {signupOffer ? <>a one-time <span className="hp-signup-offer-highlight">{signupOffer}</span></> : <span className="hp-signup-offer-highlight">a one-time thank-you discount</span>}.
+                Sign up today for {signupOffer ? <>a one-time <span className="hp-signup-offer-highlight">{signupOffer.replace(/\.$/, "")}.</span></> : <span className="hp-signup-offer-highlight">a one-time thank-you discount.</span>}
               </p>
             ) : null}
             {submitState.message ? (
