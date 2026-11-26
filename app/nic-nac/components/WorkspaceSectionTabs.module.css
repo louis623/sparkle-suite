@@ -117,6 +117,12 @@
   background: var(--workspace-tab-active-bg, rgba(248, 239, 228, 0.96));
 }
 
+@media (max-width: 879px) {
+  .tabs {
+    padding-inline-end: calc(48px + max(14px, env(safe-area-inset-right) + 14px) + 8px);
+  }
+}
+
 @media (max-width: 840px) {
   .tab,
   .tabActive {

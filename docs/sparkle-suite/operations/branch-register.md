@@ -1,3 +1,43 @@
+## November 26, 2026 — My Website Live ship
+
+`cursor/live-ship-my-website-1126` is the one ship branch for My Website, stacked from `codex/nic-nac-trade-hardening` at `c7913ed5`. It merges #235, then #232, then #236. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`, so this branch name cannot be deployed to Live. Louis merges it into `codex/nic-nac-trade-hardening` and deploys that production branch himself. `cursor/signup-about-smoke-583b` is not on this branch.
+
+## November 26, 2026 — Socials phone preview
+
+`cursor/socials-phone-preview-583b` is allowlisted only so the Socials and Contact Info phone preview and link-in-bio cover can build on Smoke, stacked on `cursor/my-website-concept-c-583b`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
+## November 25, 2026 — My Website Concept C
+
+`cursor/my-website-concept-c-583b` is allowlisted only so the Concept C page strip and 2-by-2 cards can build on Smoke, stacked on `cursor/signup-discount-coupon-583b`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
+## November 25, 2026 — Sign-up discount coupon card
+
+`cursor/signup-discount-coupon-583b` is allowlisted only so the Sign-up discount coupon card can build on Smoke, stacked on `cursor/look-real-screenshot`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
+## November 25, 2026 — Look tile real-screenshot, PR #230
+
+Louis approved getting the Look tile real-screenshot branch onto Suite Smoke on November 25, 2026, including the Smoke-only migration `20261125120000_site_look_previews` and a first picture for every Smoke rep. `cursor/look-real-screenshot` is allowlisted only so PR #230 can build on Smoke, stacked on `cursor/my-website-hero-motion-583b`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
+## November 24, 2026 — My Website hero motion, Chunk 4
+
+Louis approved the My Website redesign build on November 23, 2026. `cursor/my-website-hero-motion-583b` is allowlisted only so Chunk 4 can build on Smoke, stacked on `cursor/my-website-customer-scroll-cd8d`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
+## November 24, 2026 — My Website customer-scroll layout, Chunk 3b
+
+Louis approved the My Website redesign build on November 23, 2026. `cursor/my-website-customer-scroll-cd8d` is allowlisted only so Chunk 3b can build on Smoke, stacked on `cursor/my-website-save-bar-1c57`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
+## November 24, 2026 — My Website save bar, Chunk 3a
+
+Louis approved the My Website redesign build on November 23, 2026. `cursor/my-website-save-bar-1c57` is allowlisted only so Chunk 3a can build on Smoke, stacked on `cursor/my-website-theme-studio-7731`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
+## November 24, 2026 — My Website theme studio, Chunk 2
+
+Louis approved the My Website redesign build on November 23, 2026. `cursor/my-website-theme-studio-7731` is allowlisted only so Chunk 2 can build on Smoke, stacked on `cursor/my-website-theme-preview-2217`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
+## November 24, 2026 — My Website theme preview, Chunk 1
+
+Louis approved the My Website redesign build on November 23, 2026. `cursor/my-website-theme-preview-2217` is allowlisted only so this chunk can build on Smoke. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
 ## November 15, 2026 — Dance Floor Phase 2 Smoke draft
 
 Louis explicitly authorizes this minimal registration for `codex/suite-dance-floor-phase2-editable-floor`, based on Phase 1 `71c425874db0c25f4aeb402d12dfaa727718a780`. Preview only: Smoke project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`. No guard, other branch, default/production branch, Live, or PR #193/#199/#200 changes. All candidate commits carry `[skip ci]`.
@@ -449,4 +489,8 @@ Louis authorized codex/live-lineup-208-reporting from PR198 aa74f2db, integratin
 ## November 17, 2026 — Silver Bells disposable workspace
 
 Louis explicitly approved registering `C:\Users\louis\.codex\visualizations\2026\11\17\01a1e9e3-8ff9-7030-8e21-b3c446626ecc\silver-bells-release` for the existing active branch `codex/nic-nac-trade-hardening`, cloned from verified GitHub tip `b007bb065609a3037a5899a26681310a4a6152f5`. Scope: implement and release the approved Community Silver Bells customer-site theme, animation, independent music, QR flyer and business cards. No branch-status, default-branch, production-branch, or guard logic change.
+
+## November 26, 2026 — duplicate SB-01 theme code
+
+Louis approved a small code fix on `cursor/fix-duplicate-sb-01-theme-code-86cd` from `codex/nic-nac-trade-hardening`. Silver Bells uses `SV-01`; Sunset Beach keeps `SB-01`. Preview only on Sparkle Suite Smoke (`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`). No production-branch, default-branch, database, or Live change.
 

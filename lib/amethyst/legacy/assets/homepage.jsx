@@ -2392,6 +2392,10 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-discount-code { display: inline-block; box-sizing: border-box; max-width: 100%; margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--hp-field-bg); color: var(--hp-field-fg); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 16px; font-weight: 700; letter-spacing: 0.04em; line-height: 1.3; user-select: text; -webkit-user-select: text; overflow-wrap: anywhere; }
 .hp-signup-discount-copy { box-sizing: border-box; min-height: 44px; min-width: 44px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--hp-card-accent); background: var(--hp-card-accent); color: var(--hp-action-fg); font: inherit; font-size: 16px; font-weight: 700; line-height: 1.2; cursor: pointer; touch-action: manipulation; }
 .hp-signup-discount-copy:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 3px; }
+.hp-signup-sub { text-wrap: pretty; }
+.hp-signup-keep { white-space: nowrap; }
+.hp-signup-offer { margin: 14px auto 0; max-width: 100%; font-size: 15px; line-height: 1.5; color: var(--hp-card-fg); text-wrap: pretty; overflow-wrap: anywhere; }
+.hp-signup-offer-highlight { display: inline-block; max-width: 100%; width: max-content; color: var(--hp-card-accent); font-weight: 700; vertical-align: baseline; overflow-wrap: anywhere; }
 @media (max-width: 600px) {
   #signup .hp-signup-card.is-success { padding: 36px 24px 32px; }
   #signup .hp-signup-card:not(.is-success) {
@@ -2757,7 +2761,11 @@ function Signup({ repName, businessName }) {
     };
   }, []);
   const signupTitle = CONTENT.signupTitle || "Never miss a show.";
-  const signupSub = CONTENT.signupSub || `Get a heads-up when ${repName} goes live, plus first dibs on new drops.`;
+  const signupSubDefault = "Help me build shows around what you love. Share a few details and I'll send you show reminders, new drop alerts and updates, and I'll never share your info.";
+  const rawSignupSub = typeof CONTENT.signupSub === "string" ? CONTENT.signupSub.replace(/\s+/g, " ").trim() : "";
+  const signupSub = !rawSignupSub || /^Get a heads-up when .+ goes live, plus first dibs on new drops\.?$/.test(rawSignupSub) ? signupSubDefault : rawSignupSub;
+  const signupOffer = normalizeSignupDiscountOffer(CONTENT.signupDiscountOffer);
+  const signupDiscountOn = CONTENT.signupDiscountEnabled === true && Boolean(normalizeSignupDiscountCode(CONTENT.signupDiscountCode));
   const stepWhy = [
     `${repName} saves your spot with your name and email.`,
     `${repName} uses this to pull pieces you'll want. Pick up to 3.`,
@@ -3044,7 +3052,12 @@ function Signup({ repName, businessName }) {
           <div className="hp-signup-card-body">
             <div className="hp-signup-eyebrow">Stay in the loop</div>
             <h2 className="hp-signup-title">{signupTitle}</h2>
-            <p className="hp-signup-sub">{signupSub}</p>
+            <p className="hp-signup-sub">{signupSub.endsWith("your info.") ? <>{signupSub.slice(0, -"your info.".length)}<span className="hp-signup-keep">your info.</span></> : signupSub}</p>
+            {signupDiscountOn ? (
+              <p className="hp-signup-offer">
+                Sign up today for {signupOffer ? <>a one-time <span className="hp-signup-offer-highlight">{signupOffer.replace(/\.$/, "")}.</span></> : <span className="hp-signup-offer-highlight">a one-time thank-you discount.</span>}
+              </p>
+            ) : null}
             {submitState.message ? (
               <p
                 className={`hp-signup-status ${submitState.status}`}
@@ -3454,7 +3467,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
-      <section className="mhf-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="mhf-hero-title">
+      <section className="mhf-hero" data-hero-motion="on" aria-labelledby="mhf-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         {t.preset !== "gilded_autumn" && <video className="mhf-hero-video" autoPlay muted loop playsInline poster="">
           <source src={CONTENT.heroVideoUrl || heroVideoUrl} type="video/mp4" />
@@ -3588,7 +3601,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
-      <section className="bwb-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bwb-hero-title">
+      <section className="bwb-hero" data-hero-motion="on" aria-labelledby="bwb-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         <img className="bwb-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "Live jewelry reveals", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />
         <div className="bwb-hero-shade" aria-hidden="true" />

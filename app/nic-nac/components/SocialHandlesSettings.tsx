@@ -12,8 +12,12 @@ import {
 import surface from './DashboardPlaceholder.module.css'
 import styles from './SocialHandlesSettings.module.css'
 
-const PLACEHOLDERS: Partial<Record<SocialPlatformKey, string>> = {
+const PLACEHOLDERS: Record<SocialPlatformKey, string> = {
+  instagram: 'Paste an Instagram link',
   facebook: 'VIP group or page',
+  tiktok: 'Paste a TikTok link',
+  youtube: 'Paste a YouTube link',
+  whatnot: 'Paste a Whatnot link',
 }
 
 export function SocialHandlesSettings({
@@ -21,11 +25,15 @@ export function SocialHandlesSettings({
   socialVisibility,
   onSocialHandleChange,
   onSocialVisibilityChange,
+  errors,
+  onBlur,
 }: {
   socialHandles: Record<string, string>
   socialVisibility?: SocialVisibility
   onSocialHandleChange?: (platform: SocialPlatformKey, value: string) => void
   onSocialVisibilityChange?: (socialVisibility: SocialVisibility) => void
+  errors?: Partial<Record<SocialPlatformKey, string | null>>
+  onBlur?: (platform: SocialPlatformKey) => void
 }) {
   return (
     <div className={styles.grid}>
@@ -33,33 +41,53 @@ export function SocialHandlesSettings({
         const rawUrl = socialHandles[platform.key] ?? ''
         const placement = describeSocialPlacement(platform.key, rawUrl, socialVisibility)
         const hasUrl = placement.href.length > 0
-        const hint = rawUrl.trim()
-          ? `Use a real ${platform.label} link to choose footer and hero.`
-          : 'Add a link to choose footer and hero.'
-
+        const error = errors?.[platform.key] ?? null
+        const fieldId = `my-website-social-${platform.key}`
         return (
           <section
             key={platform.key}
-            className={styles.card}
+            className={hasUrl ? styles.card : `${styles.card} ${styles.cardEmpty}`}
             data-social-platform={platform.key}
           >
-            <div className={styles.heading}>
-              <SocialMark platform={platform.key} className="social-handle-mark" />
+            <span className={styles.mark} data-brand={platform.key} aria-hidden="true">
+              <SocialMark platform={platform.key} className={styles.markIcon} />
+            </span>
+            <div className={styles.meta}>
               <span className={surface.searchLabel}>{platform.label}</span>
+              {!hasUrl ? (
+                <span className={styles.emptyHint}>
+                  {rawUrl.trim() ? `Use a real ${platform.label} link to choose footer and hero.` : 'Not added yet'}
+                </span>
+              ) : null}
+              <label className={surface.searchField} data-site-field={`social-${platform.key}`}>
+                <span className={styles.srOnly}>{platform.label} link</span>
+                <input
+                  id={fieldId}
+                  data-site-control="social-link"
+                  className={surface.searchInput}
+                  placeholder={PLACEHOLDERS[platform.key]}
+                  value={rawUrl}
+                  inputMode="url"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  aria-label={`${platform.label} link`}
+                  aria-invalid={error ? 'true' : 'false'}
+                  aria-describedby={error ? `${fieldId}-error` : undefined}
+                  onBlur={() => onBlur?.(platform.key)}
+                  onChange={(event) => onSocialHandleChange?.(platform.key, event.target.value)}
+                />
+                {error ? (
+                  <span id={`${fieldId}-error`} className={surface.fieldError}>
+                    <span role="img" aria-label="Error">!</span> {error}
+                  </span>
+                ) : null}
+              </label>
             </div>
-            <label className={surface.searchField}>
-              <span className={styles.srOnly}>{platform.label} link</span>
-              <input
-                className={surface.searchInput}
-                placeholder={PLACEHOLDERS[platform.key]}
-                value={rawUrl}
-                onChange={(event) => onSocialHandleChange?.(platform.key, event.target.value)}
-              />
-            </label>
             {hasUrl ? (
-              <div className={styles.toggles}>
+              <div className={styles.pills}>
                 <PlacementSwitch
-                  label="Show on site"
+                  label="On site"
                   ariaLabel={`Show ${platform.label} on site`}
                   checked={placement.showOnSite}
                   onChange={(checked) =>
@@ -70,7 +98,7 @@ export function SocialHandlesSettings({
                   }
                 />
                 <PlacementSwitch
-                  label="Show in hero"
+                  label="In hero"
                   ariaLabel={`Show ${platform.label} in hero`}
                   checked={placement.showInHero}
                   onChange={(checked) =>
@@ -81,13 +109,6 @@ export function SocialHandlesSettings({
                   }
                 />
               </div>
-            ) : (
-              <p className={surface.siteSettingsPreviewNote}>{hint}</p>
-            )}
-            {hasUrl ? (
-              <p className={`${surface.siteSettingsPreviewNote} ${styles.outcome}`}>
-                {placement.summary}
-              </p>
             ) : null}
           </section>
         )
@@ -108,19 +129,19 @@ function PlacementSwitch({
   onChange: (checked: boolean) => void
 }) {
   return (
-    <label className={styles.toggle}>
-      <span>{label}</span>
-      <span className={styles.control}>
-        <input
-          type="checkbox"
-          role="switch"
-          aria-label={ariaLabel}
-          checked={checked}
-          onChange={(event) => onChange(event.target.checked)}
-        />
-        <span className={styles.track} aria-hidden="true" />
-        <span className={styles.status} aria-hidden="true">{checked ? 'On' : 'Off'}</span>
-      </span>
+    <label
+      className={styles.toggle}
+      data-site-control={label === 'On site' ? 'social-show-on-site' : 'social-show-in-hero'}
+    >
+      <input
+        className={styles.pillInput}
+        type="checkbox"
+        role="switch"
+        aria-label={ariaLabel}
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      {label}
     </label>
   )
 }

@@ -1,0 +1,108 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Look · B2 · Choose your theme</title>
+<link rel="stylesheet" href="look.css">
+<style>
+.frame{max-width:1120px}
+.body{background:linear-gradient(180deg,#fff8f5,#fffdfb 30%);padding:22px 24px 26px}
+.lay{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+.nowrow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:18px;align-items:center;padding:12px;border-radius:20px;background:linear-gradient(120deg,#fff6f9,#fffaf4);box-shadow:inset 0 0 0 1px rgba(201,162,91,.28)}
+.nowthumb{display:block;aspect-ratio:16/10;border-radius:12px;overflow:hidden;box-shadow:0 12px 24px -16px rgba(52,37,47,.6)}
+.nowthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.nowname{display:block;font-family:var(--serif);font-size:22px;line-height:1.15;color:var(--plum);margin-top:2px}
+.savedchip{font-size:13px;font-weight:700;color:var(--ok);background:var(--ok-bg);padding:6px 12px;border-radius:999px;white-space:nowrap}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px}
+.filters span{padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;color:var(--plum);background:#fff;box-shadow:inset 0 0 0 1px var(--line-2)}
+.filters span i{font-style:normal;color:#a78e87;margin-left:4px;font-weight:600}
+.filters span.on{background:var(--plum);color:#fff6fb;box-shadow:none}.filters span.on i{color:#ffc4e6}
+.grp{margin-top:22px}
+.grp>h2{display:flex;align-items:baseline;gap:12px;font-family:var(--serif);font-weight:500;font-size:26px;color:var(--plum);margin:0 0 4px}
+.grp>h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--gold-2),transparent)}
+.subh{display:flex;flex-wrap:wrap;align-items:center;align-content:flex-end;min-height:46px;gap:4px 8px;margin:14px 0 10px;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.subh .n{font-weight:600;color:#a78e87}
+.season{font-size:11px;font-weight:700;color:var(--ok);background:var(--ok-bg);padding:3px 9px;border-radius:999px;letter-spacing:0}
+.subs{display:flex;flex-wrap:wrap;column-gap:14px}
+.sb{--c:calc((100% - 28px)/3);flex:0 0 calc(var(--n)*var(--c) + (var(--n) - 1)*14px);min-width:0}
+.grid{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:14px}
+.tc{position:relative;border-radius:18px;background:#fff;padding:8px 8px 12px;box-shadow:var(--shadow);border:1px solid rgba(201,162,91,.16)}
+.tc .th{position:relative;display:block;aspect-ratio:16/10;border-radius:12px;overflow:hidden}
+.tc .th img{width:100%;height:100%;object-fit:cover;display:block}
+.tc .th .blk{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--serif);font-style:italic;font-size:20px;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.25);padding:10px;text-align:center}
+.tc .nm{display:block;margin:10px 4px 0;font-family:var(--serif);font-size:16px;line-height:1.2;color:var(--plum)}
+.tc .row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 4px 0}
+.tc .dots{display:inline-flex;gap:4px}.tc .dots i{width:12px;height:12px;border-radius:99px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.tc .eye{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--pink-ink);padding:5px 10px;border-radius:999px;background:var(--blush)}
+.tc .tags{display:flex;flex-wrap:wrap;gap:6px;margin:6px 4px 0}
+.tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#f6efe9;color:var(--muted)}
+.tag.on{background:var(--pink);color:#fff}.tag.live{background:var(--ok-bg);color:var(--ok)}
+.tc.sel{box-shadow:0 0 0 2px var(--pink),0 16px 30px -16px rgba(216,27,135,.6);border-color:transparent}
+.tc.sel::after{content:"✓";position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:99px;background:var(--pink);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px;box-shadow:0 0 0 3px #fff}
+.note{margin:22px 0 0;font-size:12.5px;color:var(--muted)}
+/* try-on panel, no device frame */
+.try{position:sticky;top:20px;border-radius:22px;background:#fff;box-shadow:var(--shadow);border:1px solid rgba(201,162,91,.2);overflow:hidden}
+.try .hd{padding:14px 16px 10px}
+.try .hd b{display:block;font-family:var(--serif);font-weight:500;font-size:19px;color:var(--plum)}
+.try .hd small{color:var(--muted);font-size:12.5px}
+.ptabs{display:flex;gap:4px;padding:0 12px 10px}
+.ptabs span{padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.ptabs span.on{background:var(--plum);color:#fff6fb}
+.site{margin:0 12px 12px;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.site .tk{padding:6px 10px;background:#0b2039;color:#f2c77b;font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.site .nv{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fffaf2}
+.site .nv span{font-family:var(--serif);color:#94283e;font-size:14px}
+.site .nv i{font-style:normal;font-size:10.5px;font-weight:700;color:#fff;background:#94283e;padding:4px 10px;border-radius:999px}
+.site .hr{position:relative;aspect-ratio:4/3.3;background:linear-gradient(180deg,rgba(11,32,57,.1),rgba(11,32,57,.75)),url(assets/themes/starlight-hero.webp) center/cover;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:14px}
+.site .hr small{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:#f2c77b}
+.site .hr strong{font-family:var(--serif),var(--emoji);font-weight:500;font-size:20px;line-height:1.15;margin:4px 0}
+.site .hr p{margin:0;font-size:11.5px;color:#f3ead8}
+.try .ft{padding:0 16px 16px;font-size:12px;color:var(--muted)}
+.foot .left{display:flex;align-items:center;gap:6px}
+@media (max-width:600px){
+  .body{padding:16px 14px 20px}
+  .lay{grid-template-columns:minmax(0,1fr)}
+  .try{display:none}
+  .nowrow{grid-template-columns:96px minmax(0,1fr);gap:12px}.savedchip{grid-column:1/-1;justify-self:start}
+  .nowname{font-size:18px}
+  .subs{column-gap:10px}.sb{--c:calc((100% - 10px)/2);flex-basis:calc(var(--m)*var(--c) + (var(--m) - 1)*10px)}.grid{grid-template-columns:repeat(var(--m),minmax(0,1fr));gap:10px}
+  .tc .th .blk{font-size:15px;overflow-wrap:anywhere}
+  .tc{padding:6px 6px 10px;border-radius:16px}.tc .nm{font-size:14px;margin-top:8px}
+  .tc .eye{padding:4px 8px}.tc .eye em{display:none}
+  .grp>h2{font-size:22px}
+  .filters{flex-wrap:nowrap;overflow:hidden;margin-right:-14px}
+  .filters span{white-space:nowrap}
+}
+</style></head><body><div class="page"><div class="frame">
+<div class="band"><div><p class="kicker">Themes</p><h1>Choose your theme</h1><p class="sub">Tap a theme and it's on your site right away. Changed your mind? Tap Undo.</p></div><button class="x">×</button></div>
+<div class="body"><div class="lay"><div>
+  <div class="nowrow">
+    <span class="nowthumb"><img src="assets/themes/starlight-christmas-hollow.webp" alt=""></span>
+    <span><span class="eyebrow">On your site now</span><span class="nowname">Starlight Christmas Hollow</span></span>
+    <span class="savedchip">Saved ✓</span>
+  </div>
+  <div class="filters"><span class="on">All<i>14</i></span><span>Holiday &amp; Seasonal<i>7</i></span><span>Gems &amp; Metals<i>5</i></span><span>Bomb Party Fun<i>1</i></span><span>General<i>1</i></span></div>
+  <div id="groups"></div>
+  <p class="note">Applies only to your public customer-facing site. Your Sparkle Suite workspace keeps the standard workspace theme.</p>
+</div>
+<aside class="try">
+  <div class="hd"><b>Try it on</b><small>Your real headline and shows in Starlight Christmas Hollow.</small></div>
+  <div class="ptabs"><span class="on">Home</span><span>Dance Floor</span><span>Join</span></div>
+  <div class="site"><div class="tk">✨ New Holiday Collection drops Friday ✨ ◆ 🎁 Free gift with orders over $50</div><div class="nv"><span>Bling with Britt</span><i>Shop</i></div>
+    <div class="hr"><small>Hi, I'm Britt</small><strong>Find the sparkle hiding inside ✨</strong><p>Jewelry reveals, cozy shows, and pieces you'll wear every day.</p></div></div>
+  <p class="ft">Preview only. Customers see a new theme once you tap it.</p>
+</aside></div></div>
+<div class="foot"><span class="saved"><i>✓</i>All changes saved <button class="undo">Undo</button></span><button class="finished">Finished</button></div>
+</div></div>
+<script>
+const T=(n,img,c,extra={})=>({n,img,c,...extra});
+const G=[
+ {h:'Holiday & Seasonal',subs:[
+  {s:'Christmas & Winter',season:1,items:[T('Starlight Christmas Hollow','starlight-christmas-hollow',['#0b2039','#94283e','#f2c77b'],{sel:1})]},
+  {s:'Thanksgiving',season:1,items:[T('Gobble & Fizz','gobble-and-fizz',['#efb36c','#c9854f','#291522'])]},
+  {s:'Fall',season:1,items:[T('Pumpkin Pie','pie-please',['#9b233d','#b95015','#fcf3e5']),T('The Golden Leaves of Autumn','gilded-autumn',['#91451d','#b18338','#fff8ec']),T('Fall Owl and Harvest Moon','fall-owl',['#201321','#302030','#efba73'])]},
+  {s:'Halloween',items:[T('Halloween Pumpkin and Cat','halloween-pumpkin-cat',['#080706','#ff923d','#fff7ed'],{tag:'Halloween'}),T('Halloween Pumpkin and Witch','halloween-pumpkin-witch',['#090909','#ff6a00','#f4eee3'],{tag:'Halloween'})]}]},
+ {h:'Everyday themes',subs:[
+  {s:'Gems & metals',items:[T('Sparkle Suite/Morganite',null,['#ee2c9b','#ff4cae','#fcf8f6']),T('Rose Gold',null,['#fff5f6','#e04f73','#f9a8d4']),T('Midnight Rose','midnight-rose',['#180e16','#271920','#efb5a3']),T('Pearl Rose','pearl-rose',['#faf5ef','#fffefa','#954354']),T('Rose Champagne','rose-champagne',['#fff7f5','#a04e5d','#d29b82'])]},
+  {s:'Bomb Party fun',items:[T('Chasing Unicorns (Amethyst)','am01-unicorn',['#5c0eff','#ff1ac2','#e8dff5'])]},
+  {s:'General',items:[T('Sunset Beach','sunset-beach',['#fff1f5','#b82f59','#ffc32c'])]}]}];
+const card=t=>`<article class="tc ${t.sel?'sel':''}"><span class="th" style="background:linear-gradient(135deg,${t.c[0]} 0%,${t.c[1]} 58%,${t.c[2]} 100%)">${t.img?`<img src="assets/themes/${t.img}.webp" alt="">`:`<span class="blk">${t.n}</span>`}</span><span class="nm">${t.n}</span>${(t.sel||t.tag)?`<span class="tags">${t.sel?'<span class="tag on">On your site</span><span class="tag live">Live now</span>':''}${t.tag?`<span class="tag">${t.tag}</span>`:''}</span>`:''}<span class="row"><span class="dots">${t.c.map(x=>`<i style="background:${x}"></i>`).join('')}</span><span class="eye">👁 <em>Preview</em></span></span></article>`;
+document.getElementById('groups').innerHTML=G.map(g=>`<section class="grp"><h2>${g.h}</h2><div class="subs">${g.subs.map(s=>`<div class="sb" style="--n:${Math.min(s.items.length,3)};--m:${Math.min(s.items.length,2)}"><div class="subh">${s.s} <span class="n">${s.items.length}</span>${s.season?'<span class="season">In season now</span>':''}</div><div class="grid">${s.items.map(card).join('')}</div></div>`).join('')}</div></section>`).join('');
+</script></body></html>

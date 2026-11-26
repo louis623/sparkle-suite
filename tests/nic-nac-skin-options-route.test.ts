@@ -9,6 +9,30 @@ vi.mock('@/lib/nic-nac/auth', () => ({
   AuthError: class AuthError extends Error {},
   getAuthenticatedNicNacContext: mocks.getAuthenticatedNicNacContext,
 }))
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => ({
+    from: (table: string) => {
+      if (table === 'reps') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({ data: null, error: null }),
+            }),
+          }),
+        }
+      }
+      return {
+        select: async () => ({
+          data: [
+            { skin_id: 'black_diamond', visibility: 'private', owner_rep_id: 'brittany-rep', allow_internal_demo: true },
+            { skin_id: 'alpine_opal', visibility: 'private', owner_rep_id: 'lindsey-rep', allow_internal_demo: true },
+          ],
+          error: null,
+        }),
+      }
+    },
+  }),
+}))
 
 import { GET } from '@/app/api/nic-nac/skin-options/route'
 
@@ -33,6 +57,7 @@ describe('customer-site skin options route', () => {
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({
       skinIds: ['gobble_and_fizz', 'pie_please', privateSkin, 'halloween_pumpkin_witch', 'midnight_rose', 'fall_owl_harvest_moon', 'pearl_rose', 'rose_champagne'],
+      ownedPrivateSkinIds: [privateSkin],
     })
     expect(rpc).toHaveBeenCalledWith('list_available_amethyst_skin_ids', {
       p_rep_id: repId,

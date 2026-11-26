@@ -12,6 +12,7 @@ import { NicNacColumn } from './components/NicNacColumn'
 import { NicNacGlyph } from './components/NicNacGlyph'
 import { NicNacMobileShell } from './components/NicNacMobileShell'
 import { RequiredSetupHome } from './components/RequiredSetupHome'
+import { SiteSettingsLoadingShell } from './components/SiteSettingsBody'
 import { WorkspaceAccessPending } from './components/WorkspaceAccessPending'
 import { WorkspaceSetupRecovery } from './components/WorkspaceSetupRecovery'
 import { requestWorkspaceSetupState } from '@/lib/nic-nac/workspace-setup-request'
@@ -179,10 +180,14 @@ type ReviewerSmokeResponse =
 export default function NicNacClient({
   reviewerSmokeVisible = false,
   liveLineupReadOnly = false,
+  initialWorkspaceSettings = null,
+  initialPaidAccess = false,
   operatorSupport,
 }: {
   reviewerSmokeVisible?: boolean
   liveLineupReadOnly?: boolean
+  initialWorkspaceSettings?: SiteSettingsDashboardResult | null
+  initialPaidAccess?: boolean
   operatorSupport?: {
     sessionId: string
     operatorDisplayName: string
@@ -874,12 +879,16 @@ export default function NicNacClient({
     )
   }
 
-  if (setupStateStatus === 'loading') {
+  if (setupStateStatus === 'loading' && !initialWorkspaceSettings) {
     return (
       <div className={shellStyles.root}>
-        <div className={shellStyles.loading}>
-          {isFinalizingCheckout ? 'Finalizing Stripe checkout...' : 'Loading setup...'}
-        </div>
+        {activeWorkspaceSection === 'site-settings' ? (
+          <SiteSettingsLoadingShell />
+        ) : (
+          <div className={shellStyles.loading}>
+            {isFinalizingCheckout ? 'Finalizing Stripe checkout...' : 'Loading setup...'}
+          </div>
+        )}
       </div>
     )
   }
@@ -910,7 +919,11 @@ export default function NicNacClient({
         repIdOverride={setupState?.repId ?? undefined}
         publicSiteSlugOverride={requiredSetupPublicSiteSlug}
         liveQueueSyncCodeOverride={requiredSetupSyncCode}
-        initialSiteSettings={buildReviewSiteSettings(setupState)}
+        initialSiteSettings={
+          showWorkspaceReviewState ? buildReviewSiteSettings(setupState) : initialWorkspaceSettings ?? undefined
+        }
+        serverPaidAccess={initialPaidAccess}
+        initialSearch={searchParams.toString()}
         reviewWorkspaceMode={showWorkspaceReviewState}
         operatorSupportMode={isOperatorSupport}
         onLaunchNicNacAction={handleLaunchNicNacAction}

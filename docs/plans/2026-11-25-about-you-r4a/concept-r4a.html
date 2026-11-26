@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About you · R4a · Photo overlay</title>
+  <link rel="stylesheet" href="mockup.css">
+  <script>if (/(?:^|[?&])screen(?:&|=|$)/.test(location.search)) document.documentElement.classList.add("screen");</script>
+</head>
+<body class="popup-page">
+  <div class="page">
+    <div class="option-bar">
+      <div class="which">R4a · Photo overlay</div>
+      <a class="back" href="index.html">All options</a>
+      <p>A large portrait hero with her title and story overlaid. The marquee sits in a row under the photo, then the short videos.</p>
+    </div>
+    <div class="popup-frame no-phone" role="dialog" aria-labelledby="dlg-title">
+      <header class="dlg-band">
+        <div>
+          <p class="dlg-kicker">My Website</p>
+          <h1 id="dlg-title">About you</h1>
+          <p class="dlg-sub">Her photo leads, then the marquee, then the short videos.</p>
+        </div>
+        <a class="dlg-close" href="index.html" aria-label="Close">×</a>
+      </header>
+      <div class="dlg-body">
+        <p class="whisper">Your first name is set in Look. It shows in the title if you leave the placeholder as is.</p>
+        <div class="settings">
+
+            <section class="sec">
+              <h2>Your photo</h2>
+              <p class="legend">This portrait is the first thing guests see. Your title, story, and caption sit with it. JPG, PNG, or WebP, under about <span class="nowrap">2.5 MB</span>.</p>
+              <div class="hero-a">
+                <div class="photo-hero">
+                  <div class="photo-frame">
+                  <figure class="photo-stage" style="--zoom:1.18;--fy:20%;--fx:50%">
+                    <img src="assets/sasha-portrait.jpg" alt="Portrait of Sasha" width="560" height="560">
+                  </figure>
+                  <div class="story-card">
+                    
+                <div class="kfield">
+                  <label for="title-r4a">Title</label>
+                  <input class="headline" id="title-r4a" type="text" value="Meet Sasha" maxlength="70" placeholder="Meet Brianna">
+                  <span class="count">11 / 70</span>
+                </div>
+                <div class="kfield">
+                  <label for="story-r4a">Your story</label>
+                  <textarea class="story" id="story-r4a" maxlength="1200" rows="4">Friday nights are my favorite. I set out the trays, turn on the lights, and we open boxes together. Some pieces find a home right away. Some wait for the right person. Either way, I want you to feel like you walked into the room with us.</textarea>
+                  <span class="count">261 / 1200</span>
+                </div>
+                  </div>
+                  </div>
+                  <div class="hero-tools">
+                    <div class="kfield">
+                  <label for="ph-cap-r4a">Photo caption</label>
+                  <input class="caption-line" id="ph-cap-r4a" type="text" value="Sasha before a Friday show" maxlength="240">
+                  <span class="count">26 / 240</span>
+                </div>
+
+                    <label class="btn btn-file">Replace photo
+                      <input type="file" accept="image/jpeg,image/png,image/webp" aria-label="Replace photo, JPG, PNG, or WebP under about 2.5 MB">
+                    </label>
+                    <button type="button" class="btn btn-danger">Remove photo</button>
+                    
+                    <details class="crop">
+                      <summary>Adjust crop</summary>
+                      <fieldset class="smart">
+                        <legend>Smart Frame</legend>
+                        <p class="hint">Face detection set the starting crop. You can fine‑tune it.</p>
+                        <label><span>Zoom</span><input type="range" min="1" max="1.5" step="0.01" value="1.18"><output>1.18</output></label>
+                        <label><span>Move subject up or down</span><input type="range" min="0" max="60" step="1" value="20"><output>20</output></label>
+                        <label><span>Move subject left or right</span><input type="range" min="0" max="100" step="1" value="50"><output>50</output></label>
+                      </fieldset>
+                    </details>
+                  </div>
+                </div>
+              </div>
+              <div class="mq-under">
+                <div class="mq">
+            <div class="mq-inner">
+              <div class="mq-poster">
+                <img src="assets/marquee-portrait.jpg" alt="Portrait still of a jewelry reveal on a velvet tray" width="720" height="1280">
+                <span class="mq-badge">Marquee</span>
+                <span class="mq-status pill pill-live">Ready</span>
+                <span class="play" aria-hidden="true"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.6v8.8l7.4-4.4z"/></svg></span>
+              </div>
+              <div class="mq-meta">
+                <p class="cap">What a live reveal feels like</p>
+                <div class="row">
+                  <span class="plat" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 3c.4 2.6 1.8 4.6 4.5 5.1v3c-1.5-.06-2.9-.55-4.1-1.4v6.6c0 3.4-2.6 6.1-6.1 6.2-3.4 0-6.2-2.8-6.2-6.2S5.4 10 8.8 10c.4 0 .8.04 1.2.12v3.15a3.05 3.05 0 0 0-1.2-.24 3.05 3.05 0 1 0 3.05 3.05V3h3.65z"/></svg></span>
+                  <details class="sheet-wrap">
+                    <summary class="linkish">Edit</summary>
+                    <div class="sheet">
+                      <div class="sheet-row">
+                        <label for="mq-url-r4a">Video link</label>
+                        <input id="mq-url-r4a" type="url" value="tiktok.com/@sparkle.sample" spellcheck="false">
+                      </div>
+                      <div class="sheet-row">
+                        <label for="mq-cap-r4a">Caption <span class="count">28 / 180</span></label>
+                        <input id="mq-cap-r4a" type="text" value="What a live reveal feels like" maxlength="180">
+                      </div>
+                      <p class="sheet-help is-ready">Ready on your site. Public TikTok, YouTube, Instagram, or Facebook links work, up to 3 minutes.</p>
+                      <div class="sheet-actions">
+                        <button type="button" class="btn btn-danger">Remove</button>
+                      </div>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </div>
+          </div>
+                <div>
+                  <p class="note-k">Marquee video</p>
+                  <p class="note-line">A special portrait video, under her photo and above the short videos.</p>
+                </div>
+              </div>
+            </section>
+            <section class="sec">
+              <h2>More to watch</h2>
+              <p class="legend">The marquee sits under her photo, above these short videos. Up to three more. Public TikTok, YouTube, Instagram, or Facebook links work, up to 3 minutes.</p>
+              
+          <div class="vrail" role="list">
+            <article class="vtile" role="listitem">
+              <div class="thumb">
+                <img src="assets/short-unbox.jpg" alt="Unboxing still of a jewelry box" width="720" height="1280">
+                <span class="mark yt" title="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 12.2s0-3.2-.4-4.6c-.22-.82-.88-1.47-1.7-1.7C19.4 5.5 12 5.5 12 5.5s-7.4 0-8.9.4c-.82.23-1.48.88-1.7 1.7C1 9 1 12.2 1 12.2s0 3.2.4 4.6c.22.82.88 1.47 1.7 1.7 1.5.4 8.9.4 8.9.4s7.4 0 8.9-.4c.82-.23 1.48-.88 1.7-1.7.4-1.4.4-4.6.4-4.6zM9.8 15.5v-6.6l6.3 3.3-6.3 3.3z"/></svg></span>
+                <span class="st pill pill-live">Ready</span>
+                <span class="play" aria-hidden="true"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.6v8.8l7.4-4.4z"/></svg></span>
+              </div>
+              <p class="vcap">Unboxing the new collection</p>
+              <details class="sheet-wrap tile-sheet">
+                <summary class="linkish on-paper" style="margin-top:6px">Edit</summary>
+                <div class="sheet">
+                  <div class="sheet-row">
+                    <label for="s1-url-r4a">Video link</label>
+                    <input id="s1-url-r4a" type="url" value="youtube.com/sparkle.sample" spellcheck="false">
+                  </div>
+                  <div class="sheet-row">
+                    <label for="s1-cap-r4a">Caption <span class="count">28 / 180</span></label>
+                    <input id="s1-cap-r4a" type="text" value="Unboxing the new collection" maxlength="180">
+                  </div>
+                  <p class="sheet-help is-ready">Ready on your site. Public links work, up to 3 minutes.</p>
+                  <div class="sheet-actions">
+                    <button type="button" class="btn btn-danger">Remove</button>
+                  </div>
+                </div>
+              </details>
+            </article>
+            <article class="vtile" role="listitem">
+              <div class="thumb">
+                <img src="assets/short-ring.jpg" alt="Close-up still of a pink ring" width="720" height="1280">
+                <span class="mark" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 3c.4 2.6 1.8 4.6 4.5 5.1v3c-1.5-.06-2.9-.55-4.1-1.4v6.6c0 3.4-2.6 6.1-6.1 6.2-3.4 0-6.2-2.8-6.2-6.2S5.4 10 8.8 10c.4 0 .8.04 1.2.12v3.15a3.05 3.05 0 0 0-1.2-.24 3.05 3.05 0 1 0 3.05 3.05V3h3.65z"/></svg></span>
+                <span class="st pill pill-queue">Queued</span>
+                <span class="play" aria-hidden="true"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.6v8.8l7.4-4.4z"/></svg></span>
+              </div>
+              <p class="vcap">A favorite ring from last month</p>
+              <details class="sheet-wrap tile-sheet">
+                <summary class="linkish on-paper" style="margin-top:6px">Edit</summary>
+                <div class="sheet">
+                  <div class="sheet-row">
+                    <label for="s2-url-r4a">Video link</label>
+                    <input id="s2-url-r4a" type="url" value="tiktok.com/@sparkle.sample" spellcheck="false" readonly>
+                  </div>
+                  <div class="sheet-row">
+                    <label for="s2-cap-r4a">Caption <span class="count">32 / 180</span></label>
+                    <input id="s2-cap-r4a" type="text" value="A favorite ring from last month" maxlength="180">
+                  </div>
+                  <p class="sheet-help is-queue">Queued. Short videos can take <span class="nowrap">24–48 hours</span> to appear. Remove this video before adding a new link. This one stays on your site until the new one is ready.</p>
+                  <div class="sheet-actions">
+                    <button type="button" class="btn btn-danger">Remove</button>
+                  </div>
+                </div>
+              </details>
+            </article>
+            <article class="vtile is-empty" role="listitem">
+              <button type="button" class="tile-hit" aria-label="Add a short video">
+                <div class="thumb"><span class="plus" aria-hidden="true">+</span></div>
+                <p class="vcap">Add a video</p>
+              </button>
+            </article>
+          </div>
+            </section>
+          </div>
+
+      </div>
+      <footer class="dlg-foot">
+        <p class="status-line"><span class="saved-mark" aria-hidden="true">✓</span> Saved just now</p>
+        <button type="button" class="undo">Undo</button>
+        <a class="finished" href="index.html">Finished</a>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

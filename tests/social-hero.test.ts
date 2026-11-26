@@ -33,6 +33,12 @@ describe('social hero placement', () => {
       expect(resolveSocialPlatformUrl(platform, 'https://example.com/vip')).toBe('')
     }
 
+    expect(resolveSocialPlatformUrl('instagram', 'instagram.com/name')).toBe('https://instagram.com/name')
+    expect(resolveSocialPlatformUrl('instagram', 'jane.doe')).toBe('https://www.instagram.com/jane.doe')
+    expect(resolveSocialPlatformUrl('instagram', '@jane.doe')).toBe('https://www.instagram.com/jane.doe')
+    expect(resolveSocialPlatformUrl('youtube', 'my-channel')).toBe('https://www.youtube.com/@my-channel')
+    expect(resolveSocialPlatformUrl('instagram', 'https://www.instagram.com/name')).toBe('https://www.instagram.com/name')
+    expect(resolveSocialPlatformUrl('tiktok', 'not a link at all')).toBe('')
     expect(resolveSocialPlatformUrl('instagram', 'https://www.instagram.com/')).toBe('')
     expect(resolveSocialPlatformUrl('youtube', 'https://www.youtube.com/')).toBe('')
     expect(resolveSocialPlatformUrl('tiktok', 'https://user:pass@tiktok.com/@sparkle')).toBe('')

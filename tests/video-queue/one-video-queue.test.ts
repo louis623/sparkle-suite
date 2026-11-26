@@ -241,6 +241,7 @@ it('T12 ungated and switch-off Workspace, saves and renderer keep legacy links',
   expect(await queue(db)).toEqual([])
   expect((await db.query('select homepage_media_slots from site_settings where rep_id=$1',[other])).rows[0]).toMatchObject({homepage_media_slots:[slot('showcase',legacy)]})
   expect(workspace(false)).toContain('Video link or embed')
+  expect(workspace(false)).toContain('Marquee video')
   expect(card(yt,false)).toContain('youtube-nocookie.com')
   await enable(db)
   await save(db,[slot('showcase',fb)])
