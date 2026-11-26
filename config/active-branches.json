@@ -70,6 +70,7 @@
     "cursor/my-website-customer-scroll-cd8d",
     "cursor/my-website-hero-motion-583b",
     "cursor/look-real-screenshot",
+    "cursor/signup-discount-coupon-583b",
     "codex/ssr-chunk1-fizzfest-home",
     "codex/release-ssr-finder",
     "codex/ssr-per-rep-allowlist",
@@ -227,6 +228,10 @@
       "environment": "preview"
     },
     "cursor/look-real-screenshot": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/signup-discount-coupon-583b": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },

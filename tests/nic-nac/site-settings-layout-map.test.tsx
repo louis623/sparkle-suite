@@ -17,7 +17,6 @@ const sections = [
   'hero',
   'about',
   'bomb-party',
-  'upcoming-shows',
   'signup',
   'footer',
   'other-pages',
@@ -35,7 +34,6 @@ const controls: Array<{ id: string; section: string; optional?: boolean }> = [
   { id: 'show-announcements', section: 'top-bar' },
   { id: 'hero-headline', section: 'hero' },
   { id: 'hero-subtitle', section: 'hero' },
-  { id: 'open-calendar', section: 'upcoming-shows' },
   { id: 'reveal-video', section: 'bomb-party' },
   { id: 'reveal-caption', section: 'bomb-party' },
   { id: 'about-title', section: 'about' },
@@ -50,6 +48,7 @@ const controls: Array<{ id: string; section: string; optional?: boolean }> = [
   { id: 'britt-about-section', section: 'about' },
   { id: 'signup-switch', section: 'signup' },
   { id: 'discount-code', section: 'signup' },
+  { id: 'discount-offer', section: 'signup' },
   { id: 'discount-message', section: 'signup' },
   { id: 'tagline', section: 'footer' },
   { id: 'email', section: 'footer' },
@@ -203,10 +202,9 @@ describe('site settings layout map', () => {
     }
     expect(host.textContent).toContain('Shows on your site: Every Shop button on your site')
     expect(host.textContent).toContain('Shows on your site: Join page Contact')
-    expect(host.textContent).toContain('Open Calendar')
-    expect(host.querySelector('[data-site-control="open-calendar"]')?.getAttribute('href')).toBe(
-      '/nic-nac?section=show-calendar',
-    )
+    expect(host.textContent).not.toContain('Open Calendar')
+    expect(host.textContent).toContain('What they get')
+    expect(host.textContent).toContain('Sign-up discount')
     expect(host.querySelector('[data-site-control="team-settings"]')?.getAttribute('href')).toBe(
       '/nic-nac?section=team-management',
     )

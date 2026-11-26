@@ -4,7 +4,50 @@ import {
   shopLinkFieldError,
   SITE_FIELD_IDS,
 } from '@/app/nic-nac/components/site-settings-save'
+import {
+  normalizeSignupDiscountCode,
+  normalizeSignupDiscountOffer,
+} from '@/lib/public-site/signup-discount'
 import { SOCIAL_PLATFORMS } from '@/lib/public-site/social-visibility'
+
+export const SIGNUP_TILE_TITLE = 'Sign-up discount'
+export const SIGNUP_TILE_SUMMARY = 'Customers can choose to join your list and get a one-time code.'
+export const SIGNUP_TILE_NEUTRAL_OFFER = 'A thank-you discount'
+
+export function signupDiscountTile(draft: {
+  signupDiscountEnabled?: boolean | null
+  signupDiscountCode?: string | null
+  signupDiscountOffer?: string | null
+} | null | undefined) {
+  const enabled = draft?.signupDiscountEnabled === true
+  const code = normalizeSignupDiscountCode(draft?.signupDiscountCode)
+  const offer = normalizeSignupDiscountOffer(draft?.signupDiscountOffer)
+  if (!enabled) {
+    return {
+      chip: 'Off' as const,
+      tone: 'off' as const,
+      offer: 'Add your offer',
+      detail: 'Add the code customers get when they join your list',
+      code: null,
+    }
+  }
+  if (!code) {
+    return {
+      chip: 'Needs a code' as const,
+      tone: 'need' as const,
+      offer: 'Add your code',
+      detail: 'Customers get this after they sign up',
+      code: null,
+    }
+  }
+  return {
+    chip: 'Done' as const,
+    tone: 'ok' as const,
+    offer: offer || SIGNUP_TILE_NEUTRAL_OFFER,
+    detail: null,
+    code,
+  }
+}
 
 export const SITE_SECTION_ORDER = [
   'top-bar',
@@ -52,6 +95,7 @@ export const SHOWS_ON = {
   brittSection: 'The About Brittany and Sparkle Moments section',
   signupSwitch: 'The sign-up confirmation',
   discountCode: 'The discount code after customers sign up',
+  discountOffer: 'The offer shown with your sign-up code',
   discountMessage: 'The line shown with your discount code',
   tagline: 'The footer of every page',
   email: 'Join page Contact',
@@ -67,6 +111,7 @@ const FIELD_SECTION: Record<string, SiteSectionId> = {
   [SITE_FIELD_IDS.shopLink]: 'top-bar',
   [SITE_FIELD_IDS.email]: 'footer',
   [SITE_FIELD_IDS.discountCode]: 'signup',
+  [SITE_FIELD_IDS.discountOffer]: 'signup',
   [SITE_FIELD_IDS.discountMessage]: 'signup',
   ...Object.fromEntries(
     SOCIAL_PLATFORMS.map((platform) => [SITE_FIELD_IDS.social(platform.key), 'footer' as const]),

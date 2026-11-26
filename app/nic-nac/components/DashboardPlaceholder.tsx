@@ -14,7 +14,7 @@ import Link from 'next/link'
 import { flushSync } from 'react-dom'
 import { SiteLeaveGuard, SiteSaveBar, type SiteDiscardOpener } from './SiteSaveBar'
 import { SiteSettingsBody, SiteSettingsLoadingShell } from './SiteSettingsBody'
-import { buildSiteSetupChecklist, type SiteSectionId } from './site-settings-layout'
+import { buildSiteSetupChecklist, SIGNUP_TILE_SUMMARY, signupDiscountTile, type SiteSectionId } from './site-settings-layout'
 import { myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-client'
 import { getAmethystSkinCard, type AmethystSkinCard } from '@/lib/amethyst/skin-cards'
 import { SocialMark } from '@/lib/amethyst/social-mark-icon'
@@ -10083,7 +10083,7 @@ export function SiteSettingsCard({
   onUndo,
   undoReady = false,
   previewThemeCards = null,
-  nextShow = null,
+  initialDialog = null,
 }: {
   repId?: string | null
   state: SiteSettingsState
@@ -10126,6 +10126,7 @@ export function SiteSettingsCard({
   undoReady?: boolean
   previewThemeCards?: readonly AmethystSkinCard[] | null
   nextShow?: { month: string; day: string; name: string; time: string } | null
+  initialDialog?: 'signup' | null
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
   const lookRef = useRef<HTMLDialogElement>(null)
@@ -10149,6 +10150,12 @@ export function SiteSettingsCard({
     setTouchedFields({})
     setLocalFieldErrors(false)
   }, [fieldEpoch])
+
+  useEffect(() => {
+    if (initialDialog !== 'signup') return
+    const dialog = showsRef.current
+    if (dialog && !dialog.open) dialog.showModal()
+  }, [initialDialog])
 
   useEffect(() => {
     return () => {
@@ -10312,12 +10319,10 @@ export function SiteSettingsCard({
     },
     {
       id: 'shows',
-      title: 'Shows & sign-ups',
+      title: 'Sign-up discount',
       art: null,
-      summary: draft.signupDiscountEnabled
-        ? `Discount ${draft.signupDiscountCode?.trim() || 'code'} for new sign-ups.`
-        : 'Upcoming shows and the sign-up offer.',
-      sections: ['upcoming-shows', 'signup'] as SiteSectionId[],
+      summary: SIGNUP_TILE_SUMMARY,
+      sections: ['signup'] as SiteSectionId[],
       dialog: showsRef,
     },
     {
@@ -10329,9 +10334,16 @@ export function SiteSettingsCard({
       dialog: linksRef,
     },
   ]
-  const readyGroups = siteGroups.filter((group) =>
-    checklist.filter((item) => group.sections.includes(item.section) && !item.done).length === 0,
-  ).length
+  const signupTile = signupDiscountTile(draft)
+  const ticketStyle = {
+    '--ticket-primary': themeCard.swatches.find((swatch) => swatch.label === 'Primary')?.value ?? aboutCover.accent,
+    '--ticket-accent': aboutCover.accent,
+    '--ticket-deep': aboutCover.deep,
+  } as CSSProperties
+  const readyGroups = siteGroups.filter((group) => {
+    if (group.id === 'shows') return signupTile.chip === 'Done'
+    return checklist.filter((item) => group.sections.includes(item.section) && !item.done).length === 0
+  }).length
   const settingsBody = (sections: SiteSectionId[]) => (
     <SiteSettingsBody
       draft={draft}
@@ -10422,7 +10434,15 @@ export function SiteSettingsCard({
       </div>
       <div className={styles.siteHomeGrid}>
         {siteGroups.map((group) => {
-          const needs = checklist.filter((item) => group.sections.includes(item.section) && !item.done).length
+          const needs = group.id === 'shows'
+            ? (signupTile.chip === 'Done' ? 0 : 1)
+            : checklist.filter((item) => group.sections.includes(item.section) && !item.done).length
+          const chipLabel = group.id === 'shows'
+            ? signupTile.chip
+            : needs > 0 ? `Needs ${needs} ${needs === 1 ? 'thing' : 'things'}` : 'Done'
+          const chipClass = group.id === 'shows'
+            ? signupTile.tone === 'ok' ? styles.siteChipDone : signupTile.tone === 'off' ? styles.siteChipOff : styles.siteChipNeeds
+            : needs > 0 ? styles.siteChipNeeds : styles.siteChipDone
           return (
             <button
               key={group.id}
@@ -10434,6 +10454,7 @@ export function SiteSettingsCard({
                 className={styles.siteTileArt}
                 data-tile-art={group.id}
                 data-look-source={group.id === 'look' ? (lookShot ? 'shot' : 'poster') : undefined}
+                style={group.id === 'shows' ? ticketStyle : undefined}
                 aria-hidden="true"
               >
                 {group.id === 'look' ? (
@@ -10475,16 +10496,12 @@ export function SiteSettingsCard({
                   </span>
                 ) : null}
                 {group.id === 'shows' ? (
-                  <span className={styles.siteShowScene}>
-                    <span className={styles.siteCalendar}>
-                      <span className={styles.siteCalMonth}>{nextShow?.month || 'NEXT'}</span>
-                      <span className={styles.siteCalDay}>{nextShow?.day || '—'}</span>
-                      <span className={styles.siteCalName}>{nextShow?.name || 'Your next show'}</span>
-                      <span className={styles.siteCalTime}>{nextShow?.time || 'Add it in Calendar'}</span>
-                    </span>
-                    <span className={styles.siteCodeCard}>
-                      <span className={styles.siteCodeLabel}>Sign-up code</span>
-                      <span className={styles.siteCodeValue}>{draft.signupDiscountCode?.trim() || 'Code'}</span>
+                  <span className={styles.siteTicket} data-coupon={signupTile.code ? 'on' : signupTile.tone}>
+                    <span className={styles.siteTicketBand}>One-time offer</span>
+                    <span className={styles.siteTicketBody}>
+                      <span className={styles.siteTicketOffer}>{signupTile.offer}</span>
+                      {signupTile.detail ? <span className={styles.siteTicketFor}>{signupTile.detail}</span> : null}
+                      {signupTile.code ? <span className={styles.siteTicketCode}>{signupTile.code}</span> : null}
                     </span>
                   </span>
                 ) : null}
@@ -10512,8 +10529,8 @@ export function SiteSettingsCard({
                 ) : null}
               </span>
               <span className={styles.siteTileCopy}>
-                <span className={needs > 0 ? styles.siteChipNeeds : styles.siteChipDone}>
-                  {needs > 0 ? `Needs ${needs} ${needs === 1 ? 'thing' : 'things'}` : 'Done'}
+                <span className={chipClass}>
+                  {chipLabel}
                 </span>
                 <span className={styles.siteTileTitle}>{group.title}</span>
                 <span className={styles.siteTileSummary}>{group.summary}</span>
@@ -10568,13 +10585,13 @@ export function SiteSettingsCard({
       <dialog ref={showsRef} className={styles.siteDialog} aria-labelledby="site-shows-title">
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
-            <p className={styles.siteDialogKicker}>Shows</p>
-            <h1 id="site-shows-title" className={styles.siteDialogTitle}>Shows & sign-ups</h1>
-            <p className={styles.siteDialogSubtitle}>Upcoming shows, sign-up, and discount code</p>
+            <p className={styles.siteDialogKicker}>Sign-up discount</p>
+            <h1 id="site-shows-title" className={styles.siteDialogTitle}>Sign-up discount</h1>
+            <p className={styles.siteDialogSubtitle}>{SIGNUP_TILE_SUMMARY}</p>
           </div>
           <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => showsRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
-        <div className={styles.siteDialogBody}>{settingsBody(['upcoming-shows', 'signup'])}</div>
+        <div className={styles.siteDialogBody}>{settingsBody(['signup'])}</div>
         <footer className={styles.siteDialogFoot}>
           <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>

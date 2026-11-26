@@ -8812,10 +8812,85 @@
   font-weight: 700;
 }
 .siteTileArt[data-tile-art='shows'] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4% 3%;
   background:
-    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.7), transparent 28%),
-    radial-gradient(circle at 84% 78%, rgba(185, 22, 115, 0.16), transparent 32%),
-    linear-gradient(160deg, #f6e7da, #e7cbb8);
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.82), transparent 32%),
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--ticket-accent, #ff4cae) 18%, transparent), transparent 28%),
+    radial-gradient(circle at 82% 86%, color-mix(in srgb, var(--ticket-deep, #911b5e) 14%, transparent), transparent 34%),
+    linear-gradient(160deg, #fbf3ef, color-mix(in srgb, var(--ticket-accent, #ff4cae) 28%, #fbf3ef) 58%, #f7e4ee);
+}
+.siteTicket {
+  position: relative;
+  z-index: 1;
+  width: 92%;
+  max-width: 92%;
+  flex: none;
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fffdfa 0%, #fff6f8 100%);
+  color: #34252f;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 10px 22px -12px rgba(54, 34, 29, 0.45);
+  transform: rotate(-2.2deg);
+}
+.siteTicketBand {
+  display: block;
+  background: linear-gradient(90deg, var(--ticket-deep, #911b5e), var(--ticket-primary, #ee2c9b) 55%, var(--ticket-deep, #911b5e));
+  color: #fff;
+  font-size: clamp(6.5px, 2.7cqi, 9px);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 5px 14px 4px;
+}
+.siteTicketBody { display: block; padding: 8px 12px 10px; text-align: center; min-width: 0; }
+.siteTicketOffer {
+  display: block;
+  max-width: 100%;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(16px, 7cqi, 26px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.siteTicket[data-coupon='off'] .siteTicketOffer,
+.siteTicket[data-coupon='need'] .siteTicketOffer { font-size: clamp(14px, 7cqi, 22px); }
+.siteTicketFor {
+  display: block;
+  margin: 2px 0 6px;
+  font-size: clamp(7.5px, 3.2cqi, 11px);
+  font-weight: 600;
+  color: #6f5650;
+}
+.siteTicketCode {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 6px;
+  border: 1px dashed color-mix(in srgb, var(--ticket-deep, #911b5e) 40%, transparent);
+  border-radius: 7px;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--ticket-deep, #911b5e);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(11px, 5.2cqi, 14px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (prefers-reduced-motion: reduce) {
+  .siteTicket { transform: none; }
 }
 .siteTileArt[data-tile-art='links'] {
   background:
@@ -8823,7 +8898,6 @@
     radial-gradient(circle at 88% 18%, rgba(255, 255, 255, 0.8), transparent 26%),
     linear-gradient(160deg, #fff6fb, #f3d5e6);
 }
-.siteTileArt[data-tile-art='shows']::before,
 .siteTileArt[data-tile-art='links']::before {
   content: "";
   position: absolute;
@@ -9128,15 +9202,18 @@
   overflow: hidden;
 }
 .siteChipDone,
-.siteChipNeeds {
+.siteChipNeeds,
+.siteChipOff {
   width: fit-content;
   border-radius: 999px;
   padding: 3px 8px;
   font-size: 0.75rem;
   font-weight: 800;
+  white-space: nowrap;
 }
 .siteChipDone { background: #e7f6ec; color: #0d5c3d; }
 .siteChipNeeds { background: #fff3d4; color: #7a4b12; }
+.siteChipOff { background: #f3e8e3; color: #6b4a43; }
 
 .siteDialog {
   width: min(900px, calc(100vw - 32px));
@@ -9321,7 +9398,7 @@
     padding: 10px;
   }
   .siteTileCopy { flex: none; padding: 10px 12px 12px; }
-  .siteTileTitle { font-size: 1.15rem; padding-right: 96px; }
+  .siteTileTitle { font-size: 1.15rem; padding-right: 112px; }
   .sitePortraitRing { width: 64px; height: 64px; padding: 3px; }
   .sitePortraitRing .sitePortraitMark { font-size: 1.6rem; }
   .siteAboutName { font-size: 1.05rem; }
@@ -9346,9 +9423,11 @@
   .siteBrandIcon { width: 16px; height: 16px; }
   .sitePagePills { gap: 4px; }
   .sitePagePills span { font-size: 0.62rem; padding: 3px 6px; }
-  .siteTileSummary { -webkit-line-clamp: 1; padding-right: 96px; }
-  .siteChipDone,
-  .siteChipNeeds { position: absolute; top: 8px; right: 8px; }
+  .siteTileSummary { -webkit-line-clamp: 2; padding-right: 0; }
+.siteChipDone,
+.siteChipNeeds,
+.siteChipOff { position: absolute; top: 8px; right: 8px; }
+.siteChipOff { background: #f3e8e3; color: #6b4a43; }
 }
 
 @container tile-art (max-width: 140px) {
@@ -9373,6 +9452,11 @@
     padding: 0 6px 8px;
   }
   .siteMagName { font-size: 13px; line-height: 1.2; }
+  .siteTicket { transform: none; width: 96%; }
+  .siteTicketBody { padding: 4px 5px 5px; }
+  .siteTicketFor { display: none; }
+  .siteTicketOffer { font-size: 11px; letter-spacing: 0; }
+  .siteTicketCode { font-size: 8px; letter-spacing: 0; margin-top: 3px; padding: 2px 3px; }
   .siteMagWatermark { font-size: 56px; align-content: start; padding-top: 6px; }
   .siteCalendar { width: 76px; }
   .siteCalMonth { font-size: 0.55rem; padding: 3px 0; }
@@ -9388,6 +9472,11 @@
 }
 
 @media (max-width: 879px) {
+  .siteTileSummary {
+    -webkit-line-clamp: 2;
+    font-size: 12.5px;
+    line-height: 1.3;
+  }
   .themeRow { grid-template-columns: 72px minmax(0, 1fr); }
   .siteChangeTheme { grid-column: 1 / -1; justify-self: start; }
   .siteDialog[open] {

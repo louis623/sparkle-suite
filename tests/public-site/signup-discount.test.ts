@@ -227,6 +227,15 @@ describe('signup discount confirmation', () => {
     expect(buildAmethystHomepageBootstrapScript(defaultAmethystHomepageTemplateData)).not.toContain('signupDiscountCode')
   })
 
+  it('replaces an empty or old default signup subtitle and keeps a custom one', () => {
+    const next = "I'll never share your info."
+    for (const signupSub of ['', 'Get a heads-up when Britt goes live, plus first dibs on new drops.', 'Get a heads-up when Sasha goes live, plus first dibs on new drops']) {
+      expect(buildAmethystHomepageBootstrapScript({ ...defaultAmethystHomepageTemplateData, signupSub })).toContain(next)
+      expect(buildAmethystHomepageBootstrapScript({ ...defaultAmethystHomepageTemplateData, signupSub })).not.toContain('first dibs on new drops')
+    }
+    expect(buildAmethystHomepageBootstrapScript({ ...defaultAmethystHomepageTemplateData, signupSub: 'Sign up for show reminders from Clean Smoke Sparkle.' })).toContain('Clean Smoke Sparkle')
+  })
+
   it('keeps the homepage unchanged when the discount lookup fails', async () => {
     const homepage = await applySavedSignupDiscount(defaultAmethystHomepageTemplateData, 'rep-lindsey', async () => {
       throw new Error('column signup_discount_code does not exist')

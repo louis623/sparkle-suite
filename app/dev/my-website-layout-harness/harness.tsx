@@ -40,10 +40,11 @@ const sample: SiteSettingsDraft = {
   danceFloorVisible: true,
   liveLineupVisible: true,
   customerSiteTemplate: 'amethyst',
-  appearancePreset: 'amethyst',
+  appearancePreset: 'sparkle_suite_morganite',
   signupDiscountEnabled: true,
-  signupDiscountCode: 'SASHA10',
-  signupDiscountMessage: 'Ten dollars off your first box.',
+  signupDiscountCode: 'WELCOME10',
+  signupDiscountOffer: '10% off',
+  signupDiscountMessage: "Thanks for joining! Here's 10% off your next order.",
   aboutHeading: 'Meet Sasha',
   aboutNarrative:
     'Sasha hosts live jewelry reveals from her living room. She started with one Friday night show and now her regulars plan their week around the next box.',
@@ -140,10 +141,12 @@ function ReviewCard({
 export function MyWebsiteLayoutHarness({
   mode = 'gaps',
   openSection = null,
+  openDialog = null,
   coverPhoto = false,
 }: {
   mode?: 'gaps' | 'full' | 'states' | 'load-error' | 'no-photo'
   openSection?: SiteSectionId | null
+  openDialog?: 'signup' | null
   /** Test browser only. Points the About photo at STAND_IN_PORTRAIT_URL. */
   coverPhoto?: boolean
 }) {
@@ -224,6 +227,7 @@ export function MyWebsiteLayoutHarness({
         previewThemeCards={reviewThemes}
         nextShow={{ month: 'DEC', day: '12', name: 'Friday night reveal', time: '7:00 PM' }}
         initialOpenSection={openSection}
+        initialDialog={openDialog}
         onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
         onPreview={() => undefined}
         onDiscard={() => setDraft(saved)}
