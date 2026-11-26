@@ -1,8 +1,10 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   LOOK_PREVIEW_DEBOUNCE_MS,
   LOOK_PREVIEW_FIELDS,
   applyLookPreviewFailure,
+  lookPreviewFailureDetails,
   assertAllowedLookPreviewUrl,
   buildLookPreviewCaptureUrl,
   isMissingLookPreviewTable,
@@ -96,5 +98,23 @@ describe('look preview policy', () => {
     expect(failed.attemptCount).toBe(2)
     expect(isMissingLookPreviewTable({ code: 'PGRST205', message: 'schema cache' })).toBe(true)
     expect(isMissingLookPreviewTable({ code: '42501', message: 'permission denied' })).toBe(false)
+  })
+
+  it('uses the bundled Chromium binary instead of a GitHub download', () => {
+    const capture = readFileSync('lib/look-preview/capture.ts', 'utf8')
+    const manifest = readFileSync('package.json', 'utf8')
+    expect(capture).toContain("import('@sparticuz/chromium')")
+    expect(capture).not.toContain('chromium-min')
+    expect(capture).not.toContain('github.com/Sparticuz/chromium')
+    expect(manifest).toContain('"@sparticuz/chromium": "158.0.0"')
+    expect(manifest).not.toContain('chromium-min')
+  })
+
+  it('logs a capture failure without the page address', () => {
+    const details = lookPreviewFailureDetails(new Error('Unexpected status code: 404 for https://github.com/example/pack.tar'))
+    expect(details.errorName).toBe('Error')
+    expect(details.errorMessage).toContain('404')
+    expect(details.errorMessage).not.toContain('https://')
+    expect(details.errorMessage).toContain('[url]')
   })
 })

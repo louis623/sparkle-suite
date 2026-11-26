@@ -9,7 +9,6 @@ import {
 
 const DESKTOP = { width: 1440, height: 1080 }
 const PHONE = { width: 390, height: 844 }
-const CHROMIUM_PACK_URL = 'https://github.com/Sparticuz/chromium/releases/download/v158.0.0/chromium-v158.0.0-pack.tar'
 
 export type LookPreviewShots = {
   desktop: Buffer
@@ -37,14 +36,16 @@ async function encodeWebp(png: Buffer, kind: 'desktop' | 'phone') {
   return output
 }
 
+async function serverlessChromium() {
+  const chromium = (await import('@sparticuz/chromium')).default
+  chromium.setGraphicsMode = false
+  return chromium
+}
+
 async function chromePath(explicit?: string) {
   if (explicit) return explicit
   if (process.env.CHROME_PATH) return process.env.CHROME_PATH
-  if (process.env.VERCEL) {
-    const chromium = (await import('@sparticuz/chromium-min')).default
-    chromium.setGraphicsMode = false
-    return chromium.executablePath(CHROMIUM_PACK_URL)
-  }
+  if (process.env.VERCEL) return (await serverlessChromium()).executablePath()
   return '/usr/bin/google-chrome-stable'
 }
 
@@ -132,10 +133,12 @@ export async function captureLookPreviewShots(
   const target = assertAllowedLookPreviewUrl(url, options.allowedHosts)
   const puppeteer = await import('puppeteer-core')
   const executablePath = await chromePath(options.executablePath)
+  const serverless = Boolean(process.env.VERCEL) && !options.executablePath && !process.env.CHROME_PATH
+  const chromiumArgs = serverless ? (await serverlessChromium()).args : []
   const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--hide-scrollbars'],
+    args: [...chromiumArgs, '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--hide-scrollbars'],
     executablePath,
-    headless: true,
+    headless: serverless ? 'shell' : true,
   })
   try {
     const page = await browser.newPage()
