@@ -43,6 +43,24 @@
     {
       "path": "/api/internal/live-lineup/monitor",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/internal/look-previews/queue",
+      "schedule": "0,5,10,15,20,25,30,35,40,45,50,55 * * * *"
     }
-  ]
+  ],
+  "functions": {
+    "app/api/internal/look-previews/queue/route.ts": {
+      "maxDuration": 60,
+      "memory": 2048
+    },
+    "app/api/nic-nac/site-settings/route.ts": {
+      "maxDuration": 60,
+      "memory": 2048
+    },
+    "app/api/nic-nac/site-settings/look-preview/route.ts": {
+      "maxDuration": 60,
+      "memory": 2048
+    }
+  }
 }

@@ -34,11 +34,12 @@ export function WorkspaceShell<TKey extends string>({
         role="tabpanel"
         id={activePanelId}
         aria-labelledby={activeTabId}
+        data-workspace-scroll=""
       >
         {notice}
         {children}
       </section>
-      <div className={styles.tabsWrap}>
+      <div className={styles.tabsWrap} data-workspace-tab-bar="">
         <WorkspaceSectionTabs
           tabs={tabs}
           activeSection={activeSection}

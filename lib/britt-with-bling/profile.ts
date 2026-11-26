@@ -1,3 +1,4 @@
+import 'server-only'
 import type { AmethystHomepageTemplateData } from '@/lib/amethyst/homepage-template-data'
 import type {
   AmethystJoinTeamMember,

@@ -204,9 +204,9 @@ describe('reviewer smoke session reset', () => {
   })
   it('can reset a reviewer again after its reserved synthetic site was assigned',async()=>{
     const {admin,spies}=makeReviewerAdmin()
-    spies.repSelectMaybeSingle.mockResolvedValue({data:{id:'rep-reviewer',auth_user_id:'auth-reviewer',email:'sparkle-reviewer+preview@neonrabbit.net',account_classification:'demo',finder_directory_visible:false,custom_domain:null,public_site_slug:'sparkle-reviewer-preview'},error:null})
+    spies.repSelectMaybeSingle.mockResolvedValue({data:{id:'rep-reviewer',auth_user_id:'auth-reviewer',email:'sparkle-reviewer+preview@neonrabbit.net',account_classification:'demo',finder_directory_visible:false,custom_domain:null,public_site_slug:'sparklereviewerpreview'},error:null})
     await resetReviewerSmokeSession('required_setup',admin as never)
-    expect(spies.repUpdate).toHaveBeenCalledWith(expect.objectContaining({public_site_slug:'sparkle-reviewer-preview'}))
+    expect(spies.repUpdate).toHaveBeenCalledWith(expect.objectContaining({public_site_slug:'sparklereviewerpreview'}))
   })
 
   it('clears the reusable reviewer rep Nic-Nac history so setup preview starts fresh', async () => {

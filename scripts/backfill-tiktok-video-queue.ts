@@ -35,7 +35,7 @@ export async function backfillTikTokQueue(admin: SupabaseClient, slugs: string[]
     const enabled = await admin.rpc('video_all_sources', { p_rep_id: rep.id })
     if (enabled.error) throw enabled.error
     if (!enabled.data || rep.status !== 'active') { output(`${slug}: skipped, inactive or not enabled`); continue }
-    if (slug === 'sparkle-reviewer-preview') { output('skipped reviewer fixture'); continue }
+    if (slug === 'sparklereviewerpreview' || slug === 'sparkle-reviewer-preview') { output('skipped reviewer fixture'); continue }
     if (apply) {
       const slots = selected.filter(slot => slot !== 'featured_reveal')
       if (slots.length) {

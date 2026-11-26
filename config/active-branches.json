@@ -64,6 +64,15 @@
     "cursor/join-server-html-26e8",
     "cursor/suite-join-ssr-rep-routes",
     "cursor/theme-carousel-site-peeks-db80",
+    "cursor/my-website-theme-preview-2217",
+    "cursor/my-website-theme-studio-7731",
+    "cursor/my-website-save-bar-1c57",
+    "cursor/my-website-customer-scroll-cd8d",
+    "cursor/my-website-hero-motion-583b",
+    "cursor/look-real-screenshot",
+    "cursor/signup-discount-coupon-583b",
+    "cursor/my-website-concept-c-583b",
+    "cursor/socials-phone-preview-583b",
     "codex/ssr-chunk1-fizzfest-home",
     "codex/release-ssr-finder",
     "codex/ssr-per-rep-allowlist",
@@ -197,6 +206,42 @@
       "environment": "preview"
     },
     "cursor/suite-join-ssr-rep-routes": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/my-website-theme-preview-2217": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/my-website-theme-studio-7731": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/my-website-save-bar-1c57": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/my-website-customer-scroll-cd8d": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/my-website-hero-motion-583b": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/look-real-screenshot": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/signup-discount-coupon-583b": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/my-website-concept-c-583b": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/socials-phone-preview-583b": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },

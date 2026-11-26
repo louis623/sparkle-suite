@@ -742,6 +742,7 @@ describe('Sparkle Finder public routes', () => {
       'demosparklestudiod5decc',
       'sparklebetademo',
       'sparkle-reviewer-preview',
+      'sparklereviewerpreview',
       'markeddemo',
       'pausedstudio',
       'hiddenstudio',

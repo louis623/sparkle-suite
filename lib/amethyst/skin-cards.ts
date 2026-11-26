@@ -3,6 +3,29 @@ import {
   normalizeAmethystAppearancePreset,
   type AmethystAppearancePresetId,
 } from './appearance-presets'
+import type { ThemeSeason } from './theme-seasons'
+
+export type ThemeFamily = 'holiday' | 'everyday'
+export type ThemeSeries =
+  | 'fall'
+  | 'thanksgiving'
+  | 'halloween'
+  | 'christmas'
+  | 'rose_gold'
+  | 'gems'
+  | 'bomb_party'
+  | 'general'
+
+export const THEME_SERIES_LABEL: Record<ThemeSeries, string> = {
+  fall: 'Fall',
+  thanksgiving: 'Thanksgiving',
+  halloween: 'Halloween',
+  christmas: 'Christmas & Winter',
+  rose_gold: 'Rose Gold',
+  gems: 'Gems & Metals',
+  bomb_party: 'Bomb Party Fun',
+  general: 'General',
+}
 
 export interface AmethystSkinSwatch {
   label: string
@@ -25,9 +48,19 @@ export interface AmethystSkinCard {
   surfaceNote: string
   motionNote: string
   swatches: AmethystSkinSwatch[]
+  season: ThemeSeason
+  /** Holiday or everyday. Private looks still carry a family so a new series can join later. */
+  family: ThemeFamily
+  /** Subgroup inside the family. Rose Gold, Diamond, and Silver are series, not one-off names. */
+  series: ThemeSeries
+  /** 480px-wide webp, or null when the card is a color block. */
+  thumb: string | null
+  previewColors: readonly string[]
 }
 
-export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
+type AmethystSkinCardSource = Omit<AmethystSkinCard, 'season' | 'family' | 'series' | 'thumb' | 'previewColors'>
+
+const AMETHYST_SKIN_CARD_SOURCES: AmethystSkinCardSource[] = [
   {
     id: 'gobble_and_fizz', code: 'GF-01', label: 'Gobble & Fizz', visibility: 'community',
     description: 'A curious turkey, copper fizz and golden sparkle in a cozy plum Thanksgiving scene.', previewHref: '/skin-preview/gobble_and_fizz/homepage',
@@ -496,6 +529,111 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     ],
   },
 ]
+
+const COLOR_BLOCK_THEMES = new Set<AmethystAppearancePresetId>([
+  'sparkle_suite_morganite',
+  'moonstone',
+  'emerald_garden',
+  'rose_gold',
+  'garnet',
+  'amber',
+  'velvet',
+  'black_diamond',
+  'alpine_opal',
+  'rose_quartz',
+])
+
+const THEME_SEASONS: Record<AmethystAppearancePresetId, ThemeSeason> = {
+  amethyst: 'none',
+  sparkle_suite_morganite: 'none',
+  black_diamond: 'none',
+  moonstone: 'none',
+  alpine_opal: 'none',
+  emerald_garden: 'none',
+  gnome_garden: 'none',
+  neon_butterfly: 'none',
+  halloween_pumpkin_witch: 'halloween',
+  halloween_pumpkin_cat: 'halloween',
+  gilded_autumn: 'thanksgiving',
+  rose_gold: 'none',
+  midnight_rose: 'none',
+  fall_owl_harvest_moon: 'thanksgiving',
+  macies_christmas_globe: 'christmas',
+  silver_bells: 'christmas',
+  starlight_christmas_hollow: 'christmas',
+  gobble_and_fizz: 'thanksgiving',
+  pie_please: 'thanksgiving',
+  pearl_rose: 'none',
+  sunset_beach: 'none',
+  rose_champagne: 'none',
+  garnet: 'none',
+  amber: 'none',
+  velvet: 'none',
+  rose_quartz: 'none',
+}
+
+const THEME_PLACEMENT: Record<AmethystAppearancePresetId, { family: ThemeFamily; series: ThemeSeries }> = {
+  pie_please: { family: 'holiday', series: 'fall' },
+  gilded_autumn: { family: 'holiday', series: 'fall' },
+  fall_owl_harvest_moon: { family: 'holiday', series: 'fall' },
+  gobble_and_fizz: { family: 'holiday', series: 'thanksgiving' },
+  halloween_pumpkin_witch: { family: 'holiday', series: 'halloween' },
+  halloween_pumpkin_cat: { family: 'holiday', series: 'halloween' },
+  silver_bells: { family: 'holiday', series: 'christmas' },
+  starlight_christmas_hollow: { family: 'holiday', series: 'christmas' },
+  macies_christmas_globe: { family: 'holiday', series: 'christmas' },
+  rose_gold: { family: 'everyday', series: 'rose_gold' },
+  rose_champagne: { family: 'everyday', series: 'rose_gold' },
+  pearl_rose: { family: 'everyday', series: 'rose_gold' },
+  midnight_rose: { family: 'everyday', series: 'rose_gold' },
+  sparkle_suite_morganite: { family: 'everyday', series: 'rose_gold' },
+  moonstone: { family: 'everyday', series: 'gems' },
+  emerald_garden: { family: 'everyday', series: 'gems' },
+  garnet: { family: 'everyday', series: 'gems' },
+  amber: { family: 'everyday', series: 'gems' },
+  velvet: { family: 'everyday', series: 'gems' },
+  rose_quartz: { family: 'everyday', series: 'gems' },
+  black_diamond: { family: 'everyday', series: 'gems' },
+  alpine_opal: { family: 'everyday', series: 'gems' },
+  amethyst: { family: 'everyday', series: 'bomb_party' },
+  gnome_garden: { family: 'everyday', series: 'general' },
+  neon_butterfly: { family: 'everyday', series: 'general' },
+  sunset_beach: { family: 'everyday', series: 'general' },
+}
+
+const THUMB_FOLDERS: Partial<Record<AmethystAppearancePresetId, string>> = {
+  amethyst: 'am01-unicorn',
+  gnome_garden: 'gnome-garden',
+  neon_butterfly: 'neon-butterfly',
+  halloween_pumpkin_witch: 'halloween-pumpkin-witch',
+  halloween_pumpkin_cat: 'halloween-pumpkin-cat',
+  gilded_autumn: 'gilded-autumn',
+  midnight_rose: 'midnight-rose',
+  fall_owl_harvest_moon: 'fall-owl',
+  macies_christmas_globe: 'macies-christmas-globe',
+  silver_bells: 'silver-bells',
+  starlight_christmas_hollow: 'starlight-christmas-hollow',
+  gobble_and_fizz: 'gobble-and-fizz',
+  pie_please: 'pie-please',
+  pearl_rose: 'pearl-rose',
+  sunset_beach: 'sunset-beach',
+  rose_champagne: 'rose-champagne',
+}
+
+function withStudioFields(card: AmethystSkinCardSource): AmethystSkinCard {
+  const folder = COLOR_BLOCK_THEMES.has(card.id) ? null : THUMB_FOLDERS[card.id]
+  return {
+    ...card,
+    season: THEME_SEASONS[card.id],
+    family: THEME_PLACEMENT[card.id].family,
+    series: THEME_PLACEMENT[card.id].series,
+    thumb: folder ? `/amethyst/skins/${folder}/thumb.webp` : null,
+    previewColors: card.swatches.slice(0, 4).map((swatch) => swatch.value),
+  }
+}
+
+export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] =
+  AMETHYST_SKIN_CARD_SOURCES.map(withStudioFields)
 
 export function getAmethystSkinCardsForIds(
   availableSkinIds: readonly string[],

@@ -11,6 +11,8 @@ export const FINDER_PUBLIC_REP_FEED_EXCLUDED_SLUGS = new Set([
   'demosparklestudiod5decc',
   'sparklebetademo',
   'sparkle-reviewer-preview',
+  'sparklereviewerpreview',
+  'sparklereviewerlocal',
 ])
 
 const REP_FEED_COLUMNS =

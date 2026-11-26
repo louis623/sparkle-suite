@@ -8,11 +8,42 @@ import {
 import { LiveLineupHowToGuide } from './LiveLineupHowToGuide'
 import { isQueuedVideoUrl } from '@/lib/public-site/queue-video-link'
 import { isTikTokCardUrl } from '@/lib/public-site/tiktok-video-id'
+import { SOCIAL_PLATFORMS } from '@/lib/public-site/social-visibility'
 
+import QRCode from 'qrcode'
 import Link from 'next/link'
-import { normalizeSignupDiscountCode, normalizeSignupDiscountMessage } from '@/lib/public-site/signup-discount'
-import { PublicSiteVisibility } from './PublicSiteVisibility'
-import { SocialHandlesSettings } from './SocialHandlesSettings'
+import { flushSync } from 'react-dom'
+import { SiteLeaveGuard, SiteSaveBar, type SiteDiscardOpener } from './SiteSaveBar'
+import { SiteSettingsBody, SiteSettingsLoadingShell } from './SiteSettingsBody'
+import { buildSiteSetupChecklist, openWorkspaceSection, SIGNUP_TILE_SUMMARY, signupDiscountTile, type SiteSectionId } from './site-settings-layout'
+import { CustomerPageStrip } from './PublicSiteVisibility'
+import { myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-client'
+import {
+  LOOK_PREVIEW_POLL_WINDOW_MS,
+  lookPreviewStillPending,
+  nextLookPreviewPollDelay,
+} from '@/lib/look-preview/policy'
+import { getAmethystSkinCard, type AmethystSkinCard } from '@/lib/amethyst/skin-cards'
+import { SocialMark } from '@/lib/amethyst/social-mark-icon'
+import { ThemeStudio } from './ThemeStudio'
+import {
+  AUTOSAVE_WAIT_MS,
+  autosaveTiming,
+  discountCodeFieldError,
+  discountMessageFieldError,
+  changedSiteSettingsPayload,
+  collectSiteSettingsFieldErrors,
+  draftHoldingInvalidFields,
+  emailFieldError,
+  formatSiteSaveFailure,
+  listSiteSettingsChanges,
+  mergePreparedSiteSettingsDraft,
+  SAVED_LABEL,
+  shopLinkFieldError,
+  shouldApplyNicNacSiteRefresh,
+  SITE_FIELD_IDS,
+  socialLinkFieldError,
+} from './site-settings-save'
 import dynamic from 'next/dynamic'
 import type {
   ChangeEvent,
@@ -86,7 +117,6 @@ import {
   type TeamPhotoFraming,
 } from '@/lib/amethyst/team-photo-framing'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
-import { getAmethystSkinDropdownLabel } from '@/lib/amethyst/skin-cards'
 import { useAvailableAmethystSkinCards } from './useAvailableAmethystSkinCards'
 import {
   BRITT_WITH_BLING_ABOUT_PORTRAIT_URL,
@@ -195,6 +225,15 @@ const WorkspaceResourceLibraryView = dynamic(() =>
 
 const RECIPE_AUDIT_STORAGE_KEY = 'sparkle-suite:recipe-audit'
 
+function afterFirstPaint(work: () => void) {
+  if (typeof window.requestIdleCallback === 'function') {
+    const id = window.requestIdleCallback(work, { timeout: 1600 })
+    return () => window.cancelIdleCallback(id)
+  }
+  const id = window.setTimeout(work, 1)
+  return () => window.clearTimeout(id)
+}
+
 // Texting and email updates are not launched yet. Keep the wallet implementation
 // intact for that release, but do not expose prepaid SMS spend or recharge controls.
 const CUSTOMER_MESSAGING_LAUNCHED = false
@@ -260,8 +299,8 @@ const SECONDARY_WORKSPACE_SECTIONS = [
   },
   {
     key: 'site-settings',
-    label: 'Customer-facing site setup',
-    shortLabel: 'Site setup',
+    label: 'My Website',
+    shortLabel: 'My Website',
     icon: Settings2,
   },
   {
@@ -348,6 +387,74 @@ export function formatHeaderRepShow(
 
 export function formatHeaderRepName(displayName?: string | null) {
   return displayName?.trim() || 'Rep info loading'
+}
+
+/** Shipped illustration and sample portraits. Matched by path, never by how the picture looks. */
+const BUILT_IN_STOCK_AVATARS = new Set([
+  '/dev/sample-portrait.svg',
+  '/amethyst/skins/gobble-and-fizz/sample-portrait.webp',
+  '/amethyst/skins/pie-please/sample-portrait.webp',
+])
+
+export function isBuiltInStockAvatar(url: string | null | undefined) {
+  const raw = url?.trim()
+  if (!raw) return false
+  let pathname = raw
+  try {
+    pathname = new URL(raw, 'https://local.invalid').pathname
+  } catch {
+    pathname = raw.split(/[?#]/)[0]
+  }
+  try {
+    pathname = decodeURIComponent(pathname)
+  } catch {
+    // Keep the raw pathname when it is not valid encoding.
+  }
+  if (!pathname.startsWith('/')) pathname = `/${pathname}`
+  return BUILT_IN_STOCK_AVATARS.has(pathname)
+}
+
+function hostFirstName(displayName?: string | null) {
+  const name = displayName?.trim()
+  if (!name) return 'You'
+  return name.split(/\s+/)[0] || 'You'
+}
+
+function hexLuminance(hex: string) {
+  const raw = hex.trim().replace('#', '')
+  const full = raw.length === 3 ? raw.split('').map((part) => part + part).join('') : raw
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return 1
+  const channels = [0, 2, 4].map((index) => {
+    const value = parseInt(full.slice(index, index + 2), 16) / 255
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+}
+
+function mixTowardBlack(hex: string, amount: number) {
+  const raw = hex.trim().replace('#', '')
+  const full = raw.length === 3 ? raw.split('').map((part) => part + part).join('') : raw.padEnd(6, '0').slice(0, 6)
+  const mixed = [0, 2, 4].map((index) =>
+    Math.round(parseInt(full.slice(index, index + 2), 16) * (1 - amount))
+      .toString(16)
+      .padStart(2, '0'),
+  )
+  return `#${mixed.join('')}`
+}
+
+/** Theme swatches, darkened until white type on the cover fade stays readable. */
+export function magazineCoverColors(card: AmethystSkinCard) {
+  const swatch = (label: string, fallback: string) =>
+    card.swatches.find((item) => item.label === label)?.value ?? fallback
+  const accent = swatch('Accent', '#ff1ac2')
+  const candidates = [swatch('Primary', '#5c0eff'), accent, swatch('Ground', '#120616')]
+  let deep = candidates.reduce((darkest, color) =>
+    hexLuminance(color) < hexLuminance(darkest) ? color : darkest,
+  )
+  for (let guard = 0; hexLuminance(deep) > 0.12 && guard < 8; guard += 1) {
+    deep = mixTowardBlack(deep, 0.22)
+  }
+  return { accent, deep }
 }
 
 export function formatHeaderShowName(
@@ -557,7 +664,7 @@ export function getWorkspaceToolSections(options: {
 } = {}) {
   const includeRecipes = options.includeRecipes ?? true
   const includeCardQr = options.includeCardQr ?? isCardQrToolEnabled()
-  return SECONDARY_WORKSPACE_SECTIONS.filter((section) => {
+  const sections = SECONDARY_WORKSPACE_SECTIONS.filter((section) => {
     if (DANCE_FLOOR_SUBPAGE_SECTIONS.has(section.key)) return false
     if (section.key === 'recipes') return includeRecipes
     if (section.key === CARD_QR_WORKSPACE_SECTION) return includeCardQr
@@ -565,6 +672,12 @@ export function getWorkspaceToolSections(options: {
   })
     .slice()
     .sort((a, b) => a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }))
+  const websiteIndex = sections.findIndex((section) => section.key === 'site-settings')
+  if (websiteIndex > 0) {
+    const [website] = sections.splice(websiteIndex, 1)
+    sections.unshift(website)
+  }
+  return sections
 }
 
 export function getWorkspaceBackDestination(
@@ -717,6 +830,7 @@ type SiteSettingsActionState = {
   pending: boolean
   error: string | null
   helperMessage: string | null
+  heldFieldId?: string | null
 }
 
 type RecipesState = {
@@ -2514,8 +2628,20 @@ export function createTickerLinkFromSelection(input: {
   }
 }
 
+const LEGACY_TICKER_LINE = /^\[[^\]]+\]\([^()\s]+\)$/
+
+export function hasLegacyTickerLink(tickerText: string) {
+  return tickerText.split('\n').some((line) => LEGACY_TICKER_LINE.test(line.trim()))
+}
+
 export function makeTickerLinksPlainText(tickerText: string) {
-  return tickerText.replace(/\[([^\]]+)\]\([^()\s]+\)/g, '$1')
+  return tickerText
+    .split('\n')
+    .map((line) => {
+      const match = line.trim().match(/^\[([^\]]+)\]\([^()\s]+\)$/)
+      return match ? line.replace(LEGACY_TICKER_LINE, match[1]) : line
+    })
+    .join('\n')
 }
 
 export function updateHomepageMediaSlot(
@@ -2561,15 +2687,28 @@ export function hasSiteSettingsUnsavedChanges({
   isBrittWithBling?: boolean
 }) {
   if (!settings || !draft) return false
-  return (
-    JSON.stringify(getNormalizedSiteSettingsDraft(draft, { isBrittWithBling })) !==
-    JSON.stringify(
-      getNormalizedSiteSettingsDraft(
-        getSiteSettingsDraft(settings, { isBrittWithBling }),
-        { isBrittWithBling },
-      ),
-    )
+  return myWebsiteDraftFingerprint(draft, isBrittWithBling) !== myWebsiteDraftFingerprint(
+    getSiteSettingsDraft(settings, { isBrittWithBling }),
+    isBrittWithBling,
   )
+}
+
+/** Team I manage is edited in Team Management, so it does not count as a My Website change. */
+function myWebsiteDraftFingerprint(draft: SiteSettingsDraft, isBrittWithBling: boolean) {
+  const {
+    teamName,
+    recruitingLink,
+    heroMotionApplies,
+    heroMotionMode,
+    grandfatheredHeadlineFallback,
+    ...rest
+  } = getNormalizedSiteSettingsDraft(draft, { isBrittWithBling })
+  void teamName
+  void recruitingLink
+  void heroMotionApplies
+  void heroMotionMode
+  void grandfatheredHeadlineFallback
+  return JSON.stringify(rest)
 }
 
 export function getSiteSettingsManualSaveStatusText({
@@ -2682,6 +2821,19 @@ function getCalendarDisplayTimeZone(events: CalendarEvent[]) {
 function getMonthStartInTimeZone(referenceDate: Date, timeZone: string) {
   const { year, month } = getTimeZoneParts(referenceDate, timeZone)
   return new Date(Date.UTC(year, month - 1, 1))
+}
+
+function tileShowFromCalendar(event: CalendarEvent | undefined) {
+  if (!event?.eventTime) return null
+  const zone = event.timeZone || 'America/New_York'
+  const date = new Date(event.eventTime)
+  if (Number.isNaN(date.getTime())) return null
+  return {
+    month: new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: zone }).format(date).toUpperCase(),
+    day: new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone: zone }).format(date),
+    name: getCalendarEventTitle(event),
+    time: new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: zone }).format(date),
+  }
 }
 
 function getCalendarEventTitle(event: CalendarEvent) {
@@ -3087,9 +3239,12 @@ export type DashboardPlaceholderProps = {
   publicSiteSlugOverride?: string | null
   liveQueueSyncCodeOverride?: string | null
   initialSiteSettings?: SiteSettingsDashboardResult
+  /** The server already passed the paid workspace check, so My Website can paint before billing loads. */
+  serverPaidAccess?: boolean
   reviewWorkspaceMode?: boolean
   operatorSupportMode?: boolean
   initialSectionOverride?: WorkspaceSectionKey
+  initialSearch?: string
   onLaunchNicNacAction?: (action: WorkspaceLaunchAction) => void
   onSendNicNacPrompt?: (prompt: string) => void
   onNewConversation?: () => void
@@ -3145,9 +3300,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     publicSiteSlugOverride,
     liveQueueSyncCodeOverride,
     initialSiteSettings,
+    serverPaidAccess = false,
     reviewWorkspaceMode = false,
     operatorSupportMode = false,
     initialSectionOverride,
+    initialSearch = '',
     onLaunchNicNacAction,
     onSendNicNacPrompt,
     onNewConversation,
@@ -3164,9 +3321,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const [activeSection, setActiveSectionState] =
     useState<WorkspaceSectionKey>(() =>
       initialSectionOverride ??
-      (typeof window === 'undefined'
-        ? 'home'
-        : getInitialWorkspaceSection(window.location.search)),
+      getInitialWorkspaceSection(typeof window === 'undefined' ? initialSearch : window.location.search),
     )
   const setActiveSection = useFloorSectionGuard(activeSection, setActiveSectionState, () => {
     workspaceHistoryNavRef.current = 'idle'
@@ -3339,6 +3494,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           status: 'loading',
         },
   )
+  useEffect(() => {
+    if (!initialSiteSettings) return
+    setSiteSettingsState((current) =>
+      current.status === 'ready' ? current : { status: 'ready', settings: initialSiteSettings },
+    )
+  }, [initialSiteSettings])
   const [accountBillingState, setAccountBillingState] =
     useState<AccountBillingState>({
       status: reviewWorkspaceMode ? 'ready' : 'loading',
@@ -3389,6 +3550,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       error: null,
       helperMessage: null,
     })
+  const [forceSiteFieldErrors, setForceSiteFieldErrors] = useState(false)
+  const [siteSettingsFieldEpoch, setSiteSettingsFieldEpoch] = useState(0)
   const [siteSettingsMediaUploadKey, setSiteSettingsMediaUploadKey] =
     useState<PublicSiteMediaSlotKey | null>(null)
   const [siteSettingsMediaUploadFeedback, setSiteSettingsMediaUploadFeedback] =
@@ -3428,7 +3591,20 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const siteSettingsDraftRef = useRef<SiteSettingsDraft | null>(
     siteSettingsDraft,
   )
+  const siteSettingsStateRef = useRef(siteSettingsState)
+  siteSettingsStateRef.current = siteSettingsState
+  const autosaveTimerRef = useRef<number | null>(null)
+  const autosaveAgainRef = useRef(false)
+  const undoSnapshotRef = useRef<SiteSettingsDraft | null>(null)
+  const undoTimerRef = useRef<number | null>(null)
+  const [undoReady, setUndoReady] = useState(false)
+  const [autosaveWaiting, setAutosaveWaiting] = useState(false)
+  const runSiteAutosaveRef = useRef<() => void>(() => {})
   const siteSettingsSaveRequestRef = useRef(0)
+  const siteSettingsVersionRef = useRef(0)
+  const siteSettingsSavePendingRef = useRef(false)
+  const heroAnimationTouchedRef = useRef(false)
+  const queuedNicNacSiteRefreshRef = useRef(false)
   const [tradeBoardState, setTradeBoardState] = useState<TradeBoardState>({
     status: reviewWorkspaceMode ? 'ready' : 'loading',
     board: reviewWorkspaceMode
@@ -3650,6 +3826,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     setSiteSettingsState({
       status: 'ready',
       settings: payload,
+    })
+  }
+
+  function retrySiteSettings() {
+    setSiteSettingsState({ status: 'loading' })
+    void loadSiteSettings().catch((error) => {
+      if ((error as { name?: string }).name === 'AbortError') return
+      setSiteSettingsState({ status: 'error' })
     })
   }
 
@@ -4069,8 +4253,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     const controller = new AbortController()
     let cancelled = false
 
-    ;(async () => {
-      await Promise.all([
+    const start = () => {
+      void Promise.all([
         loadRepProfile(controller.signal).catch((error) => {
           if (cancelled) return
           if ((error as { name?: string }).name === 'AbortError') return
@@ -4087,13 +4271,15 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           setResourcesState({ status: 'error' })
         }),
       ])
-    })()
+    }
+    const cancelIdle = serverPaidAccess ? afterFirstPaint(start) : (start(), () => {})
 
     return () => {
       cancelled = true
+      cancelIdle()
       controller.abort()
     }
-  }, [operatorSupportMode, reviewWorkspaceMode])
+  }, [operatorSupportMode, reviewWorkspaceMode, serverPaidAccess])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -4154,19 +4340,44 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     setAutoRechargeDraft(getAutoRechargeDraft(walletState.summary))
   }, [walletState.status, walletState.summary])
 
+  const siteSettingsBaselineRef = useRef<SiteSettingsDashboardResult | null>(
+    initialSiteSettings ?? null,
+  )
+  const siteSettingsBrittRef = useRef(isBrittWithBlingWorkspace)
   useEffect(() => {
     if (siteSettingsState.status !== 'ready' || !siteSettingsState.settings) return
-
-    setSiteSettingsDraft(
-      getSiteSettingsDraft(siteSettingsState.settings, {
-        isBrittWithBling: isBrittWithBlingWorkspace,
-      }),
-    )
+    const nextSettings = siteSettingsState.settings
+    const previousSettings = siteSettingsBaselineRef.current
+    const previousBritt = siteSettingsBrittRef.current
+    siteSettingsBaselineRef.current = nextSettings
+    siteSettingsBrittRef.current = isBrittWithBlingWorkspace
+    const options = { isBrittWithBling: isBrittWithBlingWorkspace }
+    setSiteSettingsDraft((current) => {
+      if (!current || !previousSettings || previousBritt !== isBrittWithBlingWorkspace) {
+        return getSiteSettingsDraft(nextSettings, options)
+      }
+      if (previousSettings === nextSettings) return current
+      return mergePreparedSiteSettingsDraft(
+        current,
+        getSiteSettingsDraft(previousSettings, options),
+        getSiteSettingsDraft(nextSettings, options),
+      )
+    })
   }, [
     isBrittWithBlingWorkspace,
     siteSettingsState.status,
     siteSettingsState.settings,
   ])
+
+  useEffect(() => {
+    if (siteSettingsActionState.helperMessage !== SAVED_LABEL) return
+    const timeout = window.setTimeout(() => {
+      setSiteSettingsActionState((current) =>
+        current.helperMessage === SAVED_LABEL ? { ...current, helperMessage: null } : current,
+      )
+    }, 1200)
+    return () => window.clearTimeout(timeout)
+  }, [siteSettingsActionState.helperMessage])
 
   useEffect(() => {
     siteSettingsDraftRef.current = siteSettingsDraft
@@ -4472,24 +4683,49 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }
 
+  function rememberSiteDraft(next: SiteSettingsDraft | null) {
+    siteSettingsDraftRef.current = next
+    setSiteSettingsDraft(next)
+  }
+
+  function scheduleSiteAutosave(mode: 'now' | 'debounce') {
+    setUndoReady(false)
+    if (autosaveTimerRef.current != null) window.clearTimeout(autosaveTimerRef.current)
+    if (mode === 'now') {
+      autosaveTimerRef.current = null
+      setAutosaveWaiting(false)
+      runSiteAutosaveRef.current()
+      return
+    }
+    setAutosaveWaiting(true)
+    autosaveTimerRef.current = window.setTimeout(() => {
+      autosaveTimerRef.current = null
+      setAutosaveWaiting(false)
+      runSiteAutosaveRef.current()
+    }, AUTOSAVE_WAIT_MS)
+  }
+
   function handleSiteSettingsDraftChange(
     patch: Partial<SiteSettingsDraft>,
   ) {
+    if (Object.prototype.hasOwnProperty.call(patch, 'heroAnimationType')) {
+      heroAnimationTouchedRef.current = true
+    }
     setSiteSettingsActionState((current) => ({
       pending: current.pending,
       error: null,
       helperMessage: null,
     }))
-    setSiteSettingsDraft((current) => {
-      if (!current) return current
-      return {
-        ...current,
-        ...patch,
-        socialHandles: patch.socialHandles
-          ? { ...patch.socialHandles }
-          : current.socialHandles,
-      }
+    const current = siteSettingsDraftRef.current
+    if (!current) return
+    rememberSiteDraft({
+      ...current,
+      ...patch,
+      socialHandles: patch.socialHandles
+        ? { ...patch.socialHandles }
+        : current.socialHandles,
     })
+    scheduleSiteAutosave(autosaveTiming(patch))
   }
 
   function handleSocialHandleChange(platform: string, value: string) {
@@ -4498,16 +4734,16 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       error: null,
       helperMessage: null,
     }))
-    setSiteSettingsDraft((current) => {
-      if (!current) return current
-      return {
-        ...current,
-        socialHandles: {
-          ...current.socialHandles,
-          [platform]: value,
-        },
-      }
+    const current = siteSettingsDraftRef.current
+    if (!current) return
+    rememberSiteDraft({
+      ...current,
+      socialHandles: {
+        ...current.socialHandles,
+        [platform]: value,
+      },
     })
+    scheduleSiteAutosave('debounce')
   }
 
   function handleHomepageMediaChange(
@@ -4519,9 +4755,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       error: null,
       helperMessage: null,
     }))
-    setSiteSettingsDraft((current) =>
-      current ? updateHomepageMediaSlot(current, key, patch) : current,
+    const current = siteSettingsDraftRef.current
+    if (!current) return
+    rememberSiteDraft(updateHomepageMediaSlot(current, key, patch))
+    const textOnly = Object.keys(patch).every((field) =>
+      field === 'caption' || field === 'videoUrl' || field === 'portraitZoom' || field === 'portraitFocusX' || field === 'portraitFocusY',
     )
+    scheduleSiteAutosave(textOnly ? 'debounce' : 'now')
   }
 
   async function handleHomepageMediaUpload(
@@ -4554,26 +4794,26 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       if (!response.ok || !payload?.imageUrl) {
         throw new Error(payload?.error || 'Unable to upload that image.')
       }
-      setSiteSettingsDraft((current) =>
-        current
-          ? updateHomepageMediaSlot(current, key, {
-              imageUrl: payload.imageUrl,
-              ...(isBrittWithBlingWorkspace ? { isVisible: true } : {}),
-              ...(smartPortraitFraming ?? {}),
-            })
-          : current,
-      )
+      const currentDraft = siteSettingsDraftRef.current
+      if (currentDraft) {
+        rememberSiteDraft(updateHomepageMediaSlot(currentDraft, key, {
+          imageUrl: payload.imageUrl,
+          ...(isBrittWithBlingWorkspace ? { isVisible: true } : {}),
+          ...(smartPortraitFraming ?? {}),
+        }))
+        scheduleSiteAutosave('now')
+      }
       setSiteSettingsActionState((current) => ({
         pending: current.pending,
         error: null,
-        helperMessage: 'Image uploaded. Save site settings to publish it.',
+        helperMessage: null,
       }))
       setSiteSettingsMediaUploadFeedback({
         key,
         message:
           key === 'about_1'
-            ? 'Photo uploaded with Smart Frame. Review the preview, then save.'
-            : 'Photo uploaded. It is ready to save.',
+            ? 'Photo uploaded with Smart Frame. It saves on its own.'
+            : 'Photo uploaded. It saves on its own.',
         tone: 'success',
       })
     } catch (error) {
@@ -4581,7 +4821,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         error instanceof Error ? error.message : 'Unable to upload that image.'
       setSiteSettingsActionState((current) => ({
         pending: current.pending,
-        error: message,
+        error: null,
         helperMessage: null,
       }))
       setSiteSettingsMediaUploadFeedback({ key, message, tone: 'error' })
@@ -4632,7 +4872,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       }
 
       const savedSettings = payload.settings
-      setSiteSettingsState({ status: 'ready', settings: savedSettings })
+      acceptSiteSettingsSnapshot(savedSettings)
       setSiteSettingsDraft((current) =>
         current
           ? {
@@ -4660,7 +4900,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   }
 
   async function handleRemoveHomepageVideo(key: PublicSiteMediaSlotKey, expectedUrl: string) {
-    if (siteSettingsActionState.pending) return
+    if (siteSettingsActionState.pending || siteSettingsSavePendingRef.current) return
+    const requestId = siteSettingsSaveRequestRef.current
+    siteSettingsSavePendingRef.current = true
     setSiteSettingsActionState({ pending: true, error: null, helperMessage: null })
     try {
       const response = await fetch('/api/nic-nac/site-settings/remove-video', {
@@ -4671,7 +4913,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       if (!response.ok || !payload.settings) throw new Error(payload.error || 'Unable to remove video.')
       const settings = payload.settings
       const clearedSlot = settings.homepageMediaSlots?.find(slot => slot.key === key)
-      setSiteSettingsState({ status: 'ready', settings })
+      acceptSiteSettingsSnapshot(settings)
       setSiteSettingsDraft(current => current && clearedSlot
         ? updateHomepageMediaSlot(current, key, { videoUrl: '', isVisible: false, tiktokVideoStatus: null })
         : current)
@@ -4679,7 +4921,34 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       refreshLiveSitePreviewAfterSiteSettingsSave()
     } catch (error) {
       setSiteSettingsActionState({ pending: false, error: error instanceof Error ? error.message : 'Unable to remove video.', helperMessage: null })
+    } finally {
+      if (siteSettingsSaveRequestRef.current === requestId) {
+        siteSettingsSavePendingRef.current = false
+        flushQueuedNicNacSiteRefresh()
+      }
     }
+  }
+
+  function refreshSiteSettingsFromNicNac() {
+    const startedVersion = siteSettingsVersionRef.current
+    void fetch('/api/nic-nac/site-settings', { credentials: 'include' })
+      .then(async (response) => {
+        if (!response.ok) return
+        const payload = (await response.json()) as SiteSettingsResponsePayload
+        if (!shouldApplyNicNacSiteRefresh({
+          startedVersion,
+          currentVersion: siteSettingsVersionRef.current,
+          savePending: siteSettingsSavePendingRef.current,
+        })) return
+        setSiteSettingsState({ status: 'ready', settings: payload })
+      })
+      .catch(() => undefined)
+  }
+
+  function flushQueuedNicNacSiteRefresh() {
+    if (!queuedNicNacSiteRefreshRef.current) return
+    queuedNicNacSiteRefreshRef.current = false
+    refreshSiteSettingsFromNicNac()
   }
 
   async function saveSiteSettingsDraft(draftToSave: SiteSettingsDraft) {
@@ -4689,6 +4958,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       isBrittWithBling: isBrittWithBlingWorkspace,
     })
 
+    siteSettingsSavePendingRef.current = true
     setSiteSettingsActionState({
       pending: true,
       error: null,
@@ -4696,11 +4966,19 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
+      const savedDraft = siteSettingsStateRef.current.status === 'ready' && siteSettingsStateRef.current.settings
+        ? getNormalizedSiteSettingsDraft(getSiteSettingsDraft(siteSettingsStateRef.current.settings, {
+          isBrittWithBling: isBrittWithBlingWorkspace,
+        }))
+        : normalizedDraft
+      const patch = changedSiteSettingsPayload(savedDraft, normalizedDraft)
+      if (heroAnimationTouchedRef.current) patch.heroAnimationType = normalizedDraft.heroAnimationType
       const response = await fetch('/api/nic-nac/site-settings', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(normalizedDraft),
+        keepalive: true,
+        body: JSON.stringify(patch),
       })
 
       const payload = (await response.json().catch(() => null)) as
@@ -4711,60 +4989,146 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         throw new Error(payload?.error || 'Unable to save site settings.')
       }
 
-      setSiteSettingsState({
-        status: 'ready',
-        settings: payload.settings,
-      })
+      acceptSiteSettingsSnapshot(payload.settings)
       const latestDraft = siteSettingsDraftRef.current
+      if (!latestDraft || latestDraft.heroAnimationType === payload.settings.heroAnimationType) {
+        heroAnimationTouchedRef.current = false
+      }
       if (
         !latestDraft ||
         JSON.stringify(latestDraft) === JSON.stringify(normalizedDraft)
       ) {
-        setSiteSettingsDraft(
-          getSiteSettingsDraft(payload.settings, {
-            isBrittWithBling: isBrittWithBlingWorkspace,
-          }),
-        )
+        const nextDraft = getSiteSettingsDraft(payload.settings, {
+          isBrittWithBling: isBrittWithBlingWorkspace,
+        })
+        siteSettingsDraftRef.current = nextDraft
+        setSiteSettingsDraft(nextDraft)
       }
       if (siteSettingsSaveRequestRef.current === requestId) {
+        const blocked = siteSettingsDraftRef.current
+          ? collectSiteSettingsFieldErrors(siteSettingsDraftRef.current)
+          : []
+        setForceSiteFieldErrors(blocked.length > 0)
+        const held = blocked[0]
         setSiteSettingsActionState({
           pending: false,
           error: null,
-          helperMessage: 'Site settings saved.',
+          helperMessage: held ? `Saved, except ${held.label}` : SAVED_LABEL,
+          heldFieldId: held?.id ?? null,
         })
+        if (held) {
+          window.requestAnimationFrame(() => document.getElementById(held.id)?.focus())
+        }
+        if (!autosaveAgainRef.current) {
+          setUndoReady(true)
+          if (undoTimerRef.current != null) window.clearTimeout(undoTimerRef.current)
+          undoTimerRef.current = window.setTimeout(() => setUndoReady(false), 8000)
+        }
       }
       refreshLiveSitePreviewAfterSiteSettingsSave()
     } catch (error) {
       if (siteSettingsSaveRequestRef.current === requestId) {
         setSiteSettingsActionState({
           pending: false,
-          error:
+          error: formatSiteSaveFailure(
             error instanceof Error ? error.message : 'Unable to save site settings.',
+          ),
           helperMessage: null,
         })
+      }
+    } finally {
+      if (siteSettingsSaveRequestRef.current === requestId) {
+        siteSettingsSavePendingRef.current = false
+        flushQueuedNicNacSiteRefresh()
+        if (autosaveAgainRef.current) {
+          autosaveAgainRef.current = false
+          runSiteAutosaveRef.current()
+        }
       }
     }
   }
 
-  function handleSaveSiteSettings() {
+  function acceptSiteSettingsSnapshot(settings: SiteSettingsDashboardResult) {
+    siteSettingsVersionRef.current += 1
+    setSiteSettingsState({ status: 'ready', settings })
+  }
+
+  function handleDiscardSiteSettings() {
     if (siteSettingsState.status !== 'ready' || !siteSettingsState.settings) return
-    if (!siteSettingsDraft) return
-    if (
-      !hasSiteSettingsUnsavedChanges({
-        settings: siteSettingsState.settings,
-        draft: siteSettingsDraft,
+    heroAnimationTouchedRef.current = false
+    setForceSiteFieldErrors(false)
+    setSiteSettingsFieldEpoch((current) => current + 1)
+    setSiteSettingsDraft(
+      getSiteSettingsDraft(siteSettingsState.settings, {
         isBrittWithBling: isBrittWithBlingWorkspace,
-      })
-    ) {
-      setSiteSettingsActionState({
-        pending: false,
-        error: null,
-        helperMessage: 'No unsaved changes.',
-      })
+      }),
+    )
+    setSiteSettingsActionState({ pending: false, error: null, helperMessage: null })
+  }
+
+  function runSiteAutosave() {
+    const draft = siteSettingsDraftRef.current
+    const state = siteSettingsStateRef.current
+    if (!draft || state.status !== 'ready' || !state.settings) return
+    const saved = getSiteSettingsDraft(state.settings, {
+      isBrittWithBling: isBrittWithBlingWorkspace,
+    })
+    const ready = draftHoldingInvalidFields(draft, saved)
+    const blocked = collectSiteSettingsFieldErrors(draft)
+    const patch = changedSiteSettingsPayload(
+      getNormalizedSiteSettingsDraft(saved),
+      getNormalizedSiteSettingsDraft(ready),
+    )
+    if (Object.keys(patch).length === 0) {
+      setForceSiteFieldErrors(blocked.length > 0)
+      if (blocked.length > 0) {
+        const held = blocked[0]
+        setSiteSettingsActionState({
+          pending: false,
+          error: null,
+          helperMessage: `Saved, except ${held.label}`,
+          heldFieldId: held.id,
+        })
+        window.requestAnimationFrame(() => document.getElementById(held.id)?.focus())
+      }
       return
     }
+    if (siteSettingsSavePendingRef.current) {
+      autosaveAgainRef.current = true
+      return
+    }
+    undoSnapshotRef.current = saved
+    void saveSiteSettingsDraft(getNormalizedSiteSettingsDraft(ready))
+  }
+  runSiteAutosaveRef.current = runSiteAutosave
 
-    void saveSiteSettingsDraft(getNormalizedSiteSettingsDraft(siteSettingsDraft))
+  function undoLastSiteChange() {
+    const snapshot = undoSnapshotRef.current
+    if (!snapshot) return
+    setUndoReady(false)
+    rememberSiteDraft(snapshot)
+    if (autosaveTimerRef.current != null) window.clearTimeout(autosaveTimerRef.current)
+    runSiteAutosaveRef.current()
+  }
+
+  function handleSaveSiteSettings() {
+    runSiteAutosave()
+  }
+
+  async function flushLookPreviewEditor() {
+    if (autosaveTimerRef.current != null) {
+      window.clearTimeout(autosaveTimerRef.current)
+      autosaveTimerRef.current = null
+      runSiteAutosave()
+    }
+    const started = Date.now()
+    while (siteSettingsSavePendingRef.current && Date.now() - started < 8000) {
+      await new Promise((resolve) => window.setTimeout(resolve, 50))
+    }
+    await fetch('/api/nic-nac/site-settings/look-preview', {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => undefined)
   }
 
   function handleRecipeDraftChange(patch: Partial<RecipeDraft>) {
@@ -5200,6 +5564,88 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   ])
 
   useEffect(() => {
+    const flush = () => {
+      if (autosaveTimerRef.current == null) return
+      window.clearTimeout(autosaveTimerRef.current)
+      autosaveTimerRef.current = null
+      setAutosaveWaiting(false)
+      runSiteAutosaveRef.current()
+    }
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flush()
+    }
+    window.addEventListener('pagehide', flush)
+    document.addEventListener('visibilitychange', onHide)
+    return () => {
+      window.removeEventListener('pagehide', flush)
+      document.removeEventListener('visibilitychange', onHide)
+    }
+  }, [])
+
+  const lookPreviewStatus = siteSettingsState.status === 'ready'
+    ? siteSettingsState.settings?.lookPreview?.status ?? null
+    : null
+  useEffect(() => {
+    if (!lookPreviewStillPending(lookPreviewStatus)) return
+    let stopped = false
+    let timer = 0
+    let attempt = 0
+    const started = Date.now()
+    const schedule = (wait: number) => {
+      if (stopped) return
+      timer = window.setTimeout(() => { void tick() }, wait)
+    }
+    const tick = async () => {
+      if (stopped || Date.now() - started >= LOOK_PREVIEW_POLL_WINDOW_MS) return
+      if (document.hidden) return
+      if (siteSettingsSavePendingRef.current) {
+        schedule(1000)
+        return
+      }
+      try {
+        const response = await fetch('/api/nic-nac/site-settings/look-preview', { credentials: 'include' })
+        if (response.ok) {
+          const payload = (await response.json()) as {
+            lookPreview?: NonNullable<SiteSettingsDashboardResult['lookPreview']> | null
+          }
+          const next = payload.lookPreview
+          if (next && !siteSettingsSavePendingRef.current) {
+            setSiteSettingsState((current) => {
+              if (current.status !== 'ready' || !current.settings) return current
+              const currentPreview = current.settings.lookPreview
+              if (
+                currentPreview?.status === next.status
+                && currentPreview.desktopUrl === next.desktopUrl
+                && currentPreview.phoneUrl === next.phoneUrl
+              ) return current
+              return { status: 'ready', settings: { ...current.settings, lookPreview: next } }
+            })
+            if (!lookPreviewStillPending(next.status)) return
+          }
+        }
+      } catch {
+        // The last picture stays up. The next check tries again.
+      }
+      if (stopped || Date.now() - started >= LOOK_PREVIEW_POLL_WINDOW_MS) return
+      const wait = nextLookPreviewPollDelay(attempt)
+      attempt += 1
+      schedule(wait)
+    }
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      window.clearTimeout(timer)
+      void tick()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    if (!document.hidden) schedule(nextLookPreviewPollDelay(0))
+    return () => {
+      stopped = true
+      window.clearTimeout(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [lookPreviewStatus])
+
+  useEffect(() => {
     if (activeSection !== 'trade-board') return
     if (reviewWorkspaceMode) return
     let stopped = false
@@ -5326,6 +5772,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           setCalendarState({ status: 'error' })
         })
       }
+      if (topic === 'site' && !reviewWorkspaceMode) {
+        if (siteSettingsSavePendingRef.current) {
+          queuedNicNacSiteRefreshRef.current = true
+        } else {
+          refreshSiteSettingsFromNicNac()
+        }
+      }
       if (topic === 'site' && activeSection === 'recipes') {
         void loadSiteRecipes(undefined, {
           preferredRecipeId: selectedRecipeId,
@@ -5365,9 +5818,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (reviewWorkspaceMode) return
 
     const controller = new AbortController()
-    void loadPaidWorkspaceData(controller.signal)
+    const cancelIdle = afterFirstPaint(() => {
+      void loadPaidWorkspaceData(controller.signal)
+    })
 
-    return () => controller.abort()
+    return () => {
+      cancelIdle()
+      controller.abort()
+    }
   }, [operatorSupportMode, reviewWorkspaceMode])
 
   useEffect(() => {
@@ -6102,7 +6560,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       throw new Error(responseError || 'Unable to save that lead card photo right now.')
     }
     const savedSettings = payload.settings
-    setSiteSettingsState({ status: 'ready', settings: savedSettings })
+    acceptSiteSettingsSnapshot(savedSettings)
     setSiteSettingsDraft((current) =>
       current
         ? {
@@ -6847,7 +7305,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     publicSiteSlug: publicSiteSlugOverride ?? repProfileState.publicSiteSlug,
   })
   const isWorkspaceAccessLoading = accountBillingState.status !== 'ready'
-  const hasWorkspaceAccess = operatorSupportMode || hasPaidWorkspace
+  const hasWorkspaceAccess = operatorSupportMode || hasPaidWorkspace || serverPaidAccess
   const canRenderWorkspaceSections = hasWorkspaceAccess
   const visibleWorkspaceSections = getVisibleWorkspaceSections(
     hasWorkspaceAccess,
@@ -6874,13 +7332,30 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     draft: siteSettingsDraft,
     isBrittWithBling: isBrittWithBlingWorkspace,
   })
-  const siteSettingsSaveStatusText = getSiteSettingsManualSaveStatusText({
-    settings: siteSettingsState.settings,
-    draft: siteSettingsDraft,
-    actionState: siteSettingsActionState,
-    statusMessage: siteSettingsActionState.helperMessage,
-    isBrittWithBling: isBrittWithBlingWorkspace,
-  })
+  const siteSettingsChangeLabels =
+    siteSettingsState.settings && siteSettingsDraft
+      ? listSiteSettingsChanges(
+          getNormalizedSiteSettingsDraft(
+            getSiteSettingsDraft(siteSettingsState.settings, {
+              isBrittWithBling: isBrittWithBlingWorkspace,
+            }),
+            { isBrittWithBling: isBrittWithBlingWorkspace },
+          ),
+          getNormalizedSiteSettingsDraft(siteSettingsDraft, {
+            isBrittWithBling: isBrittWithBlingWorkspace,
+          }),
+          { isBrittWithBling: isBrittWithBlingWorkspace },
+        )
+      : []
+  const siteSettingsChanges =
+    siteSettingsChangeLabels.length > 0
+      ? siteSettingsChangeLabels
+      : siteSettingsHasUnsavedChanges
+        ? ['Site details']
+        : []
+  const siteSettingsLeaveActive =
+    siteSettingsActionState.pending || Boolean(siteSettingsActionState.error) || autosaveWaiting
+  const discardOpenerRef = useRef<SiteDiscardOpener | null>(null)
   const activeWorkspaceShellSection = WORKSPACE_SECTIONS.some(
     (section) => section.key === activeSection,
   )
@@ -7329,7 +7804,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             draft={siteSettingsDraft}
             actionState={siteSettingsActionState}
             hasUnsavedChanges={siteSettingsHasUnsavedChanges}
-            statusMessage={siteSettingsSaveStatusText}
+            changes={siteSettingsChanges}
+            forceFieldErrors={forceSiteFieldErrors}
+            fieldEpoch={siteSettingsFieldEpoch}
+            publicSiteUrl={customerSparkleSiteUrl}
             onDraftChange={handleSiteSettingsDraftChange}
             onSocialHandleChange={handleSocialHandleChange}
             onHomepageMediaChange={handleHomepageMediaChange}
@@ -7338,9 +7816,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             mediaUploadKey={siteSettingsMediaUploadKey}
             mediaUploadFeedback={siteSettingsMediaUploadFeedback}
             isBrittWithBling={isBrittWithBlingWorkspace}
-            canPreview={Boolean(customerSparkleSiteHref)}
-            onPreview={handleOpenCustomerSitePreview}
+            onDiscard={() => discardOpenerRef.current?.open()}
             onSave={handleSaveSiteSettings}
+            onLookClose={() => { void flushLookPreviewEditor() }}
+            onCommit={() => scheduleSiteAutosave('now')}
+            onUndo={undoLastSiteChange}
+            undoReady={undoReady}
+            onRetry={retrySiteSettings}
+            nextShow={tileShowFromCalendar(calendarState.summary?.upcomingEvents?.[0])}
           />
         </div>
       )
@@ -7449,6 +7932,19 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       data-workspace-skin="concept-one"
       data-customer-site-skin={workspaceSkinPreset}
     >
+      <SiteLeaveGuard
+        active={siteSettingsLeaveActive}
+        count={siteSettingsChanges.length}
+        onDiscard={handleDiscardSiteSettings}
+        openerRef={discardOpenerRef}
+        message={
+          siteSettingsActionState.pending
+            ? 'A save is still finishing.'
+            : siteSettingsActionState.error
+              ? "The last save didn't go through."
+              : null
+        }
+      />
       {tradeReview ? <TradeRequestReviewDialog
         key={tradeReview.request.id}
         request={tradeReview.request}
@@ -9694,13 +10190,110 @@ export function HelpResourcesCard({
   )
 }
 
+function ShareMySite({ url }: { url: string | null }) {
+  const [note, setNote] = useState('')
+  const [qr, setQr] = useState('')
+  const [canShare, setCanShare] = useState(false)
+  useEffect(() => {
+    setCanShare(typeof navigator.share === 'function')
+  }, [])
+  useEffect(() => {
+    if (!url) return
+    let cancel = false
+    void QRCode.toDataURL(url, { width: 320, margin: 1 }).then((value) => {
+      if (!cancel) setQr(value)
+    }).catch(() => undefined)
+    return () => { cancel = true }
+  }, [url])
+  if (!url) return null
+  const copy = () => {
+    void navigator.clipboard.writeText(url).then(() => setNote('Link copied')).catch(() => setNote('Copy the link from the sheet'))
+  }
+  return (
+    <div className={styles.shareSite}>
+      <button type="button" className={styles.shareSiteButton} popoverTarget="share-my-site">Share my site</button>
+      <dialog id="share-my-site" popover="auto" className={styles.shareSheet} aria-labelledby="share-my-site-title">
+        <span className={styles.shareGrab} aria-hidden="true" />
+        <div className={styles.shareSheetHead}>
+          <div>
+            <p className={styles.lookEyebrow}>Share</p>
+            <h2 id="share-my-site-title" className={styles.lookTitle}>Share my site</h2>
+          </div>
+          <button type="button" className={styles.shareClose} aria-label="Close" popoverTarget="share-my-site" popoverTargetAction="hide"><span aria-hidden="true">×</span></button>
+        </div>
+        <div className={styles.shareLinkRow}>
+          <p className={styles.shareLink} title={url}>{url}</p>
+          <button type="button" onClick={copy}>Copy</button>
+          {canShare ? (
+            <button type="button" onClick={() => { void navigator.share?.({ title: 'My site', url }).catch(() => undefined) }}>Share</button>
+          ) : null}
+        </div>
+        {note ? <p role="status">{note}</p> : null}
+        {qr ? (
+          <div className={styles.shareQr}>
+            <img src={qr} alt="" width={180} height={180} />
+            <a href={qr} download="my-site-qr.png">Download</a>
+          </div>
+        ) : null}
+      </dialog>
+    </div>
+  )
+}
+
+function LookCoverImage({
+  desktop,
+  phone,
+  fallback,
+  onGiveUp,
+}: {
+  desktop: string
+  phone: string
+  fallback: string
+  onGiveUp?: () => void
+}) {
+  const nextKey = `${desktop}|${phone}|${fallback}`
+  const [shown, setShown] = useState({ desktop, phone, fallback, key: nextKey })
+  useEffect(() => {
+    if (!nextKey || nextKey === shown.key) return
+    let cancel = false
+    const image = new Image()
+    image.decoding = 'async'
+    const giveUp = () => { if (!cancel) onGiveUp?.() }
+    const reveal = () => {
+      if (cancel || image.naturalWidth < 1) {
+        giveUp()
+        return
+      }
+      const decoded = typeof image.decode === 'function' ? image.decode() : Promise.resolve()
+      Promise.resolve(decoded).then(() => {
+        if (!cancel) setShown({ desktop, phone, fallback, key: nextKey })
+      }).catch(giveUp)
+    }
+    image.onload = reveal
+    image.onerror = giveUp
+    image.src = desktop || phone || fallback
+    return () => { cancel = true }
+  }, [desktop, fallback, nextKey, onGiveUp, phone, shown.key])
+  const src = shown.desktop || shown.phone || shown.fallback
+  if (!src) return null
+  return (
+    <picture className={styles.siteLookPicture}>
+      {shown.phone ? <source media="(max-width: 879px)" srcSet={shown.phone} /> : null}
+      <img src={src} alt="" decoding="async" />
+    </picture>
+  )
+}
+
 export function SiteSettingsCard({
   repId,
   state,
   draft,
   actionState,
   hasUnsavedChanges = false,
-  statusMessage,
+  changes = [],
+  forceFieldErrors = false,
+  fieldEpoch = 0,
+  publicSiteUrl = null,
   onDraftChange,
   onSocialHandleChange,
   onHomepageMediaChange,
@@ -9709,16 +10302,27 @@ export function SiteSettingsCard({
   mediaUploadKey,
   mediaUploadFeedback,
   isBrittWithBling = false,
-  canPreview,
-  onPreview,
+  initialOpenSection = null,
+  initialOpenSections = null,
+  onDiscard,
   onSave,
+  onLookClose,
+  onRetry,
+  onCommit,
+  onUndo,
+  undoReady = false,
+  previewThemeCards = null,
+  initialDialog = null,
 }: {
   repId?: string | null
   state: SiteSettingsState
   draft?: SiteSettingsDraft | null
   actionState?: SiteSettingsActionState
   hasUnsavedChanges?: boolean
-  statusMessage?: string | null
+  changes?: string[]
+  forceFieldErrors?: boolean
+  fieldEpoch?: number
+  publicSiteUrl?: string | null
   onDraftChange?: (patch: Partial<SiteSettingsDraft>) => void
   onSocialHandleChange?: (platform: string, value: string) => void
   onHomepageMediaChange?: (
@@ -9737,11 +10341,29 @@ export function SiteSettingsCard({
     tone: 'error' | 'success'
   } | null
   isBrittWithBling?: boolean
-  canPreview?: boolean
-  onPreview?: () => void
+  initialOpenSection?: SiteSectionId | null
+  initialOpenSections?: SiteSectionId[] | null
+  onDiscard?: () => void
   onSave?: () => void
+  onLookClose?: () => void
+  onRetry?: () => void
+  onCommit?: () => void
+  onUndo?: () => void
+  undoReady?: boolean
+  previewThemeCards?: readonly AmethystSkinCard[] | null
+  nextShow?: { month: string; day: string; name: string; time: string } | null
+  initialDialog?: 'signup' | 'links' | 'about' | 'look' | 'theme' | null
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const lookRef = useRef<HTMLDialogElement>(null)
+  const aboutRef = useRef<HTMLDialogElement>(null)
+  const showsRef = useRef<HTMLDialogElement>(null)
+  const linksRef = useRef<HTMLDialogElement>(null)
+  const themeRef = useRef<HTMLDialogElement>(null)
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
+  const [localFieldErrors, setLocalFieldErrors] = useState(false)
+  const [fieldAnnouncement, setFieldAnnouncement] = useState('')
+  const fieldAnnounceTimer = useRef<number | null>(null)
   const [tickerLinkUrl, setTickerLinkUrl] = useState('')
   const [tickerLinkError, setTickerLinkError] = useState<string | null>(null)
   const [tickerLinkSelection, setTickerLinkSelection] = useState<{
@@ -9749,6 +10371,47 @@ export function SiteSettingsCard({
     end: number
     text: string
   } | null>(null)
+  const [coverQuiet, setCoverQuiet] = useState(false)
+  const coverKey = state.status === 'ready'
+    ? `${state.settings?.lookPreview?.desktopUrl ?? ''}|${state.settings?.lookPreview?.phoneUrl ?? ''}`
+    : ''
+  useEffect(() => { setCoverQuiet(false) }, [coverKey])
+
+  useEffect(() => {
+    setTouchedFields({})
+    setLocalFieldErrors(false)
+  }, [fieldEpoch])
+
+  useEffect(() => {
+    const dialog = initialDialog === 'signup' ? showsRef.current : initialDialog === 'links' ? linksRef.current : initialDialog === 'about' ? aboutRef.current : initialDialog === 'look' ? lookRef.current : initialDialog === 'theme' ? themeRef.current : null
+    if (dialog && !dialog.open) dialog.showModal()
+  }, [initialDialog])
+
+  useEffect(() => {
+    return () => {
+      if (fieldAnnounceTimer.current !== null) window.clearTimeout(fieldAnnounceTimer.current)
+    }
+  }, [])
+
+  const touchField = (id: string) => {
+    setTouchedFields((current) => (current[id] ? current : { ...current, [id]: true }))
+  }
+
+  const reportFieldBlur = (id: string, label: string, message: string | null) => {
+    touchField(id)
+    if (fieldAnnounceTimer.current !== null) window.clearTimeout(fieldAnnounceTimer.current)
+    onCommit?.()
+    if (!message) {
+      setFieldAnnouncement('')
+      return
+    }
+    fieldAnnounceTimer.current = window.setTimeout(() => {
+      setFieldAnnouncement(`${label}: ${message}`)
+    }, 500)
+  }
+
+  const showFieldError = (id: string, message: string | null) =>
+    message && (forceFieldErrors || localFieldErrors || touchedFields[id]) ? message : null
 
   const addTickerText = (value: string) => {
     if (!onDraftChange) return
@@ -9806,718 +10469,485 @@ export function SiteSettingsCard({
     window.requestAnimationFrame(() => tickerTextareaRef.current?.focus())
   }
 
-  const hasTickerLinks = /\[[^\]]+\]\([^()\s]+\)/.test(draft?.tickerText ?? '')
-  const skinOptions = useAvailableAmethystSkinCards(repId)
-  const appearancePresetOptions = skinOptions.cards.map((skin) => ({
-    value: skin.id as SiteAppearancePreset,
-    label: getAmethystSkinDropdownLabel(skin),
-  }))
+  const hasTickerLinks = hasLegacyTickerLink(draft?.tickerText ?? '')
+  const liveSkinOptions = useAvailableAmethystSkinCards(previewThemeCards ? null : repId)
+  const skinOptions = previewThemeCards
+    ? { status: 'ready' as const, cards: previewThemeCards, ownedPrivateSkinIds: [] as string[], retry: () => undefined }
+    : liveSkinOptions
 
   if (state.status === 'error') {
     return (
-      <div className={styles.rosterFallback}>
-        Site settings will appear here once your public profile data loads.
+      <div className={styles.settingsLoadError} role="alert">
+        <p>Site settings will appear here once your public profile data loads.</p>
+        <button type="button" className={styles.settingsLoadRetry} onClick={() => onRetry?.()}>
+          Retry
+        </button>
       </div>
     )
   }
 
   if (state.status !== 'ready' || !state.settings || !draft) {
-    return (
-      <div className={styles.cardFill}>
-        <div className={styles.loadingLine} />
-        <div className={styles.loadingLineShort} />
-      </div>
-    )
+    return <SiteSettingsLoadingShell />
   }
+  const settings = state.settings
 
-  const aboutPortraitSlot = (draft.homepageMediaSlots ?? []).find(
-    (slot) => slot.key === 'about_1',
-  )
   const discountCode = draft.signupDiscountCode ?? ''
   const discountMessage = draft.signupDiscountMessage ?? ''
-  const discountCodeError = (discountCode.trim() || draft.signupDiscountEnabled === true) && !normalizeSignupDiscountCode(discountCode)
-    ? 'Use 1 to 40 letters, numbers, or hyphens.' : null
-  const discountMessageError = discountMessage.trim() && !normalizeSignupDiscountMessage(discountMessage)
-    ? 'Use up to 140 characters of plain text, without < or >.' : null
+  const discountCodeProblem = discountCodeFieldError(discountCode, draft.signupDiscountEnabled)
+  const discountCodeError = draft.signupDiscountEnabled
+    ? discountCodeProblem
+    : showFieldError(SITE_FIELD_IDS.discountCode, discountCodeProblem)
+  const discountMessageError = showFieldError(
+    SITE_FIELD_IDS.discountMessage,
+    discountMessageFieldError(discountMessage),
+  )
+  const emailError = showFieldError(SITE_FIELD_IDS.email, emailFieldError(draft.email))
+  const shopLinkError = showFieldError(SITE_FIELD_IDS.shopLink, shopLinkFieldError(draft.shopLink))
+  const socialErrors = Object.fromEntries(
+    (['instagram', 'facebook', 'tiktok', 'youtube', 'whatnot'] as const).map((platform) => [
+      platform,
+      showFieldError(
+        SITE_FIELD_IDS.social(platform),
+        socialLinkFieldError(platform, draft.socialHandles?.[platform]),
+      ),
+    ]),
+  )
+  const saveError = actionState?.error ?? null
+  const savePhase = actionState?.pending ? 'saving' : saveError ? 'error' : 'saved'
+  const checklist = buildSiteSetupChecklist(draft)
+  const themeCard = getAmethystSkinCard(draft.appearancePreset)
+  const lookPreview = settings.lookPreview ?? null
+  const lookDesktop = lookPreview?.desktopUrl || ''
+  const lookPhone = lookPreview?.phoneUrl || ''
+  const lookShot = Boolean(lookDesktop || lookPhone)
+  const aboutSlot = draft.homepageMediaSlots?.find((slot) => slot.key === 'about_1')
+  const aboutSavedPhoto = aboutSlot?.imageUrl?.trim() || ''
+  const aboutPhoto = isBuiltInStockAvatar(aboutSavedPhoto) ? '' : aboutSavedPhoto
+  const aboutCaption = aboutSlot?.caption?.trim() || draft.tagline?.trim() || ''
+  const aboutName = hostFirstName(draft.displayName)
+  const aboutCover = magazineCoverColors(themeCard)
+  const aboutCoverStyle = {
+    '--mag-accent': aboutCover.accent,
+    '--mag-deep': aboutCover.deep,
+  } as CSSProperties
+  const siteGroups = [
+    {
+      id: 'look',
+      title: 'Look',
+      art: themeCard.thumb,
+      summary: `${themeCard.label}. ${draft.businessName.trim() || 'Add your name.'}`,
+      sections: ['top-bar', 'hero'] as SiteSectionId[],
+      dialog: lookRef,
+    },
+    {
+      id: 'about',
+      title: 'About you',
+      art: draft.homepageMediaSlots?.find((slot) => slot.key === 'about_1')?.imageUrl || null,
+      summary: draft.aboutNarrative?.trim() || 'Your story, photo, and the Bomb Party video.',
+      sections: ['about', 'bomb-party'] as SiteSectionId[],
+      dialog: aboutRef,
+    },
+    {
+      id: 'shows',
+      title: 'Sign-up discount',
+      art: null,
+      summary: SIGNUP_TILE_SUMMARY,
+      sections: ['signup'] as SiteSectionId[],
+      dialog: showsRef,
+    },
+    {
+      id: 'links',
+      title: 'Socials and Contact Info',
+      art: null,
+      summary: 'Your email, tagline, and social links.',
+      sections: ['footer'] as SiteSectionId[],
+      dialog: linksRef,
+    },
+  ]
+  const signupTile = signupDiscountTile(draft)
+  const coverName = draft.displayName.trim() ? hostFirstName(draft.displayName) : ''
+  const coverEmail = draft.email.trim()
+  const coverSocials = SOCIAL_PLATFORMS.filter((platform) => draft.socialHandles?.[platform.key]?.trim())
+  const coverEmpty = !coverName && !coverEmail && coverSocials.length === 0
+  const coverMonogram = coverName.slice(0, 1) || draft.businessName.trim().slice(0, 1) || ''
+  const followPageLink = (event: ReactMouseEvent<HTMLAnchorElement>) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    openWorkspaceSection(event.currentTarget.getAttribute('href') || event.currentTarget.href)
+  }
+  const ticketStyle = {
+    '--ticket-primary': themeCard.swatches.find((swatch) => swatch.label === 'Primary')?.value ?? aboutCover.accent,
+    '--ticket-accent': aboutCover.accent,
+    '--ticket-deep': aboutCover.deep,
+  } as CSSProperties
+  const readyGroups = siteGroups.filter((group) => {
+    if (group.id === 'shows') return signupTile.chip === 'Done'
+    return checklist.filter((item) => group.sections.includes(item.section) && !item.done).length === 0
+  }).length
+  const settingsBody = (sections: SiteSectionId[], options?: { magazine?: boolean }) => (
+    <SiteSettingsBody
+      magazine={options?.magazine}
+      heroBackdrop={options?.magazine ? { image: themeCard.thumb?.replace(/thumb\.webp$/, 'hero-poster.webp') ?? null, colors: themeCard.previewColors } : undefined}
+      draft={draft}
+      sections={sections}
+      savedSlots={settings.homepageMediaSlots}
+      joinTeamAccessEnabled={settings.joinTeamAccessEnabled === true}
+      isBrittWithBling={isBrittWithBling}
+      emailError={emailError}
+      shopLinkError={shopLinkError}
+      discountCodeError={discountCodeError}
+      discountMessageError={discountMessageError}
+      socialErrors={socialErrors}
+      mediaUploadKey={mediaUploadKey}
+      mediaUploadFeedback={mediaUploadFeedback}
+      actionPending={actionState?.pending === true}
+      tickerRef={tickerTextareaRef}
+      tickerLinkUrl={tickerLinkUrl}
+      tickerLinkError={tickerLinkError}
+      tickerLinkSelection={tickerLinkSelection}
+      hasTickerLinks={hasTickerLinks}
+      onDraftChange={onDraftChange}
+      onSocialHandleChange={onSocialHandleChange}
+      onHomepageMediaChange={onHomepageMediaChange}
+      onMediaCommit={onCommit}
+      onHomepageMediaUpload={onHomepageMediaUpload}
+      onHomepageVideoRemove={onHomepageVideoRemove}
+      onFieldBlur={reportFieldBlur}
+      onSocialBlur={(platform) => {
+        const label = SOCIAL_PLATFORMS.find((item) => item.key === platform)?.label ?? 'Social link'
+        reportFieldBlur(
+          SITE_FIELD_IDS.social(platform),
+          label,
+          socialLinkFieldError(platform, draft.socialHandles?.[platform]),
+        )
+      }}
+      onTickerChange={(value) => {
+        setTickerLinkSelection(null)
+        onDraftChange?.({ tickerText: value })
+      }}
+      onTickerSelect={(selection) => {
+        setTickerLinkSelection(selection)
+        setTickerLinkError(null)
+      }}
+      onTickerLinkUrl={setTickerLinkUrl}
+      onAddTickerText={addTickerText}
+      onLinkTickerWords={linkSelectedTickerWords}
+      onResetTickerLinks={resetTickerLinksToPlainText}
+    />
+  )
+  const exceptNote = actionState?.error ? null : actionState?.helperMessage?.startsWith('Saved, except ') ? actionState.helperMessage : null
+  const heldDialog = (id: string | null | undefined) => {
+    if (!id) return null
+    if (id.includes('discount')) return 'signup'
+    if (id === SITE_FIELD_IDS.shopLink) return 'look'
+    if (id === SITE_FIELD_IDS.email || id.startsWith('my-website-social-')) return 'socials'
+    if (id.endsWith('-video')) return 'about'
+    return null
+  }
+  const heldName = { signup: 'Sign-up', look: 'Look', socials: 'Socials', about: 'About you' } as const
+  const statusFor = (dialog: 'home' | 'look' | 'about' | 'signup' | 'socials' | 'theme') => {
+    if (savePhase === 'saving') return 'Saving…'
+    if (savePhase === 'error') return "Couldn't save — Retry"
+    const owner = heldDialog(actionState?.heldFieldId)
+    if (exceptNote && owner && dialog === 'home') return `Saved, except ${heldName[owner]}`
+    if (exceptNote && owner === dialog) return exceptNote
+    return 'All changes saved'
+  }
+  const saveLine = statusFor('home')
 
   return (
-    <div className={styles.siteSettingsCard}>
-      <div className={styles.workspaceSectionHeader}>
-        <div>
-          <div className={styles.cardTitle}>Customer-facing site setup</div>
-          <div className={styles.cardSubtitle}>
-            Keep your public profile, customer pages, and brand details tuned up.
-          </div>
-        </div>
-        <div className={styles.siteSettingsSaveActions}>
-          <span
-            className={styles.siteSettingsSaveStatus}
-            data-testid="site-settings-save-status"
-            role="status"
-            aria-live="polite"
-          >
-            {statusMessage ?? 'No unsaved changes.'}
-          </span>
-          <button
-            type="button"
-            className={styles.siteSettingsPreviewButton}
-            onClick={onPreview}
-            disabled={!canPreview}
-          >
-            Preview customer site
-          </button>
-          <ControlTip tip="save-site-settings">
+    <div className={styles.siteHome} data-testid="my-website-home">
+      <p className={styles.siteHomeKicker}>Your customer site</p>
+      <h1 className={styles.siteHomeTitle}>Tap a part of your site to change it</h1>
+      <p className={styles.siteHomeLede}>Everything saves on its own as you go.</p>
+      <ShareMySite url={publicSiteUrl && !publicSiteUrl.includes('/amethyst/Homepage.html') ? publicSiteUrl : null} />
+      <div className={styles.siteHomeStatusRow}>
+        <p
+          className={savePhase === 'error' ? styles.siteSavePillError : savePhase === 'saving' ? styles.siteSavePillBusy : styles.siteSavePill}
+          role="status"
+          aria-live="polite"
+          data-testid="site-save-status"
+        >
+          {savePhase === 'error' ? (
+            <>
+              {saveError ?? "Couldn't save — Retry"}{' '}
+              <button type="button" className={styles.siteRetry} onClick={() => onSave?.()}>Retry</button>
+            </>
+          ) : exceptNote ? (
             <button
               type="button"
-              className={styles.siteSettingsSaveButton}
-              onClick={onSave}
-              disabled={actionState?.pending || !hasUnsavedChanges || Boolean(discountCodeError || discountMessageError)}
+              className={styles.siteExcept}
+              onClick={() => {
+                const field = document.getElementById(actionState?.heldFieldId ?? '')
+                const dialog = field?.closest('dialog')
+                if (dialog instanceof HTMLDialogElement && !dialog.open) dialog.showModal()
+                field?.focus()
+              }}
             >
-              {actionState?.pending ? 'Saving...' : 'Save site settings'}
+              {statusFor('home')}
             </button>
-          </ControlTip>
-        </div>
-      </div>
-      <div className={styles.siteSettingsSection} aria-label="Signup discount">
-        <div className={styles.walletSettingsTitle}>Signup discount</div>
-        <label className={styles.walletToggleRow}>
-          <span className={styles.searchLabel}>Show a discount code after customers sign up for updates</span>
-          <input
-            type="checkbox"
-            role="switch"
-            checked={draft.signupDiscountEnabled === true}
-            onChange={(event) => onDraftChange?.({ signupDiscountEnabled: event.target.checked })}
-          />
-        </label>
-        <div className={styles.siteSettingsGrid}>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>Code</span>
-            <input
-              className={styles.searchInput}
-              value={discountCode}
-              maxLength={40}
-              aria-invalid={Boolean(discountCodeError)}
-              aria-describedby={discountCodeError ? 'signup-discount-code-error' : undefined}
-              onChange={(event) => onDraftChange?.({ signupDiscountCode: event.target.value })}
-            />
-            {discountCodeError ? <span id="signup-discount-code-error" role="alert" className={styles.tickerLinkError}>{discountCodeError}</span> : null}
-          </label>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>Message shown with your code</span>
-            <input
-              className={styles.searchInput}
-              value={discountMessage}
-              maxLength={140}
-              aria-invalid={Boolean(discountMessageError)}
-              aria-describedby="signup-discount-message-count signup-discount-message-error"
-              onChange={(event) => onDraftChange?.({ signupDiscountMessage: event.target.value })}
-            />
-            <span id="signup-discount-message-count" className={styles.helperNote} aria-live="polite">{discountMessage.length}/140 · Plain text</span>
-            <span id="signup-discount-message-error" className={styles.tickerLinkError} role={discountMessageError ? 'alert' : undefined}>{discountMessageError}</span>
-          </label>
-        </div>
-        <p className={styles.helperNote}>Suite only shows this code. Set up the code itself in Bomb Party first.</p>
-      </div>
-      <div className={styles.calendarHeader}>
-        <div className={styles.walletSettingsTitle}>Profile basics</div>
-        <span className={styles.rosterTag}>
-          Update what shoppers and recruits see across your public pages.
+          ) : saveLine}
+          {undoReady && savePhase === 'saved' ? (
+            <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button>
+          ) : null}
+        </p>
+        <span className={styles.siteReady}>
+          <span className={styles.siteProgressLabel}>{readyGroups} of 4 ready</span>
+          <span className={styles.siteSegments} aria-hidden="true">
+            {[0, 1, 2, 3].map((index) => (
+              <span key={index} data-on={index < readyGroups ? 'true' : 'false'} />
+            ))}
+          </span>
         </span>
       </div>
-      <div className={styles.siteSettingsGrid}>
-        <label className={styles.searchField}>
-          <span className={styles.searchLabel}>Display name</span>
-          <input
-            className={styles.searchInput}
-            value={draft.displayName}
-            onChange={(event) =>
-              onDraftChange?.({ displayName: event.target.value })
-            }
-          />
-        </label>
-        <label className={styles.searchField}>
-          <span className={styles.searchLabel}>Show name</span>
-          <input
-            className={styles.searchInput}
-            value={draft.businessName}
-            onChange={(event) =>
-              onDraftChange?.({ businessName: event.target.value })
-            }
-          />
-        </label>
-        <label className={styles.searchField}>
-          <span className={styles.searchLabel}>Email</span>
-          <input
-            className={styles.searchInput}
-            value={draft.email}
-            onChange={(event) => onDraftChange?.({ email: event.target.value })}
-          />
-        </label>
-        <label className={styles.searchField}>
-          <span className={styles.searchLabel}>Bomb Party rep store link</span>
-          <input
-            className={styles.searchInput}
-            type="url"
-            inputMode="url"
-            value={draft.shopLink ?? ''}
-            onChange={(event) => onDraftChange?.({ shopLink: event.target.value })}
-            placeholder="https://bombparty.com/..."
-          />
-          <span className={styles.helperNote}>
-            This powers the Shop buttons across your customer-facing site. Use the full store URL.
-          </span>
-        </label>
-      </div>
-
-      <div className={styles.siteSettingsSection}>
-        <div className={styles.walletSettingsTitle}>Announcement messages</div>
-        <div className={styles.siteSettingsGrid}>
-          <label className={styles.sortFieldWide}>
-            <span className={styles.searchLabel}>Announcement ticker messages</span>
-            <textarea
-              ref={tickerTextareaRef}
-              className={styles.siteSettingsTextarea}
-              value={draft.tickerText}
-              onChange={(event) => {
-                setTickerLinkSelection(null)
-                onDraftChange?.({ tickerText: event.target.value })
-              }}
-              onSelect={(event) => {
-                const textarea = event.currentTarget
-                const start = textarea.selectionStart
-                const end = textarea.selectionEnd
-                setTickerLinkSelection(
-                  start === end
-                    ? null
-                    : { start, end, text: textarea.value.slice(start, end) },
-                )
-                setTickerLinkError(null)
-              }}
-            />
-            <span className={styles.helperNote}>
-              Use one announcement per line. Add emojis, then highlight only the words you want to link.
-            </span>
-            <div className={styles.tickerComposer}>
-              <div>
-                <span className={styles.searchLabel}>Add an emoji</span>
-                <div className={styles.tickerEmojiRow}>
-                  {['✨', '💎', '🎥', '🛍️', '🎉', '📣', '⏰', '💖'].map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      className={styles.tickerEmojiButton}
-                      onClick={() => addTickerText(emoji)}
-                      aria-label={`Add ${emoji} to the announcement ticker`}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <span className={styles.searchLabel}>Link selected words</span>
-                <span className={styles.tickerLinkHint}>
-                  {tickerLinkSelection?.text.trim()
-                    ? `Ready to link: “${tickerLinkSelection.text}”`
-                    : 'Highlight the exact words in your announcement first.'}
-                </span>
-                <div className={styles.tickerLinkBuilder}>
-                  <input
-                    className={styles.searchInput}
-                    type="url"
-                    value={tickerLinkUrl}
-                    onChange={(event) => setTickerLinkUrl(event.target.value)}
-                    placeholder="Paste the destination link"
-                  />
-                  <button
-                    type="button"
-                    className={styles.tickerLinkButton}
-                    onClick={linkSelectedTickerWords}
-                    disabled={!tickerLinkSelection?.text.trim() || !tickerLinkUrl.trim()}
-                  >
-                    Link selected words
-                  </button>
-                </div>
-                {hasTickerLinks ? (
-                  <button
-                    type="button"
-                    className={styles.tickerLinkResetButton}
-                    onClick={resetTickerLinksToPlainText}
-                  >
-                    Make existing links plain text
-                  </button>
+      <div className={styles.siteHomeStage}>
+      <CustomerPageStrip
+        settings={draft}
+        joinTeamAccessEnabled={settings.joinTeamAccessEnabled === true}
+        onChange={onDraftChange}
+        onWorkspaceLink={followPageLink}
+      />
+      <div className={styles.siteHomeGrid}>
+        {siteGroups.map((group) => {
+          const needs = group.id === 'shows'
+            ? (signupTile.chip === 'Done' ? 0 : 1)
+            : checklist.filter((item) => group.sections.includes(item.section) && !item.done).length
+          const chipLabel = group.id === 'shows'
+            ? signupTile.chip
+            : needs > 0 ? `Needs ${needs} ${needs === 1 ? 'thing' : 'things'}` : 'Done'
+          const chipClass = group.id === 'shows'
+            ? signupTile.tone === 'ok' ? styles.siteChipDone : signupTile.tone === 'off' ? styles.siteChipOff : styles.siteChipNeeds
+            : needs > 0 ? styles.siteChipNeeds : styles.siteChipDone
+          return (
+            <button
+              key={group.id}
+              type="button"
+              className={styles.siteTile}
+              onClick={() => group.dialog.current?.showModal()}
+            >
+              <span
+                className={styles.siteTileArt}
+                data-tile-art={group.id}
+                data-look-source={group.id === 'look' ? (lookShot ? 'shot' : 'poster') : undefined}
+                style={group.id === 'shows' ? ticketStyle : undefined}
+                aria-hidden="true"
+              >
+                {group.id === 'look' ? (
+                  themeCard.thumb || lookShot ? (
+                    <>
+                      <LookCoverImage
+                        desktop={lookDesktop}
+                        phone={lookPhone}
+                        fallback={themeCard.thumb || ''}
+                        onGiveUp={() => setCoverQuiet(true)}
+                      />
+                      {lookPreviewStillPending(lookPreview?.status) && !coverQuiet ? <span className={styles.siteLookUpdating}>Updating preview</span> : null}
+                    </>
+                  ) : <span className={styles.sitePaletteName}>{themeCard.label}</span>
                 ) : null}
-                {hasTickerLinks ? (
-                  <span className={styles.tickerLinkHint}>
-                    This fixes an older ticker link that made a whole message clickable. Your words stay; only the old link is removed.
+                {group.id === 'about' ? (
+                  <span
+                    className={styles.siteMag}
+                    data-about-cover={aboutPhoto ? 'photo' : 'fallback'}
+                    style={aboutCoverStyle}
+                  >
+                    {aboutPhoto ? (
+                      <img
+                        key={aboutPhoto}
+                        className={styles.siteMagPhoto}
+                        src={aboutPhoto}
+                        alt=""
+                        style={{
+                          objectPosition: `${aboutSlot?.portraitFocusX ?? 50}% ${aboutSlot?.portraitFocusY ?? 25}%`,
+                        }}
+                      />
+                    ) : (
+                      <span className={styles.siteMagWatermark}>{aboutName.slice(0, 1)}</span>
+                    )}
+                    <span className={styles.siteMagOverlay}>
+                      <span className={styles.siteMagMast}>Meet your host</span>
+                      <span className={styles.siteMagName}>{aboutName}</span>
+                      {aboutCaption ? <span className={styles.siteMagTag}>{aboutCaption}</span> : null}
+                      {aboutPhoto ? null : <span className={styles.siteMagHint}>Add your photo</span>}
+                    </span>
                   </span>
                 ) : null}
-                {tickerLinkError ? <span className={styles.tickerLinkError}>{tickerLinkError}</span> : null}
+                {group.id === 'shows' ? (
+                  <span className={styles.siteTicket} data-coupon={signupTile.code ? 'on' : signupTile.tone}>
+                    <span className={styles.siteTicketBand}>One-time offer</span>
+                    <span className={styles.siteTicketBody}>
+                      <span className={styles.siteTicketOffer}>{signupTile.offer}</span>
+                      {signupTile.detail ? <span className={styles.siteTicketFor}>{signupTile.detail}</span> : null}
+                      {signupTile.code ? <span className={styles.siteTicketCode}>{signupTile.code}</span> : null}
+                    </span>
+                  </span>
+                ) : null}
+                {group.id === 'links' ? (
+                  <span className={styles.siteBioPhone} data-cover={coverEmpty ? 'empty' : 'filled'}>
+                    <span className={styles.siteBioNotch} aria-hidden="true" />
+                    <span className={styles.siteBioScreen}>
+                      <span className={styles.siteBioAvatar}>{coverMonogram}</span>
+                      {coverName ? <span className={styles.siteBioName}>{coverName}</span> : null}
+                      {coverEmail ? <span className={styles.siteBioMail}>{coverEmail}</span> : null}
+                      {coverSocials.length ? (
+                        <span className={styles.siteBioRows}>
+                          {coverSocials.map((platform) => (
+                            <span key={platform.key} className={styles.siteBioRow}>
+                              <i className={styles.siteBioMark} data-brand={platform.key} aria-hidden="true">
+                                <SocialMark platform={platform.key} className={styles.siteBioGlyph} />
+                              </i>
+                              <span>{platform.label}</span>
+                            </span>
+                          ))}
+                        </span>
+                      ) : null}
+                      {coverEmpty ? (
+                        <>
+                          <span className={styles.siteBioPrompt}>Add your email</span>
+                          <span className={styles.siteBioPrompt}>Add a social link</span>
+                        </>
+                      ) : null}
+                    </span>
+                  </span>
+                ) : null}
+              </span>
+              <span className={styles.siteTileCopy}>
+                <span className={chipClass}>
+                  {chipLabel}
+                </span>
+                <span className={styles.siteTileTitle}>
+                  {group.id === 'links' ? <><span className={styles.siteTitleKeep}>Socials and</span> <span className={styles.siteTitleKeep}>Contact Info</span></> : group.title}
+                </span>
+                <span className={styles.siteTileSummary}>{group.summary}</span>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      </div>
+      <dialog ref={lookRef} className={styles.siteDialog} data-site-dialog="" aria-labelledby="site-look-title" onClose={() => onLookClose?.()}>
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
+        <div className={styles.siteDialogBand}>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Your customer site</p>
+            <h1 id="site-look-title" className={styles.siteDialogTitle}>Look</h1>
+            <p className={styles.siteDialogSubtitle}>Four little chapters: theme, your name, announcements, and your hello.</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => lookRef.current?.close()}><span aria-hidden="true">×</span></button>
+        </div>
+        <div className={`${styles.siteDialogBody} ${styles.lookMagazine}`}>
+          <article className={styles.lookChapter}>
+            <span className={styles.lookNum} aria-hidden="true">I</span>
+            <div className={styles.lookCard}>
+              <header className={styles.lookHead}>
+                <p className={styles.lookEyebrow}>Theme</p>
+                <h2 className={styles.lookTitle}>The mood of your site</h2>
+                <p className={styles.lookLede}>Tap Change theme to see every theme with a picture of how it looks.</p>
+              </header>
+              <div className={styles.themeRow}>
+                <span className={styles.siteThemeThumb}>{themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : <span className={styles.sitePaletteName}>{themeCard.label}</span>}</span>
+                <span>
+                  <span className={styles.themeRowKicker}>On your site now</span>
+                  <span className={styles.themeRowName}>{themeCard.label}</span>
+                  <span className={styles.lookThemeMeta}>
+                    <span className={styles.lookDots} aria-hidden="true">
+                      {themeCard.previewColors.slice(0, 3).map((color) => (
+                        <i key={color} style={{ background: color }} />
+                      ))}
+                    </span>
+                    {savePhase === 'saved' ? <b>Saved ✓</b> : savePhase === 'error' ? <b>Not saved</b> : <b>Saving…</b>}
+                  </span>
+                </span>
+                <button type="button" className={`${styles.siteChangeTheme} ${styles.lookChangeTheme}`} onClick={() => themeRef.current?.showModal()}>Change theme</button>
               </div>
             </div>
-          </label>
+          </article>
+          {settingsBody(['top-bar', 'hero'], { magazine: true })}
         </div>
-        <PublicSiteVisibility
-          settings={draft}
-          joinTeamAccessEnabled={state.status === 'ready' && state.settings?.joinTeamAccessEnabled === true}
-          onChange={onDraftChange}
-        />
-      </div>
-
-      <div className={styles.siteSettingsSection}>
-        <div className={styles.walletSettingsTitle}>Branding and visuals</div>
-        <div className={styles.siteSettingsGrid}>
-          <label className={styles.sortFieldWide}>
-            <span className={styles.sortLabel}>Customer-facing site theme</span>
-            <select
-              className={styles.sortSelect}
-              value={
-                skinOptions.status === 'ready' ? draft.appearancePreset : ''
-              }
-              disabled={skinOptions.status !== 'ready'}
-              onChange={(event) =>
-                onDraftChange?.({
-                  appearancePreset: event.target.value as SiteAppearancePreset,
-                })
-              }
-            >
-              {skinOptions.status === 'ready' ? (
-                appearancePresetOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))
-              ) : (
-                <option value="">
-                  {skinOptions.status === 'error'
-                    ? 'Themes unavailable — refresh and try again'
-                    : 'Loading your available themes…'}
-                </option>
-              )}
-            </select>
-            <span className={styles.siteSettingsPreviewNote}>
-              Applies only to your public customer-facing site. Your Sparkle
-              Suite workspace keeps the standard workspace theme.
-            </span>
-          </label>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>Team I manage</span>
-            <input
-              className={styles.searchInput}
-              value={draft.teamName}
-              onChange={(event) =>
-                onDraftChange?.({ teamName: event.target.value })
-              }
-            />
-          </label>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>Team I belong to</span>
-            <input
-              className={styles.searchInput}
-              value={draft.memberTeamName}
-              onChange={(event) =>
-                onDraftChange?.({ memberTeamName: event.target.value })
-              }
-            />
-          </label>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>Site tagline</span>
-            <input
-              className={styles.searchInput}
-              value={draft.tagline}
-              onChange={(event) =>
-                onDraftChange?.({ tagline: event.target.value })
-              }
-            />
-          </label>
-          <label className={styles.sortFieldWide}>
-            <span className={styles.searchLabel}>Hero title</span>
-            <input className={styles.searchInput} value={draft.heroHeadline ?? ''} maxLength={180} onChange={(event) => onDraftChange?.({ heroHeadline: event.target.value })} />
-            <span className={styles.siteSettingsPreviewNote}>This is the large heading customers see first on your homepage.</span>
-          </label>
-          <label className={styles.sortFieldWide}>
-            <span className={styles.searchLabel}>Hero subtitle</span>
-            <input className={styles.searchInput} value={draft.heroSubtitle ?? ''} maxLength={240} onChange={(event) => onDraftChange?.({ heroSubtitle: event.target.value })} />
-            <span className={styles.siteSettingsPreviewNote}>This supporting sentence appears directly beneath the hero title.</span>
-          </label>
-          <label className={styles.sortField}>
-            <span className={styles.sortLabel}>Hero motion</span>
-            <select
-              className={styles.sortSelect}
-              value={draft.heroAnimationType}
-              onChange={(event) =>
-                onDraftChange?.({
-                  heroAnimationType: event.target.value as SiteSettingsDashboardResult['heroAnimationType'],
-                })
-              }
-            >
-              <option value="sparkle_rise">Sparkle rise</option>
-              <option value="soft_glow">Soft glow</option>
-              <option value="still">Still</option>
-            </select>
-            <span className={styles.siteSettingsPreviewNote}>
-              Hero visuals stay curated by your site appearance so the page keeps
-              its polish on desktop and mobile.
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <div className={styles.siteSettingsSection}>
-        <div>
-          <div className={styles.walletSettingsTitle}>
-            {!draft.allSourcesEnabled && isBrittWithBling ? 'Brittany custom media' : 'Homepage photos and videos'}
+        <footer className={styles.siteDialogFoot}>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('look')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
+        </footer>
+      </dialog>
+      <dialog ref={aboutRef} className={`${styles.siteDialog} ${styles.siteDialogAbout}`} aria-labelledby="site-about-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
+        <div className={styles.siteDialogBand}>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Your customer site</p>
+            <h1 id="site-about-title" className={styles.siteDialogTitle}>About you</h1>
+            <p className={styles.siteDialogSubtitle}>Watch a Live Reveal sits above About. On a phone her story comes before the photo. Short videos follow.</p>
           </div>
-          <p className={styles.siteSettingsPreviewNote}>
-            {draft.allSourcesEnabled ? 'Add one portrait photo and up to four videos. Paste a public TikTok, YouTube, Instagram, or Facebook video link into the spot you want. Videos can be up to 3 minutes. Visitors tap Play to watch. Videos already on your site will stay as they are until you remove or replace them. A new video can take 24–48 hours to be ready. Until then, visitors see a card they can tap to watch it on that app.' : isBrittWithBling
-              ? 'Manage the changeable media on Britt with Bling. Your theme and all standard site settings remain available above.'
-              : 'Add one clean portrait photo and up to four customer videos.'}
-          </p>
-          {isBrittWithBling ? (
-            <p className={styles.siteSettingsPreviewNote}>
-              Hero and “The Rise of Her” stay managed for this custom site.
-            </p>
-          ) : null}
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => aboutRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
-        {isBrittWithBling ? (
-          <label className={styles.walletToggleRow}>
-            <span>
-              <span className={styles.searchLabel}>
-                Show the About Brittany and Sparkle Moments section
-              </span>
-              <span className={styles.helperNote}>
-                Empty video spots stay hidden. Turn this off without deleting any saved media.
-              </span>
-            </span>
-            <input
-              type="checkbox"
-              checked={aboutPortraitSlot?.sectionVisible === true}
-              onChange={(event) =>
-                onHomepageMediaChange?.('about_1', {
-                  sectionVisible: event.target.checked,
-                })
-              }
-            />
-          </label>
-        ) : null}
-        <div className={styles.homepageMediaGrid}>
-          {!draft.allSourcesEnabled && <aside className={styles.homepageMediaHelp} aria-label="Video links and embeds">
-            <strong>Video links and embeds</strong>
-            <p>
-              Use a public TikTok, YouTube Short, Instagram Reel, or Facebook Reel/video.
-              Paste its link or the platform&apos;s embed code into the video spot you want.
-              {draft.tiktokQueueEnabled
-                ? 'TikTok videos are added to your site by the Sparkle Suite team within 24–48 hours. Until then, your site shows a tap-to-watch TikTok card.'
-                : 'TikTok and YouTube play muted, loop, and do not show a pause control.'}
-              Instagram and Facebook use their native player controls.
-            </p>
-          </aside>}
-          {(draft.homepageMediaSlots ?? EMPTY_HOMEPAGE_MEDIA_SLOTS).map((slot) => {
-            const label =
-              slot.key === 'showcase'
-                ? isBrittWithBling
-                  ? 'What is a Bomb Party? showcase video'
-                  : 'Live reveal video'
-                : slot.key === 'about_1'
-                  ? isBrittWithBling
-                    ? 'About Brittany portrait'
-                    : 'About portrait photo'
-                  : isBrittWithBling
-                    ? `Sparkle moment ${Number(slot.key.slice(-1)) - 1}`
-                    : `About short video ${Number(slot.key.slice(-1)) - 1}`
-            const allowsPhoto = slot.key === 'about_1'
-            const allowsVideo = slot.key !== 'about_1'
-            const savedVideoUrl = state.settings?.homepageMediaSlots?.find(saved => saved.key === slot.key)?.videoUrl ?? ''
-            const lockedTikTok = Boolean(draft.tiktokQueueEnabled && !slot.videoPreserved && (draft.allSourcesEnabled ? isQueuedVideoUrl(savedVideoUrl) : isTikTokCardUrl(savedVideoUrl)))
-            const isUploading = mediaUploadKey === slot.key
-            const hasVisiblePhoto =
-              allowsPhoto && Boolean(slot.imageUrl) && slot.isVisible !== false
-            const hasVisibleVideo =
-              allowsVideo &&
-              Boolean(publicVideoDraftUrl(slot.videoUrl)) &&
-              slot.isVisible !== false
-
-            return (
-              <section
-                className={`${styles.homepageMediaCard} ${
-                  allowsPhoto
-                    ? styles.homepagePortraitMediaCard
-                    : styles.homepageVideoMediaCard
-                }`}
-                key={slot.key}
-              >
-                <div className={styles.homepageMediaCardHeader}>
-                  <strong>{label}</strong>
-                  {hasVisiblePhoto ? <span>Photo added</span> : null}
-                  {isBrittWithBling && hasVisibleVideo ? <span>Video added</span> : null}
-                  {isBrittWithBling && slot.isVisible === false ? <span>Removed</span> : null}
-                </div>
-                {hasVisiblePhoto ? (
-                  <div className={styles.homepagePortraitFramePreview}>
-                    <img
-                      className={styles.homepageMediaPreview}
-                      src={slot.imageUrl}
-                      alt={`${label} preview`}
-                      style={{
-                        '--homepage-portrait-focus-x': `${slot.portraitFocusX ?? 50}%`,
-                        '--homepage-portrait-focus-y': `${slot.portraitFocusY ?? 20}%`,
-                        '--homepage-portrait-zoom': slot.portraitZoom ?? 1.18,
-                      } as CSSProperties}
-                    />
-                  </div>
-                ) : null}
-                {allowsPhoto ? (
-                  <label className={styles.homepageMediaUploadButton}>
-                    {isUploading
-                      ? 'Uploading...'
-                      : slot.imageUrl
-                        ? 'Replace photo'
-                        : 'Upload photo'}
-                    <input
-                      className={styles.homepageMediaFileInput}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      disabled={isUploading}
-                      onChange={(event) => {
-                        const file = event.target.files?.[0]
-                        if (file) onHomepageMediaUpload?.(slot.key, file)
-                        event.target.value = ''
-                      }}
-                    />
-                  </label>
-                ) : null}
-                {mediaUploadFeedback?.key === slot.key ? (
-                  <p
-                    className={
-                      mediaUploadFeedback.tone === 'success'
-                        ? styles.homepageMediaUploadSuccess
-                        : styles.homepageMediaUploadError
-                    }
-                    role="status"
-                  >
-                    {mediaUploadFeedback.message}
-                  </p>
-                ) : null}
-                {allowsVideo ? (
-                  <label className={styles.searchField}>
-                    <span className={styles.searchLabel}>
-                      {draft.allSourcesEnabled ? 'Video link' : 'Video link or embed'}
-                    </span>
-                    <input
-                      className={styles.searchInput}
-                      type="text"
-                      placeholder={draft.allSourcesEnabled ? "Paste a public TikTok, YouTube, Instagram, or Facebook video link" : "Paste a public video link or embed code"}
-                      value={slot.videoUrl}
-                      readOnly={lockedTikTok}
-                      aria-describedby={lockedTikTok ? `remove-video-help-${slot.key}` : undefined}
-                      onChange={(event) => {
-                        const videoUrl = event.target.value
-                        onHomepageMediaChange?.(slot.key, {
-                          videoUrl,
-                          tiktokVideoStatus: null,
-                          ...(isBrittWithBling || draft.tiktokQueueEnabled
-                            ? { isVisible: Boolean(videoUrl.trim()) }
-                            : {}),
-                        })
-                      }}
-                    />
-                    {lockedTikTok ? <span id={`remove-video-help-${slot.key}`}>Remove this video before adding a new link.</span> : null}
-                    {draft.tiktokQueueEnabled && slot.tiktokVideoStatus ? (
-                      <span role="status">{draft.allSourcesEnabled ? (slot.tiktokVideoStatus === 'live' ? 'Your video is ready. Visitors can tap Play to watch.' : slot.tiktokVideoStatus === 'unavailable' ? "We couldn't use this video. It may be private or too long. Remove it and try another link, or contact us." : 'Your video is queued. This can take 24–48 hours.') : slot.tiktokVideoStatus === 'live'
-                        ? 'Video is ready and now playing on your site.'
-                        : 'Video is queued to be pulled and placed on your site. This can take up to 24–48 hours.'}</span>
-                    ) : null}
-                  </label>
-                ) : null}
-                {allowsVideo ? (
-                  <label className={styles.searchField}>
-                    <span className={styles.searchLabel}>{draft.allSourcesEnabled ? 'Caption (optional)' : 'Video caption (optional)'}</span>
-                    <input
-                      className={styles.searchInput}
-                      maxLength={180}
-                      placeholder={draft.allSourcesEnabled ? "A short line under the video" : "Add a short caption shown below the video"}
-                      value={slot.caption}
-                      onChange={(event) =>
-                        onHomepageMediaChange?.(slot.key, { caption: event.target.value })
-                      }
-                    />
-                  </label>
-                ) : null}
-                {isBrittWithBling && hasVisibleVideo ? (
-                  <div className={styles.homepageMediaCurrentState}>
-                    <span>Current video is ready.</span>
-                    <a href={slot.videoUrl} target="_blank" rel="noreferrer noopener">
-                      Open video
-                    </a>
-                  </div>
-                ) : null}
-                {isBrittWithBling &&
-                allowsVideo &&
-                slot.isVisible !== false &&
-                slot.videoUrl.trim() &&
-                !hasVisibleVideo ? (
-                  <p className={styles.homepageMediaUploadError} role="status">
-                    This link is not a playable public video. Replace it before saving.
-                  </p>
-                ) : null}
-                {hasVisiblePhoto ? (
-                  <fieldset className={styles.homepagePortraitControls}>
-                    <legend>Smart Frame</legend>
-                    <span>Fine-tune only if the automatic preview needs it.</span>
-                    <label>
-                      <span>Zoom</span>
-                      <input
-                        type="range"
-                        min="1"
-                        max="1.5"
-                        step="0.01"
-                        value={slot.portraitZoom ?? 1.18}
-                        onChange={(event) =>
-                          onHomepageMediaChange?.(slot.key, {
-                            portraitZoom: Number(event.target.value),
-                          })
-                        }
-                      />
-                    </label>
-                    <label>
-                      <span>Move subject up or down</span>
-                      <input
-                        type="range"
-                        min="0"
-                        max="60"
-                        step="1"
-                        value={slot.portraitFocusY ?? 20}
-                        onChange={(event) =>
-                          onHomepageMediaChange?.(slot.key, {
-                            portraitFocusY: Number(event.target.value),
-                          })
-                        }
-                      />
-                    </label>
-                    <label>
-                      <span>Move subject left or right</span>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={slot.portraitFocusX ?? 50}
-                        onChange={(event) =>
-                          onHomepageMediaChange?.(slot.key, {
-                            portraitFocusX: Number(event.target.value),
-                          })
-                        }
-                      />
-                    </label>
-                  </fieldset>
-                ) : null}
-                {allowsPhoto ? (
-                  <label className={styles.searchField}>
-                    <span className={styles.searchLabel}>Photo caption</span>
-                    <input
-                      className={styles.searchInput}
-                      maxLength={240}
-                      value={slot.caption}
-                      onChange={(event) =>
-                        onHomepageMediaChange?.(slot.key, { caption: event.target.value })
-                      }
-                    />
-                  </label>
-                ) : null}
-                {hasVisiblePhoto ? (
-                  <button
-                    type="button"
-                    className={styles.homepageMediaRemoveButton}
-                    onClick={() =>
-                      onHomepageMediaChange?.(slot.key, {
-                        imageUrl: '',
-                        ...(isBrittWithBling ? { isVisible: false } : {}),
-                      })
-                    }
-                  >
-                    Remove photo
-                  </button>
-                ) : null}
-                {lockedTikTok || slot.videoPreserved ? (
-                  <button
-                    type="button"
-                    className={styles.homepageMediaRemoveButton}
-                    disabled={actionState?.pending}
-                    onClick={() => {
-                      if (window.confirm('Remove this video from your site?')) onHomepageVideoRemove?.(slot.key, savedVideoUrl)
-                    }}
-                  >
-                    Remove video
-                  </button>
-                ) : isBrittWithBling && hasVisibleVideo ? (
-                  <button
-                    type="button"
-                    className={styles.homepageMediaRemoveButton}
-                    onClick={() =>
-                      onHomepageMediaChange?.(slot.key, {
-                        videoUrl: '',
-                        isVisible: false,
-                      })
-                    }
-                  >
-                    Remove video
-                  </button>
-                ) : null}
-              </section>
-            )
-          })}
+        <div className={`${styles.siteDialogBody} ${styles.aboutMagazine}`}>
+          {settingsBody(['about'])}
+          {settingsBody(['bomb-party'])}
         </div>
-      </div>
-
-      <div className={styles.siteSettingsSection}>
-        <div className={styles.walletSettingsTitle}>About section</div>
-        <p className={styles.siteSettingsPreviewNote}>
-          Add a short title and paste your customer-facing story. Keep it concise
-          so it stays balanced beside your photo.
-        </p>
-        <div className={styles.siteSettingsGrid}>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>About title</span>
-            <input
-              className={styles.searchInput}
-              maxLength={ABOUT_TITLE_MAX_LENGTH}
-              placeholder="Meet Brianna"
-              value={draft.aboutHeading ?? ''}
-              onChange={(event) => onDraftChange?.({ aboutHeading: event.target.value })}
-            />
-          </label>
-          <label className={styles.searchField}>
-            <span className={styles.searchLabel}>About narrative</span>
-            <textarea
-              className={styles.siteSettingsTextarea}
-              maxLength={ABOUT_NARRATIVE_MAX_LENGTH}
-              rows={7}
-              placeholder="Paste the story you want customers to read."
-              value={draft.aboutNarrative ?? ''}
-              onChange={(event) => onDraftChange?.({ aboutNarrative: event.target.value })}
-            />
-            <span className={styles.siteSettingsPreviewNote}>
-              {(draft.aboutNarrative ?? '').length} / {ABOUT_NARRATIVE_MAX_LENGTH} characters
-            </span>
-          </label>
+        <footer className={styles.siteDialogFoot}>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('about')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
+        </footer>
+      </dialog>
+      <dialog ref={showsRef} className={styles.siteDialog} aria-labelledby="site-shows-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
+        <div className={styles.siteDialogBand}>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Sign-up discount</p>
+            <h1 id="site-shows-title" className={styles.siteDialogTitle}>Sign-up discount</h1>
+            <p className={styles.siteDialogSubtitle}>{SIGNUP_TILE_SUMMARY}</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => showsRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
-      </div>
-
-      <div className={styles.siteSettingsSection}>
-        <div className={styles.walletSettingsTitle}>Social handles</div>
-        <SocialHandlesSettings
-          socialHandles={draft.socialHandles}
-          socialVisibility={draft.socialVisibility}
-          onSocialHandleChange={onSocialHandleChange}
-          onSocialVisibilityChange={(socialVisibility) =>
-            onDraftChange?.({ socialVisibility })
-          }
-        />
-      </div>
-
-      {actionState?.error ? (
-        <div className={styles.actionError}>{actionState.error}</div>
-      ) : null}
+        <div className={styles.siteDialogBody}>{settingsBody(['signup'])}</div>
+        <footer className={styles.siteDialogFoot}>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('signup')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
+        </footer>
+      </dialog>
+      <dialog ref={linksRef} className={`${styles.siteDialog} ${styles.siteDialogWide}`} aria-labelledby="site-links-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
+        <div className={styles.siteDialogBand}>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Your customer site</p>
+            <h1 id="site-links-title" className={styles.siteDialogTitle}><span className={styles.siteTitleKeep}>Socials and</span> <span className={styles.siteTitleKeep}>Contact Info</span></h1>
+            <p className={styles.siteDialogSubtitle}>Your email, footer tagline, and social links.</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => linksRef.current?.close()}><span aria-hidden="true">×</span></button>
+        </div>
+        <div className={styles.siteDialogBody}>{settingsBody(['footer'])}</div>
+        <footer className={styles.siteDialogFoot}>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('socials')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
+        </footer>
+      </dialog>
+      <dialog ref={themeRef} className={`${styles.siteDialog} ${styles.siteDialogWide}`} data-site-dialog="" aria-labelledby="site-theme-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
+        <div className={styles.siteDialogBand}>
+          <div className={styles.siteDialogHeading}>
+            <p className={styles.siteDialogKicker}>Themes</p>
+            <h1 id="site-theme-title" className={styles.siteDialogTitle}>Choose your theme</h1>
+            <p className={styles.siteDialogSubtitle}>Tap a theme and it&apos;s on your site right away. Changed your mind? Tap Undo.</p>
+          </div>
+          <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => themeRef.current?.close()}><span aria-hidden="true">×</span></button>
+        </div>
+        <div className={styles.siteDialogBody}>
+          <ThemeStudio
+            status={skinOptions.status}
+            cards={skinOptions.cards}
+            savedThemeId={settings.appearancePreset}
+            draftThemeId={draft.appearancePreset}
+            onDraftThemeChange={(appearancePreset) =>
+              onDraftChange?.({ appearancePreset: appearancePreset as SiteAppearancePreset })
+            }
+            ownedPrivateSkinIds={skinOptions.ownedPrivateSkinIds}
+            onRetry={skinOptions.retry}
+          />
+        </div>
+        <footer className={styles.siteDialogFoot}>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('theme')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
+        </footer>
+      </dialog>
     </div>
   )
 }
@@ -13029,7 +13459,7 @@ export function PublicTeamRosterPanel({
         </fieldset>
       </div> : <div className={styles.teamEditorPane} hidden={editorTab !== 'details'}>
         <p className={styles.helperNote}>Your lead name and social links come from Site Settings.</p>
-        <Link className={styles.helperLink} href="/nic-nac?section=site-settings">Open Site Settings</Link>
+        <Link className={styles.helperLink} href="/nic-nac?section=site-settings">Open My Website</Link>
       </div>}
 
       {isNew ? <>

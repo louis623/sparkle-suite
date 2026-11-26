@@ -1,53 +1,64 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   getAmethystSkinCardsForIds,
   type AmethystSkinCard,
 } from '@/lib/amethyst/skin-cards'
 
 type SkinOptionState =
-  | { repId: string | null; status: 'loading'; cards: AmethystSkinCard[] }
-  | { repId: string; status: 'ready'; cards: AmethystSkinCard[] }
-  | { repId: string; status: 'error'; cards: AmethystSkinCard[] }
+  | { repId: string | null; status: 'loading'; cards: AmethystSkinCard[]; ownedPrivateSkinIds: string[] }
+  | { repId: string; status: 'ready'; cards: AmethystSkinCard[]; ownedPrivateSkinIds: string[] }
+  | { repId: string; status: 'error'; cards: AmethystSkinCard[]; ownedPrivateSkinIds: string[] }
 
 const EMPTY_SKIN_OPTIONS: SkinOptionState = {
   repId: null,
   status: 'loading',
   cards: [],
+  ownedPrivateSkinIds: [],
 }
 
 export function useAvailableAmethystSkinCards(repId: string | null | undefined) {
+  const [attempt, setAttempt] = useState(0)
   const [state, setState] = useState<SkinOptionState>(EMPTY_SKIN_OPTIONS)
+  const retry = useCallback(() => {
+    setAttempt((current) => current + 1)
+  }, [])
 
   useEffect(() => {
     if (!repId) return
 
     let cancelled = false
+    setState({ repId, status: 'loading', cards: [], ownedPrivateSkinIds: [] })
     void fetch('/api/nic-nac/skin-options')
       .then(async (response) => {
         if (!response.ok) throw new Error('Skin options request failed')
-        const payload = (await response.json()) as { skinIds?: unknown }
+        const payload = (await response.json()) as { skinIds?: unknown; ownedPrivateSkinIds?: unknown }
         const skinIds = Array.isArray(payload.skinIds)
           ? payload.skinIds.filter((value): value is string => typeof value === 'string')
+          : []
+        const ownedPrivateSkinIds = Array.isArray(payload.ownedPrivateSkinIds)
+          ? payload.ownedPrivateSkinIds.filter((value): value is string => typeof value === 'string')
           : []
         if (!cancelled) {
           setState({
             repId,
             status: 'ready',
             cards: getAmethystSkinCardsForIds(skinIds),
+            ownedPrivateSkinIds,
           })
         }
       })
       .catch(() => {
-        if (!cancelled) setState({ repId, status: 'error', cards: [] })
+        if (!cancelled) setState({ repId, status: 'error', cards: [], ownedPrivateSkinIds: [] })
       })
 
     return () => {
       cancelled = true
     }
-  }, [repId])
+  }, [repId, attempt])
 
   // Never render a previous account's list while another account is loading.
-  return state.repId === repId ? state : EMPTY_SKIN_OPTIONS
+  const visible = state.repId === repId ? state : EMPTY_SKIN_OPTIONS
+  return { ...visible, retry }
 }

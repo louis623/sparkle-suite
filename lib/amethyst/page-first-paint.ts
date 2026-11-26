@@ -57,6 +57,8 @@ export async function renderAmethystPageFirstPaint(page: SSRPage, html: string, 
   console.info('homepage_ssr_markup', JSON.stringify({ renderToStringMs: performance.now() - markupStarted }))
   const preloads = [...rendered.matchAll(/<link\b[^>]*rel="preload"[^>]*\/>/g)].map(match => match[0]).join('')
   const markup = rendered.replace(/<link\b[^>]*rel="preload"[^>]*\/>/g, '')
+    .replace(/(<section class="mhf-hero"[^>]*data-hero-motion=")(?:off|still|none)(")/g, '$1on$2')
+    .replace(/(<section class="bwb-hero"[^>]*data-hero-motion=")(?:off|still|none)(")/g, '$1on$2')
   new Script('window.SPARKLE_APPLY_PAGE_THEME(window.' + ({ homepage: 'HOMEPAGE', trade: 'TRADE', join: 'JOIN' }[page]) + '_TWEAK_DEFAULTS, document)').runInContext(context, { timeout: 100 })
   // The client hides the reverse ticker for an empty board. Use the state
   // computed by that same React tree before first paint, rather than waiting

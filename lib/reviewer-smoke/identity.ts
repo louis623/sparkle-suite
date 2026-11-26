@@ -2,6 +2,11 @@ import 'server-only'
 
 export const REVIEWER_SMOKE_SCOPE = 'sparkle-suite-reviewer-v1'
 const supported = new Map([
+  ['sparkle-reviewer+preview@neonrabbit.net', 'sparklereviewerpreview'],
+  ['sparkle-reviewer+local@neonrabbit.net', 'sparklereviewerlocal'],
+])
+/** The slug already stored for that reviewer. Reset accepts it once, then writes the current slug. */
+const previousSlug = new Map([
   ['sparkle-reviewer+preview@neonrabbit.net', 'sparkle-reviewer-preview'],
   ['sparkle-reviewer+local@neonrabbit.net', 'sparkle-reviewer-local'],
 ])
@@ -34,6 +39,17 @@ export function reviewerSmokeSlug(email: string) {
   const slug = supported.get(email)
   if (!slug) throw new ReviewerSmokeSafetyError('REVIEWER_SMOKE_UNSUPPORTED_IDENTITY', 'Only the supported synthetic reviewer identities may be reset.')
   return slug
+}
+
+export function isReviewerSmokeEmail(email: string | null | undefined) {
+  const normalized = email?.trim().toLowerCase() ?? ''
+  return supported.has(normalized)
+}
+
+/** Null, the current slug, or that reviewer's exact previous slug. Nothing else. */
+export function isAcceptedReviewerSmokeSlug(email: string, slug: string | null) {
+  if (slug === null) return true
+  return slug === reviewerSmokeSlug(email) || slug === previousSlug.get(email)
 }
 
 /** Only the two server-scoped fixture identities use a reserved setup slug. */
@@ -72,7 +88,7 @@ export function assertReviewerSmokeRep(rep: ReviewerSmokeRep, user: ReviewerSmok
   assertReviewerSmokeAuthUser(user, email)
   if (rep.email?.trim().toLowerCase() !== email || rep.auth_user_id !== user.id || rep.account_classification !== 'demo'
     || rep.finder_directory_visible !== false || rep.custom_domain !== null
-    || (rep.public_site_slug !== null && rep.public_site_slug !== reviewerSmokeSlug(email))) {
+    || !isAcceptedReviewerSmokeSlug(email, rep.public_site_slug)) {
     throw new ReviewerSmokeSafetyError('REVIEWER_SMOKE_IDENTITY_MISMATCH', 'Workspace is not the isolated supported reviewer. Inspect its identity and site assignment before any reset.')
   }
 }

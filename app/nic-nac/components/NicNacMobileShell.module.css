@@ -1,6 +1,6 @@
 .bubble {
   position: fixed;
-  bottom: max(86px, calc(env(safe-area-inset-bottom) + 82px));
+  bottom: calc(max(86px, env(safe-area-inset-bottom) + 82px) + var(--site-save-bar-block, 0px));
   right: max(14px, calc(env(safe-area-inset-right) + 14px));
   width: 48px;
   height: 48px;
@@ -17,6 +17,18 @@
     0 4px 10px -2px rgba(16, 20, 30, 0.12);
   z-index: 1000;
   transition: background 120ms ease, box-shadow 120ms ease;
+}
+
+@media (max-width: 879px) {
+  /* Dock into the tab bar so an idle launcher does not cover form text. 880px and up keep the offset above. */
+  .bubble {
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  :global(html[data-site-save-bar='open']) .bubble,
+  :global(html[data-site-field-focus='true']) .bubble {
+    display: none;
+  }
 }
 
 .bubble:hover {

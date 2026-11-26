@@ -129,7 +129,7 @@ describe('help resources', () => {
     expect(guide?.steps).toEqual([
       'Open the individual TikTok video you want customers to watch.',
       'Choose Share, then Embed, and copy the TikTok embed code. You can instead copy that individual video\'s full TikTok link.',
-      'In the Sparkle Suite workspace, open Site Settings.',
+      'In the Sparkle Suite workspace, open My Website.',
       'Find Homepage photos and videos.',
       'Choose Showcase video for the main homepage feature, or choose About short video 1, 2, or 3 for a portrait video below your About story.',
       'Paste the TikTok embed code or full individual-video link into TikTok embed code or video URL.',

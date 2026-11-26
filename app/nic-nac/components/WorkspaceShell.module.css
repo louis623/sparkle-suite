@@ -70,6 +70,8 @@
   overflow-x: hidden;
   overflow-y: auto;
   container-type: inline-size;
+  scroll-padding-bottom: var(--site-save-bar-block, 0px);
+  padding-bottom: var(--site-save-bar-block, 0px);
 }
 
 :global([data-workspace-skin='black_diamond']) .tabsWrap {
@@ -116,6 +118,19 @@
     border-radius: 0;
     background: rgba(255, 255, 255, 0.88);
     box-shadow: none;
+  }
+}
+
+@media (max-width: 879px) {
+  .content {
+    padding-bottom: max(
+      var(--site-save-bar-height, 0px),
+      calc(92px + env(safe-area-inset-bottom))
+    );
+    scroll-padding-bottom: max(
+      var(--site-save-bar-height, 0px),
+      calc(92px + env(safe-area-inset-bottom))
+    );
   }
 }
 

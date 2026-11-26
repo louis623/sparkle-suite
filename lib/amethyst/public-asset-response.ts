@@ -17,6 +17,7 @@ import {
   serializeJsonLd,
 } from '@/lib/seo/amethyst-structured-data'
 import { resolveSparkleRequestOrigin } from '@/lib/seo/sparkle-crawl'
+import type { AmethystAppearancePresetId } from '@/lib/amethyst/appearance-presets'
 import {
   type AmethystPreviewTemplateData,
   loadAmethystPreviewTemplateData,
@@ -44,6 +45,21 @@ import {
   type JoinServerRuntimeContext,
 } from '@/lib/amethyst/join-server-html'
 
+/**
+ * Server-only signed-in theme preview. Callers set this in code.
+ * Never populate it from the request URL, query, or headers.
+ */
+export interface AmethystSitePreviewOptions {
+  /** Skip the visit beacon and GA4. */
+  omitTracking: true
+  /** Render with the SSR engine even when the slug is off REP_RENDER_V2_SLUGS. */
+  forceServerRender: true
+  /** Return 503 instead of the legacy renderer when SSR does not succeed. */
+  failClosed: true
+  /** In-memory theme swap. Does not write the rep's saved settings. */
+  appearancePreset: AmethystAppearancePresetId
+}
+
 interface RenderAmethystPublicAssetResponseOptions {
   repIdOverride?: string | null
   canonicalPathOverride?: string | null
@@ -56,6 +72,21 @@ interface RenderAmethystPublicAssetResponseOptions {
   /** True only when the rep's recipe list loaded and came back empty. */
   pantryEmpty?: boolean
   joinRuntimeContext?: JoinServerRuntimeContext
+  sitePreview?: AmethystSitePreviewOptions
+}
+
+function applySitePreviewTheme<T extends { appearancePreset: string }>(
+  data: T,
+  sitePreview: AmethystSitePreviewOptions | undefined,
+): T {
+  if (!sitePreview) return data
+  const next = { ...data, appearancePreset: sitePreview.appearancePreset }
+  if ('ssrReview' in next) delete (next as { ssrReview?: unknown }).ssrReview
+  return next
+}
+
+function sitePreviewUnavailable() {
+  return new Response(null, { status: 503 })
 }
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -516,17 +547,19 @@ function rewriteAmethystPublicHtml(
       )
     : withMetadata
 
+  const withJsonLd = injectAmethystJsonLd(
+    rewriteAmethystStaticAssetUrls(
+      rewriteTemplateScriptTarget(rewritten, page, requestUrl, options),
+    ),
+    page,
+    metadataOrigin,
+    templateData,
+    options.canonicalPathOverride,
+  )
+  if (options.sitePreview?.omitTracking) return withJsonLd
   return injectRepGa4Tag(
     injectPublicSiteVisitBeacon(
-      injectAmethystJsonLd(
-        rewriteAmethystStaticAssetUrls(
-          rewriteTemplateScriptTarget(rewritten, page, requestUrl, options),
-        ),
-        page,
-        metadataOrigin,
-        templateData,
-        options.canonicalPathOverride,
-      ),
+      withJsonLd,
       {
         repId: options.repIdOverride,
         slug: options.publicSiteSlugOverride,
@@ -543,7 +576,10 @@ export async function renderAmethystPublicAssetResponse(
   asset: string[],
   routeOptions: RenderAmethystPublicAssetResponseOptions = {},
 ) {
-  const useSSR = shouldUseRepRenderV2(asset, routeOptions)
+  const assetPath = asset.join('/')
+  const previewForcesServerRender = routeOptions.sitePreview?.forceServerRender === true
+    && (assetPath === 'Homepage.html' || assetPath === 'Trade.html' || assetPath === 'Join.html')
+  const useSSR = previewForcesServerRender || shouldUseRepRenderV2(asset, routeOptions)
   // Keep the gate identity out of both renderers and every rendering helper.
   const { renderGateSlug: _renderGateSlug, ...options } = routeOptions
   const logSSRFailure = (page: string, error: unknown) => {
@@ -557,7 +593,9 @@ export async function renderAmethystPublicAssetResponse(
   }
   const renderLegacy = async () => {
     const legacy = await import('./legacy/public-asset-response')
-    const response = await legacy.renderAmethystPublicAssetResponse(request, asset, options)
+    const { sitePreview, ...legacyOptions } = options
+    void sitePreview
+    const response = await legacy.renderAmethystPublicAssetResponse(request, asset, legacyOptions)
     const requestUrl = new URL(request.url)
     const selection = smokeReviewSelection(requestUrl, options.publicSiteSlugOverride)
     const page = AMETHYST_PUBLIC_HTML_PAGES[asset.join('/')]
@@ -578,7 +616,10 @@ export async function renderAmethystPublicAssetResponse(
       .replace('</body>', '<aside data-ssr-review-label style="position:fixed;bottom:6px;right:6px;z-index:10000;padding:4px 8px;background:#fff7df;color:#402c09;font:11px/1.3 system-ui;pointer-events:none">Smoke demo · legacy theme/layout review fixture · no saved changes</aside></body>')
     return new Response(html, { status: response.status, headers: response.headers })
   }
-  if (!useSSR) return renderLegacy()
+  if (!useSSR) {
+    if (routeOptions.sitePreview?.failClosed) return sitePreviewUnavailable()
+    return renderLegacy()
+  }
   if (asset.join('/') === 'Pantry.html' && !isBlingKitchenPantryAllowed({
     publicSiteSlug: routeOptions.publicSiteSlugOverride ?? routeOptions.renderGateSlug,
     repId: options.repIdOverride,
@@ -620,13 +661,16 @@ export async function renderAmethystPublicAssetResponse(
     const mark = (step: string) => { timings[step] = performance.now() - ssrStarted }
     const templatePromise =
       page && contentType.startsWith('text/html') && repId
-        ? loadAmethystPreviewTemplateData({ repId, publicSiteSlug: options.publicSiteSlugOverride || '' }).then(data => homepageSmokeReview(previewHomepageTheme(data, options.publicSiteSlugOverride), requestUrl, options.publicSiteSlugOverride))
+        ? loadAmethystPreviewTemplateData({ repId, publicSiteSlug: options.publicSiteSlugOverride || '' }).then(data => applySitePreviewTheme(
+            homepageSmokeReview(previewHomepageTheme(data, options.publicSiteSlugOverride), requestUrl, options.publicSiteSlugOverride),
+            options.sitePreview,
+          ))
         : Promise.resolve(null)
     const bootstrapUrl = new URL('/api/amethyst/homepage-template', requestUrl.origin)
     bootstrapUrl.searchParams.set('c', repId || '')
     bootstrapUrl.searchParams.set('publicSiteSlug', options.publicSiteSlugOverride || '')
     bootstrapUrl.searchParams.set('lineupPresentation', 'grouped-v1')
-    const reviewSelection = smokeReviewSelection(requestUrl, options.publicSiteSlugOverride)
+    const reviewSelection = options.sitePreview ? null : smokeReviewSelection(requestUrl, options.publicSiteSlugOverride)
     if (reviewSelection) {
       bootstrapUrl.searchParams.set('ssrReviewTheme', reviewSelection.theme)
       if (reviewSelection.layout !== null) bootstrapUrl.searchParams.set('ssrReviewLayout', reviewSelection.layout)
@@ -674,11 +718,13 @@ export async function renderAmethystPublicAssetResponse(
     if (contentType.startsWith('text/html')) {
       const html = body.toString('utf8')
       if (page) {
-        const ga4Tag = await resolveRepGa4TagHtml({
-          request,
-          repId,
-          shopHref: templateData?.homepage.streamLinks.shop,
-        }).catch(() => '')
+        const ga4Tag = options.sitePreview?.omitTracking
+          ? ''
+          : await resolveRepGa4TagHtml({
+            request,
+            repId,
+            shopHref: templateData?.homepage.streamLinks.shop,
+          }).catch(() => '')
         responseBody = rewriteAmethystPublicHtml(
           html,
           page,
@@ -741,6 +787,14 @@ export async function renderAmethystPublicAssetResponse(
       }
     }
 
+    if (
+      options.sitePreview?.failClosed &&
+      (page === 'homepage' || page === 'trade' || page === 'join') &&
+      !String(responseBody).includes('data-server-rendered=')
+    ) {
+      return sitePreviewUnavailable()
+    }
+
     const cacheControl = contentType.startsWith('text/html')
       ? 'no-store'
       : 'public, max-age=0, must-revalidate'
@@ -755,6 +809,7 @@ export async function renderAmethystPublicAssetResponse(
     })
   } catch (error) {
     logSSRFailure(asset.join('/'), error)
+    if (routeOptions.sitePreview?.failClosed) return sitePreviewUnavailable()
     return renderLegacy()
   }
 }
