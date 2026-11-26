@@ -10,6 +10,7 @@ import {
   type AmethystAppearancePresetId,
 } from '../appearance-presets'
 import { getPublicRepName, redactPublicRepFullName } from '../public-rep-name'
+import { publicSignupSubtitle } from '../homepage-template-data'
 import type { AmethystTradeBoardListing } from '../trade-board-listings'
 import type { LiveQueueSnapshot, PublicLineupShow } from '@/lib/services/types'
 import { buildPublicLiveLineup, type LineupNextShow } from '../public-live-lineup'
@@ -499,7 +500,7 @@ export function buildAmethystHomepageBootstrapScript(
     ).map((paragraph) =>
       redactPublicRepFullName(paragraph, data.repName),
     ),
-    signupSub: redactPublicRepFullName(data.signupSub, data.repName),
+    signupSub: publicSignupSubtitle(redactPublicRepFullName(data.signupSub, data.repName)),
   }
   const defaults = {
     ...buildAmethystHomepageTweakDefaults(publicData, appearancePreset),
@@ -535,7 +536,7 @@ export function buildAmethystHomepageBootstrapScript(
     `  text('[data-slot="about subheading"]', content.aboutSubheading);`,
     `  (content.aboutParagraphs || []).forEach(function (paragraph, index) { text('[data-slot="about paragraph ' + (index + 1) + '"]', paragraph); });`,
     `  text('.hp-signup-title', content.signupTitle);`,
-    `  text('.hp-signup-sub', content.signupSub);`,
+    `  (function () { var value = content.signupSub; var node = document.querySelector('.hp-signup-sub'); if (!node || typeof value !== 'string' || !value) return; var keep = 'your info.'; var at = value.lastIndexOf(keep); if (at < 0) { node.textContent = value; return; } node.textContent = ''; node.appendChild(document.createTextNode(value.slice(0, at))); var held = document.createElement('span'); held.className = 'hp-signup-keep'; held.textContent = keep; node.appendChild(held); if (at + keep.length < value.length) node.appendChild(document.createTextNode(value.slice(at + keep.length))); })();`,
     `  html('.hp-signup-consent', (content.signupConsent || '') + ' <a href="' + (footerLinks.privacy || '#') + '">Privacy policy</a>.');`,
     `  text('.hp-footer-tag', content.footerTagline);`,
     `  html('.hp-footer-bottom p', content.legalDisclaimer);`,
