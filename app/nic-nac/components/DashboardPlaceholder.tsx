@@ -10135,11 +10135,17 @@ function ShareMySite({ url }: { url: string | null }) {
   return (
     <div className={styles.shareSite}>
       <button type="button" className={styles.shareSiteButton} {...{ commandfor: 'share-my-site', command: 'toggle-popover' }}>Share my site</button>
-      <div id="share-my-site" popover="auto" className={styles.shareSheet}>
-        <p className={styles.lookEyebrow}>Share</p>
-        <h2 className={styles.lookTitle}>Share my site</h2>
-        <p className={styles.shareLink}>{url}</p>
-        <div className={styles.shareActions}>
+      <dialog id="share-my-site" popover="auto" className={styles.shareSheet} aria-labelledby="share-my-site-title">
+        <span className={styles.shareGrab} aria-hidden="true" />
+        <div className={styles.shareSheetHead}>
+          <div>
+            <p className={styles.lookEyebrow}>Share</p>
+            <h2 id="share-my-site-title" className={styles.lookTitle}>Share my site</h2>
+          </div>
+          <button type="button" className={styles.shareClose} aria-label="Close" {...{ commandfor: 'share-my-site', command: 'hide-popover' }}><span aria-hidden="true">×</span></button>
+        </div>
+        <div className={styles.shareLinkRow}>
+          <p className={styles.shareLink} title={url}>{url}</p>
           <button type="button" onClick={copy}>Copy</button>
           {canShare ? (
             <button type="button" onClick={() => { void navigator.share?.({ title: 'My site', url }).catch(() => undefined) }}>Share</button>
@@ -10152,7 +10158,7 @@ function ShareMySite({ url }: { url: string | null }) {
             <a href={qr} download="my-site-qr.png">Download</a>
           </div>
         ) : null}
-      </div>
+      </dialog>
     </div>
   )
 }
