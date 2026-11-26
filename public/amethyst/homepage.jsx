@@ -2784,7 +2784,10 @@ function Signup({ repName, businessName }) {
     };
   }, []);
   const signupTitle = CONTENT.signupTitle || "Never miss a show.";
-  const signupSub = CONTENT.signupSub || "Help me build shows around what you love. Share a few details and I'll send you show reminders, new drop alerts and updates, and I'll never share your info.";
+  const signupSubDefault = "Help me build shows around what you love. Share a few details and I'll send you show reminders, new drop alerts and updates, and I'll never share your info.";
+  const legacySignupSub = `Get a heads-up when ${repName} goes live, plus first dibs on new drops.`;
+  const rawSignupSub = typeof CONTENT.signupSub === "string" ? CONTENT.signupSub.trim() : "";
+  const signupSub = !rawSignupSub || rawSignupSub === legacySignupSub || rawSignupSub === "Get a heads-up when Sasha goes live, plus first dibs on new drops." ? signupSubDefault : rawSignupSub;
   const signupOffer = normalizeSignupDiscountOffer(CONTENT.signupDiscountOffer);
   const signupDiscountOn = CONTENT.signupDiscountEnabled === true && Boolean(normalizeSignupDiscountCode(CONTENT.signupDiscountCode));
   const stepWhy = [

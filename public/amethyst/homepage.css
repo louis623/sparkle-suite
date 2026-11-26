@@ -3155,18 +3155,7 @@ body.bg-quartz-paper .hp-step-num {
   max-width: 520px;
   margin-left: auto;
   margin-right: auto;
-  text-wrap: pretty;
 }
-.hp-signup-keep { white-space: nowrap; }
-.hp-signup-offer {
-  margin: 14px auto 0;
-  max-width: 36em;
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--hp-card-fg);
-  text-wrap: pretty;
-}
-.hp-signup-offer-highlight { color: var(--hp-card-accent); font-weight: 700; }
 .hp-signup-form {
   position: relative;
   z-index: 2;

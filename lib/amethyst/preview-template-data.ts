@@ -607,7 +607,7 @@ export function mapPreviewSettingsToHomepageTemplateData(
     ),
     aboutSubheading: settings.aboutSubheading?.trim() || undefined,
     aboutParagraphs: aboutParagraphs ?? ['', '', ''],
-    signupSub: "Help me build shows around what you love. Share a few details and I'll send you show reminders, new drop alerts and updates, and I'll never share your info.",
+    signupSub: `Get a heads-up when ${repName} goes live, plus first dibs on new drops.`,
     signupConsent: `Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from ${withFinalPunctuation(businessName)} Msg & data rates may apply. Reply STOP to unsubscribe.`,
     footerTagline: tagline,
     legalDisclaimer: buildLegalDisclaimer(businessName, 'homepage'),
