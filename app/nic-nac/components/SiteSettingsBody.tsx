@@ -735,6 +735,7 @@ export function SiteSettingsBody({
                       <span>Title</span>
                       <input
                         id="my-website-about-heading"
+                        className={styles.aboutHeadline}
                         data-site-control="about-title"
                         maxLength={ABOUT_TITLE_MAX_LENGTH}
                         placeholder="Meet Brianna"
@@ -747,7 +748,7 @@ export function SiteSettingsBody({
                       <span>Your story</span>
                       <textarea
                         id={SETUP_FIELD_IDS.aboutStory}
-                        className={styles.siteSettingsTextarea}
+                        className={styles.aboutStory}
                         data-site-control="about-story"
                         maxLength={ABOUT_NARRATIVE_MAX_LENGTH}
                         rows={4}
@@ -763,6 +764,7 @@ export function SiteSettingsBody({
                   <label className={styles.aboutField} data-site-field="photo-caption">
                     <span>Photo caption</span>
                     <input
+                      className={styles.aboutCaption}
                       data-site-control="photo-caption"
                       maxLength={240}
                       value={aboutPortrait?.caption ?? ''}

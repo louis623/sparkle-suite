@@ -59,18 +59,21 @@ const sample: SiteSettingsDraft = {
     instagramHero: true,
   },
   homepageMediaSlots: [
-    { key: 'showcase', caption: 'What a live reveal feels like', imageUrl: '', videoUrl: video, isVisible: true },
+    { key: 'showcase', caption: 'What a live reveal feels like', imageUrl: '', videoUrl: 'https://www.tiktok.com/@sparkle.sample/video/7234567890123456789', isVisible: true },
     {
       key: 'about_1',
       caption: 'Sasha before a Friday show',
-      imageUrl: '/dev/sample-portrait.svg',
+      imageUrl: '/dev/sasha-sample-portrait.jpg',
       videoUrl: '',
       isVisible: true,
       sectionVisible: true,
+      portraitFocusX: 50,
+      portraitFocusY: 20,
+      portraitZoom: 1.18,
     },
-    { key: 'about_2', caption: 'Unboxing the new collection', imageUrl: '', videoUrl: video, isVisible: true },
-    { key: 'about_3', caption: 'A favorite ring from last month', imageUrl: '', videoUrl: video, isVisible: true },
-    { key: 'about_4', caption: 'The room just before go-live', imageUrl: '', videoUrl: video, isVisible: true },
+    { key: 'about_2', caption: 'Unboxing the new collection', imageUrl: '', videoUrl: 'https://www.youtube.com/shorts/abcdefghijk', isVisible: true },
+    { key: 'about_3', caption: 'A favorite ring from last month', imageUrl: '', videoUrl: 'https://www.tiktok.com/@sparkle.sample/video/7234567890123456790', isVisible: true },
+    { key: 'about_4', caption: '', imageUrl: '', videoUrl: '', isVisible: true },
   ],
 }
 
