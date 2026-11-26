@@ -9601,7 +9601,7 @@
   color: #775d57;
 }
 .siteDialogBody .showsOn::before { content: "ⓘ"; flex: none; }
-.siteDialogBody input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.siteDialogBody input:not([type='checkbox']):not([type='radio']):not([type='file']):not(.signupLiveOfferInput):not(.signupLiveMessage):not(.signupCodeChip input),
 .siteDialogBody textarea,
 .siteDialogBody select {
   width: 100%;

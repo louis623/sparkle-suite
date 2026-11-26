@@ -564,7 +564,7 @@
     background: #fffaf7;
     color: #402924;
   }
-  .previewColumn .stageBody .warning { color: #402924; margin: 16px; }
+  .previewColumn .stageBody .warning { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; color: #402924; margin: 16px; }
 
   .previewColumn .stageBody iframe {
     height: 520px;
