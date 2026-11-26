@@ -1087,12 +1087,13 @@ export function SiteSettingsBody({
               {discountOfferError ? <span id={`${SITE_FIELD_IDS.discountOffer}-error`} className={styles.fieldError} role="status">{discountOfferError}</span> : null}
               <label className={styles.signupMessage} data-site-field="discount-message">
                 <span className={styles.visuallyHidden}>Message shown with your code</span>
-                <input
+                <textarea
                   id={SITE_FIELD_IDS.discountMessage}
                   className={styles.signupLiveMessage}
                   data-site-control="discount-message"
                   value={discountMessage}
                   maxLength={140}
+                  rows={2}
                   placeholder="Thanks for joining"
                   aria-invalid={discountMessageError ? 'true' : 'false'}
                   aria-describedby={describedBy(discountMessageError ? `${SITE_FIELD_IDS.discountMessage}-error` : null, 'discount-message-shows')}
@@ -1103,6 +1104,7 @@ export function SiteSettingsBody({
               </label>
               {discountMessageError ? <span id={`${SITE_FIELD_IDS.discountMessage}-error`} className={styles.fieldError} role="status">{discountMessageError}</span> : null}
               <label className={styles.signupCodeChip} data-site-field="discount-code">
+                <span className={styles.signupCodeRow}>
                 <span>Code</span>
                 <input
                   id={SITE_FIELD_IDS.discountCode}
@@ -1118,6 +1120,7 @@ export function SiteSettingsBody({
                   onBlur={() => onFieldBlur(SITE_FIELD_IDS.discountCode, 'Discount code', discountCodeFieldError(discountCode, draft.signupDiscountEnabled))}
                   onChange={(event) => onDraftChange?.({ signupDiscountCode: event.target.value })}
                 />
+                </span>
                 <ShowsOn id="discount-code-shows" legend caption="The code, after she joins">{SHOWS_ON.discountCode}</ShowsOn>
               </label>
               {discountCodeError ? <span id={`${SITE_FIELD_IDS.discountCode}-error`} className={styles.fieldError} role="status">{discountCodeError}</span> : null}

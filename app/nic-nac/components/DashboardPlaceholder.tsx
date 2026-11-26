@@ -10386,7 +10386,7 @@ export function SiteSettingsCard({
       ),
     ]),
   )
-  const saveError = actionState?.error ?? (draft.signupDiscountEnabled ? discountCodeProblem : null)
+  const saveError = actionState?.error ?? null
   const savePhase = actionState?.pending ? 'saving' : saveError ? 'error' : 'saved'
   const checklist = buildSiteSetupChecklist(draft)
   const themeCard = getAmethystSkinCard(draft.appearancePreset)
