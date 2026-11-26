@@ -9155,10 +9155,15 @@
 .sitePortraitMark {
   position: relative;
   z-index: 1;
+  display: block;
+  padding: 8px;
   color: #fff6fb;
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
   font-style: italic;
-  font-size: 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.15;
+  white-space: normal;
+  text-wrap: balance;
 }
 .sitePortraitMark {
   width: 54px;
@@ -10253,9 +10258,20 @@
 .signupLiveOffer { margin: 12px 0 0; color: #ee2c9b; font-weight: 700; text-wrap: pretty; }
 .signupInline { display: inline; }
 .signupMessage { display: block; }
-.signupLiveOfferInput, .signupLiveMessage { width: 100%; min-height: 44px; border: 0; border-bottom: 1px solid transparent; background: transparent; color: inherit; font: inherit; }
-.signupLiveOfferInput { width: 14ch; color: #ee2c9b; font-weight: 700; }
-.signupLiveMessage { display: block; margin-top: 8px; color: #34252f; font-weight: 500; }
+.siteDialogBody .signupLiveOfferInput,
+.siteDialogBody .signupLiveMessage,
+.siteDialogBody .signupCodeChip input {
+  width: auto;
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0 2px;
+  box-shadow: none;
+  font: inherit;
+}
+.siteDialogBody .signupLiveOfferInput { width: 14ch; color: #ee2c9b; font-weight: 700; border-bottom: 1px solid #ee2c9b; }
+.siteDialogBody .signupLiveMessage { display: block; width: 100%; margin-top: 8px; color: #34252f; font-weight: 500; }
 .signupLiveOfferInput:focus, .signupLiveMessage:focus { border-bottom-color: #ee2c9b; outline: none; }
 .signupCodeChip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 12px; padding: 0 14px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px rgba(201, 162, 91, 0.45); }
 .signupCodeChip input { min-height: 44px; width: 14ch; border: 0; background: transparent; color: #34252f; font-weight: 700; letter-spacing: 0.06em; }

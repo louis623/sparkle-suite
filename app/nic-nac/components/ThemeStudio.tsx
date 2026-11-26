@@ -599,7 +599,7 @@ function ThemeGroups({
       {current ? (
         <div className={styles.currentTheme} data-testid="theme-on-site">
           <span className={styles.currentThumb} style={{ background: colorBlock(current.previewColors) }}>
-            {current.thumb ? <img src={current.thumb} alt="" width={480} height={300} /> : <span className={styles.paletteName}>{current.label}</span>}
+            {current.thumb ? <img src={current.thumb} alt="" width={480} height={300} /> : null}
           </span>
           <span>
             <p className={styles.groupKicker}>On your site now</p>

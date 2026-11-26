@@ -1060,28 +1060,30 @@ export function SiteSettingsBody({
               <p className={styles.lookEyebrow}>Stay in the loop</p>
               <h3 className={styles.lookTitle}>Never miss a show.</h3>
               <p className={styles.lookLede}>Help me build shows around what you love. Share a few details and I'll send you show reminders, new drop alerts and updates, and I'll never share your info.</p>
-              <p className={styles.signupLiveOffer}>
-                Sign up today for a one-time{' '}
-                <label className={styles.signupInline} data-site-field="discount-offer">
-                  <span className={styles.visuallyHidden}>What they get</span>
-                  <input
-                    id={SITE_FIELD_IDS.discountOffer}
-                    className={styles.signupLiveOfferInput}
-                    data-site-control="discount-offer"
-                    value={draft.signupDiscountOffer ?? ''}
-                    maxLength={40}
-                    placeholder="10% off"
-                    aria-invalid={discountOfferError ? 'true' : 'false'}
-                    aria-describedby={describedBy(
-                      discountOfferError ? `${SITE_FIELD_IDS.discountOffer}-error` : null,
-                      'discount-offer-shows',
-                    )}
-                    onBlur={() => onFieldBlur(SITE_FIELD_IDS.discountOffer, 'What they get', discountOfferFieldError(draft.signupDiscountOffer))}
-                    onChange={(event) => onDraftChange?.({ signupDiscountOffer: event.target.value })}
-                  />
-                  <ShowsOn id="discount-offer-shows" legend caption="The offer on the sign-up card">{SHOWS_ON.discountOffer}</ShowsOn>
-                </label>
-              </p>
+              <div data-site-field="discount-offer">
+                <p className={styles.signupLiveOffer}>
+                  Sign up today for a one-time{' '}
+                  <label className={styles.signupInline}>
+                    <span className={styles.visuallyHidden}>What they get</span>
+                    <input
+                      id={SITE_FIELD_IDS.discountOffer}
+                      className={styles.signupLiveOfferInput}
+                      data-site-control="discount-offer"
+                      value={draft.signupDiscountOffer ?? ''}
+                      maxLength={40}
+                      placeholder="10% off"
+                      aria-invalid={discountOfferError ? 'true' : 'false'}
+                      aria-describedby={describedBy(
+                        discountOfferError ? `${SITE_FIELD_IDS.discountOffer}-error` : null,
+                        'discount-offer-shows',
+                      )}
+                      onBlur={() => onFieldBlur(SITE_FIELD_IDS.discountOffer, 'What they get', discountOfferFieldError(draft.signupDiscountOffer))}
+                      onChange={(event) => onDraftChange?.({ signupDiscountOffer: event.target.value })}
+                    />
+                  </label>
+                </p>
+                <ShowsOn id="discount-offer-shows" legend caption="The offer on the sign-up card">{SHOWS_ON.discountOffer}</ShowsOn>
+              </div>
               {discountOfferError ? <span id={`${SITE_FIELD_IDS.discountOffer}-error`} className={styles.fieldError} role="status">{discountOfferError}</span> : null}
               <label className={styles.signupMessage} data-site-field="discount-message">
                 <span className={styles.visuallyHidden}>Message shown with your code</span>
