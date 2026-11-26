@@ -10288,7 +10288,7 @@
 .lookChipLine { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 4px 0; }
 .lookAddLine { min-height: 44px; margin-top: 4px; padding: 0 12px; border: 1px dashed #e7b7cf; border-radius: 999px; background: transparent; color: #8a3058; font-weight: 700; }
 .lookMarquee { overflow: hidden; margin-top: 8px; border-radius: 999px; background: #34252f; color: #fff6fb; }
-.lookMarquee span { display: inline-block; padding: 8px 12px; white-space: nowrap; }
+.lookMarquee span { display: block; padding: 8px 12px; white-space: normal; text-wrap: pretty; }
 @media (max-width: 640px) {
   .lookChapter { grid-template-columns: minmax(0, 1fr); }
   .lookNum { text-align: left; padding: 0 0 6px 4px; font-size: 30px; }
