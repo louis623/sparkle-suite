@@ -124,13 +124,10 @@ function ReviewCard({
         state={{ status: 'ready', settings: saved }}
         draft={draft}
         publicSiteUrl="https://sparklebysasha.example"
-        publicSiteDisplay="sparklebysasha.example"
-        canPreview
         previewThemeCards={reviewThemes}
         nextShow={{ month: 'DEC', day: '12', name: 'Friday night reveal', time: '7:00 PM' }}
         initialOpenSections={openSections}
         onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
-        onPreview={() => undefined}
         onDiscard={() => setDraft(saved)}
         onSave={() => undefined}
       />
@@ -222,14 +219,11 @@ export function MyWebsiteLayoutHarness({
         state={{ status: 'ready', settings: saved }}
         draft={draft}
         publicSiteUrl="https://sparklebysasha.example"
-        publicSiteDisplay="sparklebysasha.example"
-        canPreview
         previewThemeCards={reviewThemes}
         nextShow={{ month: 'DEC', day: '12', name: 'Friday night reveal', time: '7:00 PM' }}
         initialOpenSection={openSection}
         initialDialog={openDialog}
         onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
-        onPreview={() => undefined}
         onDiscard={() => setDraft(saved)}
         onSave={() => undefined}
       />

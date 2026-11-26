@@ -644,7 +644,6 @@ describe('DashboardPlaceholder', () => {
         repName: 'Sasha',
         showName: 'Sparkle by Sasha',
         publicSiteUrl: null,
-        publicSiteDisplay: 'Not set',
         unreadMessageCount: 0,
         onOpenPublicSite: () => {},
         onOpenMessages: () => {},
@@ -670,7 +669,6 @@ describe('DashboardPlaceholder', () => {
         repName: 'Sasha',
         showName: 'Sparkle by Sasha',
         publicSiteUrl: null,
-        publicSiteDisplay: 'Not set',
         liveQueueSyncCode: null,
         unreadMessageCount: 0,
         onOpenPublicSite: () => {},
@@ -3704,7 +3702,7 @@ describe('DashboardPlaceholder', () => {
     expect(html.match(/Video caption \(optional\)/g)).toHaveLength(4)
     expect(html).toContain('maxLength="180"')
     expect(html.match(/Upload photo/g)).toHaveLength(1)
-    expect(html).toContain('Watch a Live Reveal sits above About. Her story and photo are in About, then the short videos.')
+    expect(html).toContain('Watch a Live Reveal sits above About. On a phone her story comes before the photo. Short videos follow.')
     expect(html).toContain('About you')
     expect(html).toContain('Customers see this as the Watch a Live Reveal card, above the About section.')
     expect(html).toContain('Instagram')
@@ -3958,9 +3956,6 @@ describe('DashboardPlaceholder', () => {
         hasUnsavedChanges: true,
         changes: ['Footer tagline'],
         publicSiteUrl: 'https://www.example.com',
-        publicSiteDisplay: 'example.com',
-        canPreview: true,
-        onPreview: () => undefined,
         onSave: () => undefined,
       }),
     )

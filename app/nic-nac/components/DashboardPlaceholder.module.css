@@ -8880,9 +8880,10 @@
   font-size: clamp(16px, 7cqi, 26px);
   line-height: 1;
   letter-spacing: -0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-wrap: balance;
+  line-height: 1.15;
 }
 .siteTicket[data-coupon='off'] .siteTicketOffer,
 .siteTicket[data-coupon='need'] .siteTicketOffer { font-size: clamp(14px, 7cqi, 22px); }
@@ -9154,10 +9155,15 @@
 .sitePortraitMark {
   position: relative;
   z-index: 1;
+  display: block;
+  padding: 8px;
   color: #fff6fb;
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
   font-style: italic;
-  font-size: 1.1rem;
+  font-size: 0.85rem;
+  line-height: 1.15;
+  white-space: normal;
+  text-wrap: balance;
 }
 .sitePortraitMark {
   width: 54px;
@@ -9473,6 +9479,7 @@
 .siteDialog::backdrop { background: rgba(54, 34, 29, 0.5); }
 
 .siteDialogWide { width: min(1080px, calc(100vw - 32px)); }
+.siteDialogWide[open] { height: min(86dvh, 920px); }
 
 .siteDialogBand {
   display: flex;
@@ -9594,7 +9601,7 @@
   color: #775d57;
 }
 .siteDialogBody .showsOn::before { content: "ⓘ"; flex: none; }
-.siteDialogBody input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.siteDialogBody input:not([type='checkbox']):not([type='radio']):not([type='file']):not(.signupLiveOfferInput):not(.signupLiveMessage):not(.signupCodeChip input),
 .siteDialogBody textarea,
 .siteDialogBody select {
   width: 100%;
@@ -9805,7 +9812,7 @@
   box-shadow: 0 1px 0 0 #ee2c9b;
 }
 .aboutSheetRow input { width: 100%; box-sizing: border-box; min-height: 44px; border: 1px solid rgba(64, 41, 36, 0.14); border-radius: 12px; background: #fff; padding: 8px 12px; font-weight: 500; }
-.aboutCount { align-self: flex-end; color: #6f5650; font-size: 11px; font-weight: 700; }
+.aboutCount { margin-inline-start: 6px; color: #6f5650; font-size: 11px; font-weight: 700; white-space: nowrap; }
 .aboutHeroTools, .aboutPhotoActions, .aboutSheet { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .aboutHeroTools { flex-direction: column; align-items: stretch; }
 .aboutAction, .aboutDanger, .aboutEdit summary, .aboutCrop summary {
@@ -9909,10 +9916,12 @@
   box-shadow: none;
 }
 .aboutVideoCaption { margin: 6px 0; font-size: 13px; font-weight: 700; }
+.aboutEdit { position: relative; }
 .aboutEdit summary { list-style: none; }
 .aboutEdit summary::-webkit-details-marker { display: none; }
 .aboutSheet { display: none; }
-.aboutEdit[open] .aboutSheet { display: flex; flex-direction: column; align-items: stretch; margin-top: 8px; }
+.aboutShort:has(.aboutEdit[open]) { overflow: visible; z-index: 3; }
+.aboutEdit[open] .aboutSheet { display: flex; flex-direction: column; align-items: stretch; position: absolute; left: 0; top: calc(100% + 8px); z-index: 4; width: min(320px, calc(100vw - 32px)); padding: 12px; border-radius: 14px; background: #fffdfb; box-shadow: 0 12px 30px -18px rgba(52, 37, 47, 0.45); }
 .aboutSheetRow { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 800; }
 .aboutSheetHelp { margin: 0; color: #6f5650; font-size: 13px; }
 .aboutSmart { border: 0; padding: 8px 0 0; display: grid; gap: 8px; }
@@ -10237,16 +10246,51 @@
 }
 .lookEmojiFoot { margin: 0; padding: 10px 16px; border-top: 1px solid rgba(64, 41, 36, 0.12); color: #6f5650; font-size: 12.5px; }
 .lookEmojiEmpty { margin: 8px 16px 16px; color: #6f5650; }
-.shareSite { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
+.shareSite { margin: 0 0 14px; }
 .shareSiteButton { min-height: 44px; padding: 0 16px; border: 0; border-radius: 999px; background: #34252f; color: #fff6fb; font-weight: 700; }
-.shareSite img { width: 72px; height: 72px; border-radius: 8px; background: #fff; }
-.signupLiveCard { margin: 0 0 16px; padding: 18px; border-radius: 20px; background: linear-gradient(160deg, #fff6f9, #fffaf4); box-shadow: inset 0 0 0 1px rgba(201, 162, 91, 0.28); }
-.signupLiveOffer { margin: 12px 0 0; }
-.signupLiveOffer strong { color: #ee2c9b; }
-.lookChip { display: inline-flex; align-items: center; min-height: 32px; margin: 0 4px; padding: 0 8px; border: 0; border-radius: 999px; background: #ffd6ea; color: #c0156f; font-weight: 700; }
-.lookChipLine { margin: 4px 0; }
+.shareSheet { width: min(360px, calc(100vw - 32px)); padding: 18px; border: 0; border-radius: 20px; background: #fffdfb; color: #34252f; box-shadow: 0 24px 60px -24px rgba(52, 37, 47, 0.45); }
+.shareSheet::backdrop { background: rgba(52, 37, 47, 0.28); }
+.shareLink { margin: 8px 0 12px; overflow-wrap: anywhere; color: #6f5650; }
+.shareActions { display: flex; flex-wrap: wrap; gap: 8px; }
+.shareActions button, .shareQr a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border: 0; border-radius: 999px; background: #ee2c9b; color: #fff; font-weight: 700; text-decoration: none; }
+.shareQr { display: grid; justify-items: center; gap: 10px; width: min(100%, 220px); margin-top: 14px; padding: 14px; border-radius: 18px; background: #fff; box-shadow: 0 10px 30px rgba(64, 41, 36, 0.1); }
+.shareQr img { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; }
+.signupEditor { display: flex; flex-direction: column; gap: 14px; }
+.signupLiveCard { margin: 0; padding: 18px; border-radius: 20px; background: linear-gradient(160deg, #fff6f9, #fffaf4); box-shadow: inset 0 0 0 1px rgba(201, 162, 91, 0.28); }
+.signupLiveOffer { margin: 12px 0 0; color: #ee2c9b; font-weight: 700; text-wrap: pretty; }
+.signupInline { display: inline; }
+.signupMessage { display: block; }
+.siteDialogBody .signupLiveOfferInput,
+.siteDialogBody .signupLiveMessage,
+.siteDialogBody .signupCodeChip input {
+  width: auto;
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0 2px;
+  box-shadow: none;
+  font: inherit;
+}
+.siteDialogBody .signupLiveOfferInput { width: 14ch; color: #ee2c9b; font-weight: 700; border-bottom: 1px solid #ee2c9b; }
+.siteDialogBody .signupLiveMessage { display: block; width: 100%; margin-top: 8px; color: #34252f; font-weight: 500; }
+.signupLiveOfferInput:focus, .signupLiveMessage:focus { border-bottom-color: #ee2c9b; outline: none; }
+.signupCodeChip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 12px; padding: 0 14px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px rgba(201, 162, 91, 0.45); }
+.signupCodeChip input { min-height: 44px; width: 14ch; border: 0; background: transparent; color: #34252f; font-weight: 700; letter-spacing: 0.06em; }
+.signupSwitchRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.signupSwitch { appearance: none; position: relative; width: 52px; min-width: 44px; height: 44px; margin: 0; border: 0; border-radius: 999px; background: transparent; cursor: pointer; }
+.signupSwitch::before { content: ""; position: absolute; left: 0; top: 6px; width: 52px; height: 32px; border-radius: 999px; background: #e7d5dc; }
+.signupSwitch:checked::before { background: #ee2c9b; }
+.signupSwitch::after { content: ""; position: absolute; top: 12px; left: 6px; width: 20px; height: 20px; border-radius: 99px; background: #fff; transition: transform 160ms ease; }
+.signupSwitch:checked::after { transform: translateX(20px); }
+.signupSwitch:focus-visible { outline: 3px solid #0b57d0; outline-offset: 4px; }
+.lookTickerSource { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.lookChip { display: inline-flex; align-items: center; min-height: 44px; margin: 0 4px; padding: 0 12px; border: 0; border-radius: 999px; background: #ffd6ea; color: #c0156f; font-weight: 700; }
+.lookChipText { min-height: 44px; border: 0; background: transparent; color: inherit; font: inherit; }
+.lookChipLine { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 4px 0; }
+.lookAddLine { min-height: 44px; margin-top: 4px; padding: 0 12px; border: 1px dashed #e7b7cf; border-radius: 999px; background: transparent; color: #8a3058; font-weight: 700; }
 .lookMarquee { overflow: hidden; margin-top: 8px; border-radius: 999px; background: #34252f; color: #fff6fb; }
-.lookMarquee span { display: inline-block; padding: 8px 12px; white-space: nowrap; }
+.lookMarquee span { display: block; padding: 8px 12px; white-space: normal; text-wrap: pretty; }
 @media (max-width: 640px) {
   .lookChapter { grid-template-columns: minmax(0, 1fr); }
   .lookNum { text-align: left; padding: 0 0 6px 4px; font-size: 30px; }

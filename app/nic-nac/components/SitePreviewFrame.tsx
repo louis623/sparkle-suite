@@ -8,6 +8,10 @@ export function sitePreviewFrameAttributes(themeLabel: string) {
 }
 
 /** Shared srcdoc frame. Chunk 2 places it on the My Website page. */
+function previewMarkup(html: string) {
+  return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+}
+
 export function SitePreviewFrame({ html, themeLabel }: { html: string; themeLabel: string }) {
   const frame = sitePreviewFrameAttributes(themeLabel)
   return (
@@ -15,7 +19,7 @@ export function SitePreviewFrame({ html, themeLabel }: { html: string; themeLabe
       title={frame.title}
       sandbox={frame.sandbox}
       referrerPolicy={frame.referrerPolicy}
-      srcDoc={html}
+      srcDoc={previewMarkup(html)}
     />
   )
 }

@@ -7731,7 +7731,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             forceFieldErrors={forceSiteFieldErrors}
             fieldEpoch={siteSettingsFieldEpoch}
             publicSiteUrl={customerSparkleSiteUrl}
-            publicSiteDisplay={customerSparkleSiteDisplay}
             onDraftChange={handleSiteSettingsDraftChange}
             onSocialHandleChange={handleSocialHandleChange}
             onHomepageMediaChange={handleHomepageMediaChange}
@@ -7740,8 +7739,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             mediaUploadKey={siteSettingsMediaUploadKey}
             mediaUploadFeedback={siteSettingsMediaUploadFeedback}
             isBrittWithBling={isBrittWithBlingWorkspace}
-            canPreview={Boolean(customerSparkleSiteHref)}
-            onPreview={handleOpenCustomerSitePreview}
             onDiscard={() => discardOpenerRef.current?.open()}
             onSave={handleSaveSiteSettings}
             onLookClose={() => { void flushLookPreviewEditor() }}
@@ -10119,33 +10116,43 @@ export function HelpResourcesCard({
 function ShareMySite({ url }: { url: string | null }) {
   const [note, setNote] = useState('')
   const [qr, setQr] = useState('')
+  const [canShare, setCanShare] = useState(false)
+  useEffect(() => {
+    setCanShare(typeof navigator.share === 'function')
+  }, [])
   useEffect(() => {
     if (!url) return
     let cancel = false
-    void QRCode.toDataURL(url, { width: 128, margin: 1 }).then((value) => {
+    void QRCode.toDataURL(url, { width: 320, margin: 1 }).then((value) => {
       if (!cancel) setQr(value)
     }).catch(() => undefined)
     return () => { cancel = true }
   }, [url])
   if (!url) return null
+  const copy = () => {
+    void navigator.clipboard.writeText(url).then(() => setNote('Link copied')).catch(() => setNote('Copy the link from the sheet'))
+  }
   return (
     <div className={styles.shareSite}>
-      <button
-        type="button"
-        className={styles.shareSiteButton}
-        onClick={() => {
-          const share = navigator.share?.bind(navigator)
-          if (share) {
-            void share({ title: 'My site', url }).catch(() => undefined)
-            return
-          }
-          void navigator.clipboard.writeText(url).then(() => setNote('Link copied')).catch(() => setNote('Copy the link from your address bar'))
-        }}
-      >
-        Share my site
-      </button>
-      {note ? <span role="status">{note}</span> : null}
-      {qr ? <img src={qr} alt="" width={72} height={72} /> : null}
+      <button type="button" className={styles.shareSiteButton} {...{ commandfor: 'share-my-site', command: 'toggle-popover' }}>Share my site</button>
+      <div id="share-my-site" popover="auto" className={styles.shareSheet}>
+        <p className={styles.lookEyebrow}>Share</p>
+        <h2 className={styles.lookTitle}>Share my site</h2>
+        <p className={styles.shareLink}>{url}</p>
+        <div className={styles.shareActions}>
+          <button type="button" onClick={copy}>Copy</button>
+          {canShare ? (
+            <button type="button" onClick={() => { void navigator.share?.({ title: 'My site', url }).catch(() => undefined) }}>Share</button>
+          ) : null}
+        </div>
+        {note ? <p role="status">{note}</p> : null}
+        {qr ? (
+          <div className={styles.shareQr}>
+            <img src={qr} alt="" width={180} height={180} />
+            <a href={qr} download="my-site-qr.png">Download</a>
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -10160,7 +10167,6 @@ export function SiteSettingsCard({
   forceFieldErrors = false,
   fieldEpoch = 0,
   publicSiteUrl = null,
-  publicSiteDisplay = 'Site address not set',
   onDraftChange,
   onSocialHandleChange,
   onHomepageMediaChange,
@@ -10169,10 +10175,8 @@ export function SiteSettingsCard({
   mediaUploadKey,
   mediaUploadFeedback,
   isBrittWithBling = false,
-  canPreview,
   initialOpenSection = null,
   initialOpenSections = null,
-  onPreview,
   onDiscard,
   onSave,
   onLookClose,
@@ -10192,7 +10196,6 @@ export function SiteSettingsCard({
   forceFieldErrors?: boolean
   fieldEpoch?: number
   publicSiteUrl?: string | null
-  publicSiteDisplay?: string | null
   onDraftChange?: (patch: Partial<SiteSettingsDraft>) => void
   onSocialHandleChange?: (platform: string, value: string) => void
   onHomepageMediaChange?: (
@@ -10211,10 +10214,8 @@ export function SiteSettingsCard({
     tone: 'error' | 'success'
   } | null
   isBrittWithBling?: boolean
-  canPreview?: boolean
   initialOpenSection?: SiteSectionId | null
   initialOpenSections?: SiteSectionId[] | null
-  onPreview?: () => void
   onDiscard?: () => void
   onSave?: () => void
   onLookClose?: () => void
@@ -10360,10 +10361,10 @@ export function SiteSettingsCard({
 
   const discountCode = draft.signupDiscountCode ?? ''
   const discountMessage = draft.signupDiscountMessage ?? ''
-  const discountCodeError = showFieldError(
-    SITE_FIELD_IDS.discountCode,
-    discountCodeFieldError(discountCode, draft.signupDiscountEnabled),
-  )
+  const discountCodeProblem = discountCodeFieldError(discountCode, draft.signupDiscountEnabled)
+  const discountCodeError = draft.signupDiscountEnabled
+    ? discountCodeProblem
+    : showFieldError(SITE_FIELD_IDS.discountCode, discountCodeProblem)
   const discountMessageError = showFieldError(
     SITE_FIELD_IDS.discountMessage,
     discountMessageFieldError(discountMessage),
@@ -10379,7 +10380,7 @@ export function SiteSettingsCard({
       ),
     ]),
   )
-  const saveError = actionState?.error ?? null
+  const saveError = actionState?.error ?? (draft.signupDiscountEnabled ? discountCodeProblem : null)
   const savePhase = actionState?.pending ? 'saving' : saveError ? 'error' : 'saved'
   const checklist = buildSiteSetupChecklist(draft)
   const themeCard = getAmethystSkinCard(draft.appearancePreset)
@@ -10476,6 +10477,7 @@ export function SiteSettingsCard({
       onDraftChange={onDraftChange}
       onSocialHandleChange={onSocialHandleChange}
       onHomepageMediaChange={onHomepageMediaChange}
+      onMediaCommit={onCommit}
       onHomepageMediaUpload={onHomepageMediaUpload}
       onHomepageVideoRemove={onHomepageVideoRemove}
       onFieldBlur={reportFieldBlur}
@@ -10509,7 +10511,6 @@ export function SiteSettingsCard({
 
   return (
     <div className={styles.siteHome} data-testid="my-website-home">
-      <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
       <p className={styles.siteHomeKicker}>Your customer site</p>
       <h1 className={styles.siteHomeTitle}>Tap a part of your site to change it</h1>
       <p className={styles.siteHomeLede}>Everything saves on its own as you go.</p>
@@ -10664,6 +10665,7 @@ export function SiteSettingsCard({
       </div>
       </div>
       <dialog ref={lookRef} className={styles.siteDialog} data-site-dialog="" aria-labelledby="site-look-title" onClose={() => onLookClose?.()}>
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Your customer site</p>
@@ -10707,11 +10709,12 @@ export function SiteSettingsCard({
         </footer>
       </dialog>
       <dialog ref={aboutRef} className={`${styles.siteDialog} ${styles.siteDialogAbout}`} aria-labelledby="site-about-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Your customer site</p>
             <h1 id="site-about-title" className={styles.siteDialogTitle}>About you</h1>
-            <p className={styles.siteDialogSubtitle}>Watch a Live Reveal sits above About. Her story and photo are in About, then the short videos.</p>
+            <p className={styles.siteDialogSubtitle}>Watch a Live Reveal sits above About. On a phone her story comes before the photo. Short videos follow.</p>
           </div>
           <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => aboutRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
@@ -10725,6 +10728,7 @@ export function SiteSettingsCard({
         </footer>
       </dialog>
       <dialog ref={showsRef} className={styles.siteDialog} aria-labelledby="site-shows-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Sign-up discount</p>
@@ -10740,6 +10744,7 @@ export function SiteSettingsCard({
         </footer>
       </dialog>
       <dialog ref={linksRef} className={`${styles.siteDialog} ${styles.siteDialogWide}`} aria-labelledby="site-links-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Your customer site</p>
@@ -10755,6 +10760,7 @@ export function SiteSettingsCard({
         </footer>
       </dialog>
       <dialog ref={themeRef} className={`${styles.siteDialog} ${styles.siteDialogWide}`} data-site-dialog="" aria-labelledby="site-theme-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Themes</p>
@@ -10781,7 +10787,6 @@ export function SiteSettingsCard({
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
-      <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
     </div>
   )
 }

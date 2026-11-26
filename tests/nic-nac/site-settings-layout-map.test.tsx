@@ -160,8 +160,6 @@ async function renderCard(draft: SiteSettingsDraft, extra: { britt?: boolean } =
         state: { status: 'ready', settings: { ...draft, joinTeamAccessEnabled: true } },
         draft,
         publicSiteUrl: 'https://sparklebysasha.example',
-        publicSiteDisplay: 'sparklebysasha.example',
-        canPreview: true,
         isBrittWithBling: extra.britt === true,
       }),
     )

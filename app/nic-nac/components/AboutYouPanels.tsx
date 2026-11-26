@@ -146,7 +146,7 @@ function VideoFields({
       {lockedTikTok ? <p id={`remove-video-help-${slot.key}`}>Remove this video before adding a new link.</p> : null}
       <label className={styles.aboutSheetRow} data-site-field={captionControl}>
         <span>
-          {allSourcesEnabled ? 'Caption' : 'Video caption (optional)'}
+          {allSourcesEnabled ? 'Caption' : 'Video caption (optional)'}{' '}
           <span className={styles.aboutCount}>{slot.caption.length} / 180</span>
         </span>
         <input

@@ -208,8 +208,10 @@
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
   font-style: italic;
   font-size: 1rem;
-  line-height: 1.15;
+  line-height: 1.2;
   text-align: left;
+  text-wrap: balance;
+  overflow-wrap: normal;
 }
 
 .check {
@@ -319,7 +321,7 @@
 }
 .currentThumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .groupKicker { margin: 0; color: #b91673; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
-.currentName { margin: 2px 0 0; font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif; font-size: 1.3rem; font-weight: 500; }
+.currentName { margin: 2px 0 0; font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif; font-size: 1.3rem; font-weight: 500; text-wrap: balance; overflow-wrap: normal; }
 .savedMark { color: #0d5c3d; font-size: 0.85rem; font-weight: 800; }
 .seriesTitle { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 8px; font-size: 1rem; }
 .seriesCount { color: #775d57; font-size: 0.8rem; }
@@ -558,12 +560,19 @@
     height: auto;
     min-height: 420px;
     aspect-ratio: auto;
+    overflow: auto;
+    background: #fffaf7;
+    color: #402924;
   }
+  .previewColumn .stageBody .warning { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; color: #402924; margin: 16px; }
 
   .previewColumn .stageBody iframe {
-    height: 100%;
-    min-height: 0;
+    height: 520px;
+    min-height: 520px;
   }
+}
+:global([data-site-dialog]) .tryPanel {
+  min-height: 620px;
 }
 
 .tabs {
