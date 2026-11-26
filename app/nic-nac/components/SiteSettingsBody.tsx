@@ -13,6 +13,7 @@ import { applyHeroMotionSwitch } from '@/lib/amethyst/hero-motion-client'
 import visibility from './PublicSiteVisibility.module.css'
 import type { SiteSettingsDraft } from '@/app/nic-nac/components/DashboardPlaceholder'
 import { AboutMarquee, AboutShortRail, aboutPhotoStyle } from './AboutYouPanels'
+import { LookEmojiPicker } from './LookEmojiPicker'
 import { HomepageMediaSlot } from './HomepageMediaSlot'
 import { PublicSiteVisibility } from './PublicSiteVisibility'
 import { SocialHandlesSettings } from './SocialHandlesSettings'
@@ -289,6 +290,8 @@ export function SiteSettingsBody({
   onLinkTickerWords,
   onResetTickerLinks,
   sections,
+  magazine = false,
+  heroBackdrop,
 }: {
   draft: SiteSettingsDraft
   savedSlots?: PublicSiteMediaSlot[]
@@ -323,6 +326,8 @@ export function SiteSettingsBody({
   onLinkTickerWords: () => void
   onResetTickerLinks: () => void
   sections?: readonly SiteSectionId[]
+  magazine?: boolean
+  heroBackdrop?: { image?: string | null; colors: readonly string[] }
 }) {
   const checklist = buildSiteSetupChecklist(draft)
   const firstGap = checklist.find((item) => !item.done)?.section ?? null
@@ -372,8 +377,19 @@ export function SiteSettingsBody({
         summary="Your name, store link, and announcements"
         status={status('top-bar')}
         defaultOpen={plain || sectionOpen('top-bar')}
+        hideHeading={magazine}
+        className={magazine ? styles.lookChapters : undefined}
       >
-        <div className={styles.siteSettingsGrid}>
+        {magazine ? (
+          <article className={styles.lookChapter}>
+            <span className={styles.lookNum} aria-hidden="true">II</span>
+            <div className={styles.lookCard}>
+              <header className={styles.lookHead}>
+                <p className={styles.lookEyebrow}>Top bar</p>
+                <h2 className={styles.lookTitle}>Your name & shop</h2>
+                <p className={styles.lookLede}>The name at the top of every page, and where every Shop button goes.</p>
+              </header>
+              <div className={`${styles.siteSettingsGrid} ${styles.lookNameGrid}`}>
           <label className={styles.searchField} data-site-field="business-name">
             <span className={styles.searchLabel}>Business name</span>
             <input
@@ -439,7 +455,24 @@ export function SiteSettingsBody({
             ) : null}
             <ShowsOn id="shop-link-shows">{SHOWS_ON.shopLink}</ShowsOn>
           </label>
-          <label className={`${styles.sortFieldWide}`} data-site-field="ticker-text">
+              </div>
+            </div>
+          </article>
+        ) : null}
+        <div className={magazine ? styles.lookTickerStack : styles.siteSettingsGrid}>
+          {magazine ? (
+            <article className={styles.lookChapter}>
+              <span className={styles.lookNum} aria-hidden="true">III</span>
+              <div className={styles.lookCard}>
+                <header className={styles.lookHead}>
+                  <p className={styles.lookEyebrow}>Announcements</p>
+                  <h2 className={styles.lookTitle}>Your scrolling news</h2>
+                  <p className={styles.lookLede}>One announcement per line. Add emojis, then highlight only the words you want to link.</p>
+                </header>
+              </div>
+            </article>
+          ) : null}
+          <label className={`${styles.sortFieldWide} ${magazine ? styles.lookTickerField : ''}`} data-site-field="ticker-text">
             <span className={styles.searchLabel}>Announcement ticker messages</span>
             <textarea
               ref={tickerRef}
@@ -462,20 +495,7 @@ export function SiteSettingsBody({
             <div className={styles.tickerComposer}>
               <div>
                 <span className={styles.searchLabel}>Add an emoji</span>
-                <div className={styles.tickerEmojiRow}>
-                  {['✨', '💎', '🎥', '🛍️', '🎉', '📣', '⏰', '💖'].map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      className={styles.tickerEmojiButton}
-                      data-site-control="ticker-emoji"
-                      onClick={() => onAddTickerText(emoji)}
-                      aria-label={`Add ${emoji} to the announcement ticker`}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
+                <LookEmojiPicker onInsert={onAddTickerText} />
               </div>
               <div>
                 <span className={styles.searchLabel}>Link selected words</span>
@@ -524,13 +544,13 @@ export function SiteSettingsBody({
             </div>
             <ShowsOn id="ticker-shows">{SHOWS_ON.ticker}</ShowsOn>
           </label>
+          <PublicSiteVisibility
+            settings={draft}
+            joinTeamAccessEnabled={joinTeamAccessEnabled}
+            onChange={onDraftChange}
+            part="announcements"
+          />
         </div>
-        <PublicSiteVisibility
-          settings={draft}
-          joinTeamAccessEnabled={joinTeamAccessEnabled}
-          onChange={onDraftChange}
-          part="announcements"
-        />
       </SiteSection>
 
       <SiteSection plain={plain} hidden={!showSection('hero')}
@@ -540,10 +560,32 @@ export function SiteSettingsBody({
         summary="The headline customers see first"
         status={status('hero')}
         defaultOpen={plain || sectionOpen('hero')}
+        hideHeading={magazine}
+        className={magazine ? styles.lookChapters : undefined}
       >
-        <div className={styles.siteSettingsGrid}>
+        {magazine ? (
+          <article className={styles.lookChapter}>
+            <span className={styles.lookNum} aria-hidden="true">IV</span>
+            <div className={styles.lookCard}>
+              <header className={styles.lookHead}>
+                <p className={styles.lookEyebrow}>Hero</p>
+                <h2 className={styles.lookTitle}>Your first hello</h2>
+                <p className={styles.lookLede}>Write right on top of your theme, just like customers will see it.</p>
+              </header>
+              <div
+                className={styles.lookHero}
+                style={{
+                  backgroundImage: heroBackdrop?.image
+                    ? `linear-gradient(180deg, rgba(11, 32, 57, 0.05), rgba(11, 32, 57, 0.45)), url(${heroBackdrop.image})`
+                    : `linear-gradient(150deg, ${heroBackdrop?.colors?.[0] ?? '#f6a9c8'}, ${heroBackdrop?.colors?.[1] ?? '#e0458f'} 55%, ${heroBackdrop?.colors?.[2] ?? '#7a1f55'})`,
+                }}
+              />
+            </div>
+          </article>
+        ) : null}
+        <div className={magazine ? styles.lookHeroFields : styles.siteSettingsGrid}>
           <label className={styles.sortFieldWide} data-site-field="hero-headline">
-            <span className={styles.searchLabel}>Big headline</span>
+            <span className={styles.searchLabel}>Big headline <span className={styles.lookCount}>{(draft.heroHeadline ?? '').length} / 180</span></span>
             <input
               id={SETUP_FIELD_IDS.headline}
               className={styles.searchInput}
@@ -557,7 +599,7 @@ export function SiteSettingsBody({
             <ShowsOn id="hero-headline-shows">{SHOWS_ON.heroTitle}</ShowsOn>
           </label>
           <label className={styles.sortFieldWide} data-site-field="hero-subtitle">
-            <span className={styles.searchLabel}>Line under the headline</span>
+            <span className={styles.searchLabel}>Line under the headline <span className={styles.lookCount}>{(draft.heroSubtitle ?? '').length} / 240</span></span>
             <input
               id="my-website-hero-subtitle"
               className={styles.searchInput}
@@ -579,7 +621,7 @@ export function SiteSettingsBody({
             </p>
             <ShowsOn id="hero-socials-shows">{SHOWS_ON.heroSocials}</ShowsOn>
           </div>
-          <div className={styles.sortFieldWide} data-site-field="hero-motion" data-hero-motion-mode={motionMode}>
+          {magazine ? null : <div className={styles.sortFieldWide} data-site-field="hero-motion" data-hero-motion-mode={motionMode}>
             {motionMode === 'theme' ? (
               <>
                 <p className={styles.siteSettingsPreviewNote} data-site-control="hero-motion" data-chunk="4">
@@ -648,7 +690,7 @@ export function SiteSettingsBody({
                 <ShowsOn id="hero-motion-shows">{SHOWS_ON.heroMotion}</ShowsOn>
               </label>
             )}
-          </div>
+          </div>}
         </div>
       </SiteSection>
 

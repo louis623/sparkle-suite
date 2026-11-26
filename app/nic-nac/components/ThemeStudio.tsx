@@ -280,7 +280,11 @@ export function ThemeStudio({
           </p>
         </div>
         <div className={styles.previewColumn}>
-          <div className={styles.phoneFrame}>
+          <div className={styles.tryPanel}>
+            <div className={styles.tryHead}>
+              <b>Try it on</b>
+              <small>Your real headline and shows in {chosenLabel}.</small>
+            </div>
             <PreviewSurface
               scope="panel"
               page={page}
@@ -293,6 +297,7 @@ export function ThemeStudio({
               onRetry={retryPreview}
               retired={themeRetired}
             />
+            <p className={styles.tryFoot}>Preview only. Customers see a new theme once you tap it.</p>
           </div>
         </div>
       </div>
@@ -412,6 +417,7 @@ export function ThemeStudio({
               <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
               <circle cx="12" cy="12" r="2.5" />
             </svg>
+            <span className={styles.previewWord}>Preview</span>
           </button>
         ) : null}
       </article>
@@ -569,7 +575,7 @@ function ThemeGroups({
     ['gems', 'Gems & Metals', gemsCount],
     ['bomb', 'Bomb Party Fun', grouped.bombParty.length],
     ['general', 'General', grouped.general.length],
-    ['yours', 'Just for you', grouped.justForYou.length],
+    ['yours', 'Yours', grouped.justForYou.length],
   ] as const
   const showHoliday = (filter === 'all' || filter === 'holiday') && holidayCount > 0
   const showEveryday = filter === 'all' || filter === 'gems' || filter === 'bomb' || filter === 'general'
