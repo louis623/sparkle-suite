@@ -373,7 +373,7 @@ const AMETHYST_SKIN_CARD_SOURCES: AmethystSkinCardSource[] = [
     ],
   },
   {
-    id: 'silver_bells', visibility: 'community', code: 'SB-01', label: 'Silver Bells',
+    id: 'silver_bells', visibility: 'community', code: 'SV-01', label: 'Silver Bells',
     previewHref: '/skin-preview/silver_bells/homepage',
     description: 'Blue velvet, polished silver bells and a softly sparkling Christmas scene.',
     headingFont: 'Great Vibes', bodyFont: 'DM Sans',

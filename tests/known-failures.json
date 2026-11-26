@@ -350,11 +350,6 @@
     "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
   },
   {
-    "file": "tests/amethyst-gnome-garden-registry.test.ts",
-    "fullName": "Gnome Forest registry and data contract resolves its browse code, complete name, and natural short name to the same saved preset",
-    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
-  },
-  {
     "file": "tests/amethyst-pass2-regressions.test.ts",
     "fullName": "keeps public JSX at frozen Live, without a proxy/route substitution",
     "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
@@ -1400,11 +1395,6 @@
     "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
   },
   {
-    "file": "tests/nic-nac/site-customization-tools.test.ts",
-    "fullName": "site customization tools update_site_setting saves SB-01 as the supported customer-facing skin code",
-    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
-  },
-  {
     "file": "tests/nic-nac/trade-board-intake-route-context.test.ts",
     "fullName": "Dance Floor intake route context extracts rep-typed ER13229 product truth before asking for more intake details",
     "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
@@ -1597,11 +1587,6 @@
   {
     "file": "tests/starlight-christmas-theme.test.ts",
     "fullName": "Starlight Christmas Hollow preserves every frozen asset and existing render selection source",
-    "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
-  },
-  {
-    "file": "tests/sunset-beach-theme.test.ts",
-    "fullName": "Sunset Beach Community package recognizes the independent preset, public name and stable code",
     "reason": "pre-existing at 37eb7be1ae9219bc2abd4a9cd00624655acc4ea6"
   },
   {

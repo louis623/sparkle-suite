@@ -1,4 +1,4 @@
-# Silver Bells — SB-01
+# Silver Bells — SV-01
 
 Louis approved this Community theme and all-rep live publication on November 17, 2026. Original hero is the master; no jewelry. Sapphire velvet, silver bells, blue/silver ornaments, dense shiny silver tinsel, softly blurred cropped tree/window. Portrait is an approved generated outpaint; card retains original landscape pixels.
 
