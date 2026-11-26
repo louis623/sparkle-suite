@@ -15,6 +15,7 @@ import type { SiteSettingsDraft } from '@/app/nic-nac/components/DashboardPlaceh
 import { HomepageMediaSlot } from './HomepageMediaSlot'
 import { PublicSiteVisibility } from './PublicSiteVisibility'
 import { SocialHandlesSettings } from './SocialHandlesSettings'
+import { SocialPhonePreview } from './SocialPhonePreview'
 import styles from './DashboardPlaceholder.module.css'
 import {
   buildSiteSetupChecklist,
@@ -917,10 +918,12 @@ export function SiteSettingsBody({
         defaultOpen={plain || sectionOpen('footer')}
         hideHeading={plain}
       >
+        <div className={plain ? styles.socialPanes : undefined}>
+        <div>
         {plain ? (
           <>
             <h2 className={styles.siteDialogSectionTitle}>Contact</h2>
-            <p className={styles.siteDialogSectionSummary}>This is what customers use to reach you, plus the short line under your site.</p>
+            <p className={styles.siteDialogSectionSummary}>Your email shows on the Join page. The tagline and team line appear in small print on your site.</p>
           </>
         ) : null}
         <div className={styles.siteSettingsGrid}>
@@ -938,7 +941,9 @@ export function SiteSettingsBody({
               spellCheck={false}
               value={draft.email}
               aria-invalid={emailError ? 'true' : 'false'}
-              aria-describedby={describedBy(emailError ? `${SITE_FIELD_IDS.email}-error` : null, 'email-shows')}
+              aria-describedby={plain
+                ? (emailError ? `${SITE_FIELD_IDS.email}-error` : undefined)
+                : describedBy(emailError ? `${SITE_FIELD_IDS.email}-error` : null, 'email-shows')}
               onBlur={() => onFieldBlur(SITE_FIELD_IDS.email, 'Email', emailFieldError(draft.email))}
               onChange={(event) => onDraftChange?.({ email: event.target.value })}
             />
@@ -947,7 +952,7 @@ export function SiteSettingsBody({
                 <span role="img" aria-label="Error">!</span> {emailError}
               </span>
             ) : null}
-            <ShowsOn id="email-shows">{SHOWS_ON.email}</ShowsOn>
+            {plain ? null : <ShowsOn id="email-shows">{SHOWS_ON.email}</ShowsOn>}
           </label>
           <label className={styles.searchField} data-site-field="tagline">
             <span className={styles.searchLabel}>Footer tagline</span>
@@ -956,10 +961,12 @@ export function SiteSettingsBody({
               className={styles.searchInput}
               data-site-control="tagline"
               value={draft.tagline}
-              aria-describedby={describedBy(
-                draft.grandfatheredHeadlineFallback ? 'tagline-grandfathered' : null,
-                'tagline-shows',
-              )}
+              aria-describedby={plain
+                ? (draft.grandfatheredHeadlineFallback ? 'tagline-grandfathered' : undefined)
+                : describedBy(
+                  draft.grandfatheredHeadlineFallback ? 'tagline-grandfathered' : null,
+                  'tagline-shows',
+                )}
               onChange={(event) => onDraftChange?.({ tagline: event.target.value })}
             />
             {draft.grandfatheredHeadlineFallback ? (
@@ -967,7 +974,7 @@ export function SiteSettingsBody({
                 Also shows under your headline if that line is empty.
               </span>
             ) : null}
-            <ShowsOn id="tagline-shows">{SHOWS_ON.tagline}</ShowsOn>
+            {plain ? null : <ShowsOn id="tagline-shows">{SHOWS_ON.tagline}</ShowsOn>}
           </label>
           <label className={styles.searchField} data-site-field="member-team">
             <span className={styles.searchLabel}>Team I belong to (shown in small print)</span>
@@ -976,14 +983,14 @@ export function SiteSettingsBody({
               className={styles.searchInput}
               data-site-control="member-team"
               value={draft.memberTeamName ?? ''}
-              aria-describedby="member-team-shows"
+              aria-describedby={plain ? undefined : 'member-team-shows'}
               onChange={(event) => onDraftChange?.({ memberTeamName: event.target.value })}
             />
-            <ShowsOn id="member-team-shows">{SHOWS_ON.memberTeam}</ShowsOn>
+            {plain ? null : <ShowsOn id="member-team-shows">{SHOWS_ON.memberTeam}</ShowsOn>}
           </label>
-          <div className={styles.sortFieldWide} data-site-field="team-i-manage">
+          <div className={plain ? styles.searchField : styles.sortFieldWide} data-site-field="team-i-manage">
             <span className={styles.searchLabel}>Team I manage</span>
-            <p className={styles.managedTeamLine} data-site-control="team-i-manage" data-chunk="4">
+            <p className={plain ? `${styles.managedTeamLine} ${styles.managedTeamBox}` : styles.managedTeamLine} data-site-control="team-i-manage" data-chunk="4">
               {draft.teamName.trim() || 'Not set yet'}
               {' · '}
               <a
@@ -994,13 +1001,13 @@ export function SiteSettingsBody({
                 Edit in Team settings
               </a>
             </p>
-            <ShowsOn id="team-manage-shows">{SHOWS_ON.managedTeam}</ShowsOn>
+            {plain ? null : <ShowsOn id="team-manage-shows">{SHOWS_ON.managedTeam}</ShowsOn>}
           </div>
         </div>
         {plain ? (
           <>
             <h2 className={styles.siteDialogSectionTitle}>Social links</h2>
-            <p className={styles.siteDialogSectionSummary}>Paste a real link, then choose whether it shows in the footer and in your hero.</p>
+            <p className={styles.siteDialogSectionSummary}>Paste a link, then choose On site or In hero. The preview shows what customers will see.</p>
           </>
         ) : null}
         <SocialHandlesSettings
@@ -1011,6 +1018,17 @@ export function SiteSettingsBody({
           onSocialHandleChange={onSocialHandleChange}
           onSocialVisibilityChange={(socialVisibility) => onDraftChange?.({ socialVisibility })}
         />
+        </div>
+        {plain ? (
+          <SocialPhonePreview
+            businessName={draft.businessName}
+            displayName={draft.displayName}
+            tagline={draft.tagline}
+            socialHandles={draft.socialHandles}
+            socialVisibility={draft.socialVisibility}
+          />
+        ) : null}
+        </div>
       </SiteSection>
 
       <SiteSection plain={plain} hidden={!showSection('other-pages')}

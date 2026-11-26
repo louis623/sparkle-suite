@@ -10335,10 +10335,11 @@ export function SiteSettingsCard({
     },
   ]
   const signupTile = signupDiscountTile(draft)
-  const contactLine = [
-    draft.email.trim() ? 'Email' : '',
-    ...SOCIAL_PLATFORMS.filter((platform) => draft.socialHandles?.[platform.key]?.trim()).map((platform) => platform.label),
-  ].filter(Boolean).slice(0, 3).join(' · ')
+  const coverName = draft.displayName.trim() ? hostFirstName(draft.displayName) : ''
+  const coverEmail = draft.email.trim()
+  const coverSocials = SOCIAL_PLATFORMS.filter((platform) => draft.socialHandles?.[platform.key]?.trim())
+  const coverEmpty = !coverName && !coverEmail && coverSocials.length === 0
+  const coverMonogram = coverName.slice(0, 1) || draft.businessName.trim().slice(0, 1) || ''
   const followPageLink = (event: ReactMouseEvent<HTMLAnchorElement>) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
     event.preventDefault()
@@ -10522,15 +10523,31 @@ export function SiteSettingsCard({
                   </span>
                 ) : null}
                 {group.id === 'links' ? (
-                  <span className={styles.siteLinkScene}>
-                    <span className={styles.siteSocialRow}>
-                      {SOCIAL_PLATFORMS.map((platform) => (
-                        <span key={platform.key} className={styles.siteBrand} data-brand={platform.key} title={platform.label}>
-                          <SocialMark platform={platform.key} className={styles.siteBrandIcon} />
+                  <span className={styles.siteBioPhone} data-cover={coverEmpty ? 'empty' : 'filled'}>
+                    <span className={styles.siteBioNotch} aria-hidden="true" />
+                    <span className={styles.siteBioScreen}>
+                      <span className={styles.siteBioAvatar}>{coverMonogram}</span>
+                      {coverName ? <span className={styles.siteBioName}>{coverName}</span> : null}
+                      {coverEmail ? <span className={styles.siteBioMail}>{coverEmail}</span> : null}
+                      {coverSocials.length ? (
+                        <span className={styles.siteBioRows}>
+                          {coverSocials.map((platform) => (
+                            <span key={platform.key} className={styles.siteBioRow}>
+                              <i className={styles.siteBioMark} data-brand={platform.key} aria-hidden="true">
+                                <SocialMark platform={platform.key} className={styles.siteBioGlyph} />
+                              </i>
+                              <span>{platform.label}</span>
+                            </span>
+                          ))}
                         </span>
-                      ))}
+                      ) : null}
+                      {coverEmpty ? (
+                        <>
+                          <span className={styles.siteBioPrompt}>Add your email</span>
+                          <span className={styles.siteBioPrompt}>Add a social link</span>
+                        </>
+                      ) : null}
                     </span>
-                    {contactLine ? <span className={styles.siteContactLine}>{contactLine}</span> : null}
                   </span>
                 ) : null}
               </span>
@@ -10606,7 +10623,7 @@ export function SiteSettingsCard({
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
-      <dialog ref={linksRef} className={styles.siteDialog} aria-labelledby="site-links-title">
+      <dialog ref={linksRef} className={`${styles.siteDialog} ${styles.siteDialogWide}`} aria-labelledby="site-links-title">
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Your customer site</p>

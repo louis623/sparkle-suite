@@ -20,7 +20,7 @@ export const STAND_IN_PORTRAIT_URL = 'https://stand-in.test/portrait.jpg'
 const sample: SiteSettingsDraft = {
   displayName: 'Sasha Sample',
   businessName: 'Sparkle by Sasha',
-  email: 'hello@sparklebysasha.example',
+  email: 'hello@sparkle.sample',
   phone: '',
   shopLink: shop,
   bannerText: '',
@@ -49,17 +49,14 @@ const sample: SiteSettingsDraft = {
   aboutNarrative:
     'Sasha hosts live jewelry reveals from her living room. She started with one Friday night show and now her regulars plan their week around the next box.',
   socialHandles: {
-    instagram: 'https://example.com/instagram/sparklebysasha',
-    facebook: 'https://example.com/facebook/sparklebysasha',
-    tiktok: 'https://example.com/tiktok/sparklebysasha',
-    youtube: 'https://example.com/youtube/sparklebysasha',
-    whatnot: 'https://example.com/whatnot/sparklebysasha',
+    instagram: 'https://instagram.com/sparkle.sample',
+    facebook: 'https://facebook.com/sparkle.sample',
+    tiktok: 'https://www.tiktok.com/@sparkle.sample',
+    youtube: '',
+    whatnot: '',
   },
   socialVisibility: {
-    instagram: true,
     instagramHero: true,
-    tiktok: true,
-    tiktokHero: true,
   },
   homepageMediaSlots: [
     { key: 'showcase', caption: 'What a live reveal feels like', imageUrl: '', videoUrl: video, isVisible: true },

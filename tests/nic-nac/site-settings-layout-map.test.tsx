@@ -190,13 +190,16 @@ describe('site settings layout map', () => {
       expect(nodes[0]?.getAttribute('data-chunk')).toBe('4')
     }
 
+    const legendFields = new Set(['email', 'tagline', 'member-team', 'team-i-manage'])
     const fields = [...host.querySelectorAll('[data-site-field]')]
     expect(fields.length).toBeGreaterThan(0)
     for (const field of fields) {
-      expect(field.textContent, field.getAttribute('data-site-field') ?? '').toContain('Shows on your site:')
+      const id = field.getAttribute('data-site-field') ?? ''
+      if (legendFields.has(id) || id.startsWith('social-')) continue
+      expect(field.textContent, id).toContain('Shows on your site:')
     }
     expect(host.textContent).toContain('Shows on your site: Every Shop button on your site')
-    expect(host.textContent).toContain('Shows on your site: Join page Contact')
+    expect(host.textContent).toContain('Your email shows on the Join page. The tagline and team line appear in small print on your site.')
     expect(host.textContent).not.toContain('Open Calendar')
     expect(host.textContent).toContain('What they get')
     expect(host.textContent).toContain('Sign-up discount')
@@ -210,8 +213,10 @@ describe('site settings layout map', () => {
     expect(host.textContent).toContain('Socials and Contact Info')
     expect(host.textContent).toContain('Your email, tagline, and social links.')
     expect(host.textContent).toContain('Your email, footer tagline, and social links.')
-    expect(host.textContent).toContain('This is what customers use to reach you, plus the short line under your site.')
-    expect(host.textContent).toContain('Paste a real link, then choose whether it shows in the footer and in your hero.')
+    expect(host.textContent).toContain('Paste a link, then choose On site or In hero. The preview shows what customers will see.')
+    expect(host.textContent).toContain('Customer preview')
+    expect(host.textContent).toContain('Your footer, and any hero buttons you turn on. It updates as you type.')
+    expect(host.textContent).not.toContain('This is what customers use to reach you, plus the short line under your site.')
     expect(host.textContent).not.toContain('Links & other pages')
 
     const linksDialog = host.querySelector('#site-links-title')?.closest('dialog')

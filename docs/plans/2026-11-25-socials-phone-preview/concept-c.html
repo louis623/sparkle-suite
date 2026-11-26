@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Phone preview · Socials and Contact Info</title>
+  <link rel="stylesheet" href="mockup.css?v=1">
+  <script>if (/(?:^|[?&])screen(?:&|=|$)/.test(location.search)) document.documentElement.classList.add('screen');</script>
+</head>
+<body class="popup-page">
+  <main class="page">
+    <div class="option-bar">
+      <div class="which">Pop-up C · Phone preview</div>
+      <p>Settings on the left, a live phone preview of your footer and hero buttons on the right. On a phone, the preview sits above the settings.</p>
+      <a class="back" href="index.html">All options</a>
+    </div>
+    <p class="note"><strong>Sample only.</strong> These use the fields already in Suite: email, footer tagline, the team you belong to, the team you manage, and Instagram, Facebook, TikTok, YouTube, and Whatnot. A couple of socials are connected so you can see the switches. Nothing here is a real rep’s account.</p>
+    <div class="popup-frame wide" role="dialog" aria-labelledby="dlg-title">
+      <div class="dlg-band">
+        <div>
+          <p class="dlg-kicker">Your customer site</p>
+          <h1 id="dlg-title">Socials and Contact Info</h1>
+          <p class="dlg-sub">Your email, footer tagline, and social links.</p>
+        </div>
+        <a class="dlg-close" href="index.html" aria-label="Close">×</a>
+      </div>
+      <div class="dlg-body">
+        <div class="panes">
+          <div class="settings">
+        <section class="sec" aria-labelledby="contact-title">
+          <h2 id="contact-title">Contact</h2>
+          <p class="legend">Your email shows on the Join page. The tagline and team line appear in small print on your site.</p>
+          <div class="fields">
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" value="hello@sparkle.sample" data-preview="email">
+            </div>
+            <div class="field">
+              <label for="tagline">Footer tagline</label>
+              <input id="tagline" name="tagline" type="text" value="Live jewelry, real sparkle." data-preview="tagline">
+            </div>
+            <div class="field">
+              <label for="member-team">Team I belong to (shown in small print)</label>
+              <input id="member-team" name="memberTeamName" type="text" value="Upline Gems">
+            </div>
+            <div class="field">
+              <span class="lab">Team I manage</span>
+              <p class="managed">Sample Squad · <a href="#team-settings">Edit in Team settings</a></p>
+            </div>
+          </div>
+        </section>
+            <section class="sec" aria-labelledby="socials-title">
+              <h2 id="socials-title">Social links</h2>
+              <p class="legend">Paste a link, then choose On site or In hero. The preview shows what customers will see.</p>
+              <div class="social-rows">
+          <div class="srow" data-row="instagram">
+            <i class="ig ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5zm8 1.6H8A3.4 3.4 0 0 0 4.6 8v8A3.4 3.4 0 0 0 8 19.4h8A3.4 3.4 0 0 0 19.4 16V8A3.4 3.4 0 0 0 16 4.6zM12 8.2A3.8 3.8 0 1 1 8.2 12 3.8 3.8 0 0 1 12 8.2zm0 1.5A2.3 2.3 0 1 0 14.3 12 2.3 2.3 0 0 0 12 9.7zm4.7-2.6a.9.9 0 1 1-.9.9.9.9 0 0 1 .9-.9z"/></svg></i>
+            <div class="meta"><div class="nm">Instagram</div><input type="url" inputmode="url" autocapitalize="none" spellcheck="false" value="instagram.com/sparkle.sample" data-social="ig" aria-label="Instagram link"></div>
+            <div class="pills"><label class="pill"><input type="checkbox" name="instagram-site" checked> On site</label><label class="pill"><input type="checkbox" name="instagram-hero" checked> In hero</label></div>
+          </div>
+          <div class="srow" data-row="facebook">
+            <i class="fb ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.2 8.1V6.6c0-.7.5-.9.9-.9h2.3V2.2L14.2 2c-3.2 0-4.8 1.9-4.8 5.1v1H7v3.8h2.4V22h4.2V11.9h3.1l.5-3.8h-3Z"/></svg></i>
+            <div class="meta"><div class="nm">Facebook</div><input type="url" inputmode="url" autocapitalize="none" spellcheck="false" value="facebook.com/sparkle.sample" data-social="fb" aria-label="Facebook link"></div>
+            <div class="pills"><label class="pill"><input type="checkbox" name="facebook-site" checked> On site</label><label class="pill"><input type="checkbox" name="facebook-hero"> In hero</label></div>
+          </div>
+          <div class="srow is-empty" data-row="tiktok">
+            <i class="tt ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 3c.4 2.4 1.9 4 4.2 4.3v3.4c-1.6 0-3-.4-4.2-1.3v6.2c0 3.4-2.5 5.7-5.8 5.7-3.1 0-5.5-2.1-5.5-5.1 0-3.2 2.5-5.3 5.8-5.3.4 0 .8 0 1.1.1v3.4c-.4-.1-.8-.2-1.2-.2-1.4 0-2.4.8-2.4 2s.9 2 2.2 2c1.4 0 2.3-.9 2.3-2.8V3h3.5Z"/></svg></i>
+            <div class="meta"><div class="nm">TikTok</div><span class="empty-hint">Not added yet</span><input type="url" inputmode="url" autocapitalize="none" spellcheck="false" value="" placeholder="Paste a TikTok link" data-social="tt" aria-label="TikTok link"></div>
+            
+          </div>
+          <div class="srow is-empty" data-row="youtube">
+            <i class="yt ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.6 7.2a3 3 0 0 0-2.1-2.1C17.7 4.6 12 4.6 12 4.6s-5.7 0-7.5.5a3 3 0 0 0-2.1 2.1A31 31 0 0 0 2 12a31 31 0 0 0 .4 4.8 3 3 0 0 0 2.1 2.1c1.8.5 7.5.5 7.5.5s5.7 0 7.5-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 22 12a31 31 0 0 0-.4-4.8ZM10 15.4V8.6l5.9 3.4-5.9 3.4Z"/></svg></i>
+            <div class="meta"><div class="nm">YouTube</div><span class="empty-hint">Not added yet</span><input type="url" inputmode="url" autocapitalize="none" spellcheck="false" value="" placeholder="Paste a YouTube link" data-social="yt" aria-label="YouTube link"></div>
+            
+          </div>
+          <div class="srow is-empty" data-row="whatnot">
+            <i class="wn ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.1 5.2h3.6l2.5 8.7 2.4-8.7h3.6l2.4 8.7 2.5-8.7h3.6L18.4 18.8h-4.1L12 9.6l-2.3 9.2H5.6L3.1 5.2Z"/></svg></i>
+            <div class="meta"><div class="nm">Whatnot</div><span class="empty-hint">Not added yet</span><input type="url" inputmode="url" autocapitalize="none" spellcheck="false" value="" placeholder="Paste a Whatnot link" data-social="wn" aria-label="Whatnot link"></div>
+            
+          </div>
+              </div>
+            </section>
+          </div>
+          <aside class="phone-col" aria-label="Preview">
+            <p class="pv-k">Customer preview</p>
+            <div class="device">
+              <div class="notch"></div>
+              <div class="screen">
+                <div class="hero">
+                  <div class="ey">Sparkle by Sasha</div>
+                  <h3>Sasha</h3>
+                  <div class="hero-btns" data-hero-btns>
+                    <span><i class="ig"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5zm8 1.6H8A3.4 3.4 0 0 0 4.6 8v8A3.4 3.4 0 0 0 8 19.4h8A3.4 3.4 0 0 0 19.4 16V8A3.4 3.4 0 0 0 16 4.6zM12 8.2A3.8 3.8 0 1 1 8.2 12 3.8 3.8 0 0 1 12 8.2zm0 1.5A2.3 2.3 0 1 0 14.3 12 2.3 2.3 0 0 0 12 9.7zm4.7-2.6a.9.9 0 1 1-.9.9.9.9 0 0 1 .9-.9z"/></svg></i> Instagram</span>
+                  </div>
+                </div>
+                <div class="mid" aria-hidden="true"></div>
+                <div class="foot">
+                  <p class="tag" data-foot-tag>Live jewelry, real sparkle.</p>
+                  <div class="icons" data-foot-icons><i class="ig"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5zm8 1.6H8A3.4 3.4 0 0 0 4.6 8v8A3.4 3.4 0 0 0 8 19.4h8A3.4 3.4 0 0 0 19.4 16V8A3.4 3.4 0 0 0 16 4.6zM12 8.2A3.8 3.8 0 1 1 8.2 12 3.8 3.8 0 0 1 12 8.2zm0 1.5A2.3 2.3 0 1 0 14.3 12 2.3 2.3 0 0 0 12 9.7zm4.7-2.6a.9.9 0 1 1-.9.9.9.9 0 0 1 .9-.9z"/></svg></i><i class="fb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.2 8.1V6.6c0-.7.5-.9.9-.9h2.3V2.2L14.2 2c-3.2 0-4.8 1.9-4.8 5.1v1H7v3.8h2.4V22h4.2V11.9h3.1l.5-3.8h-3Z"/></svg></i></div>
+                </div>
+              </div>
+            </div>
+            <p class="cap">Your footer, and any hero buttons you turn on. It updates as you type.</p>
+          </aside>
+        </div>
+      </div>
+      <footer class="dlg-foot">
+        <p class="status-line" role="status"><span class="saved-mark" aria-hidden="true">✓</span> All changes saved <button class="undo" type="button">Undo</button></p>
+        <a class="finished" href="index.html">Finished</a>
+      </footer>
+    </div>
+  </main>
+
+<script>
+const LABELS = {ig:'Instagram',fb:'Facebook',tt:'TikTok',yt:'YouTube',wn:'Whatnot'};
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+function redraw(){
+  const tag = $('#tagline')?.value.trim() || 'Add a short tagline';
+  $$('[data-foot-tag]').forEach(el => el.textContent = tag);
+  const foot = $('[data-foot-icons]');
+  const hero = $('[data-hero-btns]');
+  if (foot) foot.innerHTML = '';
+  if (hero) hero.innerHTML = '';
+  $$('input[data-social]').forEach(input => {
+    const cls = input.dataset.social;
+    const url = input.value.trim();
+    const row = input.closest('[data-row]');
+    const site = !!(url && row?.querySelector('input[name$="-site"]')?.checked);
+    const onHero = !!(url && row?.querySelector('input[name$="-hero"]')?.checked);
+    const svg = row?.querySelector('.ico')?.innerHTML || '';
+    if (site && foot){
+      const i=document.createElement('i'); i.className=cls; i.innerHTML=svg; i.title=LABELS[cls]||cls; foot.append(i);
+    }
+    if (onHero && hero){
+      const b=document.createElement('span'); b.className='hero-btn';
+      const i=document.createElement('i'); i.className=cls; i.innerHTML=svg;
+      b.append(i, document.createTextNode(' '+(LABELS[cls]||cls)));
+      hero.append(b);
+    }
+  });
+}
+document.addEventListener('input', redraw);
+document.addEventListener('change', redraw);
+redraw();
+</script>
+
+</body>
+</html>
