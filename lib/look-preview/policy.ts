@@ -43,6 +43,19 @@ export function lookPreviewDelayElapsed(queuedAtMs: number, nowMs: number, flush
   return nowMs - queuedAtMs >= LOOK_PREVIEW_DEBOUNCE_MS
 }
 
+export const LOOK_PREVIEW_POLL_START_MS = 3_000
+export const LOOK_PREVIEW_POLL_MAX_MS = 12_000
+export const LOOK_PREVIEW_POLL_WINDOW_MS = 120_000
+
+export function lookPreviewStillPending(status: string | null | undefined) {
+  return status === 'updating' || status === 'missing'
+}
+
+export function nextLookPreviewPollDelay(attempt: number) {
+  const step = Math.max(0, attempt)
+  return Math.min(Math.round(LOOK_PREVIEW_POLL_START_MS * 1.5 ** step), LOOK_PREVIEW_POLL_MAX_MS)
+}
+
 export const LOOK_PREVIEW_MARKER_WAIT_MS = 12_000
 export const LOOK_PREVIEW_SETTLE_MS = 700
 const BLANK_TEXT_LENGTH = 40
