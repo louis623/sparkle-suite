@@ -140,12 +140,14 @@ export function MyWebsiteLayoutHarness({
   openSection = null,
   openDialog = null,
   coverPhoto = false,
+  saveExcept = false,
 }: {
   mode?: 'gaps' | 'full' | 'states' | 'load-error' | 'no-photo'
   openSection?: SiteSectionId | null
   openDialog?: 'signup' | 'links' | 'about' | 'look' | 'theme' | null
   /** Test browser only. Points the About photo at STAND_IN_PORTRAIT_URL. */
   coverPhoto?: boolean
+  saveExcept?: boolean
 }) {
   const [reloaded, setReloaded] = useState(false)
   const saved: SiteSettingsDraft =
@@ -223,6 +225,7 @@ export function MyWebsiteLayoutHarness({
         nextShow={{ month: 'DEC', day: '12', name: 'Friday night reveal', time: '7:00 PM' }}
         initialOpenSection={openSection}
         initialDialog={openDialog}
+        actionState={saveExcept ? { pending: false, error: null, helperMessage: 'Saved, except Discount code', heldFieldId: 'my-website-discount-code' } : undefined}
         onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
         onDiscard={() => setDraft(saved)}
         onSave={() => undefined}

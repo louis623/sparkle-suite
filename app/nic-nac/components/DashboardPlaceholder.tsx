@@ -825,6 +825,7 @@ type SiteSettingsActionState = {
   pending: boolean
   error: string | null
   helperMessage: string | null
+  heldFieldId?: string | null
 }
 
 type RecipesState = {
@@ -5003,11 +5004,16 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           ? collectSiteSettingsFieldErrors(siteSettingsDraftRef.current)
           : []
         setForceSiteFieldErrors(blocked.length > 0)
+        const held = blocked[0]
         setSiteSettingsActionState({
           pending: false,
-          error: blocked[0]?.message ?? null,
-          helperMessage: blocked.length > 0 ? null : SAVED_LABEL,
+          error: null,
+          helperMessage: held ? `Saved, except ${held.label}` : SAVED_LABEL,
+          heldFieldId: held?.id ?? null,
         })
+        if (held) {
+          window.requestAnimationFrame(() => document.getElementById(held.id)?.focus())
+        }
         if (!autosaveAgainRef.current) {
           setUndoReady(true)
           if (undoTimerRef.current != null) window.clearTimeout(undoTimerRef.current)
@@ -5071,11 +5077,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (Object.keys(patch).length === 0) {
       setForceSiteFieldErrors(blocked.length > 0)
       if (blocked.length > 0) {
+        const held = blocked[0]
         setSiteSettingsActionState({
           pending: false,
-          error: blocked[0]?.message ?? null,
-          helperMessage: null,
+          error: null,
+          helperMessage: `Saved, except ${held.label}`,
+          heldFieldId: held.id,
         })
+        window.requestAnimationFrame(() => document.getElementById(held.id)?.focus())
       }
       return
     }
@@ -10134,7 +10143,7 @@ function ShareMySite({ url }: { url: string | null }) {
   }
   return (
     <div className={styles.shareSite}>
-      <button type="button" className={styles.shareSiteButton} {...{ commandfor: 'share-my-site', command: 'toggle-popover' }}>Share my site</button>
+      <button type="button" className={styles.shareSiteButton} popoverTarget="share-my-site">Share my site</button>
       <dialog id="share-my-site" popover="auto" className={styles.shareSheet} aria-labelledby="share-my-site-title">
         <span className={styles.shareGrab} aria-hidden="true" />
         <div className={styles.shareSheetHead}>
@@ -10142,7 +10151,7 @@ function ShareMySite({ url }: { url: string | null }) {
             <p className={styles.lookEyebrow}>Share</p>
             <h2 id="share-my-site-title" className={styles.lookTitle}>Share my site</h2>
           </div>
-          <button type="button" className={styles.shareClose} aria-label="Close" {...{ commandfor: 'share-my-site', command: 'hide-popover' }}><span aria-hidden="true">×</span></button>
+          <button type="button" className={styles.shareClose} aria-label="Close" popoverTarget="share-my-site" popoverTargetAction="hide"><span aria-hidden="true">×</span></button>
         </div>
         <div className={styles.shareLinkRow}>
           <p className={styles.shareLink} title={url}>{url}</p>
@@ -10509,18 +10518,19 @@ export function SiteSettingsCard({
       onResetTickerLinks={resetTickerLinksToPlainText}
     />
   )
+  const exceptNote = actionState?.error ? null : actionState?.helperMessage?.startsWith('Saved, except ') ? actionState.helperMessage : null
   const saveLine = savePhase === 'saving'
     ? 'Saving…'
     : savePhase === 'error'
       ? "Couldn't save — Retry"
-        : 'All changes saved'
+      : exceptNote ?? 'All changes saved'
 
   return (
     <div className={styles.siteHome} data-testid="my-website-home">
       <p className={styles.siteHomeKicker}>Your customer site</p>
       <h1 className={styles.siteHomeTitle}>Tap a part of your site to change it</h1>
       <p className={styles.siteHomeLede}>Everything saves on its own as you go.</p>
-      <ShareMySite url={publicSiteUrl} />
+      <ShareMySite url={publicSiteUrl && !publicSiteUrl.includes('/amethyst/Homepage.html') ? publicSiteUrl : null} />
       <div className={styles.siteHomeStatusRow}>
         <p
           className={savePhase === 'error' ? styles.siteSavePillError : savePhase === 'saving' ? styles.siteSavePillBusy : styles.siteSavePill}
@@ -10533,6 +10543,19 @@ export function SiteSettingsCard({
               {saveError ?? "Couldn't save — Retry"}{' '}
               <button type="button" className={styles.siteRetry} onClick={() => onSave?.()}>Retry</button>
             </>
+          ) : exceptNote ? (
+            <button
+              type="button"
+              className={styles.siteExcept}
+              onClick={() => {
+                const field = document.getElementById(actionState?.heldFieldId ?? '')
+                const dialog = field?.closest('dialog')
+                if (dialog instanceof HTMLDialogElement && !dialog.open) dialog.showModal()
+                field?.focus()
+              }}
+            >
+              {exceptNote}
+            </button>
           ) : saveLine}
           {undoReady && savePhase === 'saved' ? (
             <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button>

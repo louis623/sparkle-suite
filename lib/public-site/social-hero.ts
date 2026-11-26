@@ -55,12 +55,12 @@ function hostMatchesPlatform(platform: SocialPlatformKey, hostname: string) {
  * platform's public URL. Empty, hash, credentialed, off-domain, and
  * domain-only links return '' so heroes never render a dead button.
  */
-const HANDLE_PATTERN = /^[a-zA-Z0-9._]{1,40}$/
+const HANDLE_PATTERN = /^[a-zA-Z0-9._-]{1,40}$/
 
-function withProtocol(value: string) {
-  if (/^https?:\/\//i.test(value)) return value
-  if (/^[a-z0-9.-]+\.[a-z]{2,}(?:[/:?#]|$)/i.test(value)) return `https://${value}`
-  return ''
+function isExplicitSocialUrl(platform: SocialPlatformKey, value: string) {
+  if (/^https?:\/\//i.test(value)) return true
+  const host = value.split(/[/?#]/, 1)[0] ?? ''
+  return Boolean(host) && hostMatchesPlatform(platform, host)
 }
 
 export function resolveSocialPlatformUrl(
@@ -70,8 +70,9 @@ export function resolveSocialPlatformUrl(
   const cleaned = value?.trim() ?? ''
   if (!cleaned || cleaned === '#') return ''
 
-  const explicit = withProtocol(cleaned.replace(/^@/, ''))
-  if (explicit) {
+  const bare = cleaned.replace(/^@/, '')
+  if (isExplicitSocialUrl(platform, bare)) {
+    const explicit = /^https?:\/\//i.test(bare) ? bare : `https://${bare}`
     try {
       const url = new URL(explicit)
       if (url.username || url.password) return ''
