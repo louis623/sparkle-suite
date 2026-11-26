@@ -561,9 +561,12 @@
   }
 
   .previewColumn .stageBody iframe {
-    height: 100%;
-    min-height: 0;
+    height: 520px;
+    min-height: 520px;
   }
+}
+:global([data-site-dialog]) .tryPanel {
+  min-height: 620px;
 }
 
 .tabs {
