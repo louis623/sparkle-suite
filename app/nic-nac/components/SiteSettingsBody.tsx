@@ -1062,15 +1062,16 @@ export function SiteSettingsBody({
               <p className={styles.lookLede}>Help me build shows around what you love. Share a few details and I'll send you show reminders, new drop alerts and updates, and I'll never share your info.</p>
               <div data-site-field="discount-offer">
                 <p className={styles.signupLiveOffer}>
-                  Sign up today for a one-time{' '}
-                  <label className={styles.signupInline}>
+                  Sign up today for a one-time
+                  <label className={styles.signupOfferField}>
                     <span className={styles.visuallyHidden}>What they get</span>
-                    <input
+                    <textarea
                       id={SITE_FIELD_IDS.discountOffer}
                       className={styles.signupLiveOfferInput}
                       data-site-control="discount-offer"
                       value={draft.signupDiscountOffer ?? ''}
                       maxLength={40}
+                      rows={2}
                       placeholder="10% off"
                       aria-invalid={discountOfferError ? 'true' : 'false'}
                       aria-describedby={describedBy(
