@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type MouseEvent, ReactNode, RefObject } from 'react'
+import { useEffect, useState, type MouseEvent, ReactNode, RefObject } from 'react'
 import { flushSync } from 'react-dom'
 import {
   ABOUT_NARRATIVE_MAX_LENGTH,
@@ -8,9 +8,7 @@ import {
 } from '@/lib/public-site/about-section'
 import { resolveSocialHeroLinks } from '@/lib/public-site/social-hero'
 import type { SocialPlatformKey } from '@/lib/public-site/social-visibility'
-import type { HeroAnimationType, PublicSiteMediaSlot, PublicSiteMediaSlotKey, SiteSettingsDashboardResult } from '@/lib/services/types'
-import { applyHeroMotionSwitch } from '@/lib/amethyst/hero-motion-client'
-import visibility from './PublicSiteVisibility.module.css'
+import type { PublicSiteMediaSlot, PublicSiteMediaSlotKey } from '@/lib/services/types'
 import type { SiteSettingsDraft } from '@/app/nic-nac/components/DashboardPlaceholder'
 import { AboutMarquee, AboutShortRail, aboutPhotoStyle } from './AboutYouPanels'
 import { LookEmojiPicker } from './LookEmojiPicker'
@@ -335,10 +333,6 @@ export function SiteSettingsBody({
   const status = (section: SiteSectionId) => siteSectionStatus({ section, checklist, draft })
   const sectionOpen = (id: SiteSectionId) =>
     initialOpenSections?.includes(id) === true || openSection === id
-  const motionMode = draft.heroMotionMode ?? 'choices'
-  const rememberedHeroMotion = useRef<HeroAnimationType | null>(
-    draft.heroAnimationType !== 'still' ? draft.heroAnimationType : null,
-  )
   const slots = draft.homepageMediaSlots ?? EMPTY_SLOTS
   const heroSocials = resolveSocialHeroLinks({
     socialHandles: draft.socialHandles,
@@ -621,76 +615,6 @@ export function SiteSettingsBody({
             </p>
             <ShowsOn id="hero-socials-shows">{SHOWS_ON.heroSocials}</ShowsOn>
           </div>
-          {magazine ? null : <div className={styles.sortFieldWide} data-site-field="hero-motion" data-hero-motion-mode={motionMode}>
-            {motionMode === 'theme' ? (
-              <>
-                <p className={styles.siteSettingsPreviewNote} data-site-control="hero-motion" data-chunk="4">
-                  Your theme sets the hero animation.
-                </p>
-                <ShowsOn id="hero-motion-shows">{SHOWS_ON.heroMotion}</ShowsOn>
-              </>
-            ) : motionMode === 'switch' ? (
-              <label className={visibility.row}>
-                <span className={styles.heroSwitchCopy}>
-                  <span className={styles.searchLabel}>Hero animation</span>
-                  <span className={styles.siteSettingsPreviewNote}>
-                    Off keeps the hero still. On uses the motion you had before, or Sparkle rise.
-                  </span>
-                  <ShowsOn id="hero-motion-shows">{SHOWS_ON.heroMotion}</ShowsOn>
-                </span>
-                <span className={visibility.control}>
-                  <input
-                    type="checkbox"
-                    role="switch"
-                    data-site-control="hero-motion"
-                    data-chunk="4"
-                    checked={draft.heroAnimationType !== 'still'}
-                    aria-describedby="hero-motion-shows"
-                    ref={(node) => {
-                      if (node && !node.hasAttribute('switch')) node.setAttribute('switch', '')
-                    }}
-                    onChange={(event) => {
-                      const next = applyHeroMotionSwitch({
-                        on: event.target.checked,
-                        current: draft.heroAnimationType,
-                        remembered: rememberedHeroMotion.current,
-                      })
-                      rememberedHeroMotion.current = next.remembered
-                      onDraftChange?.({ heroAnimationType: next.heroAnimationType })
-                    }}
-                  />
-                  <span className={visibility.track} aria-hidden="true" />
-                  <span className={visibility.status} aria-hidden="true">
-                    {draft.heroAnimationType === 'still' ? 'Off' : 'On'}
-                  </span>
-                </span>
-              </label>
-            ) : (
-              <label>
-                <span className={styles.sortLabel}>Hero motion</span>
-                <select
-                  className={styles.sortSelect}
-                  data-site-control="hero-motion"
-                  data-chunk="4"
-                  value={draft.heroAnimationType}
-                  aria-describedby="hero-motion-shows"
-                  onChange={(event) => {
-                    const heroAnimationType = event.target.value as SiteSettingsDashboardResult['heroAnimationType']
-                    if (heroAnimationType !== 'still') rememberedHeroMotion.current = heroAnimationType
-                    onDraftChange?.({ heroAnimationType })
-                  }}
-                >
-                  <option value="sparkle_rise">Sparkle rise</option>
-                  <option value="soft_glow">Soft glow</option>
-                  <option value="still">Still</option>
-                </select>
-                <span className={styles.siteSettingsPreviewNote}>
-                  Hero visuals stay curated by your site appearance so the page keeps its polish on desktop and mobile.
-                </span>
-                <ShowsOn id="hero-motion-shows">{SHOWS_ON.heroMotion}</ShowsOn>
-              </label>
-            )}
-          </div>}
         </div>
       </SiteSection>
 

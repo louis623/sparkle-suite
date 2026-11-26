@@ -22,7 +22,6 @@ const inputSchema = z.object({
   tagline: z.string().optional(),
   heroTitle: z.string().max(180).optional(),
   heroSubtitle: z.string().max(240).optional(),
-  heroAnimationType: z.enum(['still', 'sparkle_rise', 'soft_glow']).optional(),
   teamName: z.string().optional(),
   showJoinPage: z.boolean().optional(),
   customerSiteTemplate: z.string().optional(),
@@ -72,7 +71,7 @@ export function makeUpdateSiteSettingTool(ctx: {
   return tool({
     description:
       "Update one or more site customization settings for the authenticated rep. " +
-      'This can patch banner, ticker, site tagline, hero title, hero subtitle, the About section heading, subtitle, and narrative, controlled hero motion, team name, join-page visibility, the customer-facing Amethyst site appearance preset, and social handles. customerSiteTemplate is always normalized back to Amethyst. Custom hero images are not supported.',
+      'This can patch banner, ticker, site tagline, hero title, hero subtitle, the About section heading, subtitle, and narrative, team name, join-page visibility, the customer-facing Amethyst site appearance preset, and social handles. customerSiteTemplate is always normalized back to Amethyst. Custom hero images are not supported.',
     inputSchema,
     execute: async ({
       bannerText,
@@ -82,7 +81,6 @@ export function makeUpdateSiteSettingTool(ctx: {
       tagline,
       heroTitle,
       heroSubtitle,
-      heroAnimationType,
       teamName,
       showJoinPage,
       customerSiteTemplate,
@@ -100,7 +98,6 @@ export function makeUpdateSiteSettingTool(ctx: {
         tagline !== undefined ||
         heroTitle !== undefined ||
         heroSubtitle !== undefined ||
-        heroAnimationType !== undefined ||
         teamName !== undefined ||
         showJoinPage !== undefined ||
         customerSiteTemplate !== undefined ||
@@ -129,9 +126,6 @@ export function makeUpdateSiteSettingTool(ctx: {
       }
       if (heroSubtitle !== undefined) {
         siteSettingsPatch.hero_subtitle = heroSubtitle.trim() || null
-      }
-      if (heroAnimationType !== undefined) {
-        siteSettingsPatch.hero_animation_type = heroAnimationType
       }
       if (teamName !== undefined) siteSettingsPatch.team_name = teamName
       if (showJoinPage !== undefined) siteSettingsPatch.show_join_page = showJoinPage
@@ -208,10 +202,6 @@ export function makeUpdateSiteSettingTool(ctx: {
         if (heroSubtitle !== undefined) {
           updatedFields.push('heroSubtitle')
           updated.heroSubtitle = row.hero_subtitle
-        }
-        if (heroAnimationType !== undefined) {
-          updatedFields.push('heroAnimationType')
-          updated.heroAnimationType = row.hero_animation_type
         }
         if (teamName !== undefined) {
           updatedFields.push('teamName')

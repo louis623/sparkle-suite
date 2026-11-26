@@ -184,7 +184,7 @@ describe('site settings layout map', () => {
       expect(found, control.id).toEqual(new Set([control.section]))
     }
 
-    for (const id of ['hero-motion', 'team-i-manage']) {
+    for (const id of ['team-i-manage']) {
       const nodes = [...host.querySelectorAll(`[data-site-control="${id}"]`)]
       expect(nodes).toHaveLength(1)
       expect(nodes[0]?.getAttribute('data-chunk')).toBe('4')
