@@ -67,7 +67,7 @@ const ready = {
   shopLink: 'https://bombparty.com/sasha',
   bannerText: '',
   bannerVisible: false,
-  tickerText: 'Live tonight\nShop the [new drop](https://bombparty.com/sasha)',
+  tickerText: '[Live tonight](https://bombparty.com/live)\nShop the [new drop](https://bombparty.com/sasha)',
   tickerVisible: true,
   tagline: 'Live sparkle, zero stress.',
   heroHeadline: 'Real jewelry. Live reveals.',
@@ -215,7 +215,7 @@ describe('site settings layout map', () => {
     expect(host.textContent).toContain('Your email, footer tagline, and social links.')
     expect(host.textContent).toContain('Paste a link, then choose On site or In hero. The preview shows what customers will see.')
     expect(host.textContent).toContain('Customer preview')
-    expect(host.textContent).toContain('Your footer, and any hero buttons you turn on. It updates as you type.')
+    expect(host.textContent).toContain('Your footer, hero buttons, and Watch on TikTok when a TikTok link is saved. It updates as you type.')
     expect(host.textContent).not.toContain('This is what customers use to reach you, plus the short line under your site.')
     expect(host.textContent).not.toContain('Links & other pages')
 

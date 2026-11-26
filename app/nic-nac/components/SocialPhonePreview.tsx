@@ -1,7 +1,7 @@
 'use client'
 
 import { SocialMark } from '@/lib/amethyst/social-mark-icon'
-import { describeSocialPlacement } from '@/lib/public-site/social-hero'
+import { describeSocialPlacement, resolveSocialPlatformUrl } from '@/lib/public-site/social-hero'
 import { SOCIAL_PLATFORMS, type SocialVisibility } from '@/lib/public-site/social-visibility'
 
 import styles from './DashboardPlaceholder.module.css'
@@ -34,18 +34,19 @@ export function SocialPhonePreview({
   }))
   const footer = placed.filter((item) => item.placement.showOnSite)
   const hero = placed.filter((item) => item.placement.showInHero)
+  const watchOnTikTok = Boolean(resolveSocialPlatformUrl('tiktok', socialHandles?.tiktok))
 
   return (
     <aside className={styles.socialPhoneCol} aria-label="Preview">
       <p className={styles.socialPhoneKicker}>Customer preview</p>
       <div className={styles.socialDevice}>
-        <div className={styles.socialDeviceNotch} aria-hidden="true" />
         <div className={styles.socialDeviceScreen}>
           <div className={styles.socialDeviceHero}>
             {kicker ? <div className={styles.socialDeviceEy}>{kicker}</div> : null}
             {name ? <h3 className={styles.socialDeviceName}>{name}</h3> : null}
-            {hero.length ? (
+            {hero.length || watchOnTikTok ? (
               <div className={styles.socialDeviceHeroBtns} data-social-preview="hero">
+                {watchOnTikTok ? <span>Watch on TikTok</span> : null}
                 {hero.map(({ platform }) => (
                   <span key={platform.key}>
                     <i data-brand={platform.key} aria-hidden="true">
@@ -72,7 +73,7 @@ export function SocialPhonePreview({
           </div>
         </div>
       </div>
-      <p className={styles.socialPhoneCap}>Your footer, and any hero buttons you turn on. It updates as you type.</p>
+      <p className={styles.socialPhoneCap}>Your footer, hero buttons, and Watch on TikTok when a TikTok link is saved. It updates as you type.</p>
     </aside>
   )
 }

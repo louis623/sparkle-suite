@@ -42,6 +42,49 @@ const EMPTY_SLOTS: PublicSiteMediaSlot[] = [
   { key: 'about_4', caption: '', imageUrl: '', videoUrl: '' },
 ]
 
+function splitTicker(line: string) {
+  const parts: Array<{ text: string; url?: string; raw: string }> = []
+  const pattern = /\[([^\]]+)\]\((https?:\/\/[^()\s]+)\)/g
+  let last = 0
+  for (const match of line.matchAll(pattern)) {
+    const index = match.index ?? 0
+    if (index > last) parts.push({ text: line.slice(last, index), raw: line.slice(last, index) })
+    parts.push({ text: match[1], url: match[2], raw: match[0] })
+    last = index + match[0].length
+  }
+  if (last < line.length || parts.length === 0) parts.push({ text: line.slice(last), raw: line.slice(last) })
+  return parts
+}
+
+function TickerChips({ text, onChange }: { text: string; onChange: (next: string) => void }) {
+  const lines = text.length > 0 ? text.split('\n') : ['']
+  return (
+    <div className={styles.lookChipBlock}>
+      {lines.map((line, index) => (
+        <p key={`${index}-${line}`} className={styles.lookChipLine}>
+          {splitTicker(line).map((part, partIndex) => part.url ? (
+            <button
+              key={partIndex}
+              type="button"
+              className={styles.lookChip}
+              onClick={() => {
+                const next = lines.slice()
+                next[index] = line.replace(part.raw, part.text)
+                onChange(next.join('\n'))
+              }}
+            >
+              {part.text}
+              <span aria-hidden="true"> ×</span>
+              <span className={styles.visuallyHidden}>Remove link</span>
+            </button>
+          ) : <span key={partIndex}>{part.text}</span>)}
+        </p>
+      ))}
+      <div className={styles.lookMarquee} aria-hidden="true"><span>{lines.filter(Boolean).join('   ·   ') || 'Your announcements will scroll here'}</span></div>
+    </div>
+  )
+}
+
 function LookHeroArt({ image, colors }: { image?: string | null; colors?: readonly string[] }) {
   const [failed, setFailed] = useState(false)
   const gradient = `linear-gradient(160deg, ${colors?.[0] ?? '#f6a9c8'}, ${colors?.[1] ?? '#e0458f'} 55%, ${colors?.[2] ?? '#7a1f55'})`
@@ -553,6 +596,7 @@ export function SiteSettingsBody({
                   }}
                 />
               </span>
+              {magazine ? <TickerChips text={draft.tickerText} onChange={onTickerChange} /> : null}
               <span className={magazine ? styles.visuallyHidden : styles.helperNote}>
                 Use one announcement per line. Add emojis, then highlight only the words you want to link.
               </span>
@@ -654,7 +698,7 @@ export function SiteSettingsBody({
                   : 'No social buttons are set to show in the hero yet.'}
               </p>
             )}
-            <ShowsOn id="hero-socials-shows" legend={magazine} caption="Hero buttons · set in Socials and Contact Info">{SHOWS_ON.heroSocials}</ShowsOn>
+            <ShowsOn id="hero-socials-shows" legend={magazine} caption="Hero buttons, plus Watch on TikTok when a TikTok link is saved">{SHOWS_ON.heroSocials}</ShowsOn>
           </div>
               </div>
             </div>
@@ -840,7 +884,7 @@ export function SiteSettingsBody({
             </div>
             <div className={styles.aboutShortsBlock}>
               <h2 className={styles.siteDialogSectionTitle}>More to watch</h2>
-              <p className={styles.aboutLegend}>The marquee sits under her photo, above these short videos. Up to three more. Public TikTok, YouTube, Instagram, or Facebook links work, up to 3 minutes.</p>
+              <p className={styles.aboutLegend}>These short videos sit in About, after her story and photo. Up to three. Public TikTok, YouTube, Instagram, or Facebook links work, up to 3 minutes.</p>
               <AboutShortRail
                 slots={slots}
                 savedSlots={savedSlots}
@@ -955,6 +999,20 @@ export function SiteSettingsBody({
         defaultOpen={plain || sectionOpen('signup')}
         hideHeading={plain}
       >
+        {plain ? (
+          <div className={styles.signupLiveCard} aria-label="Customer sign-up card">
+            <p className={styles.lookEyebrow}>Stay in the loop</p>
+            <h2 className={styles.lookTitle}>Never miss a show.</h2>
+            <p className={styles.lookLede}>Help me build shows around what you love. Share a few details and I'll send you show reminders, new drop alerts and updates, and I'll never share your info.</p>
+            {draft.signupDiscountEnabled ? (
+              discountCode.trim() ? (
+                <p className={styles.signupLiveOffer}>Sign up today for a one-time <strong>{(draft.signupDiscountOffer || 'thank-you discount').replace(/\.$/, '')}.</strong></p>
+              ) : (
+                <p className={styles.signupLiveOffer} role="status">Add a code before this offer can show.</p>
+              )
+            ) : null}
+          </div>
+        ) : null}
         <label className={styles.walletToggleRow} data-site-field="signup-switch">
           <span>
             <span className={styles.searchLabel}>Show a discount code after customers sign up for updates</span>
