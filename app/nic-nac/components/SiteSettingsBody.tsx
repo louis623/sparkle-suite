@@ -106,7 +106,7 @@ function TickerChips({
                   className={styles.lookChipText}
                   value={part.text}
                   aria-label={`Announcement ${index + 1}`}
-                  style={{ width: `${Math.max(part.text.length, 12)}ch` }}
+                  style={{ width: `${Math.max(part.text.length + 1, 2)}ch` }}
                   onChange={(event) => {
                     const nextParts = parts.map((item, itemIndex) => itemIndex === partIndex ? event.target.value.replace(/\n/g, ' ') : item.raw)
                     writeLine(index, nextParts.join(''))
