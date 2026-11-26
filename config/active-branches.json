@@ -73,6 +73,7 @@
     "cursor/signup-discount-coupon-583b",
     "cursor/my-website-concept-c-583b",
     "cursor/socials-phone-preview-583b",
+    "cursor/signup-about-smoke-583b",
     "codex/ssr-chunk1-fizzfest-home",
     "codex/release-ssr-finder",
     "codex/ssr-per-rep-allowlist",
@@ -242,6 +243,10 @@
       "environment": "preview"
     },
     "cursor/socials-phone-preview-583b": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/signup-about-smoke-583b": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },
