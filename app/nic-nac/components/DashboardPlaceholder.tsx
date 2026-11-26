@@ -10,6 +10,7 @@ import { isQueuedVideoUrl } from '@/lib/public-site/queue-video-link'
 import { isTikTokCardUrl } from '@/lib/public-site/tiktok-video-id'
 import { SOCIAL_PLATFORMS } from '@/lib/public-site/social-visibility'
 
+import QRCode from 'qrcode'
 import Link from 'next/link'
 import { flushSync } from 'react-dom'
 import { SiteLeaveGuard, SiteSaveBar, type SiteDiscardOpener } from './SiteSaveBar'
@@ -17,6 +18,11 @@ import { SiteSettingsBody, SiteSettingsLoadingShell } from './SiteSettingsBody'
 import { buildSiteSetupChecklist, openWorkspaceSection, SIGNUP_TILE_SUMMARY, signupDiscountTile, type SiteSectionId } from './site-settings-layout'
 import { CustomerPageStrip } from './PublicSiteVisibility'
 import { myWebsiteSavePayload } from '@/lib/amethyst/hero-motion-client'
+import {
+  LOOK_PREVIEW_POLL_WINDOW_MS,
+  lookPreviewStillPending,
+  nextLookPreviewPollDelay,
+} from '@/lib/look-preview/policy'
 import { getAmethystSkinCard, type AmethystSkinCard } from '@/lib/amethyst/skin-cards'
 import { SocialMark } from '@/lib/amethyst/social-mark-icon'
 import { ThemeStudio } from './ThemeStudio'
@@ -25,6 +31,8 @@ import {
   autosaveTiming,
   discountCodeFieldError,
   discountMessageFieldError,
+  changedSiteSettingsPayload,
+  collectSiteSettingsFieldErrors,
   draftHoldingInvalidFields,
   emailFieldError,
   formatSiteSaveFailure,
@@ -656,7 +664,7 @@ export function getWorkspaceToolSections(options: {
 } = {}) {
   const includeRecipes = options.includeRecipes ?? true
   const includeCardQr = options.includeCardQr ?? isCardQrToolEnabled()
-  return SECONDARY_WORKSPACE_SECTIONS.filter((section) => {
+  const sections = SECONDARY_WORKSPACE_SECTIONS.filter((section) => {
     if (DANCE_FLOOR_SUBPAGE_SECTIONS.has(section.key)) return false
     if (section.key === 'recipes') return includeRecipes
     if (section.key === CARD_QR_WORKSPACE_SECTION) return includeCardQr
@@ -664,6 +672,12 @@ export function getWorkspaceToolSections(options: {
   })
     .slice()
     .sort((a, b) => a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }))
+  const websiteIndex = sections.findIndex((section) => section.key === 'site-settings')
+  if (websiteIndex > 0) {
+    const [website] = sections.splice(websiteIndex, 1)
+    sections.unshift(website)
+  }
+  return sections
 }
 
 export function getWorkspaceBackDestination(
@@ -816,6 +830,7 @@ type SiteSettingsActionState = {
   pending: boolean
   error: string | null
   helperMessage: string | null
+  heldFieldId?: string | null
 }
 
 type RecipesState = {
@@ -2613,8 +2628,20 @@ export function createTickerLinkFromSelection(input: {
   }
 }
 
+const LEGACY_TICKER_LINE = /^\[[^\]]+\]\([^()\s]+\)$/
+
+export function hasLegacyTickerLink(tickerText: string) {
+  return tickerText.split('\n').some((line) => LEGACY_TICKER_LINE.test(line.trim()))
+}
+
 export function makeTickerLinksPlainText(tickerText: string) {
-  return tickerText.replace(/\[([^\]]+)\]\([^()\s]+\)/g, '$1')
+  return tickerText
+    .split('\n')
+    .map((line) => {
+      const match = line.trim().match(/^\[([^\]]+)\]\([^()\s]+\)$/)
+      return match ? line.replace(LEGACY_TICKER_LINE, match[1]) : line
+    })
+    .join('\n')
 }
 
 export function updateHomepageMediaSlot(
@@ -3571,6 +3598,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const undoSnapshotRef = useRef<SiteSettingsDraft | null>(null)
   const undoTimerRef = useRef<number | null>(null)
   const [undoReady, setUndoReady] = useState(false)
+  const [autosaveWaiting, setAutosaveWaiting] = useState(false)
   const runSiteAutosaveRef = useRef<() => void>(() => {})
   const siteSettingsSaveRequestRef = useRef(0)
   const siteSettingsVersionRef = useRef(0)
@@ -4665,11 +4693,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (autosaveTimerRef.current != null) window.clearTimeout(autosaveTimerRef.current)
     if (mode === 'now') {
       autosaveTimerRef.current = null
+      setAutosaveWaiting(false)
       runSiteAutosaveRef.current()
       return
     }
+    setAutosaveWaiting(true)
     autosaveTimerRef.current = window.setTimeout(() => {
       autosaveTimerRef.current = null
+      setAutosaveWaiting(false)
       runSiteAutosaveRef.current()
     }, AUTOSAVE_WAIT_MS)
   }
@@ -4727,7 +4758,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     const current = siteSettingsDraftRef.current
     if (!current) return
     rememberSiteDraft(updateHomepageMediaSlot(current, key, patch))
-    const textOnly = Object.keys(patch).every((field) => field === 'caption' || field === 'videoUrl')
+    const textOnly = Object.keys(patch).every((field) =>
+      field === 'caption' || field === 'videoUrl' || field === 'portraitZoom' || field === 'portraitFocusX' || field === 'portraitFocusY',
+    )
     scheduleSiteAutosave(textOnly ? 'debounce' : 'now')
   }
 
@@ -4933,13 +4966,19 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
+      const savedDraft = siteSettingsStateRef.current.status === 'ready' && siteSettingsStateRef.current.settings
+        ? getNormalizedSiteSettingsDraft(getSiteSettingsDraft(siteSettingsStateRef.current.settings, {
+          isBrittWithBling: isBrittWithBlingWorkspace,
+        }))
+        : normalizedDraft
+      const patch = changedSiteSettingsPayload(savedDraft, normalizedDraft)
+      if (heroAnimationTouchedRef.current) patch.heroAnimationType = normalizedDraft.heroAnimationType
       const response = await fetch('/api/nic-nac/site-settings', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(myWebsiteSavePayload(normalizedDraft, {
-          includeHeroAnimation: heroAnimationTouchedRef.current,
-        })),
+        keepalive: true,
+        body: JSON.stringify(patch),
       })
 
       const payload = (await response.json().catch(() => null)) as
@@ -4966,11 +5005,20 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         setSiteSettingsDraft(nextDraft)
       }
       if (siteSettingsSaveRequestRef.current === requestId) {
+        const blocked = siteSettingsDraftRef.current
+          ? collectSiteSettingsFieldErrors(siteSettingsDraftRef.current)
+          : []
+        setForceSiteFieldErrors(blocked.length > 0)
+        const held = blocked[0]
         setSiteSettingsActionState({
           pending: false,
           error: null,
-          helperMessage: SAVED_LABEL,
+          helperMessage: held ? `Saved, except ${held.label}` : SAVED_LABEL,
+          heldFieldId: held?.id ?? null,
         })
+        if (held) {
+          window.requestAnimationFrame(() => document.getElementById(held.id)?.focus())
+        }
         if (!autosaveAgainRef.current) {
           setUndoReady(true)
           if (undoTimerRef.current != null) window.clearTimeout(undoTimerRef.current)
@@ -5026,13 +5074,23 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       isBrittWithBling: isBrittWithBlingWorkspace,
     })
     const ready = draftHoldingInvalidFields(draft, saved)
-    if (
-      !hasSiteSettingsUnsavedChanges({
-        settings: state.settings,
-        draft: ready,
-        isBrittWithBling: isBrittWithBlingWorkspace,
-      })
-    ) {
+    const blocked = collectSiteSettingsFieldErrors(draft)
+    const patch = changedSiteSettingsPayload(
+      getNormalizedSiteSettingsDraft(saved),
+      getNormalizedSiteSettingsDraft(ready),
+    )
+    if (Object.keys(patch).length === 0) {
+      setForceSiteFieldErrors(blocked.length > 0)
+      if (blocked.length > 0) {
+        const held = blocked[0]
+        setSiteSettingsActionState({
+          pending: false,
+          error: null,
+          helperMessage: `Saved, except ${held.label}`,
+          heldFieldId: held.id,
+        })
+        window.requestAnimationFrame(() => document.getElementById(held.id)?.focus())
+      }
       return
     }
     if (siteSettingsSavePendingRef.current) {
@@ -5504,6 +5562,88 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     tradeBoardState.board?.listings.length,
     tradeBoardState.hasMoreListings,
   ])
+
+  useEffect(() => {
+    const flush = () => {
+      if (autosaveTimerRef.current == null) return
+      window.clearTimeout(autosaveTimerRef.current)
+      autosaveTimerRef.current = null
+      setAutosaveWaiting(false)
+      runSiteAutosaveRef.current()
+    }
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flush()
+    }
+    window.addEventListener('pagehide', flush)
+    document.addEventListener('visibilitychange', onHide)
+    return () => {
+      window.removeEventListener('pagehide', flush)
+      document.removeEventListener('visibilitychange', onHide)
+    }
+  }, [])
+
+  const lookPreviewStatus = siteSettingsState.status === 'ready'
+    ? siteSettingsState.settings?.lookPreview?.status ?? null
+    : null
+  useEffect(() => {
+    if (!lookPreviewStillPending(lookPreviewStatus)) return
+    let stopped = false
+    let timer = 0
+    let attempt = 0
+    const started = Date.now()
+    const schedule = (wait: number) => {
+      if (stopped) return
+      timer = window.setTimeout(() => { void tick() }, wait)
+    }
+    const tick = async () => {
+      if (stopped || Date.now() - started >= LOOK_PREVIEW_POLL_WINDOW_MS) return
+      if (document.hidden) return
+      if (siteSettingsSavePendingRef.current) {
+        schedule(1000)
+        return
+      }
+      try {
+        const response = await fetch('/api/nic-nac/site-settings/look-preview', { credentials: 'include' })
+        if (response.ok) {
+          const payload = (await response.json()) as {
+            lookPreview?: NonNullable<SiteSettingsDashboardResult['lookPreview']> | null
+          }
+          const next = payload.lookPreview
+          if (next && !siteSettingsSavePendingRef.current) {
+            setSiteSettingsState((current) => {
+              if (current.status !== 'ready' || !current.settings) return current
+              const currentPreview = current.settings.lookPreview
+              if (
+                currentPreview?.status === next.status
+                && currentPreview.desktopUrl === next.desktopUrl
+                && currentPreview.phoneUrl === next.phoneUrl
+              ) return current
+              return { status: 'ready', settings: { ...current.settings, lookPreview: next } }
+            })
+            if (!lookPreviewStillPending(next.status)) return
+          }
+        }
+      } catch {
+        // The last picture stays up. The next check tries again.
+      }
+      if (stopped || Date.now() - started >= LOOK_PREVIEW_POLL_WINDOW_MS) return
+      const wait = nextLookPreviewPollDelay(attempt)
+      attempt += 1
+      schedule(wait)
+    }
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      window.clearTimeout(timer)
+      void tick()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    if (!document.hidden) schedule(nextLookPreviewPollDelay(0))
+    return () => {
+      stopped = true
+      window.clearTimeout(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [lookPreviewStatus])
 
   useEffect(() => {
     if (activeSection !== 'trade-board') return
@@ -7214,7 +7354,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         ? ['Site details']
         : []
   const siteSettingsLeaveActive =
-    siteSettingsActionState.pending || Boolean(siteSettingsActionState.error)
+    siteSettingsActionState.pending || Boolean(siteSettingsActionState.error) || autosaveWaiting
   const discardOpenerRef = useRef<SiteDiscardOpener | null>(null)
   const activeWorkspaceShellSection = WORKSPACE_SECTIONS.some(
     (section) => section.key === activeSection,
@@ -7668,7 +7808,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             forceFieldErrors={forceSiteFieldErrors}
             fieldEpoch={siteSettingsFieldEpoch}
             publicSiteUrl={customerSparkleSiteUrl}
-            publicSiteDisplay={customerSparkleSiteDisplay}
             onDraftChange={handleSiteSettingsDraftChange}
             onSocialHandleChange={handleSocialHandleChange}
             onHomepageMediaChange={handleHomepageMediaChange}
@@ -7677,8 +7816,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             mediaUploadKey={siteSettingsMediaUploadKey}
             mediaUploadFeedback={siteSettingsMediaUploadFeedback}
             isBrittWithBling={isBrittWithBlingWorkspace}
-            canPreview={Boolean(customerSparkleSiteHref)}
-            onPreview={handleOpenCustomerSitePreview}
             onDiscard={() => discardOpenerRef.current?.open()}
             onSave={handleSaveSiteSettings}
             onLookClose={() => { void flushLookPreviewEditor() }}
@@ -10053,6 +10190,100 @@ export function HelpResourcesCard({
   )
 }
 
+function ShareMySite({ url }: { url: string | null }) {
+  const [note, setNote] = useState('')
+  const [qr, setQr] = useState('')
+  const [canShare, setCanShare] = useState(false)
+  useEffect(() => {
+    setCanShare(typeof navigator.share === 'function')
+  }, [])
+  useEffect(() => {
+    if (!url) return
+    let cancel = false
+    void QRCode.toDataURL(url, { width: 320, margin: 1 }).then((value) => {
+      if (!cancel) setQr(value)
+    }).catch(() => undefined)
+    return () => { cancel = true }
+  }, [url])
+  if (!url) return null
+  const copy = () => {
+    void navigator.clipboard.writeText(url).then(() => setNote('Link copied')).catch(() => setNote('Copy the link from the sheet'))
+  }
+  return (
+    <div className={styles.shareSite}>
+      <button type="button" className={styles.shareSiteButton} popoverTarget="share-my-site">Share my site</button>
+      <dialog id="share-my-site" popover="auto" className={styles.shareSheet} aria-labelledby="share-my-site-title">
+        <span className={styles.shareGrab} aria-hidden="true" />
+        <div className={styles.shareSheetHead}>
+          <div>
+            <p className={styles.lookEyebrow}>Share</p>
+            <h2 id="share-my-site-title" className={styles.lookTitle}>Share my site</h2>
+          </div>
+          <button type="button" className={styles.shareClose} aria-label="Close" popoverTarget="share-my-site" popoverTargetAction="hide"><span aria-hidden="true">×</span></button>
+        </div>
+        <div className={styles.shareLinkRow}>
+          <p className={styles.shareLink} title={url}>{url}</p>
+          <button type="button" onClick={copy}>Copy</button>
+          {canShare ? (
+            <button type="button" onClick={() => { void navigator.share?.({ title: 'My site', url }).catch(() => undefined) }}>Share</button>
+          ) : null}
+        </div>
+        {note ? <p role="status">{note}</p> : null}
+        {qr ? (
+          <div className={styles.shareQr}>
+            <img src={qr} alt="" width={180} height={180} />
+            <a href={qr} download="my-site-qr.png">Download</a>
+          </div>
+        ) : null}
+      </dialog>
+    </div>
+  )
+}
+
+function LookCoverImage({
+  desktop,
+  phone,
+  fallback,
+  onGiveUp,
+}: {
+  desktop: string
+  phone: string
+  fallback: string
+  onGiveUp?: () => void
+}) {
+  const nextKey = `${desktop}|${phone}|${fallback}`
+  const [shown, setShown] = useState({ desktop, phone, fallback, key: nextKey })
+  useEffect(() => {
+    if (!nextKey || nextKey === shown.key) return
+    let cancel = false
+    const image = new Image()
+    image.decoding = 'async'
+    const giveUp = () => { if (!cancel) onGiveUp?.() }
+    const reveal = () => {
+      if (cancel || image.naturalWidth < 1) {
+        giveUp()
+        return
+      }
+      const decoded = typeof image.decode === 'function' ? image.decode() : Promise.resolve()
+      Promise.resolve(decoded).then(() => {
+        if (!cancel) setShown({ desktop, phone, fallback, key: nextKey })
+      }).catch(giveUp)
+    }
+    image.onload = reveal
+    image.onerror = giveUp
+    image.src = desktop || phone || fallback
+    return () => { cancel = true }
+  }, [desktop, fallback, nextKey, onGiveUp, phone, shown.key])
+  const src = shown.desktop || shown.phone || shown.fallback
+  if (!src) return null
+  return (
+    <picture className={styles.siteLookPicture}>
+      {shown.phone ? <source media="(max-width: 879px)" srcSet={shown.phone} /> : null}
+      <img src={src} alt="" decoding="async" />
+    </picture>
+  )
+}
+
 export function SiteSettingsCard({
   repId,
   state,
@@ -10063,7 +10294,6 @@ export function SiteSettingsCard({
   forceFieldErrors = false,
   fieldEpoch = 0,
   publicSiteUrl = null,
-  publicSiteDisplay = 'Site address not set',
   onDraftChange,
   onSocialHandleChange,
   onHomepageMediaChange,
@@ -10072,10 +10302,8 @@ export function SiteSettingsCard({
   mediaUploadKey,
   mediaUploadFeedback,
   isBrittWithBling = false,
-  canPreview,
   initialOpenSection = null,
   initialOpenSections = null,
-  onPreview,
   onDiscard,
   onSave,
   onLookClose,
@@ -10095,7 +10323,6 @@ export function SiteSettingsCard({
   forceFieldErrors?: boolean
   fieldEpoch?: number
   publicSiteUrl?: string | null
-  publicSiteDisplay?: string | null
   onDraftChange?: (patch: Partial<SiteSettingsDraft>) => void
   onSocialHandleChange?: (platform: string, value: string) => void
   onHomepageMediaChange?: (
@@ -10114,10 +10341,8 @@ export function SiteSettingsCard({
     tone: 'error' | 'success'
   } | null
   isBrittWithBling?: boolean
-  canPreview?: boolean
   initialOpenSection?: SiteSectionId | null
   initialOpenSections?: SiteSectionId[] | null
-  onPreview?: () => void
   onDiscard?: () => void
   onSave?: () => void
   onLookClose?: () => void
@@ -10127,7 +10352,7 @@ export function SiteSettingsCard({
   undoReady?: boolean
   previewThemeCards?: readonly AmethystSkinCard[] | null
   nextShow?: { month: string; day: string; name: string; time: string } | null
-  initialDialog?: 'signup' | 'links' | null
+  initialDialog?: 'signup' | 'links' | 'about' | 'look' | 'theme' | null
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
   const lookRef = useRef<HTMLDialogElement>(null)
@@ -10146,6 +10371,11 @@ export function SiteSettingsCard({
     end: number
     text: string
   } | null>(null)
+  const [coverQuiet, setCoverQuiet] = useState(false)
+  const coverKey = state.status === 'ready'
+    ? `${state.settings?.lookPreview?.desktopUrl ?? ''}|${state.settings?.lookPreview?.phoneUrl ?? ''}`
+    : ''
+  useEffect(() => { setCoverQuiet(false) }, [coverKey])
 
   useEffect(() => {
     setTouchedFields({})
@@ -10153,7 +10383,7 @@ export function SiteSettingsCard({
   }, [fieldEpoch])
 
   useEffect(() => {
-    const dialog = initialDialog === 'signup' ? showsRef.current : initialDialog === 'links' ? linksRef.current : null
+    const dialog = initialDialog === 'signup' ? showsRef.current : initialDialog === 'links' ? linksRef.current : initialDialog === 'about' ? aboutRef.current : initialDialog === 'look' ? lookRef.current : initialDialog === 'theme' ? themeRef.current : null
     if (dialog && !dialog.open) dialog.showModal()
   }, [initialDialog])
 
@@ -10239,7 +10469,7 @@ export function SiteSettingsCard({
     window.requestAnimationFrame(() => tickerTextareaRef.current?.focus())
   }
 
-  const hasTickerLinks = /\[[^\]]+\]\([^()\s]+\)/.test(draft?.tickerText ?? '')
+  const hasTickerLinks = hasLegacyTickerLink(draft?.tickerText ?? '')
   const liveSkinOptions = useAvailableAmethystSkinCards(previewThemeCards ? null : repId)
   const skinOptions = previewThemeCards
     ? { status: 'ready' as const, cards: previewThemeCards, ownedPrivateSkinIds: [] as string[], retry: () => undefined }
@@ -10263,10 +10493,10 @@ export function SiteSettingsCard({
 
   const discountCode = draft.signupDiscountCode ?? ''
   const discountMessage = draft.signupDiscountMessage ?? ''
-  const discountCodeError = showFieldError(
-    SITE_FIELD_IDS.discountCode,
-    discountCodeFieldError(discountCode, draft.signupDiscountEnabled),
-  )
+  const discountCodeProblem = discountCodeFieldError(discountCode, draft.signupDiscountEnabled)
+  const discountCodeError = draft.signupDiscountEnabled
+    ? discountCodeProblem
+    : showFieldError(SITE_FIELD_IDS.discountCode, discountCodeProblem)
   const discountMessageError = showFieldError(
     SITE_FIELD_IDS.discountMessage,
     discountMessageFieldError(discountMessage),
@@ -10335,10 +10565,11 @@ export function SiteSettingsCard({
     },
   ]
   const signupTile = signupDiscountTile(draft)
-  const contactLine = [
-    draft.email.trim() ? 'Email' : '',
-    ...SOCIAL_PLATFORMS.filter((platform) => draft.socialHandles?.[platform.key]?.trim()).map((platform) => platform.label),
-  ].filter(Boolean).slice(0, 3).join(' · ')
+  const coverName = draft.displayName.trim() ? hostFirstName(draft.displayName) : ''
+  const coverEmail = draft.email.trim()
+  const coverSocials = SOCIAL_PLATFORMS.filter((platform) => draft.socialHandles?.[platform.key]?.trim())
+  const coverEmpty = !coverName && !coverEmail && coverSocials.length === 0
+  const coverMonogram = coverName.slice(0, 1) || draft.businessName.trim().slice(0, 1) || ''
   const followPageLink = (event: ReactMouseEvent<HTMLAnchorElement>) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
     event.preventDefault()
@@ -10353,8 +10584,10 @@ export function SiteSettingsCard({
     if (group.id === 'shows') return signupTile.chip === 'Done'
     return checklist.filter((item) => group.sections.includes(item.section) && !item.done).length === 0
   }).length
-  const settingsBody = (sections: SiteSectionId[]) => (
+  const settingsBody = (sections: SiteSectionId[], options?: { magazine?: boolean }) => (
     <SiteSettingsBody
+      magazine={options?.magazine}
+      heroBackdrop={options?.magazine ? { image: themeCard.thumb?.replace(/thumb\.webp$/, 'hero-poster.webp') ?? null, colors: themeCard.previewColors } : undefined}
       draft={draft}
       sections={sections}
       savedSlots={settings.homepageMediaSlots}
@@ -10376,6 +10609,7 @@ export function SiteSettingsCard({
       onDraftChange={onDraftChange}
       onSocialHandleChange={onSocialHandleChange}
       onHomepageMediaChange={onHomepageMediaChange}
+      onMediaCommit={onCommit}
       onHomepageMediaUpload={onHomepageMediaUpload}
       onHomepageVideoRemove={onHomepageVideoRemove}
       onFieldBlur={reportFieldBlur}
@@ -10401,20 +10635,32 @@ export function SiteSettingsCard({
       onResetTickerLinks={resetTickerLinksToPlainText}
     />
   )
-  const saveLine = savePhase === 'saving'
-    ? 'Saving…'
-    : savePhase === 'error'
-      ? "Couldn't save — Retry"
-      : undoReady
-        ? 'Saved · Undo'
-        : 'All changes saved'
+  const exceptNote = actionState?.error ? null : actionState?.helperMessage?.startsWith('Saved, except ') ? actionState.helperMessage : null
+  const heldDialog = (id: string | null | undefined) => {
+    if (!id) return null
+    if (id.includes('discount')) return 'signup'
+    if (id === SITE_FIELD_IDS.shopLink) return 'look'
+    if (id === SITE_FIELD_IDS.email || id.startsWith('my-website-social-')) return 'socials'
+    if (id.endsWith('-video')) return 'about'
+    return null
+  }
+  const heldName = { signup: 'Sign-up', look: 'Look', socials: 'Socials', about: 'About you' } as const
+  const statusFor = (dialog: 'home' | 'look' | 'about' | 'signup' | 'socials' | 'theme') => {
+    if (savePhase === 'saving') return 'Saving…'
+    if (savePhase === 'error') return "Couldn't save — Retry"
+    const owner = heldDialog(actionState?.heldFieldId)
+    if (exceptNote && owner && dialog === 'home') return `Saved, except ${heldName[owner]}`
+    if (exceptNote && owner === dialog) return exceptNote
+    return 'All changes saved'
+  }
+  const saveLine = statusFor('home')
 
   return (
     <div className={styles.siteHome} data-testid="my-website-home">
-      <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
       <p className={styles.siteHomeKicker}>Your customer site</p>
       <h1 className={styles.siteHomeTitle}>Tap a part of your site to change it</h1>
       <p className={styles.siteHomeLede}>Everything saves on its own as you go.</p>
+      <ShareMySite url={publicSiteUrl && !publicSiteUrl.includes('/amethyst/Homepage.html') ? publicSiteUrl : null} />
       <div className={styles.siteHomeStatusRow}>
         <p
           className={savePhase === 'error' ? styles.siteSavePillError : savePhase === 'saving' ? styles.siteSavePillBusy : styles.siteSavePill}
@@ -10427,6 +10673,19 @@ export function SiteSettingsCard({
               {saveError ?? "Couldn't save — Retry"}{' '}
               <button type="button" className={styles.siteRetry} onClick={() => onSave?.()}>Retry</button>
             </>
+          ) : exceptNote ? (
+            <button
+              type="button"
+              className={styles.siteExcept}
+              onClick={() => {
+                const field = document.getElementById(actionState?.heldFieldId ?? '')
+                const dialog = field?.closest('dialog')
+                if (dialog instanceof HTMLDialogElement && !dialog.open) dialog.showModal()
+                field?.focus()
+              }}
+            >
+              {statusFor('home')}
+            </button>
           ) : saveLine}
           {undoReady && savePhase === 'saved' ? (
             <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button>
@@ -10476,11 +10735,13 @@ export function SiteSettingsCard({
                 {group.id === 'look' ? (
                   themeCard.thumb || lookShot ? (
                     <>
-                      <picture className={styles.siteLookPicture}>
-                        {lookPhone ? <source media="(max-width: 879px)" srcSet={lookPhone} /> : null}
-                        <img src={lookDesktop || lookPhone || themeCard.thumb || ''} alt="" decoding="async" />
-                      </picture>
-                      {lookPreview?.status === 'updating' ? <span className={styles.siteLookUpdating}>Updating preview</span> : null}
+                      <LookCoverImage
+                        desktop={lookDesktop}
+                        phone={lookPhone}
+                        fallback={themeCard.thumb || ''}
+                        onGiveUp={() => setCoverQuiet(true)}
+                      />
+                      {lookPreviewStillPending(lookPreview?.status) && !coverQuiet ? <span className={styles.siteLookUpdating}>Updating preview</span> : null}
                     </>
                   ) : <span className={styles.sitePaletteName}>{themeCard.label}</span>
                 ) : null}
@@ -10522,15 +10783,31 @@ export function SiteSettingsCard({
                   </span>
                 ) : null}
                 {group.id === 'links' ? (
-                  <span className={styles.siteLinkScene}>
-                    <span className={styles.siteSocialRow}>
-                      {SOCIAL_PLATFORMS.map((platform) => (
-                        <span key={platform.key} className={styles.siteBrand} data-brand={platform.key} title={platform.label}>
-                          <SocialMark platform={platform.key} className={styles.siteBrandIcon} />
+                  <span className={styles.siteBioPhone} data-cover={coverEmpty ? 'empty' : 'filled'}>
+                    <span className={styles.siteBioNotch} aria-hidden="true" />
+                    <span className={styles.siteBioScreen}>
+                      <span className={styles.siteBioAvatar}>{coverMonogram}</span>
+                      {coverName ? <span className={styles.siteBioName}>{coverName}</span> : null}
+                      {coverEmail ? <span className={styles.siteBioMail}>{coverEmail}</span> : null}
+                      {coverSocials.length ? (
+                        <span className={styles.siteBioRows}>
+                          {coverSocials.map((platform) => (
+                            <span key={platform.key} className={styles.siteBioRow}>
+                              <i className={styles.siteBioMark} data-brand={platform.key} aria-hidden="true">
+                                <SocialMark platform={platform.key} className={styles.siteBioGlyph} />
+                              </i>
+                              <span>{platform.label}</span>
+                            </span>
+                          ))}
                         </span>
-                      ))}
+                      ) : null}
+                      {coverEmpty ? (
+                        <>
+                          <span className={styles.siteBioPrompt}>Add your email</span>
+                          <span className={styles.siteBioPrompt}>Add a social link</span>
+                        </>
+                      ) : null}
                     </span>
-                    {contactLine ? <span className={styles.siteContactLine}>{contactLine}</span> : null}
                   </span>
                 ) : null}
               </span>
@@ -10549,49 +10826,70 @@ export function SiteSettingsCard({
       </div>
       </div>
       <dialog ref={lookRef} className={styles.siteDialog} data-site-dialog="" aria-labelledby="site-look-title" onClose={() => onLookClose?.()}>
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
-            <p className={styles.siteDialogKicker}>Look</p>
+            <p className={styles.siteDialogKicker}>Your customer site</p>
             <h1 id="site-look-title" className={styles.siteDialogTitle}>Look</h1>
-            <p className={styles.siteDialogSubtitle}>Theme, top bar, and hero</p>
+            <p className={styles.siteDialogSubtitle}>Four little chapters: theme, your name, announcements, and your hello.</p>
           </div>
           <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => lookRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
-        <div className={styles.siteDialogBody}>
-          <div className={styles.themeRow}>
-            <span className={styles.siteThemeThumb}>{themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : null}</span>
-            <span>
-              <span className={styles.themeRowKicker}>On your site now</span>
-              <span className={styles.themeRowName}>{themeCard.label}</span>
-            </span>
-            <button type="button" className={styles.siteChangeTheme} onClick={() => themeRef.current?.showModal()}>Change theme</button>
-          </div>
-          {settingsBody(['top-bar', 'hero'])}
+        <div className={`${styles.siteDialogBody} ${styles.lookMagazine}`}>
+          <article className={styles.lookChapter}>
+            <span className={styles.lookNum} aria-hidden="true">I</span>
+            <div className={styles.lookCard}>
+              <header className={styles.lookHead}>
+                <p className={styles.lookEyebrow}>Theme</p>
+                <h2 className={styles.lookTitle}>The mood of your site</h2>
+                <p className={styles.lookLede}>Tap Change theme to see every theme with a picture of how it looks.</p>
+              </header>
+              <div className={styles.themeRow}>
+                <span className={styles.siteThemeThumb}>{themeCard.thumb ? <img src={themeCard.thumb} alt="" /> : <span className={styles.sitePaletteName}>{themeCard.label}</span>}</span>
+                <span>
+                  <span className={styles.themeRowKicker}>On your site now</span>
+                  <span className={styles.themeRowName}>{themeCard.label}</span>
+                  <span className={styles.lookThemeMeta}>
+                    <span className={styles.lookDots} aria-hidden="true">
+                      {themeCard.previewColors.slice(0, 3).map((color) => (
+                        <i key={color} style={{ background: color }} />
+                      ))}
+                    </span>
+                    {savePhase === 'saved' ? <b>Saved ✓</b> : savePhase === 'error' ? <b>Not saved</b> : <b>Saving…</b>}
+                  </span>
+                </span>
+                <button type="button" className={`${styles.siteChangeTheme} ${styles.lookChangeTheme}`} onClick={() => themeRef.current?.showModal()}>Change theme</button>
+              </div>
+            </div>
+          </article>
+          {settingsBody(['top-bar', 'hero'], { magazine: true })}
         </div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('look')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
-      <dialog ref={aboutRef} className={styles.siteDialog} aria-labelledby="site-about-title">
+      <dialog ref={aboutRef} className={`${styles.siteDialog} ${styles.siteDialogAbout}`} aria-labelledby="site-about-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
-            <p className={styles.siteDialogKicker}>About you</p>
+            <p className={styles.siteDialogKicker}>Your customer site</p>
             <h1 id="site-about-title" className={styles.siteDialogTitle}>About you</h1>
-            <p className={styles.siteDialogSubtitle}>Your story, photo, and the Bomb Party video</p>
+            <p className={styles.siteDialogSubtitle}>Watch a Live Reveal sits above About. On a phone her story comes before the photo. Short videos follow.</p>
           </div>
           <button type="button" className={styles.siteDialogClose} aria-label="Close" onClick={() => aboutRef.current?.close()}><span aria-hidden="true">×</span></button>
         </div>
-        <div className={styles.siteDialogBody}>
+        <div className={`${styles.siteDialogBody} ${styles.aboutMagazine}`}>
           {settingsBody(['about'])}
           {settingsBody(['bomb-party'])}
         </div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('about')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
       <dialog ref={showsRef} className={styles.siteDialog} aria-labelledby="site-shows-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Sign-up discount</p>
@@ -10602,11 +10900,12 @@ export function SiteSettingsCard({
         </div>
         <div className={styles.siteDialogBody}>{settingsBody(['signup'])}</div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('signup')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
-      <dialog ref={linksRef} className={styles.siteDialog} aria-labelledby="site-links-title">
+      <dialog ref={linksRef} className={`${styles.siteDialog} ${styles.siteDialogWide}`} aria-labelledby="site-links-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Your customer site</p>
@@ -10617,11 +10916,12 @@ export function SiteSettingsCard({
         </div>
         <div className={styles.siteDialogBody}>{settingsBody(['footer'])}</div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('socials')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
       <dialog ref={themeRef} className={`${styles.siteDialog} ${styles.siteDialogWide}`} data-site-dialog="" aria-labelledby="site-theme-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Themes</p>
@@ -10644,11 +10944,10 @@ export function SiteSettingsCard({
           />
         </div>
         <footer className={styles.siteDialogFoot}>
-          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{saveLine}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
+          <p role="status">{savePhase === 'saved' ? <span className={styles.siteSavedMark} aria-hidden="true">✓</span> : null}{statusFor('theme')}{undoReady && savePhase === 'saved' ? <button type="button" className={styles.siteUndo} onClick={() => onUndo?.()}>Undo</button> : null}</p>
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
-      <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
     </div>
   )
 }

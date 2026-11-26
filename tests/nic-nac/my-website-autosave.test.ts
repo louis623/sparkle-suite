@@ -5,6 +5,7 @@ import {
   AUTOSAVE_WAIT_MS,
   autosaveTiming,
   draftHoldingInvalidFields,
+  videoLinkFieldError,
 } from '@/app/nic-nac/components/site-settings-save'
 import type { SiteSettingsDraft } from '@/app/nic-nac/components/DashboardPlaceholder'
 
@@ -33,6 +34,15 @@ describe('My Website autosave', () => {
     }, saved)
     expect(ready.shopLink).toBe(saved.shopLink)
     expect(ready.tagline).toBe('A new tagline')
+  })
+
+  it('keeps the video links the server can save', () => {
+    expect(videoLinkFieldError('https://vm.tiktok.com/ZMabcdef/')).toBeNull()
+    expect(videoLinkFieldError('https://www.tiktok.com/t/ZMabcdef/')).toBeNull()
+    expect(videoLinkFieldError('<blockquote cite="https://www.tiktok.com/@sparkle/video/1234567890123456789"></blockquote>')).toBeNull()
+    expect(videoLinkFieldError('https://youtu.be/aBcDeF12')).toBeNull()
+    expect(videoLinkFieldError('https://fb.watch/abc123/')).toBeNull()
+    expect(videoLinkFieldError('this is not a video link')).toEqual(expect.any(String))
   })
 })
 

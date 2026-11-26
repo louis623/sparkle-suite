@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  serverExternalPackages: ['@resvg/resvg-js', 'puppeteer-core', '@sparticuz/chromium-min'],
+  serverExternalPackages: ['@resvg/resvg-js', 'puppeteer-core', '@sparticuz/chromium'],
   outputFileTracingIncludes: {
     '/api/public/client-error': ['./lib/monitoring/generated/client-scripts.json'],
     '/*': ['./lib/amethyst/generated/homepage-server.cjs', './lib/amethyst/legacy/assets/**/*', './public/amethyst/compiled/*.js'],
@@ -48,6 +48,9 @@ const nextConfig: NextConfig = {
       './lib/workspace/card-qr/fonts/card/**/*',
       './lib/workspace/card-qr/card-plates/**/*',
     ],
+    '/api/nic-nac/site-settings': ['./node_modules/@sparticuz/chromium/bin/**/*'],
+    '/api/nic-nac/site-settings/look-preview': ['./node_modules/@sparticuz/chromium/bin/**/*'],
+    '/api/internal/look-previews/queue': ['./node_modules/@sparticuz/chromium/bin/**/*'],
   },
   async redirects() {
     return [

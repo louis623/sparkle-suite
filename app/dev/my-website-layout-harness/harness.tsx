@@ -20,7 +20,7 @@ export const STAND_IN_PORTRAIT_URL = 'https://stand-in.test/portrait.jpg'
 const sample: SiteSettingsDraft = {
   displayName: 'Sasha Sample',
   businessName: 'Sparkle by Sasha',
-  email: 'hello@sparklebysasha.example',
+  email: 'hello@sparkle.sample',
   phone: '',
   shopLink: shop,
   bannerText: '',
@@ -49,31 +49,31 @@ const sample: SiteSettingsDraft = {
   aboutNarrative:
     'Sasha hosts live jewelry reveals from her living room. She started with one Friday night show and now her regulars plan their week around the next box.',
   socialHandles: {
-    instagram: 'https://example.com/instagram/sparklebysasha',
-    facebook: 'https://example.com/facebook/sparklebysasha',
-    tiktok: 'https://example.com/tiktok/sparklebysasha',
-    youtube: 'https://example.com/youtube/sparklebysasha',
-    whatnot: 'https://example.com/whatnot/sparklebysasha',
+    instagram: 'https://instagram.com/sparkle.sample',
+    facebook: 'https://facebook.com/sparkle.sample',
+    tiktok: 'https://www.tiktok.com/@sparkle.sample',
+    youtube: '',
+    whatnot: '',
   },
   socialVisibility: {
-    instagram: true,
     instagramHero: true,
-    tiktok: true,
-    tiktokHero: true,
   },
   homepageMediaSlots: [
-    { key: 'showcase', caption: 'What a live reveal feels like', imageUrl: '', videoUrl: video, isVisible: true },
+    { key: 'showcase', caption: 'What a live reveal feels like', imageUrl: '/dev/marquee-reveal-poster.jpg', videoUrl: 'https://www.tiktok.com/@sparkle.sample/video/7234567890123456789', isVisible: true },
     {
       key: 'about_1',
       caption: 'Sasha before a Friday show',
-      imageUrl: '/dev/sample-portrait.svg',
+      imageUrl: '/dev/sasha-sample-portrait.jpg',
       videoUrl: '',
       isVisible: true,
       sectionVisible: true,
+      portraitFocusX: 50,
+      portraitFocusY: 42,
+      portraitZoom: 1,
     },
-    { key: 'about_2', caption: 'Unboxing the new collection', imageUrl: '', videoUrl: video, isVisible: true },
-    { key: 'about_3', caption: 'A favorite ring from last month', imageUrl: '', videoUrl: video, isVisible: true },
-    { key: 'about_4', caption: 'The room just before go-live', imageUrl: '', videoUrl: video, isVisible: true },
+    { key: 'about_2', caption: 'Unboxing the new collection', imageUrl: '/dev/short-ring-poster.jpg', videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', isVisible: true },
+    { key: 'about_3', caption: 'A favorite ring from last month', imageUrl: '', videoUrl: 'https://www.tiktok.com/@sparkle.sample/video/7234567890123456790', isVisible: true },
+    { key: 'about_4', caption: '', imageUrl: '', videoUrl: '', isVisible: true },
   ],
 }
 
@@ -124,13 +124,10 @@ function ReviewCard({
         state={{ status: 'ready', settings: saved }}
         draft={draft}
         publicSiteUrl="https://sparklebysasha.example"
-        publicSiteDisplay="sparklebysasha.example"
-        canPreview
         previewThemeCards={reviewThemes}
         nextShow={{ month: 'DEC', day: '12', name: 'Friday night reveal', time: '7:00 PM' }}
         initialOpenSections={openSections}
         onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
-        onPreview={() => undefined}
         onDiscard={() => setDraft(saved)}
         onSave={() => undefined}
       />
@@ -143,12 +140,14 @@ export function MyWebsiteLayoutHarness({
   openSection = null,
   openDialog = null,
   coverPhoto = false,
+  saveExcept = false,
 }: {
   mode?: 'gaps' | 'full' | 'states' | 'load-error' | 'no-photo'
   openSection?: SiteSectionId | null
-  openDialog?: 'signup' | 'links' | null
+  openDialog?: 'signup' | 'links' | 'about' | 'look' | 'theme' | null
   /** Test browser only. Points the About photo at STAND_IN_PORTRAIT_URL. */
   coverPhoto?: boolean
+  saveExcept?: boolean
 }) {
   const [reloaded, setReloaded] = useState(false)
   const saved: SiteSettingsDraft =
@@ -222,14 +221,12 @@ export function MyWebsiteLayoutHarness({
         state={{ status: 'ready', settings: saved }}
         draft={draft}
         publicSiteUrl="https://sparklebysasha.example"
-        publicSiteDisplay="sparklebysasha.example"
-        canPreview
         previewThemeCards={reviewThemes}
         nextShow={{ month: 'DEC', day: '12', name: 'Friday night reveal', time: '7:00 PM' }}
         initialOpenSection={openSection}
         initialDialog={openDialog}
+        actionState={saveExcept ? { pending: false, error: null, helperMessage: 'Saved, except Discount code', heldFieldId: 'my-website-discount-code' } : undefined}
         onDraftChange={(patch) => setDraft((current) => ({ ...current, ...patch }))}
-        onPreview={() => undefined}
         onDiscard={() => setDraft(saved)}
         onSave={() => undefined}
       />

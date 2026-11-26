@@ -1,9 +1,23 @@
 import { after, NextResponse } from 'next/server'
 import { AuthError, getPaidNicNacContext } from '@/lib/nic-nac/auth'
-import { flushLookPreview, processLookPreview } from '@/lib/look-preview/queue'
+import { flushLookPreview, processLookPreview, readLookPreview } from '@/lib/look-preview/queue'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
+
+export async function GET() {
+  try {
+    const { repId } = await getPaidNicNacContext()
+    const lookPreview = await readLookPreview(repId)
+    return NextResponse.json({ lookPreview })
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+    }
+    return NextResponse.json({ lookPreview: null })
+  }
+}
 
 export async function POST() {
   try {

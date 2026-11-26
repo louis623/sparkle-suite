@@ -3,6 +3,18 @@ import { validatePublicSiteSlug } from '@/lib/public-site/show-link'
 
 export const LOOK_PREVIEW_DEBOUNCE_MS = 8000
 export const LOOK_PREVIEW_MAX_ATTEMPTS = 3
+export const LOOK_PREVIEW_BUSY_MS = 70_000
+
+export function chooseLookPreviewCandidate<T extends {
+  attemptCount: number
+  updatedAtMs: number
+  processingStartedAtMs: number | null
+}>(rows: readonly T[], nowMs: number) {
+  return rows
+    .filter((row) => row.attemptCount < LOOK_PREVIEW_MAX_ATTEMPTS)
+    .filter((row) => row.processingStartedAtMs == null || nowMs - row.processingStartedAtMs >= LOOK_PREVIEW_BUSY_MS)
+    .sort((a, b) => a.attemptCount - b.attemptCount || a.updatedAtMs - b.updatedAtMs)[0] ?? null
+}
 export const SMOKE_PUBLIC_ORIGIN = 'https://sparkle-suite-smoke.vercel.app'
 export const LIVE_PUBLIC_ORIGIN = 'https://www.yoursparklesuite.com'
 
@@ -41,6 +53,19 @@ export function shouldQueueLookPreview(previousFingerprint: string | null, nextF
 export function lookPreviewDelayElapsed(queuedAtMs: number, nowMs: number, flush: boolean) {
   if (flush) return true
   return nowMs - queuedAtMs >= LOOK_PREVIEW_DEBOUNCE_MS
+}
+
+export const LOOK_PREVIEW_POLL_START_MS = 3_000
+export const LOOK_PREVIEW_POLL_MAX_MS = 12_000
+export const LOOK_PREVIEW_POLL_WINDOW_MS = 120_000
+
+export function lookPreviewStillPending(status: string | null | undefined) {
+  return status === 'updating' || status === 'missing'
+}
+
+export function nextLookPreviewPollDelay(attempt: number) {
+  const step = Math.max(0, attempt)
+  return Math.min(Math.round(LOOK_PREVIEW_POLL_START_MS * 1.5 ** step), LOOK_PREVIEW_POLL_MAX_MS)
 }
 
 export const LOOK_PREVIEW_MARKER_WAIT_MS = 12_000
@@ -90,6 +115,15 @@ export function applyLookPreviewSkip<T extends { desktopUrl: string | null; phon
     phoneUrl: row.phoneUrl,
     attemptCount: LOOK_PREVIEW_MAX_ATTEMPTS,
     lastError: reason,
+  }
+}
+
+export function lookPreviewFailureDetails(error: unknown) {
+  const raw = error instanceof Error ? error.message : 'capture failed'
+  const errorMessage = raw.replace(/https?:\/\/\S+/gi, '[url]').replace(/\s+/g, ' ').trim().slice(0, 240)
+  return {
+    errorName: error instanceof Error ? error.name : 'Error',
+    errorMessage: errorMessage || 'capture failed',
   }
 }
 

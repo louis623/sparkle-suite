@@ -1,3 +1,7 @@
+## November 26, 2026 — Socials phone preview
+
+`cursor/socials-phone-preview-583b` is allowlisted only so the Socials and Contact Info phone preview and link-in-bio cover can build on Smoke, stacked on `cursor/my-website-concept-c-583b`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.
+
 ## November 25, 2026 — My Website Concept C
 
 `cursor/my-website-concept-c-583b` is allowlisted only so the Concept C page strip and 2-by-2 cards can build on Smoke, stacked on `cursor/signup-discount-coupon-583b`. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, and the Live domains stay `codex/nic-nac-trade-hardening`. This is not a Live release and it does not merge.

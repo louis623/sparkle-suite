@@ -1,20 +1,21 @@
 'use client'
 
-import { useEffect, useRef, useState, type MouseEvent, ReactNode, RefObject } from 'react'
+import { useEffect, useState, type MouseEvent, ReactNode, RefObject } from 'react'
 import { flushSync } from 'react-dom'
 import {
   ABOUT_NARRATIVE_MAX_LENGTH,
   ABOUT_TITLE_MAX_LENGTH,
 } from '@/lib/public-site/about-section'
-import { resolveSocialHeroLinks } from '@/lib/public-site/social-hero'
+import { resolveSocialHeroLinks, resolveSocialPlatformUrl } from '@/lib/public-site/social-hero'
 import type { SocialPlatformKey } from '@/lib/public-site/social-visibility'
-import type { HeroAnimationType, PublicSiteMediaSlot, PublicSiteMediaSlotKey, SiteSettingsDashboardResult } from '@/lib/services/types'
-import { applyHeroMotionSwitch } from '@/lib/amethyst/hero-motion-client'
-import visibility from './PublicSiteVisibility.module.css'
+import type { PublicSiteMediaSlot, PublicSiteMediaSlotKey } from '@/lib/services/types'
 import type { SiteSettingsDraft } from '@/app/nic-nac/components/DashboardPlaceholder'
+import { AboutMarquee, AboutShortRail, aboutPhotoStyle } from './AboutYouPanels'
+import { LookEmojiPicker } from './LookEmojiPicker'
 import { HomepageMediaSlot } from './HomepageMediaSlot'
 import { PublicSiteVisibility } from './PublicSiteVisibility'
 import { SocialHandlesSettings } from './SocialHandlesSettings'
+import { SocialPhonePreview } from './SocialPhonePreview'
 import styles from './DashboardPlaceholder.module.css'
 import {
   buildSiteSetupChecklist,
@@ -41,10 +42,116 @@ const EMPTY_SLOTS: PublicSiteMediaSlot[] = [
   { key: 'about_4', caption: '', imageUrl: '', videoUrl: '' },
 ]
 
-function ShowsOn({ id, children }: { id: string; children: string }) {
+function splitTicker(line: string) {
+  const parts: Array<{ text: string; url?: string; raw: string }> = []
+  const pattern = /\[([^\]]+)\]\((https?:\/\/[^()\s]+)\)/g
+  let last = 0
+  for (const match of line.matchAll(pattern)) {
+    const index = match.index ?? 0
+    if (index > last) parts.push({ text: line.slice(last, index), raw: line.slice(last, index) })
+    parts.push({ text: match[1], url: match[2], raw: match[0] })
+    last = index + match[0].length
+  }
+  if (last < line.length || parts.length === 0) parts.push({ text: line.slice(last), raw: line.slice(last) })
+  return parts
+}
+
+function TickerChips({
+  text,
+  onChange,
+  onSelect,
+  textareaRef,
+}: {
+  text: string
+  onChange: (next: string) => void
+  onSelect: (selection: { start: number; end: number; text: string } | null) => void
+  textareaRef: RefObject<HTMLTextAreaElement | null>
+}) {
+  const lines = text.length > 0 ? text.split('\n') : ['']
+  const lineStart = (index: number) => lines.slice(0, index).reduce((count, line) => count + line.length + 1, 0)
+  const rememberCaret = (start: number, end: number) => {
+    textareaRef.current?.setSelectionRange(start, end)
+    onSelect(start === end ? null : { start, end, text: text.slice(start, end) })
+  }
+  const writeLine = (index: number, nextLine: string) => {
+    const next = lines.slice()
+    next[index] = nextLine
+    onChange(next.join('\n'))
+  }
   return (
-    <span id={id} className={styles.showsOn} data-shows-on="">
-      Shows on your site: {children}
+    <div className={styles.lookChipBlock}>
+      {lines.map((line, index) => {
+        const parts = splitTicker(line)
+        return (
+          <p key={index} className={styles.lookChipLine}>
+            {parts.map((part, partIndex) => {
+              const before = parts.slice(0, partIndex).reduce((count, item) => count + item.raw.length, 0)
+              if (part.url) {
+                return (
+                  <button
+                    key={partIndex}
+                    type="button"
+                    className={styles.lookChip}
+                    onClick={() => writeLine(index, parts.map((item, itemIndex) => itemIndex === partIndex ? part.text : item.raw).join(''))}
+                  >
+                    {part.text}
+                    <span aria-hidden="true"> ×</span>
+                    <span className={styles.visuallyHidden}>Remove link</span>
+                  </button>
+                )
+              }
+              return (
+                <input
+                  key={partIndex}
+                  className={styles.lookChipText}
+                  value={part.text}
+                  aria-label={`Announcement ${index + 1}`}
+                  style={{ width: `${Math.max(part.text.length + 1, 2)}ch` }}
+                  onChange={(event) => {
+                    const nextParts = parts.map((item, itemIndex) => itemIndex === partIndex ? event.target.value.replace(/\n/g, ' ') : item.raw)
+                    writeLine(index, nextParts.join(''))
+                  }}
+                  onSelect={(event) => {
+                    const input = event.currentTarget
+                    const start = lineStart(index) + before + (input.selectionStart ?? 0)
+                    const end = lineStart(index) + before + (input.selectionEnd ?? input.selectionStart ?? 0)
+                    rememberCaret(start, end)
+                  }}
+                />
+              )
+            })}
+          </p>
+        )
+      })}
+      <button type="button" className={styles.lookAddLine} onClick={() => onChange(text.length > 0 ? `${text}\n` : '')}>Add a line</button>
+      <div className={styles.lookMarquee} aria-hidden="true"><span>{lines.map((line) => splitTicker(line).map((part) => part.text).join('')).filter(Boolean).join('   ·   ') || 'Your announcements will scroll here'}</span></div>
+    </div>
+  )
+}
+
+function LookHeroArt({ image, colors }: { image?: string | null; colors?: readonly string[] }) {
+  const [failed, setFailed] = useState(false)
+  const gradient = `linear-gradient(160deg, ${colors?.[0] ?? '#f6a9c8'}, ${colors?.[1] ?? '#e0458f'} 55%, ${colors?.[2] ?? '#7a1f55'})`
+  const showImage = Boolean(image) && !failed
+  return (
+    <div className={styles.lookHeroArt} style={{ backgroundImage: showImage ? `url(${image})` : gradient }}>
+      {image && !failed ? <img src={image} alt="" hidden onError={() => setFailed(true)} /> : null}
+    </div>
+  )
+}
+
+function ShowsOn({ id, children, legend, caption }: { id: string; children: string; legend?: boolean; caption?: string }) {
+  if (!legend) {
+    return (
+      <span id={id} className={styles.showsOn} data-shows-on="">
+        Shows on your site: {children}
+      </span>
+    )
+  }
+  return (
+    <span id={id} className={styles.lookShows} data-shows-on="">
+      <span className={styles.visuallyHidden}>Shows on your site: {children}</span>
+      <span aria-hidden="true">{caption ?? children}</span>
     </span>
   )
 }
@@ -64,6 +171,7 @@ export function SiteSection({
   plain = false,
   hidden = false,
   hideHeading = false,
+  className,
   children,
 }: {
   id: SiteSectionId
@@ -75,6 +183,7 @@ export function SiteSection({
   plain?: boolean
   hidden?: boolean
   hideHeading?: boolean
+  className?: string
   children: ReactNode
 }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -88,7 +197,7 @@ export function SiteSection({
   if (hidden) return null
   if (plain) {
     return (
-      <section id={`site-section-${id}`} data-site-section={id} className={styles.siteDialogSection}>
+      <section id={`site-section-${id}`} data-site-section={id} className={className ? `${styles.siteDialogSection} ${className}` : styles.siteDialogSection}>
         {hideHeading ? null : (
           <>
             <h2 className={styles.siteDialogSectionTitle}>{title}</h2>
@@ -274,6 +383,7 @@ export function SiteSettingsBody({
   onDraftChange,
   onSocialHandleChange,
   onHomepageMediaChange,
+  onMediaCommit,
   onHomepageMediaUpload,
   onHomepageVideoRemove,
   onFieldBlur,
@@ -285,6 +395,8 @@ export function SiteSettingsBody({
   onLinkTickerWords,
   onResetTickerLinks,
   sections,
+  magazine = false,
+  heroBackdrop,
 }: {
   draft: SiteSettingsDraft
   savedSlots?: PublicSiteMediaSlot[]
@@ -308,6 +420,7 @@ export function SiteSettingsBody({
   onDraftChange?: (patch: Partial<SiteSettingsDraft>) => void
   onSocialHandleChange?: (platform: string, value: string) => void
   onHomepageMediaChange?: (key: PublicSiteMediaSlotKey, patch: Partial<PublicSiteMediaSlot>) => void
+  onMediaCommit?: () => void
   onHomepageMediaUpload?: (key: PublicSiteMediaSlotKey, file: File) => void
   onHomepageVideoRemove?: (key: PublicSiteMediaSlotKey, expectedUrl: string) => void
   onFieldBlur: (id: string, label: string, message: string | null) => void
@@ -319,6 +432,8 @@ export function SiteSettingsBody({
   onLinkTickerWords: () => void
   onResetTickerLinks: () => void
   sections?: readonly SiteSectionId[]
+  magazine?: boolean
+  heroBackdrop?: { image?: string | null; colors: readonly string[] }
 }) {
   const checklist = buildSiteSetupChecklist(draft)
   const firstGap = checklist.find((item) => !item.done)?.section ?? null
@@ -326,10 +441,6 @@ export function SiteSettingsBody({
   const status = (section: SiteSectionId) => siteSectionStatus({ section, checklist, draft })
   const sectionOpen = (id: SiteSectionId) =>
     initialOpenSections?.includes(id) === true || openSection === id
-  const motionMode = draft.heroMotionMode ?? 'choices'
-  const rememberedHeroMotion = useRef<HeroAnimationType | null>(
-    draft.heroAnimationType !== 'still' ? draft.heroAnimationType : null,
-  )
   const slots = draft.homepageMediaSlots ?? EMPTY_SLOTS
   const heroSocials = resolveSocialHeroLinks({
     socialHandles: draft.socialHandles,
@@ -354,6 +465,7 @@ export function SiteSettingsBody({
       feedback={mediaUploadFeedback?.key === slot.key ? mediaUploadFeedback : null}
       actionPending={actionPending}
       onChange={onHomepageMediaChange}
+      onCommit={onMediaCommit}
       onUpload={onHomepageMediaUpload}
       onRemoveVideo={onHomepageVideoRemove}
     />
@@ -368,8 +480,19 @@ export function SiteSettingsBody({
         summary="Your name, store link, and announcements"
         status={status('top-bar')}
         defaultOpen={plain || sectionOpen('top-bar')}
+        hideHeading={magazine}
+        className={magazine ? styles.lookChapters : undefined}
       >
-        <div className={styles.siteSettingsGrid}>
+        {magazine ? (
+          <article className={styles.lookChapter}>
+            <span className={styles.lookNum} aria-hidden="true">II</span>
+            <div className={styles.lookCard}>
+              <header className={styles.lookHead}>
+                <p className={styles.lookEyebrow}>Top bar</p>
+                <h2 className={styles.lookTitle}>Your name & shop</h2>
+                <p className={styles.lookLede}>The name at the top of every page, and where every Shop button goes.</p>
+              </header>
+              <div className={`${styles.siteSettingsGrid} ${styles.lookNameGrid}`}>
           <label className={styles.searchField} data-site-field="business-name">
             <span className={styles.searchLabel}>Business name</span>
             <input
@@ -381,7 +504,7 @@ export function SiteSettingsBody({
               autoComplete="organization"
               onChange={(event) => onDraftChange?.({ businessName: event.target.value })}
             />
-            <ShowsOn id="business-name-shows">{SHOWS_ON.businessName}</ShowsOn>
+            <ShowsOn id="business-name-shows" legend={magazine}>{SHOWS_ON.businessName}</ShowsOn>
           </label>
           <label className={styles.searchField} data-site-field="display-name">
             <span className={styles.searchLabel}>Your first name</span>
@@ -394,11 +517,11 @@ export function SiteSettingsBody({
               autoComplete="given-name"
               onChange={(event) => onDraftChange?.({ displayName: event.target.value })}
             />
-            <ShowsOn id="display-name-shows">{SHOWS_ON.displayName}</ShowsOn>
+            <ShowsOn id="display-name-shows" legend={magazine}>{SHOWS_ON.displayName}</ShowsOn>
           </label>
           <label className={styles.searchField} data-site-field="shop-link">
             <span className={styles.searchLabel}>Bomb Party rep store link</span>
-            <span id={`${SITE_FIELD_IDS.shopLink}-hint`} className={styles.helperNote}>
+            <span id={`${SITE_FIELD_IDS.shopLink}-hint`} className={`${styles.helperNote} ${styles.lookKeepHint}`}>
               This powers the Shop buttons across your customer-facing site. Use the full store URL.
             </span>
             <input
@@ -433,48 +556,29 @@ export function SiteSettingsBody({
                 <span role="img" aria-label="Error">!</span> {shopLinkError}
               </span>
             ) : null}
-            <ShowsOn id="shop-link-shows">{SHOWS_ON.shopLink}</ShowsOn>
+            <ShowsOn id="shop-link-shows" legend={magazine}>{SHOWS_ON.shopLink}</ShowsOn>
           </label>
-          <label className={`${styles.sortFieldWide}`} data-site-field="ticker-text">
-            <span className={styles.searchLabel}>Announcement ticker messages</span>
-            <textarea
-              ref={tickerRef}
-              id="my-website-ticker"
-              className={styles.siteSettingsTextarea}
-              data-site-control="ticker-text"
-              value={draft.tickerText}
-              aria-describedby="ticker-shows"
-              onChange={(event) => onTickerChange(event.target.value)}
-              onSelect={(event) => {
-                const textarea = event.currentTarget
-                const start = textarea.selectionStart
-                const end = textarea.selectionEnd
-                onTickerSelect(start === end ? null : { start, end, text: textarea.value.slice(start, end) })
-              }}
-            />
-            <span className={styles.helperNote}>
-              Use one announcement per line. Add emojis, then highlight only the words you want to link.
-            </span>
-            <div className={styles.tickerComposer}>
-              <div>
-                <span className={styles.searchLabel}>Add an emoji</span>
-                <div className={styles.tickerEmojiRow}>
-                  {['✨', '💎', '🎥', '🛍️', '🎉', '📣', '⏰', '💖'].map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      className={styles.tickerEmojiButton}
-                      data-site-control="ticker-emoji"
-                      onClick={() => onAddTickerText(emoji)}
-                      aria-label={`Add ${emoji} to the announcement ticker`}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
               </div>
-              <div>
-                <span className={styles.searchLabel}>Link selected words</span>
+            </div>
+          </article>
+        ) : null}
+        <div className={magazine ? styles.lookChapter : styles.siteSettingsGrid}>
+          {magazine ? <span className={styles.lookNum} aria-hidden="true">III</span> : null}
+          <div className={magazine ? styles.lookCard : undefined}>
+            {magazine ? (
+              <header className={styles.lookHead}>
+                <p className={styles.lookEyebrow}>Announcements</p>
+                <h2 className={styles.lookTitle}>Your scrolling news</h2>
+                <p className={styles.lookLede}>One announcement per line. Add emojis, then highlight only the words you want to link.</p>
+              </header>
+            ) : null}
+            <div className={magazine ? styles.lookToolRow : styles.tickerComposer}>
+              <LookEmojiPicker onInsert={onAddTickerText} />
+              <button type="button" className={styles.lookTool} popoverTarget="look-link-words">
+                <span aria-hidden="true">🔗</span> Link words
+              </button>
+              <div id="look-link-words" popover="auto" className={styles.lookLinkPop}>
+                <span className={styles.visuallyHidden}>Link selected words</span>
                 <span className={styles.tickerLinkHint}>
                   {tickerLinkSelection?.text.trim()
                     ? `Ready to link: “${tickerLinkSelection.text}”`
@@ -500,7 +604,52 @@ export function SiteSettingsBody({
                     Link selected words
                   </button>
                 </div>
-                {hasTickerLinks ? (
+                {tickerLinkError ? <span className={styles.tickerLinkError}>{tickerLinkError}</span> : null}
+              </div>
+              <div className={magazine ? styles.lookToolSwitch : undefined}>
+                <PublicSiteVisibility
+                  settings={draft}
+                  joinTeamAccessEnabled={joinTeamAccessEnabled}
+                  onChange={onDraftChange}
+                  part="announcements"
+                  toolbar={magazine}
+                />
+              </div>
+            </div>
+            <label className={`${styles.sortFieldWide} ${magazine ? styles.lookTickerField : ''}`} data-site-field="ticker-text">
+              <span className={magazine ? styles.visuallyHidden : styles.searchLabel}>Announcement ticker messages</span>
+              <span className={magazine ? styles.lookTickerSource : undefined}>
+                <textarea
+                  ref={tickerRef}
+                  id="my-website-ticker"
+                  className={styles.siteSettingsTextarea}
+                  data-site-control="ticker-text"
+                  value={draft.tickerText}
+                  aria-describedby="ticker-shows"
+                  rows={Math.max(3, draft.tickerText.split('\n').length)}
+                  onChange={(event) => onTickerChange(event.target.value)}
+                  onSelect={(event) => {
+                    const textarea = event.currentTarget
+                    const start = textarea.selectionStart
+                    const end = textarea.selectionEnd
+                    onTickerSelect(start === end ? null : { start, end, text: textarea.value.slice(start, end) })
+                  }}
+                />
+              </span>
+              {magazine ? (
+                <TickerChips
+                  text={draft.tickerText}
+                  onChange={onTickerChange}
+                  onSelect={onTickerSelect}
+                  textareaRef={tickerRef}
+                />
+              ) : null}
+              <span className={magazine ? styles.visuallyHidden : styles.helperNote}>
+                Use one announcement per line. Add emojis, then highlight only the words you want to link.
+              </span>
+              {hasTickerLinks ? (
+                <p className={styles.lookPlainNote}>
+                  <span>This fixes an older ticker link that made a whole message clickable. Your words stay; only the old link is removed.</span>
                   <button
                     type="button"
                     className={styles.tickerLinkResetButton}
@@ -509,24 +658,18 @@ export function SiteSettingsBody({
                   >
                     Make existing links plain text
                   </button>
-                ) : null}
-                {hasTickerLinks ? (
-                  <span className={styles.tickerLinkHint}>
-                    This fixes an older ticker link that made a whole message clickable. Your words stay; only the old link is removed.
-                  </span>
-                ) : null}
-                {tickerLinkError ? <span className={styles.tickerLinkError}>{tickerLinkError}</span> : null}
-              </div>
-            </div>
-            <ShowsOn id="ticker-shows">{SHOWS_ON.ticker}</ShowsOn>
-          </label>
+                </p>
+              ) : null}
+              <ShowsOn
+                id="ticker-shows"
+                legend={magazine}
+                caption="The scrolling announcements at the top of your site · the bar shows while Show announcements is on"
+              >
+                {SHOWS_ON.ticker}
+              </ShowsOn>
+            </label>
+          </div>
         </div>
-        <PublicSiteVisibility
-          settings={draft}
-          joinTeamAccessEnabled={joinTeamAccessEnabled}
-          onChange={onDraftChange}
-          part="announcements"
-        />
       </SiteSection>
 
       <SiteSection plain={plain} hidden={!showSection('hero')}
@@ -536,10 +679,24 @@ export function SiteSettingsBody({
         summary="The headline customers see first"
         status={status('hero')}
         defaultOpen={plain || sectionOpen('hero')}
+        hideHeading={magazine}
+        className={magazine ? styles.lookChapters : undefined}
       >
-        <div className={styles.siteSettingsGrid}>
+        <div className={magazine ? styles.lookChapter : undefined}>
+          {magazine ? <span className={styles.lookNum} aria-hidden="true">IV</span> : null}
+          <div className={magazine ? styles.lookCard : undefined}>
+            {magazine ? (
+              <header className={styles.lookHead}>
+                <p className={styles.lookEyebrow}>Hero</p>
+                <h2 className={styles.lookTitle}>Your first hello</h2>
+                <p className={styles.lookLede}>Write right on top of your theme, just like customers will see it.</p>
+              </header>
+            ) : null}
+            <div className={magazine ? styles.lookHeroStage : undefined}>
+              {magazine ? <LookHeroArt image={heroBackdrop?.image} colors={heroBackdrop?.colors} /> : null}
+              <div className={magazine ? styles.lookFrost : styles.siteSettingsGrid}>
           <label className={styles.sortFieldWide} data-site-field="hero-headline">
-            <span className={styles.searchLabel}>Big headline</span>
+            <span className={styles.searchLabel}>Big headline <span className={styles.lookCount}>{(draft.heroHeadline ?? '').length} / 180</span></span>
             <input
               id={SETUP_FIELD_IDS.headline}
               className={styles.searchInput}
@@ -549,11 +706,11 @@ export function SiteSettingsBody({
               aria-describedby="hero-headline-shows"
               onChange={(event) => onDraftChange?.({ heroHeadline: event.target.value })}
             />
-            <span className={styles.siteSettingsPreviewNote}>This is the large heading customers see first on your homepage.</span>
-            <ShowsOn id="hero-headline-shows">{SHOWS_ON.heroTitle}</ShowsOn>
+            <span className={magazine ? styles.visuallyHidden : styles.siteSettingsPreviewNote}>This is the large heading customers see first on your homepage.</span>
+            <ShowsOn id="hero-headline-shows" legend={magazine}>{SHOWS_ON.heroTitle}</ShowsOn>
           </label>
           <label className={styles.sortFieldWide} data-site-field="hero-subtitle">
-            <span className={styles.searchLabel}>Line under the headline</span>
+            <span className={styles.searchLabel}>Line under the headline <span className={styles.lookCount}>{(draft.heroSubtitle ?? '').length} / 240</span></span>
             <input
               id="my-website-hero-subtitle"
               className={styles.searchInput}
@@ -563,87 +720,38 @@ export function SiteSettingsBody({
               aria-describedby="hero-subtitle-shows"
               onChange={(event) => onDraftChange?.({ heroSubtitle: event.target.value })}
             />
-            <span className={styles.siteSettingsPreviewNote}>This supporting sentence appears directly beneath the big headline.</span>
-            <ShowsOn id="hero-subtitle-shows">{SHOWS_ON.heroSubtitle}</ShowsOn>
+            <span className={magazine ? styles.visuallyHidden : styles.siteSettingsPreviewNote}>This supporting sentence appears directly beneath the big headline.</span>
+            <ShowsOn id="hero-subtitle-shows" legend={magazine}>{SHOWS_ON.heroSubtitle}</ShowsOn>
           </label>
           <div className={styles.sortFieldWide} data-site-field="hero-socials">
             <span className={styles.searchLabel}>Socials in the hero</span>
-            <p className={styles.siteSettingsPreviewNote}>
+            <p className={styles.visuallyHidden}>
               {heroSocials.length > 0
                 ? `Showing in the hero: ${heroSocials.map((link) => link.label).join(', ')}.`
                 : 'No social buttons are set to show in the hero yet.'}
             </p>
-            <ShowsOn id="hero-socials-shows">{SHOWS_ON.heroSocials}</ShowsOn>
-          </div>
-          <div className={styles.sortFieldWide} data-site-field="hero-motion" data-hero-motion-mode={motionMode}>
-            {motionMode === 'theme' ? (
-              <>
-                <p className={styles.siteSettingsPreviewNote} data-site-control="hero-motion" data-chunk="4">
-                  Your theme sets the hero animation.
-                </p>
-                <ShowsOn id="hero-motion-shows">{SHOWS_ON.heroMotion}</ShowsOn>
-              </>
-            ) : motionMode === 'switch' ? (
-              <label className={visibility.row}>
-                <span className={styles.heroSwitchCopy}>
-                  <span className={styles.searchLabel}>Hero animation</span>
-                  <span className={styles.siteSettingsPreviewNote}>
-                    Off keeps the hero still. On uses the motion you had before, or Sparkle rise.
-                  </span>
-                  <ShowsOn id="hero-motion-shows">{SHOWS_ON.heroMotion}</ShowsOn>
-                </span>
-                <span className={visibility.control}>
-                  <input
-                    type="checkbox"
-                    role="switch"
-                    data-site-control="hero-motion"
-                    data-chunk="4"
-                    checked={draft.heroAnimationType !== 'still'}
-                    aria-describedby="hero-motion-shows"
-                    ref={(node) => {
-                      if (node && !node.hasAttribute('switch')) node.setAttribute('switch', '')
-                    }}
-                    onChange={(event) => {
-                      const next = applyHeroMotionSwitch({
-                        on: event.target.checked,
-                        current: draft.heroAnimationType,
-                        remembered: rememberedHeroMotion.current,
-                      })
-                      rememberedHeroMotion.current = next.remembered
-                      onDraftChange?.({ heroAnimationType: next.heroAnimationType })
-                    }}
-                  />
-                  <span className={visibility.track} aria-hidden="true" />
-                  <span className={visibility.status} aria-hidden="true">
-                    {draft.heroAnimationType === 'still' ? 'Off' : 'On'}
-                  </span>
-                </span>
-              </label>
+            {magazine ? (
+              <span className={styles.lookSocials}>
+                {resolveSocialPlatformUrl('tiktok', draft.socialHandles?.tiktok) ? (
+                  <span className={styles.lookSocialChip}>Watch on TikTok</span>
+                ) : null}
+                {heroSocials.length > 0
+                  ? heroSocials.map((link) => (
+                    <span key={link.key} className={styles.lookSocialChip}>{link.label}</span>
+                  ))
+                  : resolveSocialPlatformUrl('tiktok', draft.socialHandles?.tiktok) ? null : <span className={styles.lookSocialChip}>No hero buttons yet</span>}
+              </span>
             ) : (
-              <label>
-                <span className={styles.sortLabel}>Hero motion</span>
-                <select
-                  className={styles.sortSelect}
-                  data-site-control="hero-motion"
-                  data-chunk="4"
-                  value={draft.heroAnimationType}
-                  aria-describedby="hero-motion-shows"
-                  onChange={(event) => {
-                    const heroAnimationType = event.target.value as SiteSettingsDashboardResult['heroAnimationType']
-                    if (heroAnimationType !== 'still') rememberedHeroMotion.current = heroAnimationType
-                    onDraftChange?.({ heroAnimationType })
-                  }}
-                >
-                  <option value="sparkle_rise">Sparkle rise</option>
-                  <option value="soft_glow">Soft glow</option>
-                  <option value="still">Still</option>
-                </select>
-                <span className={styles.siteSettingsPreviewNote}>
-                  Hero visuals stay curated by your site appearance so the page keeps its polish on desktop and mobile.
-                </span>
-                <ShowsOn id="hero-motion-shows">{SHOWS_ON.heroMotion}</ShowsOn>
-              </label>
+              <p className={styles.siteSettingsPreviewNote}>
+                {heroSocials.length > 0
+                  ? `Showing in the hero: ${heroSocials.map((link) => link.label).join(', ')}.`
+                  : 'No social buttons are set to show in the hero yet.'}
+              </p>
             )}
+            <ShowsOn id="hero-socials-shows" legend={magazine} caption={resolveSocialPlatformUrl('tiktok', draft.socialHandles?.tiktok) ? 'Hero buttons, plus Watch on TikTok from her TikTok link' : 'Hero buttons'}>{SHOWS_ON.heroSocials}</ShowsOn>
+          </div>
+              </div>
+            </div>
           </div>
         </div>
       </SiteSection>
@@ -679,8 +787,23 @@ export function SiteSettingsBody({
         summary="The live reveal video"
         status={status('bomb-party')}
         defaultOpen={plain || sectionOpen('bomb-party')}
+        hideHeading={plain && !isBrittWithBling}
+        className={plain && !isBrittWithBling ? styles.aboutMarqueeBlock : undefined}
       >
-        {slots.filter((slot) => slot.key === 'showcase').map(slotProps)}
+        {plain && !isBrittWithBling ? (
+          slots.filter((slot) => slot.key === 'showcase').map((slot) => (
+            <AboutMarquee
+              key={slot.key}
+              slot={slot}
+              savedVideoUrl={savedSlots?.find((saved) => saved.key === slot.key)?.videoUrl ?? ''}
+              allSourcesEnabled={draft.allSourcesEnabled === true}
+              tiktokQueueEnabled={draft.tiktokQueueEnabled === true}
+              actionPending={actionPending}
+              onChange={onHomepageMediaChange}
+              onRemoveVideo={onHomepageVideoRemove}
+            />
+          ))
+        ) : slots.filter((slot) => slot.key === 'showcase').map(slotProps)}
       </SiteSection>
 
       <SiteSection plain={plain} hidden={!showSection('about')}
@@ -690,7 +813,141 @@ export function SiteSettingsBody({
         summary="About section: your story, photo, and short videos"
         status={status('about')}
         defaultOpen={plain || sectionOpen('about')}
+        hideHeading={plain && !isBrittWithBling}
+        className={plain && !isBrittWithBling ? styles.aboutSectionContents : undefined}
       >
+        {plain && !isBrittWithBling ? (
+          <>
+            <div className={styles.aboutPhotoBlock}>
+              <p className={styles.aboutWhisper}>Your first name is set in Look. It shows in the title if you leave the placeholder as is.</p>
+              <h2 className={styles.siteDialogSectionTitle}>Your photo</h2>
+              <p className={styles.aboutLegend}>On a phone her story comes before this photo. On a wide screen they sit side by side. JPG, PNG, or WebP, under about <span className={styles.aboutNowrap}>2.5 MB</span>.</p>
+              <div className={styles.aboutHero}>
+                <div className={styles.aboutPhotoFrame}>
+                  {aboutPortrait?.imageUrl ? (
+                    <img
+                      className={styles.aboutPhoto}
+                      src={aboutPortrait.imageUrl}
+                      alt=""
+                      style={aboutPhotoStyle(aboutPortrait)}
+                    />
+                  ) : (
+                    <div className={styles.aboutPhotoEmpty}>Add your photo</div>
+                  )}
+                  <div className={styles.aboutStoryCard}>
+                    <label className={styles.aboutField} data-site-field="about-title">
+                      <span>Title</span>
+                      <input
+                        id="my-website-about-heading"
+                        className={styles.aboutHeadline}
+                        data-site-control="about-title"
+                        maxLength={ABOUT_TITLE_MAX_LENGTH}
+                        placeholder="Meet Brianna"
+                        value={draft.aboutHeading ?? ''}
+                        onChange={(event) => onDraftChange?.({ aboutHeading: event.target.value })}
+                      />
+                      <span className={styles.aboutCount}>{(draft.aboutHeading ?? '').length} / {ABOUT_TITLE_MAX_LENGTH}</span>
+                    </label>
+                    <label className={styles.aboutField} data-site-field="about-story">
+                      <span>Your story</span>
+                      <textarea
+                        id={SETUP_FIELD_IDS.aboutStory}
+                        className={styles.aboutStory}
+                        data-site-control="about-story"
+                        maxLength={ABOUT_NARRATIVE_MAX_LENGTH}
+                        rows={4}
+                        placeholder="Paste the story you want customers to read."
+                        value={draft.aboutNarrative ?? ''}
+                        onChange={(event) => onDraftChange?.({ aboutNarrative: event.target.value })}
+                      />
+                      <span className={styles.aboutCount}>{(draft.aboutNarrative ?? '').length} / {ABOUT_NARRATIVE_MAX_LENGTH} characters</span>
+                    </label>
+                  </div>
+                </div>
+                <div className={styles.aboutHeroTools}>
+                  <label className={styles.aboutField} data-site-field="photo-caption">
+                    <span>Photo caption</span>
+                    <input
+                      className={styles.aboutCaption}
+                      data-site-control="photo-caption"
+                      maxLength={240}
+                      value={aboutPortrait?.caption ?? ''}
+                      onChange={(event) => onHomepageMediaChange?.('about_1', { caption: event.target.value })}
+                    />
+                    <span className={styles.aboutCount}>{(aboutPortrait?.caption ?? '').length} / 240</span>
+                  </label>
+                  <div data-site-field="about-photo" className={styles.aboutPhotoActions}>
+                    <label className={styles.aboutAction}>
+                      {mediaUploadKey === 'about_1' ? 'Uploading...' : aboutPortrait?.imageUrl ? 'Replace photo' : 'Upload photo'}
+                      <input
+                        id={SETUP_FIELD_IDS.aboutPhoto}
+                        data-site-control="about-photo"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        disabled={mediaUploadKey === 'about_1'}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0]
+                          if (file) onHomepageMediaUpload?.('about_1', file)
+                          event.target.value = ''
+                        }}
+                      />
+                    </label>
+                    {aboutPortrait?.imageUrl ? (
+                      <button
+                        type="button"
+                        className={styles.aboutDanger}
+                        data-site-control="remove-photo"
+                        onClick={() => onHomepageMediaChange?.('about_1', { imageUrl: '' })}
+                      >
+                        Remove photo
+                      </button>
+                    ) : null}
+                  </div>
+                  {mediaUploadFeedback?.key === 'about_1' ? (
+                    <p role="status" className={mediaUploadFeedback.tone === 'success' ? styles.homepageMediaUploadSuccess : styles.homepageMediaUploadError}>
+                      {mediaUploadFeedback.message}
+                    </p>
+                  ) : null}
+                  {aboutPortrait?.imageUrl ? (
+                    <details className={styles.aboutCrop}>
+                      <summary>Adjust crop</summary>
+                      <fieldset className={styles.aboutSmart} data-site-field="smart-frame" data-site-control="smart-frame">
+                        <legend>Smart Frame</legend>
+                        <p>Face detection set the starting crop. You can fine‑tune it.</p>
+                        <label>
+                          <span>Zoom</span>
+                          <input type="range" min="1" max="1.5" step="0.01" value={aboutPortrait.portraitZoom ?? 1.18} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitZoom: Number(event.target.value) })} onPointerUp={() => onMediaCommit?.()} />
+                        </label>
+                        <label>
+                          <span>Move subject up or down</span>
+                          <input type="range" min="0" max="60" step="1" value={aboutPortrait.portraitFocusY ?? 20} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitFocusY: Number(event.target.value) })} onPointerUp={() => onMediaCommit?.()} />
+                        </label>
+                        <label>
+                          <span>Move subject left or right</span>
+                          <input type="range" min="0" max="100" step="1" value={aboutPortrait.portraitFocusX ?? 50} onChange={(event) => onHomepageMediaChange?.('about_1', { portraitFocusX: Number(event.target.value) })} onPointerUp={() => onMediaCommit?.()} />
+                        </label>
+                      </fieldset>
+                    </details>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+            <div className={styles.aboutShortsBlock}>
+              <h2 className={styles.siteDialogSectionTitle}>More to watch</h2>
+              <p className={styles.aboutLegend}>These short videos sit in About, after her story and photo. Up to three. Public TikTok, YouTube, Instagram, or Facebook links work, up to 3 minutes.</p>
+              <AboutShortRail
+                slots={slots}
+                savedSlots={savedSlots}
+                allSourcesEnabled={draft.allSourcesEnabled === true}
+                tiktokQueueEnabled={draft.tiktokQueueEnabled === true}
+                actionPending={actionPending}
+                onChange={onHomepageMediaChange}
+                onRemoveVideo={onHomepageVideoRemove}
+              />
+            </div>
+          </>
+        ) : (
+        <>
         <p className={styles.siteSettingsPreviewNote}>
           Add a short title and paste your customer-facing story. Keep it concise so it stays balanced beside your photo.
         </p>
@@ -779,6 +1036,8 @@ export function SiteSettingsBody({
           </aside>}
           {slots.filter((slot) => slot.key !== 'showcase').map(slotProps)}
         </div>
+        </>
+        )}
       </SiteSection>
 
       <SiteSection plain={plain} hidden={!showSection('signup')}
@@ -790,6 +1049,103 @@ export function SiteSettingsBody({
         defaultOpen={plain || sectionOpen('signup')}
         hideHeading={plain}
       >
+        {plain ? (
+          <div className={styles.signupEditor}>
+            <header>
+              <p className={styles.lookEyebrow}>Sign-up</p>
+              <h2 className={styles.lookTitle}>The card she sees</h2>
+              <p className={styles.lookLede}>Tap the offer or the message on the card. The code sits in one chip.</p>
+            </header>
+            <div className={styles.signupLiveCard} aria-label="Customer sign-up card">
+              <p className={styles.lookEyebrow}>Stay in the loop</p>
+              <h3 className={styles.lookTitle}>Never miss a show.</h3>
+              <p className={styles.lookLede}>Help me build shows around what you love. Share a few details and I'll send you show reminders, new drop alerts and updates, and I'll never share your info.</p>
+              <div data-site-field="discount-offer">
+                <p className={styles.signupLiveOffer}>
+                  Sign up today for a one-time
+                  <label className={styles.signupOfferField}>
+                    <span className={styles.visuallyHidden}>What they get</span>
+                    <textarea
+                      id={SITE_FIELD_IDS.discountOffer}
+                      className={styles.signupLiveOfferInput}
+                      data-site-control="discount-offer"
+                      value={draft.signupDiscountOffer ?? ''}
+                      maxLength={40}
+                      rows={2}
+                      placeholder="10% off"
+                      aria-invalid={discountOfferError ? 'true' : 'false'}
+                      aria-describedby={describedBy(
+                        discountOfferError ? `${SITE_FIELD_IDS.discountOffer}-error` : null,
+                        'discount-offer-shows',
+                      )}
+                      onBlur={() => onFieldBlur(SITE_FIELD_IDS.discountOffer, 'What they get', discountOfferFieldError(draft.signupDiscountOffer))}
+                      onChange={(event) => onDraftChange?.({ signupDiscountOffer: event.target.value })}
+                    />
+                  </label>
+                </p>
+                <ShowsOn id="discount-offer-shows" legend caption="The offer on the sign-up card">{SHOWS_ON.discountOffer}</ShowsOn>
+              </div>
+              {discountOfferError ? <span id={`${SITE_FIELD_IDS.discountOffer}-error`} className={styles.fieldError} role="status">{discountOfferError}</span> : null}
+              <label className={styles.signupMessage} data-site-field="discount-message">
+                <span className={styles.visuallyHidden}>Message shown with your code</span>
+                <textarea
+                  id={SITE_FIELD_IDS.discountMessage}
+                  className={styles.signupLiveMessage}
+                  data-site-control="discount-message"
+                  value={discountMessage}
+                  maxLength={140}
+                  rows={2}
+                  placeholder="Thanks for joining"
+                  aria-invalid={discountMessageError ? 'true' : 'false'}
+                  aria-describedby={describedBy(discountMessageError ? `${SITE_FIELD_IDS.discountMessage}-error` : null, 'discount-message-shows')}
+                  onBlur={() => onFieldBlur(SITE_FIELD_IDS.discountMessage, 'Discount message', discountMessageFieldError(discountMessage))}
+                  onChange={(event) => onDraftChange?.({ signupDiscountMessage: event.target.value })}
+                />
+                <ShowsOn id="discount-message-shows" legend caption="The note customers read with the code">{SHOWS_ON.discountMessage}</ShowsOn>
+              </label>
+              {discountMessageError ? <span id={`${SITE_FIELD_IDS.discountMessage}-error`} className={styles.fieldError} role="status">{discountMessageError}</span> : null}
+              <label className={styles.signupCodeChip} data-site-field="discount-code">
+                <span className={styles.signupCodeRow}>
+                <span>Code</span>
+                <input
+                  id={SITE_FIELD_IDS.discountCode}
+                  data-site-control="discount-code"
+                  value={discountCode}
+                  maxLength={40}
+                  placeholder="WELCOME10"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  aria-invalid={discountCodeError ? 'true' : 'false'}
+                  aria-describedby={describedBy(discountCodeError ? `${SITE_FIELD_IDS.discountCode}-error` : null, 'discount-code-shows')}
+                  onBlur={() => onFieldBlur(SITE_FIELD_IDS.discountCode, 'Discount code', discountCodeFieldError(discountCode, draft.signupDiscountEnabled))}
+                  onChange={(event) => onDraftChange?.({ signupDiscountCode: event.target.value })}
+                />
+                </span>
+                <ShowsOn id="discount-code-shows" legend caption="The code, after she joins">{SHOWS_ON.discountCode}</ShowsOn>
+              </label>
+              {discountCodeError ? <span id={`${SITE_FIELD_IDS.discountCode}-error`} className={styles.fieldError} role="status">{discountCodeError}</span> : null}
+            </div>
+            <div className={styles.signupSwitchRow} data-site-field="signup-switch">
+              <span>
+                <span className={styles.searchLabel}>Sign-up discount</span>
+                <ShowsOn id="signup-switch-shows" legend caption="On when the card offers a one-time code">{SHOWS_ON.signupSwitch}</ShowsOn>
+              </span>
+              <input
+                type="checkbox"
+                role="switch"
+                className={styles.signupSwitch}
+                data-site-control="signup-switch"
+                checked={draft.signupDiscountEnabled === true}
+                aria-describedby="signup-switch-shows"
+                onChange={(event) => onDraftChange?.({ signupDiscountEnabled: event.target.checked })}
+                {...{ switch: '' }}
+              />
+            </div>
+            <p className={styles.helperNote}>Suite only shows this code. Set up the code itself in Bomb Party first.</p>
+          </div>
+        ) : (
+        <>
         <label className={styles.walletToggleRow} data-site-field="signup-switch">
           <span>
             <span className={styles.searchLabel}>Show a discount code after customers sign up for updates</span>
@@ -906,6 +1262,8 @@ export function SiteSettingsBody({
           </label>
         </div>
         <p className={styles.helperNote}>Suite only shows this code. Set up the code itself in Bomb Party first.</p>
+        </>
+        )}
       </SiteSection>
 
       <SiteSection plain={plain} hidden={!showSection('footer')}
@@ -917,10 +1275,12 @@ export function SiteSettingsBody({
         defaultOpen={plain || sectionOpen('footer')}
         hideHeading={plain}
       >
+        <div className={plain ? styles.socialPanes : undefined}>
+        <div>
         {plain ? (
           <>
             <h2 className={styles.siteDialogSectionTitle}>Contact</h2>
-            <p className={styles.siteDialogSectionSummary}>This is what customers use to reach you, plus the short line under your site.</p>
+            <p className={styles.siteDialogSectionSummary}>Your email shows on the Join page. The tagline and team line appear in small print on your site.</p>
           </>
         ) : null}
         <div className={styles.siteSettingsGrid}>
@@ -938,7 +1298,9 @@ export function SiteSettingsBody({
               spellCheck={false}
               value={draft.email}
               aria-invalid={emailError ? 'true' : 'false'}
-              aria-describedby={describedBy(emailError ? `${SITE_FIELD_IDS.email}-error` : null, 'email-shows')}
+              aria-describedby={plain
+                ? (emailError ? `${SITE_FIELD_IDS.email}-error` : undefined)
+                : describedBy(emailError ? `${SITE_FIELD_IDS.email}-error` : null, 'email-shows')}
               onBlur={() => onFieldBlur(SITE_FIELD_IDS.email, 'Email', emailFieldError(draft.email))}
               onChange={(event) => onDraftChange?.({ email: event.target.value })}
             />
@@ -947,7 +1309,7 @@ export function SiteSettingsBody({
                 <span role="img" aria-label="Error">!</span> {emailError}
               </span>
             ) : null}
-            <ShowsOn id="email-shows">{SHOWS_ON.email}</ShowsOn>
+            {plain ? null : <ShowsOn id="email-shows">{SHOWS_ON.email}</ShowsOn>}
           </label>
           <label className={styles.searchField} data-site-field="tagline">
             <span className={styles.searchLabel}>Footer tagline</span>
@@ -956,10 +1318,12 @@ export function SiteSettingsBody({
               className={styles.searchInput}
               data-site-control="tagline"
               value={draft.tagline}
-              aria-describedby={describedBy(
-                draft.grandfatheredHeadlineFallback ? 'tagline-grandfathered' : null,
-                'tagline-shows',
-              )}
+              aria-describedby={plain
+                ? (draft.grandfatheredHeadlineFallback ? 'tagline-grandfathered' : undefined)
+                : describedBy(
+                  draft.grandfatheredHeadlineFallback ? 'tagline-grandfathered' : null,
+                  'tagline-shows',
+                )}
               onChange={(event) => onDraftChange?.({ tagline: event.target.value })}
             />
             {draft.grandfatheredHeadlineFallback ? (
@@ -967,7 +1331,7 @@ export function SiteSettingsBody({
                 Also shows under your headline if that line is empty.
               </span>
             ) : null}
-            <ShowsOn id="tagline-shows">{SHOWS_ON.tagline}</ShowsOn>
+            {plain ? null : <ShowsOn id="tagline-shows">{SHOWS_ON.tagline}</ShowsOn>}
           </label>
           <label className={styles.searchField} data-site-field="member-team">
             <span className={styles.searchLabel}>Team I belong to (shown in small print)</span>
@@ -976,14 +1340,14 @@ export function SiteSettingsBody({
               className={styles.searchInput}
               data-site-control="member-team"
               value={draft.memberTeamName ?? ''}
-              aria-describedby="member-team-shows"
+              aria-describedby={plain ? undefined : 'member-team-shows'}
               onChange={(event) => onDraftChange?.({ memberTeamName: event.target.value })}
             />
-            <ShowsOn id="member-team-shows">{SHOWS_ON.memberTeam}</ShowsOn>
+            {plain ? null : <ShowsOn id="member-team-shows">{SHOWS_ON.memberTeam}</ShowsOn>}
           </label>
-          <div className={styles.sortFieldWide} data-site-field="team-i-manage">
+          <div className={plain ? styles.searchField : styles.sortFieldWide} data-site-field="team-i-manage">
             <span className={styles.searchLabel}>Team I manage</span>
-            <p className={styles.managedTeamLine} data-site-control="team-i-manage" data-chunk="4">
+            <p className={plain ? `${styles.managedTeamLine} ${styles.managedTeamBox}` : styles.managedTeamLine} data-site-control="team-i-manage" data-chunk="4">
               {draft.teamName.trim() || 'Not set yet'}
               {' · '}
               <a
@@ -994,13 +1358,13 @@ export function SiteSettingsBody({
                 Edit in Team settings
               </a>
             </p>
-            <ShowsOn id="team-manage-shows">{SHOWS_ON.managedTeam}</ShowsOn>
+            {plain ? null : <ShowsOn id="team-manage-shows">{SHOWS_ON.managedTeam}</ShowsOn>}
           </div>
         </div>
         {plain ? (
           <>
             <h2 className={styles.siteDialogSectionTitle}>Social links</h2>
-            <p className={styles.siteDialogSectionSummary}>Paste a real link, then choose whether it shows in the footer and in your hero.</p>
+            <p className={styles.siteDialogSectionSummary}>Paste a link, then choose On site or In hero. The preview shows what customers will see.</p>
           </>
         ) : null}
         <SocialHandlesSettings
@@ -1011,6 +1375,17 @@ export function SiteSettingsBody({
           onSocialHandleChange={onSocialHandleChange}
           onSocialVisibilityChange={(socialVisibility) => onDraftChange?.({ socialVisibility })}
         />
+        </div>
+        {plain ? (
+          <SocialPhonePreview
+            businessName={draft.businessName}
+            displayName={draft.displayName}
+            tagline={draft.tagline}
+            socialHandles={draft.socialHandles}
+            socialVisibility={draft.socialVisibility}
+          />
+        ) : null}
+        </div>
       </SiteSection>
 
       <SiteSection plain={plain} hidden={!showSection('other-pages')}

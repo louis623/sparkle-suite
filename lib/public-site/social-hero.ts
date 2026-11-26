@@ -55,6 +55,14 @@ function hostMatchesPlatform(platform: SocialPlatformKey, hostname: string) {
  * platform's public URL. Empty, hash, credentialed, off-domain, and
  * domain-only links return '' so heroes never render a dead button.
  */
+const HANDLE_PATTERN = /^[a-zA-Z0-9._-]{1,40}$/
+
+function isExplicitSocialUrl(platform: SocialPlatformKey, value: string) {
+  if (/^https?:\/\//i.test(value)) return true
+  const host = value.split(/[/?#]/, 1)[0] ?? ''
+  return Boolean(host) && hostMatchesPlatform(platform, host)
+}
+
 export function resolveSocialPlatformUrl(
   platform: SocialPlatformKey,
   value: string | null | undefined,
@@ -62,17 +70,26 @@ export function resolveSocialPlatformUrl(
   const cleaned = value?.trim() ?? ''
   if (!cleaned || cleaned === '#') return ''
 
-  const handle = cleaned.replace(/^@/, '').replace(/^\/+/, '')
-  const candidate = /^https?:\/\//i.test(cleaned)
-    ? cleaned
-    : HANDLE_URL[platform](handle)
+  const bare = cleaned.replace(/^@/, '')
+  if (isExplicitSocialUrl(platform, bare)) {
+    const explicit = /^https?:\/\//i.test(bare) ? bare : `https://${bare}`
+    try {
+      const url = new URL(explicit)
+      if (url.username || url.password) return ''
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') return ''
+      if (!hostMatchesPlatform(platform, url.hostname)) return ''
+      if ((url.pathname === '/' || url.pathname === '') && !url.search) return ''
+      return url.toString()
+    } catch {
+      return ''
+    }
+  }
 
+  const handle = cleaned.replace(/^@/, '').replace(/^\/+/, '')
+  if (!HANDLE_PATTERN.test(handle)) return ''
   try {
-    const url = new URL(candidate)
-    if (url.username || url.password) return ''
-    if (url.protocol !== 'https:' && url.protocol !== 'http:') return ''
+    const url = new URL(HANDLE_URL[platform](handle))
     if (!hostMatchesPlatform(platform, url.hostname)) return ''
-    if ((url.pathname === '/' || url.pathname === '') && !url.search) return ''
     return url.toString()
   } catch {
     return ''

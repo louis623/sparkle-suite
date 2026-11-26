@@ -8,6 +8,8 @@ import {
   homepageRendererVariant,
   isRendererCustomHeroVariant,
 } from '@/lib/amethyst/hero-motion-applies'
+import { BLING_KITCHEN_PROFILE } from '@/lib/bling-kitchen/profile'
+import { MILE_HIGH_FIZZ_PROFILE } from '@/lib/mile-high-fizz/profile'
 import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 
 const allowlist = 'dudesfizzfest,milehighfizz,brittwithbling,blingkitchen'
@@ -53,7 +55,7 @@ describe('hero motion applies', () => {
     expect(heroMotionApplies({
       settings: settings({
         businessName: 'Mile High Fizz',
-        email: 'lindseychapman1188@gmail.com',
+        email: MILE_HIGH_FIZZ_PROFILE.email,
         appearancePreset: 'alpine_opal',
       }),
       publicSiteSlug: 'milehighfizz',
@@ -80,7 +82,7 @@ describe('hero motion applies', () => {
     expect(heroMotionApplies({
       settings: settings({
         businessName: 'BlingKitchen',
-        email: 'blingkitchen19@gmail.com',
+        email: BLING_KITCHEN_PROFILE.email,
         teamName: 'Opal Sparkling Gems',
       }),
       publicSiteSlug: 'blingkitchen',
@@ -129,7 +131,7 @@ describe('hero motion applies', () => {
 
     const mileHigh = settings({
       businessName: 'Mile High Fizz',
-      email: 'lindseychapman1188@gmail.com',
+      email: MILE_HIGH_FIZZ_PROFILE.email,
       appearancePreset: 'alpine_opal',
     })
     const britt = settings({
@@ -139,7 +141,7 @@ describe('hero motion applies', () => {
     })
     const kitchen = settings({
       businessName: 'BlingKitchen',
-      email: 'blingkitchen19@gmail.com',
+      email: BLING_KITCHEN_PROFILE.email,
       teamName: 'Opal Sparkling Gems',
     })
     for (const [current, slug, variant] of [
@@ -167,11 +169,11 @@ describe('hero motion applies', () => {
     expect(grandfatheredHeadlineFallback(settings(), 'newrep')).toBe(false)
     expect(grandfatheredHeadlineFallback(settings({
       businessName: 'BlingKitchen',
-      email: 'blingkitchen19@gmail.com',
+      email: BLING_KITCHEN_PROFILE.email,
     }), 'blingkitchen')).toBe(false)
     expect(grandfatheredHeadlineFallback(settings({
       businessName: 'Mile High Fizz',
-      email: 'lindseychapman1188@gmail.com',
+      email: MILE_HIGH_FIZZ_PROFILE.email,
     }), 'milehighfizz')).toBe(true)
     expect(grandfatheredHeadlineFallback(settings({
       businessName: 'Britt with Bling',

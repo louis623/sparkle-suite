@@ -214,6 +214,12 @@ export function ThemeStudio({
     setRequestToken((token) => token + 1)
   }
 
+  function chooseTheme(themeId: string) {
+    setChosenId(themeId)
+    showCachedOrLoading(themeId, page)
+    if (themeId !== draftThemeId) onDraftThemeChange(themeId)
+  }
+
   function openTryOn(themeId: string) {
     setChosenId(themeId)
     showCachedOrLoading(themeId, page)
@@ -279,8 +285,12 @@ export function ThemeStudio({
             Applies only to your public customer-facing site. Your Sparkle Suite workspace keeps the standard workspace theme.
           </p>
         </div>
-        <div className={styles.previewColumn}>
-          <div className={styles.phoneFrame}>
+        {wide ? <div className={styles.previewColumn}>
+          <div className={styles.tryPanel}>
+            <div className={styles.tryHead}>
+              <b>Try it on</b>
+              <small>Your real headline and shows in {chosenLabel}.</small>
+            </div>
             <PreviewSurface
               scope="panel"
               page={page}
@@ -293,8 +303,9 @@ export function ThemeStudio({
               onRetry={retryPreview}
               retired={themeRetired}
             />
+            <p className={styles.tryFoot}>Preview only. Customers see a new theme once you tap it.</p>
           </div>
-        </div>
+        </div> : null}
       </div>
       <dialog
         ref={dialogRef}
@@ -328,7 +339,17 @@ export function ThemeStudio({
               framed
             />
             <div className={styles.dialogActions}>
-              <button type="button" className={styles.keep} onClick={closeTryOn}>
+              <button
+                type="button"
+                className={styles.keep}
+                onClick={() => {
+                  if (chosen && offeredIds.has(chosen.id)) chooseTheme(chosen.id)
+                  closeTryOn()
+                }}
+              >
+                Use this theme
+              </button>
+              <button type="button" className={styles.back} onClick={closeTryOn}>
                 Back to themes
               </button>
             </div>
@@ -354,11 +375,10 @@ export function ThemeStudio({
             value={theme.id}
             aria-label={live ? `${theme.label}, ${offered ? 'Live now' : 'Live now, no longer offered'}` : theme.label}
             checked={selected}
-            onChange={() => {
-              setChosenId(theme.id)
-              showCachedOrLoading(theme.id, page)
-              if (theme.id !== draftThemeId) onDraftThemeChange(theme.id)
+            onClick={() => {
+              if (selected) chooseTheme(theme.id)
             }}
+            onChange={() => chooseTheme(theme.id)}
           />
           <span
             className={styles.thumbFrame}
@@ -412,6 +432,7 @@ export function ThemeStudio({
               <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
               <circle cx="12" cy="12" r="2.5" />
             </svg>
+            <span className={styles.previewWord}>Preview</span>
           </button>
         ) : null}
       </article>
@@ -569,7 +590,7 @@ function ThemeGroups({
     ['gems', 'Gems & Metals', gemsCount],
     ['bomb', 'Bomb Party Fun', grouped.bombParty.length],
     ['general', 'General', grouped.general.length],
-    ['yours', 'Just for you', grouped.justForYou.length],
+    ['yours', 'Yours', grouped.justForYou.length],
   ] as const
   const showHoliday = (filter === 'all' || filter === 'holiday') && holidayCount > 0
   const showEveryday = filter === 'all' || filter === 'gems' || filter === 'bomb' || filter === 'general'
@@ -578,7 +599,7 @@ function ThemeGroups({
       {current ? (
         <div className={styles.currentTheme} data-testid="theme-on-site">
           <span className={styles.currentThumb} style={{ background: colorBlock(current.previewColors) }}>
-            {current.thumb ? <img src={current.thumb} alt="" width={480} height={300} /> : <span className={styles.paletteName}>{current.label}</span>}
+            {current.thumb ? <img src={current.thumb} alt="" width={480} height={300} /> : null}
           </span>
           <span>
             <p className={styles.groupKicker}>On your site now</p>

@@ -1,0 +1,103 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Look · Concept B2 · Chapters</title>
+<link rel="stylesheet" href="look.css"><script src="assets/emoji-set.js"></script><script src="picker.js"></script>
+<style>
+.body{background:linear-gradient(180deg,#fff8f5,#fffdfb 40%)}
+.chap{display:grid;grid-template-columns:64px minmax(0,1fr);gap:0 18px;margin-bottom:22px}
+.num{font-family:var(--serif);font-style:italic;font-size:40px;line-height:1;color:var(--gold);text-align:right;padding-top:18px;position:relative}
+.num::after{content:"";position:absolute;right:-10px;top:74px;bottom:-30px;width:1px;background:linear-gradient(var(--gold-2),transparent)}
+.chap:last-of-type .num::after{display:none}
+.card{background:#fff;border-radius:22px;padding:22px 22px 20px;box-shadow:var(--shadow);border:1px solid rgba(201,162,91,.18)}
+.ch-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.themewrap{display:grid;grid-template-columns:200px minmax(0,1fr);gap:22px;align-items:end}
+.bigsw{position:relative;aspect-ratio:3/4;border-radius:18px;overflow:hidden;box-shadow:0 18px 36px -18px rgba(122,31,85,.6)}
+.bigsw::after{content:"✦      ✧\A   ✧        ✦\A        ✦   ✧";white-space:pre;position:absolute;top:22px;left:20px;color:rgba(255,255,255,.85);font-size:14px;line-height:2}
+.bigsw .tag{position:absolute;left:12px;right:12px;bottom:12px;padding:10px 12px;border-radius:12px;background:rgba(255,253,251,.92);backdrop-filter:blur(6px)}
+.bigsw .tag small{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--pink-ink)}
+.bigsw .tag b{font-family:var(--serif);font-weight:500;font-size:16px;color:var(--plum)}
+.trynext p{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.trynext .sws{grid-template-columns:repeat(5,1fr)}
+.namegrid{display:grid;grid-template-columns:1fr 1fr;gap:0 26px}
+.tool{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px;border-radius:16px;background:var(--paper);margin-bottom:12px}
+.tool .t{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;font-weight:700;font-size:13.5px;color:var(--plum);background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.tool .t.on{background:var(--plum);color:#fff6fb;box-shadow:none}
+.tool .sw{margin-left:auto}
+.pop{position:relative;margin:2px 0 14px}
+.pop::before{content:"";position:absolute;top:-7px;left:42px;width:14px;height:14px;background:#fff;transform:rotate(45deg);box-shadow:-1px -1px 0 var(--line);z-index:2}
+.pop .ep{max-height:470px;position:relative}
+.nowrow{display:grid;grid-template-columns:200px minmax(0,1fr) auto;gap:20px;align-items:center;padding:14px;border-radius:20px;background:linear-gradient(120deg,#fff6f9,#fffaf4);box-shadow:inset 0 0 0 1px rgba(201,162,91,.28)}
+.nowthumb{display:block;aspect-ratio:16/10;border-radius:14px;overflow:hidden;box-shadow:0 14px 28px -16px rgba(52,37,47,.6)}
+.nowthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.nowtext{display:flex;flex-direction:column;gap:3px;min-width:0}
+.nowname{font-family:var(--serif);font-size:24px;line-height:1.15;color:var(--plum)}
+.nowmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.nowmeta b{color:var(--ok);font-weight:700}
+.dots{display:inline-flex;gap:4px}.dots i{width:12px;height:12px;border-radius:99px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.changebtn{min-height:46px;padding:0 22px}
+.card .herocard{padding-top:150px;background:linear-gradient(180deg,rgba(11,32,57,.05),rgba(11,32,57,.35)),url(assets/themes/starlight-hero.webp) center/cover}
+.card .herocard::before{display:none}
+@media (max-width:600px){
+  .nowrow{grid-template-columns:minmax(0,1fr);gap:12px}.changebtn{width:100%;justify-content:center}.nowname{font-size:21px}.pop .ep{max-height:560px}}
+.pop .ep::after{content:"Scroll for Self-care, Love, Seasonal, Nature, Treats and more ↓";position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;text-align:center;font-size:12.5px;font-weight:700;color:var(--pink-ink);background:linear-gradient(transparent,#fff 55%)}
+.herocard{position:relative;border-radius:20px;overflow:hidden;padding:120px 18px 18px;background:radial-gradient(circle at 78% 18%,rgba(255,255,255,.4),transparent 28%),linear-gradient(150deg,#f6a9c8,#e0458f 55%,#7a1f55)}
+.herocard::before{content:"✦   ✧      ✦      ✧\A     ✦       ✧    ✦";white-space:pre;position:absolute;top:26px;left:24px;right:24px;color:rgba(255,255,255,.8);font-size:15px;line-height:1.9}
+.frost{position:relative;border-radius:16px;background:rgba(255,253,251,.94);padding:6px 16px 4px;box-shadow:0 12px 30px -18px rgba(52,37,47,.6)}
+.frost .qf:last-child{border-bottom:0}
+@media (max-width:600px){
+  .chap{grid-template-columns:minmax(0,1fr);gap:0}
+  .num{text-align:left;padding:0 0 6px 4px;font-size:30px}.num::after{display:none}
+  .card{padding:18px 16px}
+  .themewrap{grid-template-columns:minmax(0,1fr)}
+  .bigsw{aspect-ratio:auto;height:250px}
+  .trynext .sws{grid-template-columns:repeat(5,1fr);gap:8px}.trynext .swc .nm,.trynext .swc .tg{display:none}
+  .namegrid{grid-template-columns:minmax(0,1fr)}
+  .tool .sw{margin-left:0}
+  .ch-head{flex-direction:column}
+  .herocard{padding:90px 12px 12px}
+}
+</style></head><body><div class="page"><div class="frame">
+<div class="band"><div><p class="kicker">Your customer site</p><h1>Look</h1><p class="sub">Four little chapters: theme, your name, announcements, and your hello.</p></div><button class="x">×</button></div>
+<div class="body">
+
+<div class="chap"><div class="num">I</div><div class="card">
+  <div class="ch-head"><div><p class="eyebrow">Theme</p><h2 class="h2">The mood of your site</h2><p class="lede">Tap Change theme to see every theme with a picture of how it looks.</p></div></div>
+  <div class="nowrow">
+    <span class="nowthumb"><img src="assets/themes/starlight-christmas-hollow.webp" alt=""></span>
+    <span class="nowtext"><span class="eyebrow">On your site now</span><span class="nowname">Starlight Christmas Hollow</span><span class="nowmeta"><span class="dots"><i style="background:#0b2039"></i><i style="background:#94283e"></i><i style="background:#f2c77b"></i></span>Christmas &amp; Winter · <b>Saved ✓</b></span></span>
+    <button class="pill pink changebtn">Change theme</button>
+  </div>
+</div></div>
+
+<div class="chap"><div class="num">II</div><div class="card">
+  <div class="ch-head"><div><p class="eyebrow">Top bar</p><h2 class="h2">Your name &amp; shop</h2><p class="lede">The name at the top of every page, and where every Shop button goes.</p></div></div>
+  <div class="namegrid">
+    <div class="qf"><span class="lbl">Business name</span><span class="val serif">Bling with Britt</span><span class="shows">The name at the top of every page</span></div>
+    <div class="qf"><span class="lbl">Your first name</span><span class="val serif">Britt</span><span class="shows">Your name in the hero, About, and Join</span></div>
+  </div>
+  <div class="qf"><span class="lbl">Bomb Party rep store link</span><span class="val">https://bombparty.com/rep/brittbling</span><span class="hint">This powers the Shop buttons across your customer-facing site. Use the full store URL.</span><span class="shows">Every Shop button on your site</span></div>
+</div></div>
+
+<div class="chap"><div class="num">III</div><div class="card">
+  <div class="ch-head"><div><p class="eyebrow">Announcements</p><h2 class="h2">Your scrolling news</h2><p class="lede">One announcement per line. Add emojis, then highlight only the words you want to link.</p></div></div>
+  <div class="tool"><span class="t on">😊 Emoji</span><span class="t">🔗 Link words</span><span class="sw"><b></b>Show announcements</span></div>
+  <div class="pop"><div data-picker data-mode="stacked" data-hot="🎉"></div></div>
+  <div class="pad">
+    <div class="ln"><span class="no">1</span><span>🎉<span class="caret"></span> New <span class="lnk">Holiday Collection</span> drops Friday ✨</span></div>
+    <div class="ln"><span class="no">2</span><span>🎁 Free gift with orders over $50 this week 💝</span></div>
+    <div class="ln"><span class="no">3</span><span>💎 Ring reveals every Sunday at 7 PM ET 📅</span></div>
+  </div>
+  <span class="shows">The scrolling announcements at the top of your site · the bar shows while Show announcements is on</span>
+</div></div>
+
+<div class="chap"><div class="num">IV</div><div class="card">
+  <div class="ch-head"><div><p class="eyebrow">Hero</p><h2 class="h2">Your first hello</h2><p class="lede">Write right on top of your theme, just like customers will see it.</p></div></div>
+  <div class="herocard"><div class="frost">
+    <div class="qf"><span class="lbl">Big headline <span class="count">33 / 180</span></span><span class="val serif">Find the sparkle hiding inside ✨</span><span class="shows">The big headline on your homepage</span></div>
+    <div class="qf"><span class="lbl">Line under the headline <span class="count">62 / 240</span></span><span class="val">Jewelry reveals, cozy shows, and pieces you'll wear every day.</span><span class="shows">The line under your headline</span></div>
+    <div class="qf"><span class="lbl">Socials in the hero</span><span class="soc" style="margin-top:8px"><span class="chip"><i class="ig">◎</i>Instagram</span><span class="chip"><i class="tt">♪</i>TikTok</span></span><span class="shows">Hero buttons · set in Socials and Contact Info</span></div>
+  </div></div>
+</div></div>
+
+</div>
+<div class="foot"><span class="saved"><i>✓</i>All changes saved <button class="undo">Undo</button></span><button class="finished">Finished</button></div>
+</div></div></body></html>

@@ -208,8 +208,10 @@
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
   font-style: italic;
   font-size: 1rem;
-  line-height: 1.15;
+  line-height: 1.2;
   text-align: left;
+  text-wrap: balance;
+  overflow-wrap: normal;
 }
 
 .check {
@@ -319,25 +321,54 @@
 }
 .currentThumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .groupKicker { margin: 0; color: #b91673; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
-.currentName { margin: 2px 0 0; font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif; font-size: 1.3rem; font-weight: 500; }
+.currentName { margin: 2px 0 0; font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif; font-size: 1.3rem; font-weight: 500; text-wrap: balance; overflow-wrap: normal; }
 .savedMark { color: #0d5c3d; font-size: 0.85rem; font-weight: 800; }
 .seriesTitle { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 8px; font-size: 1rem; }
 .seriesCount { color: #775d57; font-size: 0.8rem; }
 .eye {
-  position: absolute;
-  right: 4px;
-  bottom: 2px;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin: 8px 4px 0;
+  padding: 0 12px;
   border: 0;
   border-radius: 999px;
-  background: transparent;
-  color: #775d57;
+  background: #ffd6ea;
+  color: #c0156f;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
 .eye svg { width: 18px; height: 18px; }
+.tryPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 22px;
+  background: #fff;
+  border: 1px solid rgba(201, 162, 91, 0.2);
+  box-shadow: 0 1px 2px rgba(52, 37, 47, 0.06), 0 10px 26px -14px rgba(52, 37, 47, 0.28);
+  overflow: hidden;
+}
+.tryHead { padding: 14px 16px 8px; }
+.tryHead b {
+  display: block;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-weight: 500;
+  font-size: 19px;
+  color: #34252f;
+}
+.tryHead small { color: #6f5650; font-size: 12.5px; text-wrap: pretty; }
+.tryFoot { margin: 0; padding: 0 16px 16px; color: #6f5650; font-size: 12px; }
+:global([data-site-dialog]) .studio {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
 @media (max-width: 879px) {
   .currentTheme { grid-template-columns: 72px minmax(0, 1fr); }
   .savedMark { grid-column: 2; justify-self: start; }
@@ -446,6 +477,20 @@
   gap: 8px;
   margin-top: 12px;
 }
+.keep {
+  border: 0;
+  border-radius: 999px;
+  background: #ee2c9b;
+  color: #fff;
+  padding: 0 16px;
+}
+.back {
+  min-height: 44px;
+  padding: 0 12px;
+  background: transparent;
+  color: #a10d68;
+  font-weight: 800;
+}
 
 .showAll {
   margin-top: 10px;
@@ -513,14 +558,21 @@
   .previewColumn .stageBody {
     flex: 1;
     height: auto;
-    min-height: 0;
+    min-height: 420px;
     aspect-ratio: auto;
+    overflow: auto;
+    background: #fffaf7;
+    color: #402924;
   }
+  .previewColumn .stageBody .warning { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; color: #402924; margin: 16px; }
 
   .previewColumn .stageBody iframe {
-    height: 100%;
-    min-height: 0;
+    height: 520px;
+    min-height: 520px;
   }
+}
+:global([data-site-dialog]) .tryPanel {
+  min-height: 620px;
 }
 
 .tabs {
@@ -565,7 +617,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 180px;
+  min-height: 420px;
   border: 0;
   background: #fff;
 }

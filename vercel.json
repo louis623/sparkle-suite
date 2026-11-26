@@ -53,6 +53,14 @@
     "app/api/internal/look-previews/queue/route.ts": {
       "maxDuration": 60,
       "memory": 2048
+    },
+    "app/api/nic-nac/site-settings/route.ts": {
+      "maxDuration": 60,
+      "memory": 2048
+    },
+    "app/api/nic-nac/site-settings/look-preview/route.ts": {
+      "maxDuration": 60,
+      "memory": 2048
     }
   }
 }

@@ -69,7 +69,7 @@ for (const motion of ['sparkle_rise', 'still', 'none']) {
     // With no server-side media preference, autoplay is enabled by the inline
     // controller only after checking reduced motion, before deferred hydration.
     expect(actual).not.toMatch(/<video[^>]*autoplay/)
-    expect(actual).toContain(`data-hero-motion="${motion === 'sparkle_rise' ? 'on' : 'off'}"`)
+    expect(actual).toContain('data-hero-motion="on"')
     expect(actual).not.toContain('Pause animation')
     expect(html).not.toMatch(/<section class="hp-hero"/)
     expect(html).toContain(earlyMileHighFizzControls)

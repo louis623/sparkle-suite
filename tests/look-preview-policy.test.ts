@@ -1,13 +1,18 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   LOOK_PREVIEW_DEBOUNCE_MS,
   LOOK_PREVIEW_FIELDS,
   applyLookPreviewFailure,
+  lookPreviewFailureDetails,
   assertAllowedLookPreviewUrl,
   buildLookPreviewCaptureUrl,
+  chooseLookPreviewCandidate,
   isMissingLookPreviewTable,
   lookPreviewDelayElapsed,
   lookPreviewFingerprint,
+  lookPreviewStillPending,
+  nextLookPreviewPollDelay,
   shouldQueueLookPreview,
 } from '@/lib/look-preview/policy'
 
@@ -96,5 +101,44 @@ describe('look preview policy', () => {
     expect(failed.attemptCount).toBe(2)
     expect(isMissingLookPreviewTable({ code: 'PGRST205', message: 'schema cache' })).toBe(true)
     expect(isMissingLookPreviewTable({ code: '42501', message: 'permission denied' })).toBe(false)
+  })
+
+  it('uses the bundled Chromium binary instead of a GitHub download', () => {
+    const capture = readFileSync('lib/look-preview/capture.ts', 'utf8')
+    const manifest = readFileSync('package.json', 'utf8')
+    expect(capture).toContain("import('@sparticuz/chromium')")
+    expect(capture).not.toContain('chromium-min')
+    expect(capture).not.toContain('github.com/Sparticuz/chromium')
+    expect(manifest).toContain('"@sparticuz/chromium": "158.0.0"')
+    expect(manifest).not.toContain('chromium-min')
+  })
+
+  it('logs a capture failure without the page address', () => {
+    const details = lookPreviewFailureDetails(new Error('Unexpected status code: 404 for https://github.com/example/pack.tar'))
+    expect(details.errorName).toBe('Error')
+    expect(details.errorMessage).toContain('404')
+    expect(details.errorMessage).not.toContain('https://')
+    expect(details.errorMessage).toContain('[url]')
+  })
+
+  it('checks a pending cover for about two minutes, then backs off', () => {
+    expect(lookPreviewStillPending('updating')).toBe(true)
+    expect(lookPreviewStillPending('missing')).toBe(true)
+    expect(lookPreviewStillPending('ready')).toBe(false)
+    expect(lookPreviewStillPending('failed')).toBe(false)
+    expect(nextLookPreviewPollDelay(0)).toBe(3000)
+    expect(nextLookPreviewPollDelay(1)).toBeGreaterThan(3000)
+    expect(nextLookPreviewPollDelay(8)).toBe(12_000)
+  })
+
+  it('rotates the cover queue past a rep who already failed', () => {
+    const now = 1_000_000
+    const next = chooseLookPreviewCandidate([
+      { repId: 'stuck', attemptCount: 2, updatedAtMs: now - 5_000, processingStartedAtMs: null },
+      { repId: 'busy', attemptCount: 0, updatedAtMs: now - 80_000, processingStartedAtMs: now - 1_000 },
+      { repId: 'fresh', attemptCount: 0, updatedAtMs: now - 10_000, processingStartedAtMs: null },
+      { repId: 'done-trying', attemptCount: 3, updatedAtMs: now - 90_000, processingStartedAtMs: null },
+    ], now)
+    expect(next?.repId).toBe('fresh')
   })
 })

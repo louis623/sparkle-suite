@@ -3467,7 +3467,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
-      <section className="mhf-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="mhf-hero-title">
+      <section className="mhf-hero" data-hero-motion="on" aria-labelledby="mhf-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         {t.preset !== "gilded_autumn" && <video className="mhf-hero-video" autoPlay muted loop playsInline poster="">
           <source src={CONTENT.heroVideoUrl || heroVideoUrl} type="video/mp4" />
@@ -3601,7 +3601,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
-      <section className="bwb-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bwb-hero-title">
+      <section className="bwb-hero" data-hero-motion="on" aria-labelledby="bwb-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         <img className="bwb-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "Live jewelry reveals", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />
         <div className="bwb-hero-shade" aria-hidden="true" />

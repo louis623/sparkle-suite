@@ -644,7 +644,6 @@ describe('DashboardPlaceholder', () => {
         repName: 'Sasha',
         showName: 'Sparkle by Sasha',
         publicSiteUrl: null,
-        publicSiteDisplay: 'Not set',
         unreadMessageCount: 0,
         onOpenPublicSite: () => {},
         onOpenMessages: () => {},
@@ -670,7 +669,6 @@ describe('DashboardPlaceholder', () => {
         repName: 'Sasha',
         showName: 'Sparkle by Sasha',
         publicSiteUrl: null,
-        publicSiteDisplay: 'Not set',
         liveQueueSyncCode: null,
         unreadMessageCount: 0,
         onOpenPublicSite: () => {},
@@ -3650,16 +3648,15 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Banner visible')
     expect(html).toContain('Announcement ticker messages')
     expect(html).not.toContain('Hero image URL')
-    expect(html).toContain('Hero motion')
+    expect(html).not.toContain('Hero motion')
     expect(html).toContain('Big headline')
     expect(html).toContain('Line under the headline')
     expect(html).toContain('Footer tagline')
     expect(html).not.toContain('Hero title')
     expect(html).not.toContain('Hero subtitle')
     expect(html).not.toContain('Site tagline')
-    expect(html).toContain('Sparkle rise')
-    expect(html).toContain('Soft glow')
-    expect(html).toContain('Still')
+    expect(html).not.toContain('Sparkle rise')
+    expect(html).not.toContain('Soft glow')
     expect(html).toContain('Choose your theme')
     expect(html).not.toContain('Customer Site Looks')
     expect(html).not.toContain('Morganite is locked in for every Sparkle Suite workspace and Amethyst customer site.')
@@ -3689,36 +3686,34 @@ describe('DashboardPlaceholder', () => {
     expect(readFileSync(resolve(process.cwd(), 'app/nic-nac/components/SiteSettingsBody.tsx'), 'utf8')).toContain(
       'Make existing links plain text',
     )
-    expect(html).toContain('Homepage photos and videos')
-    expect(html).toContain('About section')
-    expect(html).toContain('About title')
-    expect(html).toContain('About narrative')
+    expect(html).toContain('Your photo')
+    expect(html).toContain('Your story')
+    expect(html).toContain('Title')
     expect(html).toContain('Paste the story you want customers to read.')
     expect(html).toContain('0 / 1200 characters')
     expect(html).toContain('maxLength="70"')
     expect(html).toContain('maxLength="1200"')
     expect(html).toContain('siteSettingsTextarea')
     expect(html).not.toContain('Write with Nic-Nac')
-    expect(html).toContain('Live reveal video')
-    expect(html).toContain('About portrait photo')
-    expect(html).toContain('About short video 1')
-    expect(html).toContain('About short video 3')
+    expect(html).toContain('Marquee video')
+    expect(html).toContain('More to watch')
+    expect(html).toContain('Add a video')
     expect(html.match(/Video link or embed/g)).toHaveLength(4)
     expect(html.match(/Video caption \(optional\)/g)).toHaveLength(4)
     expect(html).toContain('maxLength="180"')
     expect(html.match(/Upload photo/g)).toHaveLength(1)
-    expect(html).toContain('Video links and embeds')
+    expect(html).toContain('Watch a Live Reveal sits above About. On a phone her story comes before the photo. Short videos follow.')
     expect(html).toContain('About you')
-    expect(html).toContain('public TikTok, YouTube Short, Instagram Reel, or Facebook Reel/video')
-    expect(html).toContain('TikTok and YouTube play muted, loop, and do not show a pause control.')
+    expect(html).toContain('Customers see this as the Watch a Live Reveal card, above the About section.')
     expect(html).toContain('Instagram')
     expect(html).toContain('Facebook')
     expect(html).toContain('VIP group or page')
-    expect(html).toContain('Show on site')
-    expect(html).toContain('Show in hero')
+    expect(html).toContain('On site')
+    expect(html).toContain('In hero')
     expect(html).toContain('aria-label="Show Facebook on site"')
     expect(html).toContain('aria-label="Show Facebook in hero"')
-    expect(html).toContain('Add a link to choose footer and hero.')
+    expect(html).toContain('Not added yet')
+    expect(html).toContain('Customer preview')
     expect(html).not.toContain('Show Facebook VIP button in the landing hero')
     expect(html).toContain('Tap a part of your site to change it')
     expect(html).not.toContain('Preview saved site')
@@ -3961,9 +3956,6 @@ describe('DashboardPlaceholder', () => {
         hasUnsavedChanges: true,
         changes: ['Footer tagline'],
         publicSiteUrl: 'https://www.example.com',
-        publicSiteDisplay: 'example.com',
-        canPreview: true,
-        onPreview: () => undefined,
         onSave: () => undefined,
       }),
     )
@@ -4541,13 +4533,13 @@ describe('DashboardPlaceholder', () => {
       includeCardQr: true,
     }).map((section) => section.label)
     expect(labels).toEqual([
+      'My Website',
       'Account',
       'Business Calculator',
       'Customer List',
       'Jewelry Library',
       'Live Lineup',
       'Message Center',
-      'My Website',
       'QR codes, QR flyers, business cards',
       'Recipes',
       'Resources & Help',
@@ -4594,7 +4586,8 @@ describe('DashboardPlaceholder', () => {
     expect(hub).not.toContain('Business Tools')
     expect(hub).not.toContain('>Recipes<')
     expect(hub.indexOf('>Dashboard<')).toBeGreaterThan(-1)
-    expect(hub.indexOf('>Dashboard<')).toBeLessThan(hub.indexOf('>Account<'))
+    expect(hub.indexOf('>Dashboard<')).toBeLessThan(hub.indexOf('>My Website<'))
+    expect(hub.indexOf('>My Website<')).toBeLessThan(hub.indexOf('>Account<'))
     expect(toolsHubButtonMarkup(hub, 'Dashboard')).not.toContain('aria-current="page"')
     expect(toolsHubButtonMarkup(hub, 'Wispr Flow')).toContain('aria-current="page"')
   })
@@ -4614,7 +4607,8 @@ describe('DashboardPlaceholder', () => {
         reviewMode: true,
       }),
     )
-    expect(dashboard.indexOf('>Dashboard<')).toBeLessThan(dashboard.indexOf('>Account<'))
+    expect(dashboard.indexOf('>Dashboard<')).toBeLessThan(dashboard.indexOf('>My Website<'))
+    expect(dashboard.indexOf('>My Website<')).toBeLessThan(dashboard.indexOf('>Account<'))
     expect(toolsHubButtonMarkup(dashboard, 'Dashboard')).toContain('aria-current="page"')
     expect(toolsHubButtonMarkup(dashboard, 'Dashboard')).not.toContain('Coming Soon')
     expect(toolsHubButtonMarkup(dashboard, 'Account')).not.toContain('aria-current="page"')
