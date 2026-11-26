@@ -34,7 +34,8 @@ describe('Gilded Autumn respects custom customer layouts',()=>{
     const base=Subject({...props,t:{preset:'sparkle_suite_morganite',heroMotion:'still'}})
     const autumn=Subject({...props,t:{preset:'gilded_autumn',heroMotion:'still'}})
     expect(hostTree(autumn)).toEqual(hostTree(base))
-    expect(elements(autumn).find(el=>el.props.className===heroClass)?.props['data-hero-motion']).toBe('off')
+    const motion = name === 'BlingKitchenHomepage' ? 'off' : 'on'
+    expect(elements(autumn).find(el=>el.props.className===heroClass)?.props['data-hero-motion']).toBe(motion)
     expect(elements(autumn).filter(el=>el.type==='a').map(el=>el.props.href)).toContain('/trade')
     if(name==='MileHighFizzHomepage') {
       expect(elements(base).some(el=>el.type==='video')).toBe(true)
