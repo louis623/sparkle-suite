@@ -10501,7 +10501,6 @@ export function SiteSettingsCard({
 
   return (
     <div className={styles.siteHome} data-testid="my-website-home">
-      <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
       <p className={styles.siteHomeKicker}>Your customer site</p>
       <h1 className={styles.siteHomeTitle}>Tap a part of your site to change it</h1>
       <p className={styles.siteHomeLede}>Everything saves on its own as you go.</p>
@@ -10656,6 +10655,7 @@ export function SiteSettingsCard({
       </div>
       </div>
       <dialog ref={lookRef} className={styles.siteDialog} data-site-dialog="" aria-labelledby="site-look-title" onClose={() => onLookClose?.()}>
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Your customer site</p>
@@ -10699,6 +10699,7 @@ export function SiteSettingsCard({
         </footer>
       </dialog>
       <dialog ref={aboutRef} className={`${styles.siteDialog} ${styles.siteDialogAbout}`} aria-labelledby="site-about-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Your customer site</p>
@@ -10717,6 +10718,7 @@ export function SiteSettingsCard({
         </footer>
       </dialog>
       <dialog ref={showsRef} className={styles.siteDialog} aria-labelledby="site-shows-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Sign-up discount</p>
@@ -10732,6 +10734,7 @@ export function SiteSettingsCard({
         </footer>
       </dialog>
       <dialog ref={linksRef} className={`${styles.siteDialog} ${styles.siteDialogWide}`} aria-labelledby="site-links-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Your customer site</p>
@@ -10747,6 +10750,7 @@ export function SiteSettingsCard({
         </footer>
       </dialog>
       <dialog ref={themeRef} className={`${styles.siteDialog} ${styles.siteDialogWide}`} data-site-dialog="" aria-labelledby="site-theme-title">
+        <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
         <div className={styles.siteDialogBand}>
           <div className={styles.siteDialogHeading}>
             <p className={styles.siteDialogKicker}>Themes</p>
@@ -10773,7 +10777,6 @@ export function SiteSettingsCard({
           <form method="dialog"><button className={styles.siteFinished} value="close">Finished</button></form>
         </footer>
       </dialog>
-      <div className={styles.visuallyHidden} aria-live="polite">{fieldAnnouncement}</div>
     </div>
   )
 }
