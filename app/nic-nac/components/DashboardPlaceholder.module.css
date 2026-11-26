@@ -9461,6 +9461,8 @@
 .siteDialog[open] {
   display: flex;
   flex-direction: column;
+  background: #fffdfb;
+  isolation: isolate;
 }
 
 .siteDialog:modal,
@@ -9499,7 +9501,7 @@
 
 .siteDialogBand,
 .siteDialogFoot { flex: none; }
-.siteDialogBody { flex: 1; min-height: 0; padding: 16px 18px 24px; overflow: auto; }
+.siteDialogBody { flex: 1; min-height: 0; padding: 16px 18px 24px; overflow: auto; background: #fffdfb; }
 .siteDialogFoot {
   display: flex;
   flex-wrap: wrap;
@@ -9728,7 +9730,6 @@
     border-radius: 0;
   }
   .siteDialogBody { max-height: none; padding: 16px; }
-  .aboutStoryCard { position: static; margin-top: 10px; }
   .aboutShortRail { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
@@ -9736,8 +9737,8 @@
 .aboutMagazine { display: flex; flex-direction: column; gap: 8px; }
 .aboutMagazine .siteSectionList,
 .aboutSectionContents { display: contents; }
-.aboutPhotoBlock { order: 1; }
-.aboutMarqueeBlock { order: 2; }
+.aboutPhotoBlock { order: 1; position: relative; z-index: 1; }
+.aboutMarqueeBlock { order: 2; position: relative; z-index: 0; margin-top: 22px; }
 .aboutShortsBlock { order: 3; }
 .aboutWhisper { margin: 0 0 12px; color: #6f5650; font-size: 13px; }
 .aboutLegend, .aboutKicker { margin: 0 0 8px; }
@@ -9745,15 +9746,14 @@
 .aboutLegend { color: #6f5650; font-size: 13.5px; line-height: 1.4; }
 .aboutNowrap { white-space: nowrap; }
 .aboutHero { display: flex; flex-direction: column; gap: 12px; }
-.aboutPhotoFrame { position: relative; border-radius: 18px; overflow: hidden; background: #f3d0e4; height: min(520px, 56vh); }
-.aboutPhoto, .aboutPhotoEmpty { width: 100%; height: 100%; object-fit: cover; object-position: var(--homepage-portrait-focus-x, 50%) var(--homepage-portrait-focus-y, 20%); transform: scale(var(--homepage-portrait-zoom, 1)); }
+.aboutPhotoFrame { position: relative; width: 100%; aspect-ratio: 4 / 5; height: auto; border-radius: 22px; overflow: clip; isolation: isolate; background: #f3e4ea; }
+.aboutPhoto, .aboutPhotoEmpty { width: 100%; height: 100%; object-fit: cover; object-position: var(--homepage-portrait-focus-x, 50%) var(--homepage-portrait-focus-y, 20%); transform: scale(var(--homepage-portrait-zoom, 1)); transform-origin: var(--homepage-portrait-focus-x, 50%) var(--homepage-portrait-focus-y, 20%); }
 .aboutPhotoEmpty { display: grid; place-items: center; color: #6f5650; font-weight: 700; }
 .aboutStoryCard { position: absolute; left: 12px; right: 12px; bottom: 12px; display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: rgba(255, 253, 251, 0.94); }
 .aboutField { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #6f5650; }
-.siteDialogBody .aboutField input,
-.siteDialogBody .aboutField textarea,
-.aboutField input,
-.aboutField textarea {
+.siteDialogBody.aboutMagazine .aboutField input.aboutHeadline,
+.siteDialogBody.aboutMagazine .aboutField textarea.aboutStory,
+.siteDialogBody.aboutMagazine .aboutField input.aboutCaption {
   width: 100%;
   box-sizing: border-box;
   border: 0;
@@ -9765,8 +9765,7 @@
   text-transform: none;
   letter-spacing: 0;
 }
-.siteDialogBody .aboutHeadline,
-.aboutHeadline {
+.siteDialogBody.aboutMagazine .aboutField input.aboutHeadline {
   min-height: 40px;
   padding: 2px 0 6px;
   border-bottom: 1px solid rgba(64, 41, 36, 0.14);
@@ -9776,24 +9775,33 @@
   line-height: 1.2;
   color: #34252f;
 }
-.siteDialogBody .aboutStory,
-.aboutStory {
+.siteDialogBody.aboutMagazine .aboutField textarea.aboutStory {
   min-height: 88px;
   padding: 4px 0;
+  font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
   font-size: 15px;
+  font-weight: 500;
   line-height: 1.5;
   resize: vertical;
 }
-.siteDialogBody .aboutCaption,
-.aboutCaption {
+.siteDialogBody.aboutMagazine .aboutField input.aboutCaption {
   min-height: 40px;
   padding: 6px 0;
   border-bottom: 1px solid rgba(64, 41, 36, 0.14);
+  font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
   font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
 }
-.aboutHeadline:focus-visible,
-.aboutCaption:focus-visible { outline: none; border-bottom-color: #ee2c9b; }
-.aboutStory:focus-visible { outline: none; box-shadow: 0 1px 0 0 #ee2c9b; }
+.siteDialogBody.aboutMagazine .aboutField input.aboutHeadline:focus-visible,
+.siteDialogBody.aboutMagazine .aboutField input.aboutCaption:focus-visible {
+  outline: none;
+  border-bottom-color: #ee2c9b;
+}
+.siteDialogBody.aboutMagazine .aboutField textarea.aboutStory:focus-visible {
+  outline: none;
+  box-shadow: 0 1px 0 0 #ee2c9b;
+}
 .aboutSheetRow input { width: 100%; box-sizing: border-box; min-height: 44px; border: 1px solid rgba(64, 41, 36, 0.14); border-radius: 12px; background: #fff; padding: 8px 12px; font-weight: 500; }
 .aboutCount { align-self: flex-end; color: #6f5650; font-size: 11px; font-weight: 700; }
 .aboutHeroTools, .aboutPhotoActions, .aboutSheet { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -9837,11 +9845,49 @@
 .aboutPillReady { background: #e3f5ea; color: #17794a; }
 .aboutPillQueue { background: #fff1d6; color: #8a5300; }
 .aboutPlatform { left: 8px; bottom: 8px; background: rgba(255,255,255,.9); color: #34252f; }
-.aboutPlay { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 22px; }
+.aboutMarqueePoster img, .aboutPosterFilled img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.aboutPlay {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.94);
+  color: #34252f;
+  box-shadow: 0 10px 24px rgba(26, 12, 20, 0.35);
+  font-size: 16px;
+  z-index: 1;
+}
+.aboutMark {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #111;
+  display: grid;
+  place-items: center;
+}
+.aboutMark svg { width: 12px; height: 12px; fill: #fff; display: block; }
 .aboutPlus { position: absolute; inset: 0; display: grid; place-items: center; color: #c0156f; font-size: 32px; }
 .aboutShortRail { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .aboutShortHidden { display: none; }
-.aboutShortPoster { background: linear-gradient(180deg, #fdeef6, #f3d0e4); box-shadow: none; }
+.aboutPosterFilled {
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255, 76, 174, 0.45), transparent 42%),
+    linear-gradient(165deg, #ff4cae 0%, #911b5e 48%, #2a1220 100%);
+  box-shadow: 0 0 0 1px rgba(255, 76, 174, 0.28), 0 16px 30px -18px rgba(145, 27, 94, 0.8);
+}
+.aboutShortPoster:not(.aboutPosterFilled) {
+  background: radial-gradient(circle at 50% 40%, rgba(238, 44, 155, 0.08), transparent 60%), #fff7f4;
+  border: 1.5px dashed rgba(64, 41, 36, 0.28);
+  box-shadow: none;
+}
 .aboutVideoCaption { margin: 6px 0; font-size: 13px; font-weight: 700; }
 .aboutEdit summary { list-style: none; }
 .aboutEdit summary::-webkit-details-marker { display: none; }
@@ -9851,4 +9897,17 @@
 .aboutSheetHelp { margin: 0; color: #6f5650; font-size: 13px; }
 .aboutSmart { border: 0; padding: 8px 0 0; display: grid; gap: 8px; }
 .aboutSmart label { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: 44px; }
-.aboutCrop summary { width: fit-content; }
+.aboutCrop { display: flex; flex-direction: column; align-items: flex-start; margin-top: 4px; }
+.aboutCrop summary { width: fit-content; position: relative; }
+.aboutHeroTools { padding-bottom: 8px; }
+@media (max-width: 640px) {
+  .aboutStoryCard {
+    position: static;
+    margin-top: 12px;
+    background: transparent;
+    box-shadow: none;
+    padding: 14px 0 0;
+    border-radius: 0;
+  }
+  .siteDialogBody.aboutMagazine .aboutField input.aboutHeadline { font-size: 24px; }
+}

@@ -1,6 +1,8 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
+import { SocialMark } from '@/lib/amethyst/social-mark-icon'
+import type { SocialPlatform } from '@/lib/amethyst/social-mark'
 import { isQueuedVideoUrl } from '@/lib/public-site/queue-video-link'
 import { isTikTokCardUrl } from '@/lib/public-site/tiktok-video-id'
 import { publicVideoDraftUrl } from '@/lib/public-site/media-url'
@@ -16,6 +18,71 @@ function platformName(url: string) {
   if (value.includes('instagram')) return 'Instagram'
   if (value.includes('facebook') || value.includes('fb.watch')) return 'Facebook'
   return ''
+}
+
+function platformMark(url: string): SocialPlatform | null {
+  const name = platformName(url)
+  if (name === 'TikTok') return 'tiktok'
+  if (name === 'YouTube') return 'youtube'
+  if (name === 'Instagram') return 'instagram'
+  if (name === 'Facebook') return 'facebook'
+  return null
+}
+
+function youtubePosterUrl(videoUrl: string) {
+  try {
+    const url = new URL(videoUrl)
+    if (url.protocol !== 'https:' || url.username || url.password) return ''
+    const host = url.hostname.toLowerCase().replace(/^www\./, '')
+    let id = ''
+    if (host === 'youtu.be') id = url.pathname.split('/').filter(Boolean)[0] ?? ''
+    else if (host === 'youtube.com' || host.endsWith('.youtube.com')) {
+      id = url.searchParams.get('v') || url.pathname.match(/^\/(?:shorts|embed|live)\/([^/?#]+)/)?.[1] || ''
+    }
+    return /^[A-Za-z0-9_-]{11}$/.test(id) ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : ''
+  } catch {
+    return ''
+  }
+}
+
+function storedPosterUrl(slot: PublicSiteMediaSlot) {
+  const image = slot.imageUrl.trim()
+  if (!image || image.endsWith('.svg')) return ''
+  return image
+}
+
+function VideoPoster({
+  slot,
+  variant,
+  badge,
+  status,
+}: {
+  slot: PublicSiteMediaSlot
+  variant: 'marquee' | 'short'
+  badge?: string
+  status: string | null
+}) {
+  const stored = storedPosterUrl(slot)
+  const remote = stored || youtubePosterUrl(slot.videoUrl)
+  const [failed, setFailed] = useState(false)
+  const src = failed ? '' : remote
+  const mark = platformMark(slot.videoUrl)
+  return (
+    <div
+      className={variant === 'marquee' ? styles.aboutMarqueePoster : `${styles.aboutShortPoster} ${styles.aboutPosterFilled}`}
+      data-poster={src ? 'image' : 'placeholder'}
+    >
+      {src ? <img src={src} alt="" onError={() => setFailed(true)} /> : null}
+      {badge ? <span className={styles.aboutMarqueeBadge}>{badge}</span> : null}
+      {status ? <span className={status === 'Queued' ? styles.aboutPillQueue : styles.aboutPillReady}>{status}</span> : null}
+      <span className={styles.aboutPlay} aria-hidden="true">▶</span>
+      {mark ? (
+        <span className={styles.aboutMark}>
+          <SocialMark platform={mark} className={styles.aboutMarkIcon} />
+        </span>
+      ) : null}
+    </div>
+  )
 }
 
 function statusLabel(slot: PublicSiteMediaSlot, queued: boolean) {
@@ -136,16 +203,10 @@ export function AboutMarquee({
 }) {
   const filled = Boolean(publicVideoDraftUrl(slot.videoUrl))
   const status = statusLabel(slot, tiktokQueueEnabled)
-  const platform = platformName(slot.videoUrl)
   return (
     <div className={styles.aboutMarqueeRow}>
       <article className={styles.aboutMarquee}>
-        <div className={styles.aboutMarqueePoster}>
-          <span className={styles.aboutMarqueeBadge}>Marquee</span>
-          {status ? <span className={status === 'Queued' ? styles.aboutPillQueue : styles.aboutPillReady}>{status}</span> : null}
-          <span className={styles.aboutPlay} aria-hidden="true">▶</span>
-          {platform ? <span className={styles.aboutPlatform}>{platform}</span> : null}
-        </div>
+        <VideoPoster slot={slot} variant="marquee" badge="Marquee" status={status} />
         <div className={styles.aboutMarqueeMeta}>
           {slot.caption ? <p className={styles.aboutVideoCaption}>{slot.caption}</p> : null}
           <details className={styles.aboutEdit}>
@@ -197,16 +258,11 @@ export function AboutShortRail({
         const filled = Boolean(publicVideoDraftUrl(slot.videoUrl))
         const hidden = !filled && slot.key !== firstEmpty
         const status = statusLabel(slot, tiktokQueueEnabled)
-        const platform = platformName(slot.videoUrl)
         return (
           <article key={slot.key} className={hidden ? styles.aboutShortHidden : styles.aboutShort} role="listitem">
             {filled ? (
               <>
-                <div className={styles.aboutShortPoster}>
-                  {status ? <span className={status === 'Queued' ? styles.aboutPillQueue : styles.aboutPillReady}>{status}</span> : null}
-                  <span className={styles.aboutPlay} aria-hidden="true">▶</span>
-                  {platform ? <span className={styles.aboutPlatform}>{platform}</span> : null}
-                </div>
+                <VideoPoster slot={slot} variant="short" status={status} />
                 {slot.caption ? <p className={styles.aboutVideoCaption}>{slot.caption}</p> : null}
               </>
             ) : (
