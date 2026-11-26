@@ -334,7 +334,7 @@ describe('site save bar', () => {
         root.render(createElement(Harness))
       })
       const shop = host.querySelector('#my-website-shop-link') as HTMLInputElement
-      const live = host.querySelector('[aria-live="polite"]')
+      const live = shop.closest('dialog')?.querySelector('[aria-live="polite"]')
       expect(live).toBeTruthy()
       expect(live?.textContent).toBe('')
       await act(async () => {
