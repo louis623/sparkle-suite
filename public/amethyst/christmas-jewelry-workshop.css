@@ -94,6 +94,16 @@ html[data-customer-theme="christmas_jewelry_workshop"] {
   border-color:var(--workshop-brass)!important;
   box-shadow:0 14px 26px #14271b38;
  }
+ #wibp .hp-wibp-video {
+  --hp-media-placeholder-bg:var(--workshop-frost);
+  --hp-media-placeholder-fg:var(--workshop-blue);
+  --hp-media-card-footer-bg:#d5e3e7;
+  border-color:#a5b6ad;
+ }
+ #wibp .hp-customer-media-empty {
+  background:radial-gradient(ellipse at top,#f8f1dd,var(--workshop-frost))!important;
+  color:var(--workshop-blue)!important;
+ }
  #about.hp-section {background:linear-gradient(155deg,#f7ebd6,#efe0ca)!important;color:var(--workshop-ink)}
  #about :is(.hp-section-eyebrow,.hp-about-kicker) {color:var(--workshop-ribbon)}
  #about :is(.hp-about-copy,.hp-about-media-card) {
@@ -140,11 +150,14 @@ html[data-customer-theme="christmas_jewelry_workshop"] {
  #faq .jp-faq-item {border-color:#a4b2b4!important;box-shadow:0 4px 12px #1a35420a}
  #faq .jp-faq-item.open {border-color:var(--workshop-blue)!important}
  #faq .jp-faq-item.open .jp-faq-q {color:var(--workshop-blue)!important}
+ .jp-faq-note {background:#dbe8e9;border-color:#a2b6be;color:var(--workshop-blue)}
+ .jp-hero-ctas .hp-btn-primary {background:var(--workshop-ribbon)!important;color:var(--workshop-ivory)!important}
  .jp-final {background:linear-gradient(140deg,#794439,var(--workshop-berry))!important}
  .jp-final-card {
-  --hp-final-fg:var(--workshop-ink);--hp-final-muted:#614639;--hp-final-icon-fg:var(--workshop-ribbon);
+  --hp-final-fg:var(--workshop-ink);--hp-final-muted:#614639;--hp-final-icon-fg:var(--workshop-foil);
   background:var(--workshop-ivory)!important;color:var(--workshop-ink)!important;
   border:1px solid var(--workshop-brass);
+  box-shadow:0 24px 60px #31121955;
  }
  .jp-final-card :is(.jp-final-title,.jp-final-sub,.jp-final-note,.jp-final-note a) {color:var(--workshop-ink)!important}
  .jp-final-btn {background:var(--workshop-ribbon)!important;color:var(--workshop-ivory)!important}
