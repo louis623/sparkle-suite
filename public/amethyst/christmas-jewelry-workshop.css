@@ -3,6 +3,8 @@
 html[data-customer-theme="christmas_jewelry_workshop"] {
   --workshop-paper:#f5e9d6; --workshop-ink:#382518; --workshop-brass:#aa8153;
   --workshop-forest:#21372b; --workshop-ribbon:#713128; --workshop-foil:#f0cf9b;
+  --workshop-berry:#55242a; --workshop-blue:#24485f; --workshop-frost:#e1ebed;
+  --workshop-ivory:#fff8ea;
   --cjw-poster:url('/amethyst/skins/christmas-jewelry-workshop/hero-poster.webp');
 }
 @scope (html[data-customer-theme="christmas_jewelry_workshop"]) {
@@ -41,13 +43,118 @@ html[data-customer-theme="christmas_jewelry_workshop"] {
  :is(.hp-hero-cta-primary-row,.mhf-hero-cta-primary-row)>a:first-child{background:var(--workshop-foil)!important;color:#281c17!important;box-shadow:inset 0 0 0 2px var(--workshop-foil),inset 0 0 0 3px var(--workshop-brass)}
  :is(.hp-hero-cta-primary-row,.mhf-hero-cta-primary-row)>a:nth-child(2){background:var(--workshop-ribbon)!important;color:white!important}
  :is(.hp-hero-trade-board-cta,.mhf-cta-dance-floor){width:100%!important;max-width:none!important;box-sizing:border-box;border-radius:3px!important;border:1px solid var(--workshop-brass);background:var(--workshop-forest)!important;color:#fff4e6!important}
- .cjw-controls{text-align:center;color:#fff4e6;font:12px 'Workshop Body',sans-serif;position:relative;z-index:2}
- .cjw-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
- .cjw-actions button,.cjw-credit summary{background:transparent;color:inherit;font:inherit;border:0;border-bottom:1px solid #baa38a;padding:6px 3px;cursor:pointer}
- .cjw-credit a{color:inherit}.cjw-credit summary{display:inline-block}
+
+ .cjw-controls {
+  text-align:center;color:var(--workshop-ivory);font:600 13px/1.35 'Workshop Body',sans-serif;
+  position:relative;z-index:2;
+ }
+ .cjw-actions {display:flex;justify-content:center;flex-wrap:wrap;gap:6px}
+ .cjw-actions button,.cjw-credit summary {
+  background:#35241d;color:var(--workshop-ivory);font:inherit;
+  border:1px solid #c7a275;border-radius:5px;cursor:pointer;
+ }
+ .cjw-actions button {
+  min-width:44px;min-height:44px;padding:7px 10px;
+  box-shadow:inset 0 0 0 2px #ffffff12,0 2px 6px #1d100b54;
+ }
+ .cjw-actions .cjw-toggle {background:var(--workshop-blue)}
+ .cjw-actions .cjw-music-toggle {background:var(--workshop-ribbon)}
+ .cjw-actions button:hover:not(:disabled),.cjw-credit summary:hover {
+  background:var(--workshop-foil);color:var(--workshop-ink);
+ }
+ .cjw-actions button:focus-visible,.cjw-credit summary:focus-visible,.cjw-credit a:focus-visible {
+  outline:2px solid #fff8ea;outline-offset:2px;
+ }
+ .cjw-actions button:disabled {background:#50443a;color:#e7d6c1;cursor:default}
+ .cjw-credit {margin-top:6px}
+ .cjw-credit[open] {background:#35241d;padding:8px;border:1px solid #c7a275;border-radius:5px}
+ .cjw-credit a {color:var(--workshop-foil)}
+ .cjw-credit summary {display:inline-block;min-height:24px;padding:3px 8px;font-size:12px}
+ .cjw-status:not(:empty) {display:block;background:#35241d;padding:5px;border-radius:4px}
  :is(.tp-hero-inner,.jp-hero-card){background:#21372bef!important;border:1px solid var(--workshop-brass);color:#fff4e6!important}
  :is(.tp-hero-sub,.jp-hero-pitch,.jp-hero-localized,.jp-hero-compliance,.jp-hero-eyebrow),.jp-hero-compliance a{color:#fff4e6!important}
  :is(.tp-hero-inner,.jp-hero-card) .cjw-controls{margin-top:12px}
+
+ /* Home: window light at the calendar, pine at the reveal, and cranberry at signup. */
+ :is(#events,.mhf-automation-panel #events) {
+  background:linear-gradient(155deg,var(--workshop-frost),#eff2ed 75%)!important;
+  border-bottom:1px solid #98acb4;
+ }
+ #events .hp-section-eyebrow {color:var(--workshop-blue)!important;-webkit-text-fill-color:currentColor!important}
+ #events :is(.hp-event-card,.hp-event-card.is-next) {
+  background:var(--workshop-ivory)!important;
+  border-color:#acb9bd!important;
+  box-shadow:inset 0 3px var(--workshop-blue),0 10px 24px #1a354213;
+ }
+ #events :is(.hp-event-time,.hp-event-collection,.hp-event-date) {color:var(--workshop-blue)}
+ #wibp.hp-section {background:linear-gradient(135deg,var(--workshop-forest),#2f4b37)!important;color:var(--workshop-ivory)}
+ #wibp .hp-wibp-card {
+  --hp-card-fg:var(--workshop-ink);--hp-card-muted:#674738;
+  background:linear-gradient(140deg,var(--workshop-ivory),#eedcc1)!important;
+  border-color:var(--workshop-brass)!important;
+  box-shadow:0 14px 26px #14271b38;
+ }
+ #about.hp-section {background:linear-gradient(155deg,#f7ebd6,#efe0ca)!important;color:var(--workshop-ink)}
+ #about :is(.hp-section-eyebrow,.hp-about-kicker) {color:var(--workshop-ribbon)}
+ #about :is(.hp-about-copy,.hp-about-media-card) {
+  background:var(--workshop-ivory)!important;border-color:#ba9a74!important;
+ }
+ #about .hp-about-body p {color:#614639}
+ #signup.hp-signup {background:radial-gradient(ellipse at top,#804136,var(--workshop-berry) 74%)!important}
+ #signup .hp-signup-card {
+  --hp-form-panel-bg:var(--workshop-ivory);--hp-form-panel-fg:var(--workshop-ink);
+  border-color:#c39a68!important;
+  box-shadow:0 16px 36px #31121955;
+ }
+ #signup .hp-signup-offer {background:#f0e3c9;color:var(--workshop-ink);border-color:var(--workshop-brass)}
+ :is(.hp-signup-submit,.tp-sheet-submit,.tp-card-expand-cta,.jp-spot-btn) {
+  background:var(--workshop-ribbon)!important;color:var(--workshop-ivory)!important;
+  border-color:#be9364!important;
+ }
+ :is(.hp-signup-submit,.tp-sheet-submit,.tp-card-expand-cta,.jp-spot-btn):hover {
+  background:var(--workshop-berry)!important;
+ }
+
+ /* Dance Floor and Join use the same materials on different surfaces. */
+ .tp-board {
+  background:linear-gradient(155deg,var(--workshop-frost),#eef2ef 60%,var(--workshop-paper))!important;
+  border-top:1px solid #98acb4;
+ }
+ :is(.tp-filters,.tp-card,.tp-empty) {
+  background:var(--workshop-ivory)!important;
+  border-color:#a4b2b4!important;
+  box-shadow:0 8px 22px #1a354216;
+ }
+ .tp-empty {box-shadow:inset 0 3px var(--workshop-blue),0 8px 22px #1a354216}
+ :is(.tp-empty-glyph,.tp-empty-title,.tp-card-expand-collection) {color:var(--workshop-blue)!important}
+ :is(.tp-empty-reset,.tp-filter-pill.active) {
+  background:var(--workshop-blue)!important;color:var(--workshop-ivory)!important;
+ }
+ .tp-screenshot-tip {--hp-tip-surface:#19384a;--hp-tip-ink:#fff7e9;--hp-tip-accent:#f0cf9b;--hp-tip-border:#728e9b}
+ #team.jp-section {background:linear-gradient(155deg,#f7ebd6,#eee0cc)!important}
+ .jp-why.jp-section {background:linear-gradient(145deg,#dce7da,#ecf0e5)!important}
+ .jp-benefits {background:transparent!important}
+ .jp-benefit-card {box-shadow:inset 0 3px var(--workshop-forest),0 8px 18px #21372b19}
+ .jp-benefit-icon {color:var(--workshop-forest)!important;background:#e0e9dc!important}
+ #faq.jp-section {background:linear-gradient(145deg,var(--workshop-frost),#f2f2e8)!important}
+ #faq .jp-faq-item {border-color:#a4b2b4!important;box-shadow:0 4px 12px #1a35420a}
+ #faq .jp-faq-item.open {border-color:var(--workshop-blue)!important}
+ #faq .jp-faq-item.open .jp-faq-q {color:var(--workshop-blue)!important}
+ .jp-final {background:linear-gradient(140deg,#794439,var(--workshop-berry))!important}
+ .jp-final-card {
+  --hp-final-fg:var(--workshop-ink);--hp-final-muted:#614639;--hp-final-icon-fg:var(--workshop-ribbon);
+  background:var(--workshop-ivory)!important;color:var(--workshop-ink)!important;
+  border:1px solid var(--workshop-brass);
+ }
+ .jp-final-card :is(.jp-final-title,.jp-final-sub,.jp-final-note,.jp-final-note a) {color:var(--workshop-ink)!important}
+ .jp-final-btn {background:var(--workshop-ribbon)!important;color:var(--workshop-ivory)!important}
+ .hp-footer {
+  background:linear-gradient(155deg,#412b22,#281d19)!important;
+  border-top-color:#bd935f!important;color:var(--workshop-ivory);
+ }
+ .hp-footer :is(.hp-footer-brand,.hp-footer-col h4) {color:var(--workshop-foil)!important}
+ .hp-footer :is(.hp-footer-tag,.hp-footer-team,.hp-footer-col a,.hp-footer-bottom,.hp-footer-bottom a) {color:#f2e4d2!important}
+
  @media(min-width:851px){.mhf-hero,.hp-hero{min-height:clamp(560px,52vw,880px)!important}.mhf-hero{justify-items:start}.mhf-hero .ssr-hero-copy{transform:translateY(-10%)}}
  @media(max-width:850px){.hp-hero,.mhf-hero{display:flex;flex-direction:column;min-height:0!important;background:var(--workshop-forest)!important}.mhf-hero>.cjw-media,.hp-hero .hp-hero-media{position:relative;inset:auto;aspect-ratio:1.85;width:100%;z-index:0;flex:none}.mhf-hero-shade{display:none}.hp-hero .hp-hero-inner,.mhf-hero .ssr-hero-copy{width:100%;max-width:100%;margin:0;padding:22px;box-sizing:border-box}}
 }
