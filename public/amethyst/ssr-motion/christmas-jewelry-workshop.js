@@ -7,10 +7,9 @@
   let active = null, hydrated = !window.SPARKLE_FIRST_PAINT;
   const credit = '<details class="cjw-credit"><summary>Credits</summary>“Jingle Bells (Calm)” · <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100188" target="_blank" rel="noopener">Kevin MacLeod</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> · Fireplace audio by <a href="https://freesound.org/people/ceich93/sounds/263864/">ceich93</a>. Hearth footage by the National Park Service.</details><span class="cjw-status" role="status"></span>';
   function mount(hero) {
-    const trade = hero.matches('.tp-hero');
     const host = hero.querySelector('.hp-hero-media,.jp-hero-media') || hero;
     let media = hero.querySelector('.cjw-media');
-    const ownMedia = !media && !trade;
+    const ownMedia = !media;
     if (ownMedia) {
       media = document.createElement('div'); media.className = 'cjw-media'; media.setAttribute('aria-hidden', 'true');
       media.innerHTML = '<picture style="display:contents"><source media="(max-width:640px)" srcset="'+assets+'hero-poster-phone.webp"><img class="cjw-poster" src="'+assets+'hero-poster.webp" width="1672" height="941" alt="" fetchpriority="high"></picture><video class="cjw-video" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video>';
@@ -31,7 +30,7 @@
     const audio = document.createElement('audio'); audio.preload = 'none'; audio.loop = true; audio.volume = 1; audio.dataset.christmasJewelryWorkshopAudio = 'true'; document.body.append(audio);
     const connection = navigator.connection;
     const slow = connection?.saveData || ['slow-2g','2g','3g'].includes(connection?.effectiveType) || (connection?.downlink > 0 && connection.downlink < 2);
-    const savedOff = () => hero.dataset.heroMotion === 'off' || ['still','none'].includes((window.HOMEPAGE_TWEAK_DEFAULTS || window.JOIN_TWEAK_DEFAULTS)?.heroMotion);
+    const savedOff = () => hero.dataset.heroMotion === 'off' || ['still','none'].includes((window.HOMEPAGE_TWEAK_DEFAULTS || window.TRADE_TWEAK_DEFAULTS || window.JOIN_TWEAK_DEFAULTS)?.heroMotion);
     let wanted = !reduced.matches && !slow && !savedOff(), musicWanted = false, visible = true, ready = false, disposed = false, videoPending = false, audioPending = false, videoFailed = false, audioFailed = false;
     let idle, timer;
     const listeners = [];

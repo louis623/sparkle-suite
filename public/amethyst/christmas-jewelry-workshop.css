@@ -39,6 +39,11 @@ html[data-customer-theme="christmas_jewelry_workshop"] {
  .cjw-media :is(img,video){position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;pointer-events:none}
  .cjw-video{opacity:0}.cjw-media[data-cjw-has-frame="true"] .cjw-video{opacity:1}
  :is(.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero)>.cjw-media{z-index:-2}
+ .tp-hero > .cjw-media {z-index:-1}
+ .tp-hero > .cjw-media :is(img,video) {object-position:center}
+ @media (max-width:640px) {
+  .tp-hero {--cjw-poster:url('/amethyst/skins/christmas-jewelry-workshop/hero-poster-phone.webp')}
+ }
  .hp-hero-fx-layer,.ssr-utility-motion-control{display:none!important}
  .mhf-hero-shade,.hp-hero-overlay{background:linear-gradient(90deg,#140e09b8,#1e130d88 33%,transparent 61%)!important;pointer-events:none}
  .hp-hero .hp-hero-inner,.mhf-hero .ssr-hero-copy{width:min(45%,500px);padding:26px 16px;margin:0 0 0 2%;text-align:center;grid-template-columns:minmax(0,1fr);justify-self:start}
