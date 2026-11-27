@@ -5,6 +5,7 @@ html[data-customer-theme="christmas_jewelry_workshop"] {
   --workshop-forest:#21372b; --workshop-ribbon:#713128; --workshop-foil:#f0cf9b;
   --workshop-berry:#55242a; --workshop-blue:#24485f; --workshop-frost:#e1ebed;
   --workshop-ivory:#fff8ea;
+  --workshop-window:#234b73; --workshop-night:#152e4b;
   --cjw-poster:url('/amethyst/skins/christmas-jewelry-workshop/hero-poster.webp');
 }
 @scope (html[data-customer-theme="christmas_jewelry_workshop"]) {
@@ -15,8 +16,19 @@ html[data-customer-theme="christmas_jewelry_workshop"] {
   --hp-card-fg:#382518;--hp-card-muted:#674738;--hp-card-accent:#713128;--hp-field-bg:#fff5e6;--hp-field-fg:#382518;--hp-form-panel-bg:#fbf3e8;--hp-form-panel-fg:#382518;
   color:var(--workshop-ink);background:var(--workshop-paper);font-family:var(--hp-body-font)
  }
- .hp-header,.mhf-below-hero-shell,.mhf-automation-panel #events,.tp-board,.jp-benefits{background:var(--workshop-paper)!important;color:var(--workshop-ink)!important}
- .hp-header :is(.hp-brand-name,.hp-brand-sub,.hp-header-link),#events :is(.hp-section-title,.hp-section-sub,.hp-section-eyebrow,.hp-event-name,.hp-event-meta){background:none!important;color:var(--workshop-ink)!important;-webkit-text-fill-color:var(--workshop-ink)!important}
+ .mhf-below-hero-shell,.mhf-automation-panel #events,.tp-board,.jp-benefits{background:var(--workshop-paper)!important;color:var(--workshop-ink)!important}
+ .hp-header {
+  background:linear-gradient(110deg,var(--workshop-night),var(--workshop-window))!important;
+  border-bottom-color:#8baaca!important;color:var(--workshop-ivory);
+ }
+ .hp-header :is(.hp-brand-name,.hp-brand-sub,.hp-header-link) {
+  background:none!important;color:#f1f6fb!important;-webkit-text-fill-color:currentColor!important;
+ }
+ .hp-header .hp-header-link::after {background:var(--workshop-foil)}
+ .hp-header .hp-header-link[aria-current="page"] {color:var(--workshop-foil)!important}
+ .hp-header .hp-header-link-disabled {color:#ccdced!important}
+ .hp-header :is(.hp-header-link,.hp-brand,.hp-shop-btn):focus-visible {outline:2px solid var(--workshop-foil);outline-offset:3px}
+ #events :is(.hp-section-title,.hp-section-sub,.hp-section-eyebrow,.hp-event-name,.hp-event-meta){background:none!important;color:var(--workshop-ink)!important;-webkit-text-fill-color:var(--workshop-ink)!important}
  .hp-header .hp-shop-btn,.hp-ticker-label{background:var(--workshop-ribbon)!important;color:#fff5e5!important}
  :is(.hp-ticker-row,.hp-lineup-row){background:var(--workshop-forest)!important}
  :is(.hp-ticker-item,.hp-ticker-empty,.hp-lineup-idle-copy,.hp-lineup-next,.hp-lineup-idle-prompt){color:#fff5e5!important}
@@ -39,7 +51,7 @@ html[data-customer-theme="christmas_jewelry_workshop"] {
  :is(.hp-hero-ctas,.mhf-hero-ctas){justify-content:center;margin-top:16px}
  :is(.hp-hero-cta-stack,.mhf-hero-cta-stack){width:min(100%,390px)!important;display:grid;gap:7px;margin-inline:auto}
  :is(.hp-hero-cta-primary-row,.mhf-hero-cta-primary-row){display:flex;flex-wrap:wrap;gap:6px;width:100%}
- :is(.hp-hero-cta-primary-row,.mhf-hero-cta-primary-row)>a{flex:1 1 86px;min-width:0!important;min-height:42px;border-radius:3px!important;border:1px solid var(--workshop-brass);padding:8px 4px;font:600 13px 'Workshop Body',sans-serif;color:#fff7eb;background:#292017}
+ :is(.hp-hero-cta-primary-row,.mhf-hero-cta-primary-row)>a{flex:1 1 86px;min-width:0!important;min-height:42px;display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal;border-radius:3px!important;border:1px solid var(--workshop-brass);padding:8px 4px;font:600 13px 'Workshop Body',sans-serif;color:#fff7eb;background:#292017}
  :is(.hp-hero-cta-primary-row,.mhf-hero-cta-primary-row)>a:first-child{background:var(--workshop-foil)!important;color:#281c17!important;box-shadow:inset 0 0 0 2px var(--workshop-foil),inset 0 0 0 3px var(--workshop-brass)}
  :is(.hp-hero-cta-primary-row,.mhf-hero-cta-primary-row)>a:nth-child(2){background:var(--workshop-ribbon)!important;color:white!important}
  :is(.hp-hero-trade-board-cta,.mhf-cta-dance-floor){width:100%!important;max-width:none!important;box-sizing:border-box;border-radius:3px!important;border:1px solid var(--workshop-brass);background:var(--workshop-forest)!important;color:#fff4e6!important}
@@ -48,8 +60,10 @@ html[data-customer-theme="christmas_jewelry_workshop"] {
   text-align:center;color:var(--workshop-ivory);font:600 13px/1.35 'Workshop Body',sans-serif;
   position:relative;z-index:2;
  }
- .cjw-actions {display:flex;justify-content:center;flex-wrap:wrap;gap:6px}
- .cjw-actions button,.cjw-credit summary {
+ :is(.hp-hero-cta-stack,.mhf-hero-cta-stack) > .cjw-controls {justify-self:stretch;width:100%}
+ .cjw-actions {display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
+ .cjw-actions:has(.cjw-toggle) button {min-inline-size:126px}
+ .cjw-actions button {
   background:#35241d;color:var(--workshop-ivory);font:inherit;
   border:1px solid #c7a275;border-radius:5px;cursor:pointer;
  }
@@ -69,7 +83,11 @@ html[data-customer-theme="christmas_jewelry_workshop"] {
  .cjw-credit {margin-top:6px}
  .cjw-credit[open] {background:#35241d;padding:8px;border:1px solid #c7a275;border-radius:5px}
  .cjw-credit a {color:var(--workshop-foil)}
- .cjw-credit summary {display:inline-block;min-height:24px;padding:3px 8px;font-size:12px}
+ .cjw-credit summary {
+  display:inline-block;min-height:24px;padding:3px 8px;font-size:12px;
+  color:var(--workshop-ivory);background:#35241d;border-radius:4px;
+  text-decoration:underline;text-underline-offset:2px;cursor:pointer;
+ }
  .cjw-status:not(:empty) {display:block;background:#35241d;padding:5px;border-radius:4px}
  :is(.tp-hero-inner,.jp-hero-card){background:#21372bef!important;border:1px solid var(--workshop-brass);color:#fff4e6!important}
  :is(.tp-hero-sub,.jp-hero-pitch,.jp-hero-localized,.jp-hero-compliance,.jp-hero-eyebrow),.jp-hero-compliance a{color:#fff4e6!important}
@@ -162,11 +180,11 @@ html[data-customer-theme="christmas_jewelry_workshop"] {
  .jp-final-card :is(.jp-final-title,.jp-final-sub,.jp-final-note,.jp-final-note a) {color:var(--workshop-ink)!important}
  .jp-final-btn {background:var(--workshop-ribbon)!important;color:var(--workshop-ivory)!important}
  .hp-footer {
-  background:linear-gradient(155deg,#412b22,#281d19)!important;
-  border-top-color:#bd935f!important;color:var(--workshop-ivory);
+  background:linear-gradient(140deg,var(--workshop-window),var(--workshop-night) 74%)!important;
+  border-top-color:#8baaca!important;color:var(--workshop-ivory);
  }
  .hp-footer :is(.hp-footer-brand,.hp-footer-col h4) {color:var(--workshop-foil)!important}
- .hp-footer :is(.hp-footer-tag,.hp-footer-team,.hp-footer-col a,.hp-footer-bottom,.hp-footer-bottom a) {color:#f2e4d2!important}
+ .hp-footer :is(.hp-footer-tag,.hp-footer-team,.hp-footer-col a,.hp-footer-bottom,.hp-footer-bottom a) {color:#e3edf7!important}
 
  @media(min-width:851px){.mhf-hero,.hp-hero{min-height:clamp(560px,52vw,880px)!important}.mhf-hero{justify-items:start}.mhf-hero .ssr-hero-copy{transform:translateY(-10%)}}
  @media(max-width:850px){.hp-hero,.mhf-hero{display:flex;flex-direction:column;min-height:0!important;background:var(--workshop-forest)!important}.mhf-hero>.cjw-media,.hp-hero .hp-hero-media{position:relative;inset:auto;aspect-ratio:1.85;width:100%;z-index:0;flex:none}.mhf-hero-shade{display:none}.hp-hero .hp-hero-inner,.mhf-hero .ssr-hero-copy{width:100%;max-width:100%;margin:0;padding:22px;box-sizing:border-box}}

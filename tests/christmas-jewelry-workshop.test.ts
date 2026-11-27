@@ -52,6 +52,7 @@ it('renders the workshop assets on Home, Dance Floor and Join with rep-owned cop
     if(page==='homepage'){
       expect(html).toContain('class="cjw-video"')
       expect(html).toContain('Play sound')
+      expect(html).not.toContain('cjw-mute')
     }
     if(process.env.WORKSHOP_PROOF_DIR)writeFileSync(join(process.env.WORKSHOP_PROOF_DIR,page+'.html'),html)
   }

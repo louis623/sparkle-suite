@@ -112,7 +112,7 @@ export function SilverBellsControls({ motion = <button type="button" className="
   </div>; }
 
 export function WorkshopControls({ motion = <button type="button" className="cjw-toggle" data-hero-motion-toggle="" aria-pressed="true" suppressHydrationWarning>Pause animation</button> }) { return <div className="cjw-controls" role="group" aria-label="Christmas scene controls">
-    <div className="cjw-actions">{motion}<button type="button" className="cjw-music-toggle" aria-pressed="false" suppressHydrationWarning>Play sound</button><button type="button" className="cjw-mute">Mute</button></div>
+    <div className="cjw-actions">{motion}<button type="button" className="cjw-music-toggle" aria-pressed="false" suppressHydrationWarning>Play sound</button></div>
     <details className="cjw-credit"><summary>Credits</summary>“Jingle Bells (Calm)” · <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100188" target="_blank" rel="noopener">Kevin MacLeod</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> · Fireplace audio by <a href="https://freesound.org/people/ceich93/sounds/263864/">ceich93</a>. Hearth footage by the National Park Service.</details>
     <span className="cjw-status" role="status" />
   </div>; }

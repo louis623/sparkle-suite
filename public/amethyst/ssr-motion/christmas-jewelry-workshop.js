@@ -21,7 +21,7 @@
     const ownControls = !controls;
     if (!controls) {
       controls = document.createElement('div'); controls.className = 'cjw-controls'; controls.setAttribute('role', 'group'); controls.setAttribute('aria-label', 'Christmas scene controls');
-      controls.innerHTML = '<div class="cjw-actions">'+(video?'<button type="button" class="cjw-toggle" data-hero-motion-toggle>Pause animation</button>':'')+'<button type="button" class="cjw-music-toggle">Play sound</button><button type="button" class="cjw-mute">Mute</button></div>'+credit;
+      controls.innerHTML = '<div class="cjw-actions">'+(video?'<button type="button" class="cjw-toggle" data-hero-motion-toggle>Pause animation</button>':'')+'<button type="button" class="cjw-music-toggle">Play sound</button></div>'+credit;
       const danceFloor = hero.querySelector('.hp-hero-trade-board-cta,.mhf-cta-dance-floor,.bwb-cta-dance-floor,.bk-home-cta-dance-floor');
       if (danceFloor) danceFloor.after(controls);
       else (hero.querySelector('.jp-hero-card,.tp-hero-inner') || hero).append(controls);
@@ -37,8 +37,6 @@
     const listeners = [];
     function on(target, event, fn) { target?.addEventListener(event, fn); listeners.push(() => target?.removeEventListener(event, fn)); }
     if (video) { video.muted = true; video.defaultMuted = true; video.loop = true; video.playsInline = true; video.preload = 'none'; video.poster = assets+(matchMedia('(max-width:640px)').matches?'hero-poster-phone.webp':'hero-poster.webp'); }
-    const mute = controls.querySelector('.cjw-mute');
-    on(mute,'click',() => { audio.muted = !audio.muted; mute.textContent = audio.muted ? 'Unmute' : 'Mute'; mute.setAttribute('aria-pressed', String(audio.muted)); });
     function label() {
       if (motion) { motion.textContent = wanted ? 'Pause animation' : 'Play animation'; motion.setAttribute('aria-pressed', String(wanted)); motion.disabled = videoFailed; }
       musicButton.textContent = musicWanted ? 'Pause sound' : 'Play sound'; musicButton.setAttribute('aria-pressed', String(musicWanted)); musicButton.disabled = audioFailed;
