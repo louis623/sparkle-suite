@@ -9,6 +9,7 @@ export type BizcardKey =
   | 'gilded-autumn'
   | 'midnight-rose'
   | 'silver-bells'
+  | 'christmas-jewelry-workshop'
   | 'starlight-christmas-hollow'
   | 'fall-owl'
   | 'gobble-and-fizz'
@@ -73,6 +74,7 @@ export const BIZCARD_THEMES: Record<BizcardKey, BizcardTheme> = {
   amethyst: t({ key: 'amethyst', qrTheme: 'amethyst', align: 'left', tw: 0.4, shadow: true,
     back: '#26105c', name: '#ff8fd0', ink: '#ffffff', sub: '#cdb8ff', rule: '#4f3398', title: '#ffffff', script: '#ff9bd6' }),
   'silver-bells': t({key:'silver-bells',qrTheme:'silver_bells',align:'left',maxw:420,ytop:90,cmaxh:290,shadow:true,hmax:100,back:'#dce8f5',name:'#102443',ink:'#102443',sub:'#365478',rule:'#96bce8',title:'#f3f7ff',script:'#c5dcf7'}),
+  'christmas-jewelry-workshop': t({key:'christmas-jewelry-workshop',qrTheme:'christmas_jewelry_workshop',align:'left',maxw:420,ytop:90,cmaxh:290,shadow:true,hmax:100,back:'#f5e9d6',name:'#382518',ink:'#382518',sub:'#674738',rule:'#aa8153',title:'#fff4e6',script:'#f0cf9b'}),
   'starlight-christmas-hollow': t({ key: 'starlight-christmas-hollow', qrTheme: 'starlight_christmas_hollow', align: 'center', maxw: 400, cmaxh: 210, ytop: 160, shadow: true, back: '#0b2039', name: '#f2c77b', ink: '#fff7e9', sub: '#c5d5e5', rule: '#50617a', title: '#fff7e9', script: '#f2c77b' }),
   'fall-owl': t({ key: 'fall-owl', qrTheme: 'fall_owl_harvest_moon', align: 'left', tw: 0.47, shadow: true,
     back: '#201321', name: '#efba73', ink: '#fff3e4', sub: '#ddc8b8', rule: '#70513e', title: '#fff3e4', script: '#efba73' }),
@@ -122,6 +124,7 @@ export const BIZCARD_SHARED_THEMES: Partial<Record<string, BizcardKey>> = {
   gilded_autumn: 'gilded-autumn',
   midnight_rose: 'midnight-rose',
   silver_bells: 'silver-bells',
+  christmas_jewelry_workshop: 'christmas-jewelry-workshop',
   starlight_christmas_hollow: 'starlight-christmas-hollow',
   fall_owl_harvest_moon: 'fall-owl',
   pearl_rose: 'pearl-rose',

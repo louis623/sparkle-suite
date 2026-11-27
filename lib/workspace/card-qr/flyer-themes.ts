@@ -25,6 +25,7 @@ const skin = (folder: string, file: string) => `public/amethyst/skins/${folder}/
 
 export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
   { theme: 'silver_bells' as AmethystAppearancePresetId, status: 'art', source: skin('silver-bells', 'hero-poster.webp'), plate: skin('silver-bells', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Silver Bells dedicated portrait composition.' },
+  { theme: 'christmas_jewelry_workshop' as AmethystAppearancePresetId, status: 'art', source: skin('christmas-jewelry-workshop', 'hero-poster.webp'), plate: skin('christmas-jewelry-workshop', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Christmas Jewelry Workshop dedicated portrait composition.' },
   { theme: 'macies_christmas_globe', status: 'art', source: skin('macies-christmas-globe', 'hero-poster.webp'), plate: skin('macies-christmas-globe', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Private Macie Grey mantel portrait.' },
   { theme: 'sunset_beach', status: 'art', source: skin('sunset-beach', 'hero-approved.png'), plate: skin('sunset-beach', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Approved dedicated palm-beach portrait with dark rose/copper title panels, sunset CTA and dark gradient QR.' },
   { theme: 'gobble_and_fizz', status: 'art', source: skin('gobble-and-fizz', 'hero-poster.webp'), plate: skin('gobble-and-fizz', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Approved cauldron-only 1080×1920 scene: oversized copper sides, ring handles and fizz remain visible around the unchanged flyer panels.' },

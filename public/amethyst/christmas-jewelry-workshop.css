@@ -1,0 +1,53 @@
+@font-face{font-family:Workshop Display;src:url('/amethyst/skins/christmas-jewelry-workshop/fonts/cormorant.ttf');font-weight:300 700;font-display:swap}
+@font-face{font-family:Workshop Body;src:url('/amethyst/skins/christmas-jewelry-workshop/fonts/dm-sans.ttf');font-weight:100 900;font-display:swap}
+html[data-customer-theme="christmas_jewelry_workshop"] {
+  --workshop-paper:#f5e9d6; --workshop-ink:#382518; --workshop-brass:#aa8153;
+  --workshop-forest:#21372b; --workshop-ribbon:#713128; --workshop-foil:#f0cf9b;
+  --cjw-poster:url('/amethyst/skins/christmas-jewelry-workshop/hero-poster.webp');
+}
+@scope (html[data-customer-theme="christmas_jewelry_workshop"]) {
+ body,.mhf-page,.mhf-trade-page,.mhf-join-page {
+  --hp-bg:var(--workshop-paper)!important;--hp-bg-elevated:#fbf3e8!important;
+  --hp-primary:var(--workshop-ribbon)!important;--hp-accent:var(--workshop-brass)!important;
+  --hp-display-font:'Workshop Display',Georgia,serif!important;--hp-body-font:'Workshop Body',Arial,sans-serif!important;
+  --hp-card-fg:#382518;--hp-card-muted:#674738;--hp-card-accent:#713128;--hp-field-bg:#fff5e6;--hp-field-fg:#382518;--hp-form-panel-bg:#fbf3e8;--hp-form-panel-fg:#382518;
+  color:var(--workshop-ink);background:var(--workshop-paper);font-family:var(--hp-body-font)
+ }
+ .hp-header,.mhf-below-hero-shell,.mhf-automation-panel #events,.tp-board,.jp-benefits{background:var(--workshop-paper)!important;color:var(--workshop-ink)!important}
+ .hp-header :is(.hp-brand-name,.hp-brand-sub,.hp-header-link),#events :is(.hp-section-title,.hp-section-sub,.hp-section-eyebrow,.hp-event-name,.hp-event-meta){background:none!important;color:var(--workshop-ink)!important;-webkit-text-fill-color:var(--workshop-ink)!important}
+ .hp-header .hp-shop-btn,.hp-ticker-label{background:var(--workshop-ribbon)!important;color:#fff5e5!important}
+ :is(.hp-ticker-row,.hp-lineup-row){background:var(--workshop-forest)!important}
+ :is(.hp-ticker-item,.hp-ticker-empty,.hp-lineup-idle-copy,.hp-lineup-next,.hp-lineup-idle-prompt){color:#fff5e5!important}
+ :is(.hp-event-card,.jp-benefit-card,.tp-empty,.tp-filters,.jp-faq-item,.hp-signup-card){background:#fbf3e8!important;color:#382518!important;border:1px solid var(--workshop-brass)!important;border-radius:4px!important}
+ :is(.hp-hero,.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero,.jp-hero,.tp-hero){position:relative;isolation:isolate;background:var(--workshop-forest) var(--cjw-poster) center/cover!important}
+ .hp-hero-media,.jp-hero-media{background:var(--cjw-poster) center/cover!important}
+ .cjw-media{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+ .cjw-media :is(img,video){position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;pointer-events:none}
+ .cjw-video{opacity:0}.cjw-media[data-cjw-has-frame="true"] .cjw-video{opacity:1}
+ :is(.mhf-hero,.bwb-hero,.bk-home-hero,.bkf-hero)>.cjw-media{z-index:-2}
+ .hp-hero-fx-layer,.ssr-utility-motion-control{display:none!important}
+ .mhf-hero-shade,.hp-hero-overlay{background:linear-gradient(90deg,#140e09b8,#1e130d88 33%,transparent 61%)!important;pointer-events:none}
+ .hp-hero .hp-hero-inner,.mhf-hero .ssr-hero-copy{width:min(45%,500px);padding:26px 16px;margin:0 0 0 2%;text-align:center;grid-template-columns:minmax(0,1fr);justify-self:start}
+ .mhf-hero .mhf-hero-content,.hp-hero .hp-hero-copy{width:100%;text-align:center;padding:0;max-width:100%;color:#fff5e6}
+ :is(.hp-hero-headline,.mhf-hero-title,.jp-hero-title,.tp-hero-title){font-family:'Workshop Display',Georgia,serif!important;font-variant:small-caps;font-weight:550!important;line-height:1.06;color:#f5dab8!important;-webkit-text-fill-color:#f5dab8!important;background:none!important}
+ :is(.hp-hero-headline,.mhf-hero-title){font-size:clamp(44px,4.7vw,80px)!important}
+ .mhf-hero .mhf-hero-with{color:#ffe9d2;font:600 12px/1.5 'Workshop Body',sans-serif;letter-spacing:.29em}
+ .mhf-hero .mhf-hero-line,.hp-hero-sub{max-width:37ch;margin:16px auto 0;font:500 21px/1.38 'Workshop Display',serif;color:#fff4e6!important}
+ .mhf-hero .mhf-hero-instruction{max-width:53ch;margin:14px auto;font:500 11px/1.55 'Workshop Body',sans-serif;letter-spacing:.11em;color:#efdecf}
+ :is(.hp-hero-ctas,.mhf-hero-ctas){justify-content:center;margin-top:16px}
+ :is(.hp-hero-cta-stack,.mhf-hero-cta-stack){width:min(100%,390px)!important;display:grid;gap:7px;margin-inline:auto}
+ :is(.hp-hero-cta-primary-row,.mhf-hero-cta-primary-row){display:flex;flex-wrap:wrap;gap:6px;width:100%}
+ :is(.hp-hero-cta-primary-row,.mhf-hero-cta-primary-row)>a{flex:1 1 86px;min-width:0!important;min-height:42px;border-radius:3px!important;border:1px solid var(--workshop-brass);padding:8px 4px;font:600 13px 'Workshop Body',sans-serif;color:#fff7eb;background:#292017}
+ :is(.hp-hero-cta-primary-row,.mhf-hero-cta-primary-row)>a:first-child{background:var(--workshop-foil)!important;color:#281c17!important;box-shadow:inset 0 0 0 2px var(--workshop-foil),inset 0 0 0 3px var(--workshop-brass)}
+ :is(.hp-hero-cta-primary-row,.mhf-hero-cta-primary-row)>a:nth-child(2){background:var(--workshop-ribbon)!important;color:white!important}
+ :is(.hp-hero-trade-board-cta,.mhf-cta-dance-floor){width:100%!important;max-width:none!important;box-sizing:border-box;border-radius:3px!important;border:1px solid var(--workshop-brass);background:var(--workshop-forest)!important;color:#fff4e6!important}
+ .cjw-controls{text-align:center;color:#fff4e6;font:12px 'Workshop Body',sans-serif;position:relative;z-index:2}
+ .cjw-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
+ .cjw-actions button,.cjw-credit summary{background:transparent;color:inherit;font:inherit;border:0;border-bottom:1px solid #baa38a;padding:6px 3px;cursor:pointer}
+ .cjw-credit a{color:inherit}.cjw-credit summary{display:inline-block}
+ :is(.tp-hero-inner,.jp-hero-card){background:#21372bef!important;border:1px solid var(--workshop-brass);color:#fff4e6!important}
+ :is(.tp-hero-sub,.jp-hero-pitch,.jp-hero-localized,.jp-hero-compliance,.jp-hero-eyebrow),.jp-hero-compliance a{color:#fff4e6!important}
+ :is(.tp-hero-inner,.jp-hero-card) .cjw-controls{margin-top:12px}
+ @media(min-width:851px){.mhf-hero,.hp-hero{min-height:clamp(560px,52vw,880px)!important}.mhf-hero{justify-items:start}.mhf-hero .ssr-hero-copy{transform:translateY(-10%)}}
+ @media(max-width:850px){.hp-hero,.mhf-hero{display:flex;flex-direction:column;min-height:0!important;background:var(--workshop-forest)!important}.mhf-hero>.cjw-media,.hp-hero .hp-hero-media{position:relative;inset:auto;aspect-ratio:1.85;width:100%;z-index:0;flex:none}.mhf-hero-shade{display:none}.hp-hero .hp-hero-inner,.mhf-hero .ssr-hero-copy{width:100%;max-width:100%;margin:0;padding:22px;box-sizing:border-box}}
+}

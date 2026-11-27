@@ -45,13 +45,13 @@ function PumpkinWitchScene() {
 // Native controls bind before hydration, preserving early Pause without remounts.
 export function HeroMotionScene({ t, host = false, surface = "homepage", eager = false }) {
   const config = window.SPARKLE_HERO_THEMES[t.preset];
-  useEffect(() => { window.sparkleStartHeroMotion?.(); if (t.preset === 'silver_bells') window.dispatchEvent(new Event('sparkle:silver-bells-hydrated')); }, [t.preset]);
+  useEffect(() => { window.sparkleStartHeroMotion?.(); if (t.preset === 'christmas_jewelry_workshop') window.dispatchEvent(new Event('sparkle:christmas-jewelry-workshop-hydrated')); if (t.preset === 'silver_bells') window.dispatchEvent(new Event('sparkle:silver-bells-hydrated')); }, [t.preset]);
   const motion = <button type="button" className={config.controlClass || 'ssr-motion-control'} data-hero-motion-toggle="" aria-pressed="true" suppressHydrationWarning>Pause animation</button>;
   const silver = t.preset === 'silver_bells';
   const controls = silver ? <SilverBellsControls motion={motion} /> : config.controlsClass ? <div className={config.controlsClass} role="group" aria-label="Hero animation controls">
     {motion}{config.sound && <button type="button" className={config.controlClass} data-hero-sound-toggle={config.sound} aria-pressed="false" suppressHydrationWarning>{config.soundAction || 'Enable ' + config.sound}</button>}
   </div> : motion;
-  if (silver && (!host || surface !== "homepage")) return null;
+  if ((silver || t.preset === "christmas_jewelry_workshop") && (!host || surface !== "homepage")) return null;
   if (surface !== "homepage" && config.kind !== "decoration") return <button type="button" className="ssr-utility-motion-control" data-hero-motion-toggle="" aria-pressed="true" suppressHydrationWarning>Pause animation</button>;
   if (Boolean(config.host) !== host) return config.controlsOutsideHost && !host ? controls : null;
   if (config.kind === 'decoration') {
@@ -109,4 +109,10 @@ export function SilverBellsControls({ motion = <button type="button" className="
     <div className="sb-actions">{motion}<button type="button" className="sb-music-toggle" aria-pressed="false" suppressHydrationWarning>Play music</button></div>
     <small className="sb-credit">“Jingle Bells (Calm)” · <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100188" target="_blank" rel="noopener">Kevin MacLeod</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></small>
     <span className="sb-status" role="status" />
+  </div>; }
+
+export function WorkshopControls({ motion = <button type="button" className="cjw-toggle" data-hero-motion-toggle="" aria-pressed="true" suppressHydrationWarning>Pause animation</button> }) { return <div className="cjw-controls" role="group" aria-label="Christmas scene controls">
+    <div className="cjw-actions">{motion}<button type="button" className="cjw-music-toggle" aria-pressed="false" suppressHydrationWarning>Play sound</button><button type="button" className="cjw-mute">Mute</button></div>
+    <details className="cjw-credit"><summary>Credits</summary>“Jingle Bells (Calm)” · <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100188" target="_blank" rel="noopener">Kevin MacLeod</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> · Fireplace audio by <a href="https://freesound.org/people/ceich93/sounds/263864/">ceich93</a>. Hearth footage by the National Park Service.</details>
+    <span className="cjw-status" role="status" />
   </div>; }

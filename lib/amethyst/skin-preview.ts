@@ -9,7 +9,7 @@ import type { AmethystHomepageEventCard } from './homepage-upcoming-shows'
 
 export const SKIN_PREVIEW_PAGES = ['homepage', 'trade', 'join', 'unsubscribe'] as const
 export type SkinPreviewPage = (typeof SKIN_PREVIEW_PAGES)[number]
-export const SKIN_PREVIEW_SKINS = ['amethyst', 'gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn', 'rose_gold', 'midnight_rose', 'macies_christmas_globe', 'silver_bells', 'starlight_christmas_hollow', 'fall_owl_harvest_moon', 'gobble_and_fizz', 'pie_please', 'pearl_rose', 'rose_champagne', 'sunset_beach'] as const
+export const SKIN_PREVIEW_SKINS = ['amethyst', 'gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn', 'rose_gold', 'midnight_rose', 'macies_christmas_globe', 'silver_bells', 'christmas_jewelry_workshop', 'starlight_christmas_hollow', 'fall_owl_harvest_moon', 'gobble_and_fizz', 'pie_please', 'pearl_rose', 'rose_champagne', 'sunset_beach'] as const
 export type SkinPreviewSkin = (typeof SKIN_PREVIEW_SKINS)[number]
 const FILES: Record<SkinPreviewPage, string> = {
   homepage: 'Homepage.html', trade: 'Trade.html', join: 'Join.html', unsubscribe: 'Unsubscribe.html',
@@ -159,6 +159,20 @@ const PREVIEW_PROFILES = {
     events: [
       { id: 'sample-rose-evening', title: 'Silver Bells Reveal Night', description: 'A little sparkle, good company, and beautiful jewelry surprises. Join Sasha for an evening of live reveals.', eventTime: '2099-12-12T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{ code: 'SAMPLE10', desc: 'Sample offer for this appearance preview' }], collections: [{ label: 'OG Collection', href: previewPath('silver_bells', 'trade') }], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
       { id: 'sample-rose-weekend', title: 'Saturday Sparkle & Sip', description: 'Bring your favorite drink and settle in for a relaxed weekend reveal.', eventTime: '2099-12-14T17:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 60, featured: false, codes: [], collections: [{ label: 'Birthday Collection', href: previewPath('silver_bells', 'trade') }], platforms: [{ kind: 'fb', label: 'Watch on Facebook', href: '#preview-action' }] },
+    ],
+  },
+  christmas_jewelry_workshop: {
+    label: 'Christmas Jewelry Workshop', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
+    ticker: 'Live jewelry reveals | A little sparkle, a lovely surprise | Explore the Dance Floor',
+    tagline: 'Good company. Beautiful surprises.',
+    eyebrow: '', headline: 'Real jewelry. Live reveals. Pure sparkle.',
+    heroSub: 'Join Sasha for live jewelry reveals, friendly conversation, and your next favorite find.',
+    aboutHeadline: 'Come for a reveal. Stay for the company.',
+    aboutParagraphs: ['Hi, I’m Sasha. I love sharing the surprise of a jewelry reveal with you.', 'Whether you are discovering your first piece or chasing your next favorite, you are welcome here.', 'Check the sample show calendar and come join the fun.'],
+    signupSub: 'Get a friendly heads-up before the next live reveal.',
+    events: [
+      { id: 'sample-rose-evening', title: 'Christmas Jewelry Workshop Reveal Night', description: 'A little sparkle, good company, and beautiful jewelry surprises. Join Sasha for an evening of live reveals.', eventTime: '2099-12-12T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{ code: 'SAMPLE10', desc: 'Sample offer for this appearance preview' }], collections: [{ label: 'OG Collection', href: previewPath('christmas_jewelry_workshop', 'trade') }], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
+      { id: 'sample-rose-weekend', title: 'Saturday Sparkle & Sip', description: 'Bring your favorite drink and settle in for a relaxed weekend reveal.', eventTime: '2099-12-14T17:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 60, featured: false, codes: [], collections: [{ label: 'Birthday Collection', href: previewPath('christmas_jewelry_workshop', 'trade') }], platforms: [{ kind: 'fb', label: 'Watch on Facebook', href: '#preview-action' }] },
     ],
   },
   starlight_christmas_hollow: {
@@ -375,7 +389,7 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
   }
   if (page === 'join') {
     return buildAmethystJoinBootstrapScript({
-      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'amethyst' || skin === 'gilded_autumn' || (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'macies_christmas_globe' || skin === 'silver_bells' || skin === 'starlight_christmas_hollow' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') ? `Find your place with ${profile.repName}.` : skin === 'neon_butterfly' ? 'Find your place in the glow.' : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat') ? 'Find your place beneath the pumpkin moon.' : 'Find your place in the garden.',
+      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'amethyst' || skin === 'gilded_autumn' || (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'macies_christmas_globe' || skin === 'silver_bells' || skin === 'christmas_jewelry_workshop' || skin === 'starlight_christmas_hollow' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') ? `Find your place with ${profile.repName}.` : skin === 'neon_butterfly' ? 'Find your place in the glow.' : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat') ? 'Find your place beneath the pumpkin moon.' : 'Find your place in the garden.',
       shopUrl: '#preview-action', bpReferralUrl: '', hasRecruitingLink: false,
       teamMembers: [
         ...(skin === 'neon_butterfly'
@@ -385,7 +399,7 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
               { name: 'Jules', business: 'Bright Wing Sparkle', state: 'Virginia', initials: 'J', socialLinks: {} },
             ]
           : [
-              { name: skin === 'macies_christmas_globe' ? profile.repName : 'Sasha', business: (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'macies_christmas_globe' || skin === 'silver_bells' || skin === 'starlight_christmas_hollow' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') ? profile.businessName : 'The Gnome Forest', state: skin === 'macies_christmas_globe' ? '' : 'Virginia', initials: skin === 'macies_christmas_globe' ? 'K' : 'S', socialLinks: {} },
+              { name: skin === 'macies_christmas_globe' ? profile.repName : 'Sasha', business: (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'macies_christmas_globe' || skin === 'silver_bells' || skin === 'christmas_jewelry_workshop' || skin === 'starlight_christmas_hollow' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') ? profile.businessName : 'The Gnome Forest', state: skin === 'macies_christmas_globe' ? '' : 'Virginia', initials: skin === 'macies_christmas_globe' ? 'K' : 'S', socialLinks: {} },
               { name: 'Alex', business: 'Moonlit Sparkle', state: 'North Carolina', initials: 'A', socialLinks: {} },
               { name: 'Jamie', business: 'Little Lantern Reveals', state: 'Georgia', initials: 'J', socialLinks: {} },
             ]),
@@ -501,6 +515,7 @@ export const SKIN_PREVIEW_GUARDS = `
 /** Video skins may load only their own self-hosted media in the sample sandbox. */
 export function skinPreviewMediaSource(skin: SkinPreviewSkin, origin: string) {
   if (skin === 'silver_bells') return origin + '/amethyst/skins/silver-bells/'
+  if (skin === 'christmas_jewelry_workshop') return origin + '/amethyst/skins/christmas-jewelry-workshop/'
   if (skin === 'pearl_rose') return origin + '/amethyst/skins/pearl-rose/'
   if (skin === 'midnight_rose') return origin + '/amethyst/skins/midnight-rose/'
   if (skin === 'macies_christmas_globe') return origin + '/amethyst/skins/macies-christmas-globe/'
@@ -529,7 +544,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
     if (!pattern.test(document)) continue
     pattern.lastIndex = 0
     let source = await readFile(join(root, name), 'utf8')
-    if ((skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'macies_christmas_globe' || skin === 'silver_bells' || skin === 'starlight_christmas_hollow' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') && page === 'homepage' && name === 'homepage.jsx') {
+    if ((skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'macies_christmas_globe' || skin === 'silver_bells' || skin === 'christmas_jewelry_workshop' || skin === 'starlight_christmas_hollow' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') && page === 'homepage' && name === 'homepage.jsx') {
       // Avoid even an initial blocked external-sprite request before the
       // preview observer fills this placeholder with the real glyph paths.
       source = source.replace('<use href={`/amethyst/media-icons.svg#${name}`} />', '<use data-preview-icon={name} />')
@@ -545,6 +560,11 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
     const css = await readFile(join(root, 'silver-bells.css'), 'utf8')
     const motion = await readFile(join(root, 'silver-bells.js'), 'utf8')
     document = document.replace('<html', '<html data-customer-theme="silver_bells"').replace('</head>', () => '<style data-ssr-style="silver-bells.css">' + css + '</style></head>').replace('</body>', () => '<script data-silver-bells-runtime>' + inlineScript(motion) + '</script></body>')
+  }
+  if (skin === 'christmas_jewelry_workshop') {
+    const css = await readFile(join(root, 'christmas-jewelry-workshop.css'), 'utf8')
+    const motion = await readFile(join(root, 'christmas-jewelry-workshop.js'), 'utf8')
+    document = document.replace('<html', '<html data-customer-theme="christmas_jewelry_workshop"').replace('</head>', () => '<style data-ssr-style="christmas-jewelry-workshop.css">' + css + '</style></head>').replace('</body>', () => '<script data-christmas-jewelry-workshop-runtime>' + inlineScript(motion) + '</script></body>')
   }
   if (skin === 'macies_christmas_globe') {
     const css = await readFile(join(root, 'macies-christmas-globe.css'), 'utf8')
@@ -563,7 +583,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   const bootstrap = bootstrapOverride ?? fixtureBootstrap(page, skin, review).replaceAll('Sparkle by Sasha', profile.businessName)
   const reviewGuards = SKIN_PREVIEW_GUARDS.replace('var sample = '+JSON.stringify(GNOME_PREVIEW_LINEUP)+';', 'var sample = '+JSON.stringify(reviewLineup(review))+';')
   let mediaSymbols = ''
-  if ((skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'macies_christmas_globe' || skin === 'silver_bells' || skin === 'starlight_christmas_hollow' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') && page === 'homepage') {
+  if ((skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'macies_christmas_globe' || skin === 'silver_bells' || skin === 'christmas_jewelry_workshop' || skin === 'starlight_christmas_hollow' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') && page === 'homepage') {
     mediaSymbols = (await readFile(join(root, 'media-icons.svg'), 'utf8'))
       .replace('<svg xmlns="http://www.w3.org/2000/svg">', '<svg id="rgc-preview-media-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="0" height="0" style="position:absolute;overflow:hidden;pointer-events:none">')
       .replace(/\bid="([a-z][a-z0-9-]*)"/g, (_match, id: string) => id === 'rgc-preview-media-symbols' ? _match : `id="rgc-preview-icon-${id}"`)
@@ -579,7 +599,7 @@ export async function buildGnomeSkinPreviewDocument(page: SkinPreviewPage, origi
 export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string, review: LineupReviewState | null = null) {
   const profile = PREVIEW_PROFILES[skin]
   const document = await buildSkinPreviewDocument(skin, page, origin, review)
-  const previewKind = (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'macies_christmas_globe' || skin === 'silver_bells' || skin === 'starlight_christmas_hollow' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') ? 'Theme' : 'Skin'
+  const previewKind = (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'macies_christmas_globe' || skin === 'silver_bells' || skin === 'christmas_jewelry_workshop' || skin === 'starlight_christmas_hollow' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') ? 'Theme' : 'Skin'
   const reviewQuery = review ? '?lineupReview='+review : ''
   const reviewControls = review ? '<nav aria-label="Lineup review states">'+(['empty','queued','delayed','no-calendar'] as const).map(state => '<a href="'+previewPath(skin,page)+'?lineupReview='+state+'"'+(state === review ? ' aria-current="page"' : '')+'>'+({empty:'Empty',queued:'Names waiting',delayed:'Delayed', 'no-calendar':'No calendar'}[state])+'</a>').join('')+'</nav>' : ''
   const navigation = SKIN_PREVIEW_PAGES.map((item) => `<a href="${previewPath(skin, item)}${reviewQuery}"${item === page ? ' aria-current="page"' : ''}>${LABELS[item]}</a>`).join('')
@@ -595,6 +615,8 @@ export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreview
     ? { bg: '#201321', fg: '#fff3e4', muted: '#ddc8b8', border: '#70513e', active: '#efba73', focus: '#efba73' }
     : skin === 'silver_bells'
     ? {bg:'#071329',fg:'#f4f7fc',muted:'#bacce2',border:'#657d9b',active:'#dce8f5',focus:'#96bce8'}
+    : skin === 'christmas_jewelry_workshop'
+    ? {bg:'#21372b',fg:'#f4f7fc',muted:'#bacce2',border:'#657d9b',active:'#f5e9d6',focus:'#aa8153'}
     : skin === 'midnight_rose'
     ? { bg: '#180e16', fg: '#fff0e8', muted: '#dbc0bb', border: '#66424b', active: '#efb5a3', focus: '#efb5a3' }
     : skin === 'sunset_beach'

@@ -576,19 +576,20 @@ function foregroundSvg(input: {
   const { pill, qr, qrFrame, panel, lowerPanel } = input.layout
   // Silver Bells: Louis requested a complete portrait scene with a simple white
   // rounded QR panel. Keep the real adaptive layout and all optional fields.
-  if ((input.appearancePreset as string) === 'silver_bells') {
-    const backing = (box: FlyerBox | null) => box ? `<rect x="${box.x}" y="${box.y}" width="${box.width}" height="${box.height}" rx="26" fill="#071329" fill-opacity=".73"/>` : ''
+  if (input.appearancePreset === 'silver_bells' || input.appearancePreset === 'christmas_jewelry_workshop') {
+    const workshop = input.appearancePreset === 'christmas_jewelry_workshop'
+    const backing = (box: FlyerBox | null) => box ? `<rect x="${box.x}" y="${box.y}" width="${box.width}" height="${box.height}" rx="26" fill="${workshop ? '#322318' : '#071329'}" fill-opacity=".73"/>` : ''
     return canvasSvg(`
       ${backing(panel)}${backing(lowerPanel)}
-      ${svgBlock(input.layout.showTitle, fonts.heading, '#f5f8ff', 400)}
-      ${svgBlock(input.layout.tagline, fonts.body, '#dce8f5', 500)}
-      <rect x="${pill.x}" y="${pill.y}" width="${pill.width}" height="${pill.height}" rx="30" fill="#102443" fill-opacity=".9"/>
+      ${svgBlock(input.layout.showTitle, fonts.heading, workshop ? '#fff6e6' : '#f5f8ff', 400)}
+      ${svgBlock(input.layout.tagline, fonts.body, workshop ? '#efd5aa' : '#dce8f5', 500)}
+      <rect x="${pill.x}" y="${pill.y}" width="${pill.width}" height="${pill.height}" rx="30" fill="${workshop ? '#21372b' : '#102443'}" fill-opacity=".9"/>
       ${svgText({value: FLYER_SCAN_LABEL, y: pill.y + (pill.height - input.layout.pillSize) / 2, family: fonts.body, size: input.layout.pillSize, fill:'#ffffff', weight:700, letterSpacing:2})}
       ${input.showQr ? `<rect x="${qrFrame.x}" y="${qrFrame.y}" width="${qrFrame.width}" height="${qrFrame.height}" rx="32" fill="#ffffff"/>` : ''}
-      ${svgBlock(input.layout.instructions, fonts.body, '#f5f8ff', 500)}
-      ${svgBlock(input.layout.website, fonts.body, '#f5f8ff', 700)}
-      ${svgBlock(input.layout.textLink, fonts.body, '#f5f8ff', 600)}
-      ${svgBlock(input.layout.signOff, fonts.body, '#dce8f5', 500)}
+      ${svgBlock(input.layout.instructions, fonts.body, workshop ? '#fff6e6' : '#f5f8ff', 500)}
+      ${svgBlock(input.layout.website, fonts.body, workshop ? '#fff6e6' : '#f5f8ff', 700)}
+      ${svgBlock(input.layout.textLink, fonts.body, workshop ? '#fff6e6' : '#f5f8ff', 600)}
+      ${svgBlock(input.layout.signOff, fonts.body, workshop ? '#efd5aa' : '#dce8f5', 500)}
     `)
   }
   const pillTextY = pill.y + (pill.height - input.layout.pillSize) / 2

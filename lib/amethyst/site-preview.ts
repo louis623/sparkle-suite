@@ -73,6 +73,7 @@ const PREVIEW_GUARD = `(function(){
   window.sparkleStartHeroMotion = function() {};
   window.sparkleStartMileHighFizzHero = function() {};
   window.sparkleSilverBellsController = true;
+  window.sparkleChristmasJewelryWorkshopController = true;
   function quiet(root) {
     var start = root && root.matches ? [root] : [];
     var found = root && root.querySelectorAll ? root.querySelectorAll('video,audio,.sb-music-toggle,[data-hero-sound-toggle]') : [];

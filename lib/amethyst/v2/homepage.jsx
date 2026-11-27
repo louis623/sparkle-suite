@@ -1,7 +1,7 @@
 import "../../../public/amethyst/hosted-video.js";
 import { initialLineup } from "./initial-lineup.jsx";
 import { HeroCopyReservation } from "./hero-copy-reservation.jsx";
-import { HeroMotionScene, GnomeGardenScene, SilverBellsControls } from "./hero-motion.jsx";
+import { HeroMotionScene, GnomeGardenScene, WorkshopControls, SilverBellsControls } from "./hero-motion.jsx";
 /* global React, ReactDOM */
 const { useState, useEffect, useMemo, useRef } = React;
 
@@ -663,6 +663,15 @@ const PRESETS = {
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
     shapeRadius: "soft", density: "regular",
   },
+  christmas_jewelry_workshop: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "christmas-jewelry-workshop", cardSurface: "christmas-jewelry-workshop",
+    textureOverlay: "none", buttonEnergy: "standard", ctaEmphasis: "standard",
+    tradeFlair: "none", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "christmasJewelryWorkshop", primaryColor: "#aa8153", accentColor: "#f5e9d6",
+    headingFont: "workshopDisplay", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
   starlight_christmas_hollow: {
     heroMotion: "sparkle_rise", sparkleLevel: "subtle",
     bgTreatment: "starlight-christmas-hollow", cardSurface: "starlight-christmas-hollow",
@@ -796,6 +805,7 @@ const FONTS = {
   inter: '"Inter", system-ui, sans-serif',
   serif: '"Fraunces", "Domine", Georgia, serif',
   italiana: '"Italiana", "Playfair Display", serif',
+  workshopDisplay: '"Workshop Display", Georgia, serif',
   playfair: '"Playfair Display", Georgia, serif',
   dmSans: '"DM Sans", "Inter", system-ui, sans-serif',
   greatVibes: '"Great Vibes", "Playfair Display", cursive',
@@ -940,6 +950,7 @@ function Hero({ t, isLive, liveShow }) {
                     <span className="spark" /><span className="spark" /><span className="spark" /><span className="spark" />
                   </a>
                   {t.preset === "silver_bells" && <SilverBellsControls />}
+                  {t.preset === "christmas_jewelry_workshop" && <WorkshopControls />}
                 </div>
               </>
             ) : (
@@ -961,6 +972,7 @@ function Hero({ t, isLive, liveShow }) {
                     <span className="spark" /><span className="spark" /><span className="spark" /><span className="spark" />
                   </a>
                   {t.preset === "silver_bells" && <SilverBellsControls />}
+                  {t.preset === "christmas_jewelry_workshop" && <WorkshopControls />}
                   {isHeatherBlingKitchenSite && CONTENT.pantryPageUrl && (
                     <a {...linkProps(CONTENT.pantryPageUrl)} className="hp-btn-primary hp-btn-sparkle hp-hero-trade-board-cta">
                       In the Pantry
@@ -3497,14 +3509,15 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="mhf-hero" data-ssr-hero={t.preset === "gilded_autumn" ? t.preset : undefined} data-hero-motion="on" aria-labelledby="mhf-hero-title" suppressHydrationWarning>
         {/* Keep the existing Gilded video eager; hydration must never wait for its poster. */}
+        {t.preset === "christmas_jewelry_workshop" && <HeroMotionScene t={t} host eager />}
         {t.preset === "gilded_autumn" && <HeroMotionScene t={t} eager />}
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-        {t.preset !== "gilded_autumn" && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells"].includes(t.preset) && <video className="mhf-hero-video" muted loop playsInline preload="metadata" poster="" aria-hidden="true" tabIndex={-1} suppressHydrationWarning>
+        {t.preset !== "gilded_autumn" && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells", "christmas_jewelry_workshop"].includes(t.preset) && <video className="mhf-hero-video" muted loop playsInline preload="metadata" poster="" aria-hidden="true" tabIndex={-1} suppressHydrationWarning>
           <source src={CONTENT.heroVideoUrl || heroVideoUrl} type="video/mp4" />
         </video>}
         <div className="mhf-hero-shade" aria-hidden="true" />
-        {t.preset !== "gilded_autumn" && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells"].includes(t.preset) && <button type="button" className="mhf-video-control" data-mhf-video-toggle="" aria-label="Pause background video" suppressHydrationWarning>Pause background video</button>}
-        <HeroCopyReservation enabled={["gilded_autumn", "alpine_opal", "fall_owl_harvest_moon", "midnight_rose", "rose_gold"].includes(t.preset)}>
+        {t.preset !== "gilded_autumn" && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells", "christmas_jewelry_workshop"].includes(t.preset) && <button type="button" className="mhf-video-control" data-mhf-video-toggle="" aria-label="Pause background video" suppressHydrationWarning>Pause background video</button>}
+        <HeroCopyReservation enabled={["gilded_autumn", "alpine_opal", "fall_owl_harvest_moon", "midnight_rose", "rose_gold", "christmas_jewelry_workshop"].includes(t.preset)}>
         <div className="mhf-hero-content">
           <h1 id="mhf-hero-title" className="mhf-hero-title mhf-logo-gradient">
             {CONTENT.heroHeadline || businessName}
@@ -3525,6 +3538,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
                 <SocialHeroLinks className="mhf-cta mhf-cta-watch" />
               </div>
               <a {...linkProps(getTradeBoardHref())} className="mhf-cta mhf-cta-dance-floor">Browse the Dance Floor</a>
+              {t.preset === "christmas_jewelry_workshop" && <WorkshopControls />}
             </div>
           </div>
         </div>
@@ -3636,7 +3650,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="bwb-hero" data-hero-motion="on" aria-labelledby="bwb-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-        {!["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells"].includes(t.preset) && <img className="bwb-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "Live jewelry reveals", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />}
+        {!["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells", "christmas_jewelry_workshop"].includes(t.preset) && <img className="bwb-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "Live jewelry reveals", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />}
         <div className="bwb-hero-shade" aria-hidden="true" />
         <div className="bwb-hero-content">
           <p className="bwb-hero-team">{CONTENT.heroEyebrow || "The Virtuous Fizzers"}</p>
@@ -3658,6 +3672,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
                 <SocialHeroLinks className="bwb-cta bwb-cta-watch" />
               </div>
               <a {...linkProps(getTradeBoardHref())} className="bwb-cta bwb-cta-dance-floor">Dance Floor · Coming soon</a>
+              {t.preset === "christmas_jewelry_workshop" && <WorkshopControls />}
             </div>
           </div>
         </div>
@@ -3710,7 +3725,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
             </div>
             <p className="bkf-live"><i aria-hidden="true"></i>Live M / W / F · 7 PM EST</p>
           </div>
-          {heroImageUrl && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells"].includes(t.preset) && (
+          {heroImageUrl && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells", "christmas_jewelry_workshop"].includes(t.preset) && (
             <div className="bkf-card">
               <img {...responsiveRepImage(heroImageUrl, { alt: "Heather in the kitchen with Bomb Party jewelry on display", sizes: "(max-width: 800px) 100vw, 480px", widths: [384, 640, 828, 1200], eager: true })} />
             </div>
@@ -3720,7 +3735,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
       ) : (
       <section className="bk-home-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bk-home-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-        {heroImageUrl && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells"].includes(t.preset) && <img className="bk-home-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "BlingKitchen", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />}
+        {heroImageUrl && !["starlight_christmas_hollow", "macies_christmas_globe", "silver_bells", "christmas_jewelry_workshop"].includes(t.preset) && <img className="bk-home-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "BlingKitchen", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />}
         <div className="bk-home-hero-content">
           <p>{CONTENT.heroEyebrow || "With Heather"}</p>
           <h1 id="bk-home-hero-title">{businessName}</h1>
@@ -4044,6 +4059,7 @@ function App() {
               { value: "rose_gold", label: "Rose Gold" },
               { value: "midnight_rose", label: "Midnight Rose" },
               { value: "silver_bells", label: "Silver Bells" },
+              { value: "christmas_jewelry_workshop", label: "Christmas Jewelry Workshop" },
               { value: "starlight_christmas_hollow", label: "Starlight Christmas Hollow" },
               { value: "fall_owl_harvest_moon", label: "Fall Owl and Harvest Moon" },
               { value: "gobble_and_fizz", label: "Gobble & Fizz" },

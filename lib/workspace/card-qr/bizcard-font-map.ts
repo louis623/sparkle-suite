@@ -43,6 +43,7 @@ export const BIZCARD_FONT_FILES = {
     "body700": "../source-sans-3/bold/SourceSans3-Bold.ttf"
   },
   "silver-bells": {"head":"GreatVibes-Regular.ttf","script":"GreatVibes-Regular.ttf","body":"DMSansopsz-wght-opsz40-wght500.ttf","body600":"DMSansopsz-wght-opsz40-wght600.ttf","body700":"DMSansopsz-wght-opsz40-wght700.ttf"},
+  "christmas-jewelry-workshop": {"head":"CormorantGaramond-Bold.ttf","script":"CormorantGaramond-Bold.ttf","body":"DMSansopsz-wght-opsz40-wght500.ttf","body600":"DMSansopsz-wght-opsz40-wght600.ttf","body700":"DMSansopsz-wght-opsz40-wght700.ttf"},
   "starlight-christmas-hollow": {
     "head": "PlayfairDisplaywght-wght600.ttf",
     "script": "PlayfairDisplay-Italic-VariableFont_wght-wght500.ttf",

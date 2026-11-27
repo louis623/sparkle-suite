@@ -8,6 +8,7 @@ const SAMPLE_IDS = new Set([
   'gobble_and_fizz',
   'pie_please',
   'silver_bells',
+  'christmas_jewelry_workshop',
   'starlight_christmas_hollow',
   'macies_christmas_globe',
   'halloween_pumpkin_cat',
