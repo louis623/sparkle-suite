@@ -5603,13 +5603,18 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         return
       }
       try {
+        const startedVersion = siteSettingsVersionRef.current
         const response = await fetch('/api/nic-nac/site-settings/look-preview', { credentials: 'include' })
         if (response.ok) {
           const payload = (await response.json()) as {
             lookPreview?: NonNullable<SiteSettingsDashboardResult['lookPreview']> | null
           }
           const next = payload.lookPreview
-          if (next && !siteSettingsSavePendingRef.current) {
+          if (next && !stopped && shouldApplyNicNacSiteRefresh({
+            startedVersion,
+            currentVersion: siteSettingsVersionRef.current,
+            savePending: siteSettingsSavePendingRef.current,
+          })) {
             setSiteSettingsState((current) => {
               if (current.status !== 'ready' || !current.settings) return current
               const currentPreview = current.settings.lookPreview
@@ -10243,44 +10248,68 @@ function ShareMySite({ url }: { url: string | null }) {
 function LookCoverImage({
   desktop,
   phone,
-  fallback,
+  theme,
+  updating,
+  coverQuiet,
   onGiveUp,
 }: {
   desktop: string
   phone: string
-  fallback: string
-  onGiveUp?: () => void
+  theme: AmethystSkinCard
+  updating: boolean
+  coverQuiet: boolean
+  onGiveUp: () => void
 }) {
-  const nextKey = `${desktop}|${phone}|${fallback}`
-  const [shown, setShown] = useState({ desktop, phone, fallback, key: nextKey })
+  const src = desktop || phone
+  const imageRef = useRef<HTMLImageElement>(null)
+  const onGiveUpRef = useRef(onGiveUp)
+  const [showShot, setShowShot] = useState(false)
+  useLayoutEffect(() => { onGiveUpRef.current = onGiveUp }, [onGiveUp])
+
   useEffect(() => {
-    if (!nextKey || nextKey === shown.key) return
-    let cancel = false
-    const image = new Image()
-    image.decoding = 'async'
-    const giveUp = () => { if (!cancel) onGiveUp?.() }
-    const reveal = () => {
-      if (cancel || image.naturalWidth < 1) {
+    const image = imageRef.current
+    if (!image) return
+    let cancelled = false
+    const giveUp = () => {
+      if (!cancelled) onGiveUpRef.current()
+    }
+    const reveal = async () => {
+      if (!image.naturalWidth) {
         giveUp()
         return
       }
-      const decoded = typeof image.decode === 'function' ? image.decode() : Promise.resolve()
-      Promise.resolve(decoded).then(() => {
-        if (!cancel) setShown({ desktop, phone, fallback, key: nextKey })
-      }).catch(giveUp)
+      try {
+        if (typeof image.decode === 'function') await image.decode()
+        if (!cancelled) setShowShot(true)
+      } catch {
+        giveUp()
+      }
     }
-    image.onload = reveal
-    image.onerror = giveUp
-    image.src = desktop || phone || fallback
-    return () => { cancel = true }
-  }, [desktop, fallback, nextKey, onGiveUp, phone, shown.key])
-  const src = shown.desktop || shown.phone || shown.fallback
-  if (!src) return null
+    image.addEventListener('load', reveal)
+    image.addEventListener('error', giveUp)
+    if (image.complete) void reveal()
+    return () => {
+      cancelled = true
+      image.removeEventListener('load', reveal)
+      image.removeEventListener('error', giveUp)
+    }
+  }, [src, phone])
+
   return (
-    <picture className={styles.siteLookPicture}>
-      {shown.phone ? <source media="(max-width: 879px)" srcSet={shown.phone} /> : null}
-      <img src={src} alt="" decoding="async" />
-    </picture>
+    <span className={styles.siteTileArt} data-tile-art="look" data-look-source={showShot ? 'shot' : 'poster'} aria-hidden="true">
+      {!showShot && (theme.thumb
+        ? <img src={theme.thumb} alt="" decoding="async" />
+        : <span className={styles.sitePaletteName}>{theme.label}</span>)}
+      {src ? (
+        <picture className={styles.siteLookPicture} hidden={!showShot}>
+          {phone ? <source media="(max-width: 879px)" srcSet={phone} /> : null}
+          <img ref={imageRef} src={src} alt="" decoding="async" />
+        </picture>
+      ) : null}
+      {!coverQuiet && (updating || (src && !showShot))
+        ? <span className={styles.siteLookUpdating}>Updating preview</span>
+        : null}
+    </span>
   )
 }
 
@@ -10371,11 +10400,7 @@ export function SiteSettingsCard({
     end: number
     text: string
   } | null>(null)
-  const [coverQuiet, setCoverQuiet] = useState(false)
-  const coverKey = state.status === 'ready'
-    ? `${state.settings?.lookPreview?.desktopUrl ?? ''}|${state.settings?.lookPreview?.phoneUrl ?? ''}`
-    : ''
-  useEffect(() => { setCoverQuiet(false) }, [coverKey])
+  const [quietCoverKey, setQuietCoverKey] = useState<string | null>(null)
 
   useEffect(() => {
     setTouchedFields({})
@@ -10517,9 +10542,12 @@ export function SiteSettingsCard({
   const checklist = buildSiteSetupChecklist(draft)
   const themeCard = getAmethystSkinCard(draft.appearancePreset)
   const lookPreview = settings.lookPreview ?? null
-  const lookDesktop = lookPreview?.desktopUrl || ''
-  const lookPhone = lookPreview?.phoneUrl || ''
-  const lookShot = Boolean(lookDesktop || lookPhone)
+  const readyLookShot = lookPreview?.status === 'ready'
+    && themeCard.id === normalizeAmethystAppearancePreset(settings.appearancePreset)
+    ? lookPreview : null
+  const lookDesktop = readyLookShot?.desktopUrl || ''
+  const lookPhone = readyLookShot?.phoneUrl || ''
+  const coverKey = JSON.stringify([themeCard.id, lookDesktop, lookPhone])
   const aboutSlot = draft.homepageMediaSlots?.find((slot) => slot.key === 'about_1')
   const aboutSavedPhoto = aboutSlot?.imageUrl?.trim() || ''
   const aboutPhoto = isBuiltInStockAvatar(aboutSavedPhoto) ? '' : aboutSavedPhoto
@@ -10725,26 +10753,22 @@ export function SiteSettingsCard({
               className={styles.siteTile}
               onClick={() => group.dialog.current?.showModal()}
             >
-              <span
+              {group.id === 'look' ? (
+                <LookCoverImage
+                  key={coverKey}
+                  desktop={lookDesktop}
+                  phone={lookPhone}
+                  theme={themeCard}
+                  updating={lookPreviewStillPending(lookPreview?.status)}
+                  coverQuiet={quietCoverKey === coverKey}
+                  onGiveUp={() => setQuietCoverKey(coverKey)}
+                />
+              ) : <span
                 className={styles.siteTileArt}
                 data-tile-art={group.id}
-                data-look-source={group.id === 'look' ? (lookShot ? 'shot' : 'poster') : undefined}
                 style={group.id === 'shows' ? ticketStyle : undefined}
                 aria-hidden="true"
               >
-                {group.id === 'look' ? (
-                  themeCard.thumb || lookShot ? (
-                    <>
-                      <LookCoverImage
-                        desktop={lookDesktop}
-                        phone={lookPhone}
-                        fallback={themeCard.thumb || ''}
-                        onGiveUp={() => setCoverQuiet(true)}
-                      />
-                      {lookPreviewStillPending(lookPreview?.status) && !coverQuiet ? <span className={styles.siteLookUpdating}>Updating preview</span> : null}
-                    </>
-                  ) : <span className={styles.sitePaletteName}>{themeCard.label}</span>
-                ) : null}
                 {group.id === 'about' ? (
                   <span
                     className={styles.siteMag}
@@ -10810,7 +10834,7 @@ export function SiteSettingsCard({
                     </span>
                   </span>
                 ) : null}
-              </span>
+              </span>}
               <span className={styles.siteTileCopy}>
                 <span className={chipClass}>
                   {chipLabel}

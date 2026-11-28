@@ -11,6 +11,8 @@ import {
   siteSetupRemaining,
 } from '@/app/nic-nac/components/site-settings-layout'
 import { isMyWebsiteLayoutHarnessEnabled } from '@/app/dev/my-website-layout-harness/access'
+import { getAmethystSkinCard } from '@/lib/amethyst/skin-cards'
+import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 
 const sections = [
   'top-bar',
@@ -153,11 +155,23 @@ afterEach(() => {
   host.remove()
 })
 
-async function renderCard(draft: SiteSettingsDraft, extra: { britt?: boolean } = {}) {
+async function renderCard(draft: SiteSettingsDraft, extra: {
+  britt?: boolean
+  savedPreset?: SiteSettingsDraft['appearancePreset']
+  lookPreview?: SiteSettingsDashboardResult['lookPreview']
+} = {}) {
   await act(async () => {
     root.render(
       createElement(SiteSettingsCard, {
-        state: { status: 'ready', settings: { ...draft, joinTeamAccessEnabled: true } },
+        state: {
+          status: 'ready',
+          settings: {
+            ...draft,
+            appearancePreset: extra.savedPreset ?? draft.appearancePreset,
+            joinTeamAccessEnabled: true,
+            lookPreview: extra.lookPreview,
+          },
+        },
         draft,
         publicSiteUrl: 'https://sparklebysasha.example',
         isBrittWithBling: extra.britt === true,
@@ -165,6 +179,71 @@ async function renderCard(draft: SiteSettingsDraft, extra: { britt?: boolean } =
     )
   })
 }
+
+describe('Look tile preview', () => {
+  const draft = { ...ready, appearancePreset: 'silver_bells' } as const
+  const poster = getAmethystSkinCard(draft.appearancePreset).thumb
+  const stored = { status: 'ready', desktopUrl: '/old-desktop.webp', phoneUrl: '/old-phone.webp' } as const
+  const captured = { status: 'ready', desktopUrl: '/new-desktop.webp', phoneUrl: '/new-phone.webp' } as const
+  const tile = () => host.querySelector('[data-tile-art="look"]')!
+
+  it('shows the current poster before saving and through a failed recapture', async () => {
+    await renderCard(ready, { lookPreview: stored })
+    const oldShot = tile().querySelector<HTMLImageElement>('picture img')!
+    Object.defineProperty(oldShot, 'naturalWidth', { value: 1440 })
+    await act(async () => { oldShot.dispatchEvent(new Event('load')) })
+    expect(tile().getAttribute('data-look-source')).toBe('shot')
+
+    await renderCard(draft, { savedPreset: ready.appearancePreset, lookPreview: stored })
+    expect(tile().querySelector('img')?.getAttribute('src')).toBe(poster)
+    expect(tile().querySelector('picture')).toBeNull()
+
+    for (const status of ['updating', 'failed'] as const) {
+      await renderCard(draft, { lookPreview: { ...stored, status } })
+      expect(tile().querySelector('img')?.getAttribute('src')).toBe(poster)
+      expect(tile().querySelector('picture')).toBeNull()
+    }
+  })
+
+  it('shows the current theme label when there is no poster', async () => {
+    const theme = getAmethystSkinCard('rose_gold')
+    expect(theme.thumb).toBeNull()
+    await renderCard({ ...ready, appearancePreset: 'rose_gold' }, { lookPreview: { ...stored, status: 'failed' } })
+    expect(tile().textContent).toBe(theme.label)
+    expect(tile().querySelector('img')).toBeNull()
+  })
+
+  it('swaps to decoded ready URLs even if the give-up callback changes mid-load', async () => {
+    await renderCard(draft, { lookPreview: { ...stored, status: 'updating' } })
+    await renderCard(draft, { lookPreview: captured })
+    const picture = tile().querySelector('picture')!
+    const image = picture.querySelector('img')!
+    const decoded = Promise.withResolvers<void>()
+    Object.defineProperties(image, {
+      naturalWidth: { value: 1440 },
+      decode: { value: () => decoded.promise },
+    })
+    await act(async () => { image.dispatchEvent(new Event('load')) })
+    expect(picture.hidden).toBe(true)
+    expect(tile().querySelector('img')?.getAttribute('src')).toBe(poster)
+
+    await renderCard(draft, { lookPreview: captured })
+    await act(async () => { decoded.resolve() })
+    expect(picture.hidden).toBe(false)
+    expect(tile().getAttribute('data-look-source')).toBe('shot')
+    expect(tile().querySelector('img')?.getAttribute('src')).toBe(captured.desktopUrl)
+    expect(picture.querySelector('source')?.getAttribute('srcset')).toBe(captured.phoneUrl)
+  })
+
+  it('keeps the poster visible when a ready screenshot fails to load', async () => {
+    await renderCard(draft, { lookPreview: captured })
+    expect(tile().textContent).toContain('Updating preview')
+    await act(async () => { tile().querySelector('picture img')!.dispatchEvent(new Event('error')) })
+    expect(tile().textContent).not.toContain('Updating preview')
+    expect(tile().querySelector('picture')?.hidden).toBe(true)
+    expect(tile().querySelector('img')?.getAttribute('src')).toBe(poster)
+  })
+})
 
 describe('site settings layout map', () => {
   it('keeps every current control in one homepage section, in customer scroll order', async () => {
